@@ -1,0 +1,98 @@
+[project]
+authors = [
+  {name = "Niccolò Cantù", email = "niccolo.cantu@nina.no"}
+]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
+dependencies = [
+  "django-environ",
+  "python-slugify>=8.0.1",
+  "Pillow==10.1.0",
+  "rcssmin",
+  "argon2-cffi",
+  "psycopg[binary]",
+  "backoff",
+  "requests",
+  "django>=5.0.0",
+  "django-model-utils",
+  "django-allauth",
+  "django-crispy-forms",
+  "crispy-bootstrap5",
+  "django-health-check",
+  "django-probes",
+  "django-postgres-extra",
+  "django-solo",
+  "django-appconf>=1.0.6",
+  "django-cors-headers>=4.3.1",
+  "django-filter>=24.1",
+  "slippers",
+  "django-tables2>=2.7.0",
+  "django-autocomplete-light>=3.11.0",
+  "dj-rest-auth",
+  "django-rest-framework",
+  "drf-spectacular",
+  "djangorestframework-simplejwt",
+  "django-cors-headers"
+]
+description = ""
+license = {text = "GPL-3.0+"}
+name = "genlab_bestilling"
+readme = "README.md"
+requires-python = ">=3.10"
+version = "0.1.0"
+
+[project.optional-dependencies]
+dev = [
+  "Werkzeug[watchdog]",
+  "ipdb",
+  "pytest",
+  "pytest-sugar",
+  "coverage",
+  "pre-commit",
+  "factory-boy",
+  "django-debug-toolbar",
+  "django-extensions",
+  "django-coverage-plugin",
+  "pytest-django",
+  "django-models2puml>=0.2"
+]
+prod = [
+  "gunicorn",
+  "sentry-sdk>=1.40.5"
+]
+tools = [
+  "pre-commit",
+  "pyyaml",
+  "GitPython"
+]
+
+[project.scripts]
+"manage.py" = "genlab_bestilling:django_manage"
+
+# ==== Coverage ====
+[tool.coverage]
+
+[tool.coverage.run]
+include = ["app/**"]
+omit = ["*/migrations/*", "*/tests/*"]
+plugins = ["django_coverage_plugin"]
+
+# ==== pytest ====
+[tool.pytest.ini_options]
+addopts = "--ds=config.settings.test --reuse-db"
+minversion = "6.0"
+python_files = [
+  "tests.py",
+  "test_*.py"
+]
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+ignore = ["COM812"]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/migrations/*.py" = ["E501", "ANN"]
+"init.py" = ["S603", "S607"]

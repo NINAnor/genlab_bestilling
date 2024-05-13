@@ -1,0 +1,12 @@
+[book]
+authors = []
+language = "en"
+multilingual = false
+src = "src"
+
+[output.html]
+additional-css = ["theme/css/kroki.css"]
+edit-url-template = "https://github.com/ninanor/genlab_bestilling/edit/main/docs/{path}"
+git-repository-url = "https://github.com/ninanor/genlab_bestilling/"
+
+[preprocessor.kroki-preprocessor]

@@ -12,20 +12,32 @@ class NINAProject(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     id = models.BigIntegerField(primary_key=True, verbose_name=_("Project number"))
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class Organization(models.Model):
     name = models.CharField(max_length=255)
+
     # TODO: unique name
+    def __str__(self) -> str:
+        return self.name
 
 
 class Area(models.Model):
     name = models.CharField(max_length=255)
+
     # TODO: unique name
+    def __str__(self) -> str:
+        return self.name
 
 
 class Marker(models.Model):
-    name = models.CharField()
+    name = models.CharField(primary_key=True)
+
     # TODO: unique name
+    def __str__(self) -> str:
+        return self.name
 
 
 class Species(models.Model):
@@ -33,6 +45,9 @@ class Species(models.Model):
     name = models.CharField(max_length=255)
     area = models.ForeignKey("Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField("Marker")
+
+    def __str__(self) -> str:
+        return self.name
 
 
 # TODO: better understand "other" case. should the user be able to insert new orws?
@@ -44,9 +59,15 @@ class Species(models.Model):
 class SampleType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class AnalysisType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Location(models.Model):
@@ -62,14 +83,18 @@ class GenLabProject(models.Model):
 
     name = models.CharField(max_length=255, null=True, blank=True)
     # external projects without project code? how to handle them?
-    project = models.ForeignKey("NINAProject", on_delete=models.DO_NOTHING, null=True)
+    project = models.ForeignKey(
+        "NINAProject", on_delete=models.DO_NOTHING, null=True, blank=True
+    )
     verified = models.BooleanField(default=False)
-    samples_owner = models.ForeignKey("Organization", on_delete=models.PROTECT)
+    samples_owner = models.ForeignKey(
+        "Organization", on_delete=models.PROTECT, blank=True, null=True
+    )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField("Species")
-    sample_types = models.ManyToManyField("SampleType")
-    analysis_types = models.ManyToManyField("AnalysisType")
-    expected_total_samples = models.IntegerField(null=True)
+    species = models.ManyToManyField("Species", blank=True)
+    sample_types = models.ManyToManyField("SampleType", blank=True)
+    analysis_types = models.ManyToManyField("AnalysisType", blank=True)
+    expected_total_samples = models.IntegerField(null=True, blank=True)
     analysis_timerange = DateRangeField(null=True, blank=True)
 
 
@@ -83,6 +108,9 @@ class Order(PolymorphicModel):
 class EquipmentType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     unit = models.CharField(max_length=50)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class EquimentOrderQuantity(models.Model):

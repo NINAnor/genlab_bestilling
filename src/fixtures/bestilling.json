@@ -1,0 +1,335 @@
+[
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 1,
+        "fields": {
+            "name": "Akvatisk"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 2,
+        "fields": {
+            "name": "Amfibier"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 3,
+        "fields": {
+            "name": "Biodiversitet (metabarcoding)"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 4,
+        "fields": {
+            "name": "Fisk"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 5,
+        "fields": {
+            "name": "Fugl"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 6,
+        "fields": {
+            "name": "Hjortedyr"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 7,
+        "fields": {
+            "name": "Parasitt og sykdomspåvisning"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 8,
+        "fields": {
+            "name": "Planter"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 9,
+        "fields": {
+            "name": "Rovdyr"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 9,
+        "fields": {
+            "name": "Terrestrisk"
+        }
+    },
+    {
+        "model": "genlab_bestilling.Area",
+        "pk": 10,
+        "fields": {
+            "name": "Annet"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 1,
+        "fields": {
+            "name": "Artspåvisning"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 2,
+        "fields": {
+            "name": "Individbestemmelse"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 3,
+        "fields": {
+            "name": "Kjønnstest"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 4,
+        "fields": {
+            "name": "Biodiversitet (metabarcoding)"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 5,
+        "fields": {
+            "name": "Oppdrett/vill"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 6,
+        "fields": {
+            "name": "Populasjonsstruktur"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 7,
+        "fields": {
+            "name": "Sekvensering (barcoding)"
+        }
+    },
+    {
+        "model": "genlab_bestilling.AnalysisType",
+        "pk": 8,
+        "fields": {
+            "name": "Slektskapsanalyser"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 1,
+        "fields": {
+            "name": "Blod"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 2,
+        "fields": {
+            "name": "DNA-ekstrakt"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 3,
+        "fields": {
+            "name": "Ekskrement"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 4,
+        "fields": {
+            "name": "Fjær"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 5,
+        "fields": {
+            "name": "Oppgulp"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 6,
+        "fields": {
+            "name": "Hår"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 7,
+        "fields": {
+            "name": "Jord"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 8,
+        "fields": {
+            "name": "PIT-nål"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 9,
+        "fields": {
+            "name": "Plankton"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 10,
+        "fields": {
+            "name": "Swab/q-tip"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 11,
+        "fields": {
+            "name": "Saliva"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 12,
+        "fields": {
+            "name": "Skjell"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 13,
+        "fields": {
+            "name": "Sparkeprøve"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 14,
+        "fields": {
+            "name": "Urin"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 15,
+        "fields": {
+            "name": "Vannfilter"
+        }
+    },
+    {
+        "model": "genlab_bestilling.SampleType",
+        "pk": 16,
+        "fields": {
+            "name": "Vev"
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 1,
+        "fields": {
+            "name": "Enkeltrør 1.5mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 2,
+        "fields": {
+            "name": "Enkeltrør 2.0mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 3,
+        "fields": {
+            "name": "Enkeltrør 5.0mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 4,
+        "fields": {
+            "name": "Enkeltrør 15mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 5,
+        "fields": {
+            "name": "Enkeltrør 50mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 6,
+        "fields": {
+            "name": "Plate 96 rør",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 7,
+        "fields": {
+            "name": "Tørt",
+            "unit": "uL"
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 8,
+        "fields": {
+            "name": "Etanol",
+            "unit": "uL"
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 9,
+        "fields": {
+            "name": "ATL-buffer",
+            "unit": "uL"
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 10,
+        "fields": {
+            "name": "TE-buffer",
+            "unit": "uL"
+        }
+    },
+    {
+        "model": "genlab_bestilling.EquipmentType",
+        "pk": 11,
+        "fields": {
+            "name": "Annet",
+            "unit": "uL"
+        }
+    }
+]

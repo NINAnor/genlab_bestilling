@@ -9,3 +9,5 @@ class Command(BaseCommand):
     def handle(self: Self, **options) -> None:
         if User.objects.all().first() is None:
             call_command("loaddata", "users.json")
+
+        call_command("loaddata", "bestilling.json")

@@ -17,6 +17,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("ht/", include("health_check.urls")),
     path("api/", include("config.routers")),
+    path("", include("genlab_bestilling.urls")),
 ]
 
 

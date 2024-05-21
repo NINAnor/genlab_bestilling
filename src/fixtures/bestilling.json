@@ -1,251 +1,1563 @@
 [
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 1,
         "fields": {
             "name": "Akvatisk"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 2,
         "fields": {
             "name": "Amfibier"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 3,
         "fields": {
             "name": "Biodiversitet (metabarcoding)"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 4,
         "fields": {
             "name": "Fisk"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 5,
         "fields": {
             "name": "Fugl"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 6,
         "fields": {
             "name": "Hjortedyr"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 7,
         "fields": {
             "name": "Parasitt og sykdomspåvisning"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 8,
         "fields": {
             "name": "Planter"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
-        "pk": 9,
-        "fields": {
-            "name": "Rovdyr"
-        }
-    },
-    {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 9,
         "fields": {
             "name": "Terrestrisk"
         }
     },
     {
-        "model": "genlab_bestilling.Area",
+        "model": "genlab_bestilling.area",
         "pk": 10,
         "fields": {
             "name": "Annet"
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.area",
+        "pk": 11,
+        "fields": {
+            "name": "Rovdyr"
+        }
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "12S-V5",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "16S",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "Artstest L/Ø",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "BF3/BR2",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "BF3-mod/BR2-mod",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "Cha3/ITS-u4",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "COI Metazoa",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "fwhF2/EPTDr2n",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "ITS-7/ITS-4",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "ITS-S2/ITS-4",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "ITS-u3/ITS-u4",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "Kjønnstest",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "Leray",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "MiFish",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "NC1/NC2",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "qPCR",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "SNP",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "SNP nøytral",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "SNP O/V",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "STR",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.marker",
+        "pk": "TAReuk",
+        "fields": {}
+    },
+    {
+        "model": "genlab_bestilling.species",
         "pk": 1,
         "fields": {
-            "name": "Artspåvisning"
+            "name": "Elvemusling",
+            "area": 1,
+            "markers": [
+                "qPCR",
+                "STR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 2,
         "fields": {
-            "name": "Individbestemmelse"
+            "name": "Havnespy",
+            "area": 1,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 3,
         "fields": {
-            "name": "Kjønnstest"
+            "name": "Edelkreps",
+            "area": 1,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 4,
         "fields": {
-            "name": "Biodiversitet (metabarcoding)"
+            "name": "Signalkreps",
+            "area": 1,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 5,
         "fields": {
-            "name": "Oppdrett/vill"
+            "name": "Buttsnutefrosk",
+            "area": 2,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 6,
         "fields": {
-            "name": "Populasjonsstruktur"
+            "name": "Spissnutefrosk",
+            "area": 2,
+            "markers": [
+                "qPCR",
+                "STR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 7,
         "fields": {
-            "name": "Sekvensering (barcoding)"
+            "name": "Damfrosk",
+            "area": 2,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.AnalysisType",
+        "model": "genlab_bestilling.species",
         "pk": 8,
         "fields": {
-            "name": "Slektskapsanalyser"
+            "name": "Padde",
+            "area": 2,
+            "markers": [
+                "qPCR"
+            ]
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.species",
+        "pk": 9,
+        "fields": {
+            "name": "Småsalamander",
+            "area": 2,
+            "markers": [
+                "qPCR",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 10,
+        "fields": {
+            "name": "Storsalamander",
+            "area": 2,
+            "markers": [
+                "qPCR",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 11,
+        "fields": {
+            "name": "Planter",
+            "area": 3,
+            "markers": [
+                "ITS-S2/ITS-4",
+                "ITS-u3/ITS-u4"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 12,
+        "fields": {
+            "name": "Sopp",
+            "area": 3,
+            "markers": [
+                "ITS-7/ITS-4"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 13,
+        "fields": {
+            "name": "Invertebrater",
+            "area": 3,
+            "markers": [
+                "Leray",
+                "BF3-mod/BR2-mod",
+                "BF3/BR2"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 14,
+        "fields": {
+            "name": "Insekter",
+            "area": 3,
+            "markers": [
+                "fwhF2/EPTDr2n"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 15,
+        "fields": {
+            "name": "Vertebrater",
+            "area": 3,
+            "markers": [
+                "12S-V5",
+                "COI Metazoa",
+                "MiFish"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 16,
+        "fields": {
+            "name": "Alger",
+            "area": 3,
+            "markers": [
+                "TAReuk",
+                "Cha3/ITS-u4"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 17,
+        "fields": {
+            "name": "Nematoder",
+            "area": 3,
+            "markers": [
+                "NC1/NC2"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 18,
+        "fields": {
+            "name": "Bakterier",
+            "area": 3,
+            "markers": [
+                "16S"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 19,
+        "fields": {
+            "name": "Gjedde",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 20,
+        "fields": {
+            "name": "Laks",
+            "area": 4,
+            "markers": [
+                "SNP nøytral",
+                "STR",
+                "SNP O/V",
+                "Artstest L/Ø"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 21,
+        "fields": {
+            "name": "Mort",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 22,
+        "fields": {
+            "name": "Pukkellaks",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 23,
+        "fields": {
+            "name": "Røye",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 24,
+        "fields": {
+            "name": "Svartmunnet kutling",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 25,
+        "fields": {
+            "name": "Ørekyte",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 26,
+        "fields": {
+            "name": "Ørret",
+            "area": 4,
+            "markers": [
+                "SNP",
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 27,
+        "fields": {
+            "name": "Ål",
+            "area": 4,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 28,
+        "fields": {
+            "name": "Alke",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 29,
+        "fields": {
+            "name": "Alkekonge",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 30,
+        "fields": {
+            "name": "Antarktispetrell",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 31,
+        "fields": {
+            "name": "Blåmeis",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 32,
+        "fields": {
+            "name": "Dverggås",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 33,
+        "fields": {
+            "name": "Fiskeørn",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 34,
+        "fields": {
+            "name": "Fjelljo",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 35,
+        "fields": {
+            "name": "Fjellrype",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 36,
+        "fields": {
+            "name": "Grågås",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 37,
+        "fields": {
+            "name": "Gråspurv",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 38,
+        "fields": {
+            "name": "Havhest",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 39,
+        "fields": {
+            "name": "Havsvale",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 40,
+        "fields": {
+            "name": "Havørn",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 41,
+        "fields": {
+            "name": "Hubro",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 42,
+        "fields": {
+            "name": "Hønsehauk",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 43,
+        "fields": {
+            "name": "Ismåke",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 44,
+        "fields": {
+            "name": "Kattugle",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 45,
+        "fields": {
+            "name": "Kjøttmeis",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 46,
+        "fields": {
+            "name": "Kongeørn",
+            "area": 5,
+            "markers": [
+                "SNP",
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 47,
+        "fields": {
+            "name": "Kortnebbgås",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 48,
+        "fields": {
+            "name": "Krykkje",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 49,
+        "fields": {
+            "name": "Lappmeis",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 50,
+        "fields": {
+            "name": "Lirype",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 51,
+        "fields": {
+            "name": "Lomvi",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 52,
+        "fields": {
+            "name": "Lunde",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 53,
+        "fields": {
+            "name": "Orrfugl",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 54,
+        "fields": {
+            "name": "Polarlomvi",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 55,
+        "fields": {
+            "name": "Polarmåke",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 56,
+        "fields": {
+            "name": "Snøugle",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 57,
+        "fields": {
+            "name": "Storfugl",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 58,
+        "fields": {
+            "name": "Storjo",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 59,
+        "fields": {
+            "name": "Storskarv",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 60,
+        "fields": {
+            "name": "Svartmeis",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 61,
+        "fields": {
+            "name": "Sædgås",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 62,
+        "fields": {
+            "name": "Teist",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 63,
+        "fields": {
+            "name": "Toppskarv",
+            "area": 5,
+            "markers": [
+                "STR",
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 64,
+        "fields": {
+            "name": "Tundragås",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 65,
+        "fields": {
+            "name": "Tyvjo",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 66,
+        "fields": {
+            "name": "Ærfugl",
+            "area": 5,
+            "markers": [
+                "Kjønnstest"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 67,
+        "fields": {
+            "name": "Elg",
+            "area": 6,
+            "markers": [
+                "SNP"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 68,
+        "fields": {
+            "name": "Hjort",
+            "area": 6,
+            "markers": [
+                "SNP"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 69,
+        "fields": {
+            "name": "Rein",
+            "area": 6,
+            "markers": [
+                "qPCR",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 70,
+        "fields": {
+            "name": "BD (Batrachochytrium dendrobatidis)",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 71,
+        "fields": {
+            "name": "B.sal (Batrachochytrium salamandrivorans)",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 72,
+        "fields": {
+            "name": "Bufonid herpesvirus 1",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 73,
+        "fields": {
+            "name": "Krepsepest",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 74,
+        "fields": {
+            "name": "Gyro (Gyrodactylus salaris)",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 75,
+        "fields": {
+            "name": "Gyro (Gyrodactylus derjavinoides)",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 76,
+        "fields": {
+            "name": "Lakselus",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 77,
+        "fields": {
+            "name": "Nematoder",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 78,
+        "fields": {
+            "name": "Skottelus",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 79,
+        "fields": {
+            "name": "ILA",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 80,
+        "fields": {
+            "name": "Costia",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 81,
+        "fields": {
+            "name": "Red skin disease",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 82,
+        "fields": {
+            "name": "PKD parasitt",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 83,
+        "fields": {
+            "name": "Schistosomiasis",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 84,
+        "fields": {
+            "name": "Cryptosporidium",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 85,
+        "fields": {
+            "name": "Giardia",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 86,
+        "fields": {
+            "name": "Mikrober feces",
+            "area": 7,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 87,
+        "fields": {
+            "name": "Dragehode",
+            "area": 8,
+            "markers": [
+                "SNP"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 88,
+        "fields": {
+            "name": "Moser (Sphagnum)",
+            "area": 8,
+            "markers": [
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 89,
+        "fields": {
+            "name": "Brunbjørn",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 90,
+        "fields": {
+            "name": "Fjellrev",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 91,
+        "fields": {
+            "name": "Gaupe",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 92,
+        "fields": {
+            "name": "Gullsjakal",
+            "area": 11,
+            "markers": [
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 93,
+        "fields": {
+            "name": "Jerv",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 94,
+        "fields": {
+            "name": "Mink",
+            "area": 11,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 95,
+        "fields": {
+            "name": "Oter",
+            "area": 11,
+            "markers": [
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 96,
+        "fields": {
+            "name": "Rødrev",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 97,
+        "fields": {
+            "name": "Ulv",
+            "area": 11,
+            "markers": [
+                "SNP",
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 98,
+        "fields": {
+            "name": "Mårhund",
+            "area": 11,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 99,
+        "fields": {
+            "name": "Sau",
+            "area": 9,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 100,
+        "fields": {
+            "name": "Geit",
+            "area": 9,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 101,
+        "fields": {
+            "name": "Villsvin",
+            "area": 9,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 102,
+        "fields": {
+            "name": "Dragehodeglansbille",
+            "area": 9,
+            "markers": [
+                "SNP"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 103,
+        "fields": {
+            "name": "Hare",
+            "area": 9,
+            "markers": [
+                "STR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 104,
+        "fields": {
+            "name": "Ukjent art",
+            "area": 10,
+            "markers": [
+                ""
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 105,
+        "fields": {
+            "name": "Vasspest",
+            "area": 1,
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.sampletype",
         "pk": 1,
         "fields": {
             "name": "Blod"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 2,
         "fields": {
             "name": "DNA-ekstrakt"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 3,
         "fields": {
             "name": "Ekskrement"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 4,
         "fields": {
             "name": "Fjær"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 5,
         "fields": {
             "name": "Oppgulp"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 6,
         "fields": {
             "name": "Hår"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 7,
         "fields": {
             "name": "Jord"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 8,
         "fields": {
             "name": "PIT-nål"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 9,
         "fields": {
             "name": "Plankton"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 10,
         "fields": {
             "name": "Swab/q-tip"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 11,
         "fields": {
             "name": "Saliva"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 12,
         "fields": {
             "name": "Skjell"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 13,
         "fields": {
             "name": "Sparkeprøve"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 14,
         "fields": {
             "name": "Urin"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 15,
         "fields": {
             "name": "Vannfilter"
         }
     },
     {
-        "model": "genlab_bestilling.SampleType",
+        "model": "genlab_bestilling.sampletype",
         "pk": 16,
         "fields": {
             "name": "Vev"
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.analysistype",
+        "pk": 1,
+        "fields": {
+            "name": "Artspåvisning"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 2,
+        "fields": {
+            "name": "Individbestemmelse"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 3,
+        "fields": {
+            "name": "Kjønnstest"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 4,
+        "fields": {
+            "name": "Biodiversitet (metabarcoding)"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 5,
+        "fields": {
+            "name": "Oppdrett/vill"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 6,
+        "fields": {
+            "name": "Populasjonsstruktur"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 7,
+        "fields": {
+            "name": "Sekvensering (barcoding)"
+        }
+    },
+    {
+        "model": "genlab_bestilling.analysistype",
+        "pk": 8,
+        "fields": {
+            "name": "Slektskapsanalyser"
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 1,
         "fields": {
             "name": "Enkeltrør 1.5mL",
@@ -253,7 +1565,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 2,
         "fields": {
             "name": "Enkeltrør 2.0mL",
@@ -261,7 +1573,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 3,
         "fields": {
             "name": "Enkeltrør 5.0mL",
@@ -269,7 +1581,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 4,
         "fields": {
             "name": "Enkeltrør 15mL",
@@ -277,7 +1589,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 5,
         "fields": {
             "name": "Enkeltrør 50mL",
@@ -285,7 +1597,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 6,
         "fields": {
             "name": "Plate 96 rør",
@@ -293,7 +1605,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 7,
         "fields": {
             "name": "Tørt",
@@ -301,7 +1613,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 8,
         "fields": {
             "name": "Etanol",
@@ -309,7 +1621,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 9,
         "fields": {
             "name": "ATL-buffer",
@@ -317,7 +1629,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 10,
         "fields": {
             "name": "TE-buffer",
@@ -325,7 +1637,7 @@
         }
     },
     {
-        "model": "genlab_bestilling.EquipmentType",
+        "model": "genlab_bestilling.equipmenttype",
         "pk": 11,
         "fields": {
             "name": "Annet",

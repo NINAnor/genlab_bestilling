@@ -4,18 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 
-class NINAProject(models.Model):
-    """
-    A NINA project, is unique, manages permissions
-    """
-
-    name = models.CharField(max_length=255, null=True, blank=True)
-    id = models.BigIntegerField(primary_key=True, verbose_name=_("Project number"))
-
-    def __str__(self) -> str:
-        return self.name
-
-
 class Organization(models.Model):
     name = models.CharField(max_length=255)
 
@@ -83,9 +71,7 @@ class GenLabProject(models.Model):
 
     name = models.CharField(max_length=255, null=True, blank=True)
     # external projects without project code? how to handle them?
-    project = models.ForeignKey(
-        "NINAProject", on_delete=models.DO_NOTHING, null=True, blank=True
-    )
+    project = models.BigIntegerField(verbose_name=_("Project number"))
     verified = models.BooleanField(default=False)
     samples_owner = models.ForeignKey(
         "Organization", on_delete=models.PROTECT, blank=True, null=True
@@ -96,6 +82,9 @@ class GenLabProject(models.Model):
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
     expected_total_samples = models.IntegerField(null=True, blank=True)
     analysis_timerange = DateRangeField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Order(PolymorphicModel):

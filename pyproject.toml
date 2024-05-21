@@ -32,7 +32,8 @@ dependencies = [
   "django-rest-framework",
   "drf-spectacular",
   "djangorestframework-simplejwt",
-  "django-cors-headers"
+  "django-cors-headers",
+  "django-polymorphic"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

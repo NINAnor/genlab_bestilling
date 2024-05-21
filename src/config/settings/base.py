@@ -94,6 +94,7 @@ THIRD_PARTY_APPS = [
     "solo",
     "slippers",
     "django_tables2",
+    "polymorphic",
 ]
 
 LOCAL_APPS = [

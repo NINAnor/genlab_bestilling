@@ -80,6 +80,6 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           path: "/var/www"
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+      # - name: Deploy to GitHub Pages
+      #   id: deployment
+      #   uses: actions/deploy-pages@v2

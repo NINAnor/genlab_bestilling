@@ -18,7 +18,7 @@
         {% block navigation_links %}
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
-          <a class="nav-link" aria-current="page" href="{% url 'projects-list' %}">Projects</a>
+          {% comment %} <a class="nav-link" aria-current="page" href="{% url 'projects-list' %}">Projects</a> {% endcomment %}
         </li>
         {% endblock navigation_links %}
       </ul>

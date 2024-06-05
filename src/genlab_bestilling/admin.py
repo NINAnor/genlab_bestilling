@@ -125,6 +125,11 @@ class EquipmentOrderAdmin(ModelAdmin):
     inlines = [EquimentOrderQuantityInline]
 
 
+class SampleInline(admin.StackedInline):
+    model = Sample
+    autocomplete_fields = ["species", "markers", "area", "location", "type"]
+
+
 @admin.register(AnalysisOrder)
 class AnalysisOrderAdmin(ModelAdmin):
     list_display = [
@@ -132,7 +137,7 @@ class AnalysisOrderAdmin(ModelAdmin):
         "project",
     ]
     search_fields = ["id", "project"]
-
+    inlines = [SampleInline]
     autocomplete_fields = ["project", "species", "sample_types", "markers"]
 
 

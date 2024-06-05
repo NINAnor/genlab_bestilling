@@ -67,7 +67,7 @@ msgid "Remove"
 msgstr ""
 
 #: src/apps/templates/account/email.html:52
-#: src/apps/ui/templates/ui/delete.html:38
+
 msgid "Warning:"
 msgstr ""
 
@@ -261,55 +261,6 @@ msgid ""
 "<strong>Note:</strong> you can still <a href=\"%(email_url)s\">change your e-"
 "mail address</a>."
 msgstr ""
-
-
-#: src/apps/ui/templates/ui/create.html:7
-#: src/apps/ui/templates/ui/create.html:13
-msgid "Create"
-msgstr ""
-
-#: src/apps/ui/templates/ui/delete.html:12
-#: src/apps/ui/templates/ui/detail.html:16
-#: src/apps/ui/templates/ui/form.html:12
-#: src/apps/ui/templates/ui/update.html:12
-msgid "Back"
-msgstr ""
-
-#: src/apps/ui/templates/ui/delete.html:38
-msgid "Deleting will cause deletion also of these related objects"
-msgstr ""
-
-#: src/apps/ui/templates/ui/delete.html:47
-#: src/apps/ui/templates/ui/detail.html:19
-#: src/apps/ui/templates/ui/update.html:15
-msgid "Delete"
-msgstr ""
-
-#: src/apps/ui/templates/ui/delete.html:50
-msgid ""
-"The following objects prevents the deletion, you must delete them first."
-msgstr ""
-
-#: src/apps/ui/templates/ui/form.html:30
-msgid "Submit"
-msgstr ""
-
-#: src/apps/ui/templates/ui/list.html:27
-msgid "Search"
-msgstr ""
-
-#: src/apps/ui/templates/ui/partials/table.html:86
-msgid "previous"
-msgstr ""
-
-#: src/apps/ui/templates/ui/partials/table.html:106
-msgid "next"
-msgstr ""
-
-#: src/apps/ui/templates/ui/update.html:29
-msgid "Update"
-msgstr ""
-
 
 #: src/apps/users/admin.py:22
 msgid "Personal info"

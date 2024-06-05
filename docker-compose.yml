@@ -74,15 +74,6 @@ services:
       DJANGO_MIGRATE: 1
 
 
-  theme:
-    build:
-      context: ./theme
-    profiles:
-      - dev
-    volumes:
-      - ./theme/src:/app/src
-      - ./src/static:/app/static
-
 
   postgres:
     image: postgres:16

@@ -6,7 +6,6 @@ default_branch_name: main
 email: niccolo.cantu@nina.no
 gis: false
 ldap: false
-primary_color: '#425563'
 project_name: GenLab Bestilling System
 project_slug: genlab_bestilling
 repo_name: genlab_bestilling
@@ -14,4 +13,4 @@ repo_org: ninanor
 rest: true
 template_type: django
 type_annotations: false
-ui: true
+ui: false

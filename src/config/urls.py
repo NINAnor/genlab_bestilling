@@ -2,22 +2,11 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from django.views import defaults as default_views
-from django.views.generic import TemplateView
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
-    path("", TemplateView.as_view(template_name="pages/home.html"), name="home"),
-    path(
-        "about/",
-        TemplateView.as_view(template_name="pages/about.html"),
-        name="about",
-    ),
-    # User management
-    path("users/", include("apps.users.urls", namespace="users")),
-    path("accounts/", include("allauth.urls")),
     path("ht/", include("health_check.urls")),
     path("api/", include("config.routers")),
-    # path("", include("genlab_bestilling.urls")),
 ]
 
 

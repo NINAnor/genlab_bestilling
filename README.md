@@ -4,7 +4,7 @@ A django project generated from: ninanor/django-template
 Features:
 - Docker
 - REST APIs
-- UI rendered by django
+
 
 
 

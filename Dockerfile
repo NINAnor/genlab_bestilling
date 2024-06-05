@@ -22,16 +22,7 @@ FROM scratch as source
 WORKDIR /app
 COPY src src
 
-# SCSS build - bootstrap customization
-FROM node:14 AS theme
-WORKDIR /app
-COPY theme/package.json .
-RUN npm i -g gulp
-RUN npm install
-COPY theme/src src
-COPY theme/gulpfile.js .
-COPY src/static static
-RUN gulp build
+
 
 
 FROM base as production
@@ -49,7 +40,6 @@ FROM base as django
 COPY --from=production /app .
 COPY --from=translation /app/src/locale /app/src/locale
 COPY --from=source /app .
-COPY --from=theme /app/static src/static
 RUN mkdir media
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

@@ -70,12 +70,8 @@ DJANGO_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # "django.contrib.humanize", # Handy template tags
-    "django.forms",
-]
-
-ADMIN_APPS = [
-    "unfold",
     "django.contrib.admin",
+    "django.forms",
 ]
 
 THIRD_PARTY_APPS = [
@@ -96,19 +92,15 @@ THIRD_PARTY_APPS = [
     "health_check.contrib.migrations",
     "psqlextra",
     "solo",
-    "slippers",
-    "django_tables2",
-    "polymorphic",
 ]
 
 LOCAL_APPS = [
     "apps.users",
     "apps.core",
-    "apps.ui",
     "genlab_bestilling",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + ADMIN_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # MIGRATIONS
 # ------------------------------------------------------------------------------

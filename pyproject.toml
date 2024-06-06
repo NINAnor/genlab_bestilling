@@ -17,7 +17,6 @@ dependencies = [
   "django-model-utils",
   "django-allauth",
   "django-crispy-forms",
-  "crispy-bootstrap5",
   "django-health-check",
   "django-probes",
   "django-postgres-extra",
@@ -34,7 +33,15 @@ dependencies = [
   "djangorestframework-simplejwt",
   "django-cors-headers",
   "django-polymorphic",
-  "django-unfold"
+  "django-unfold",
+  "crispy-tailwind",
+  "django-tailwind",
+  "django-htmx",
+  "django-template-partials",
+  "neapolitan",
+  "fontawesomefree",
+  "django-allauth-ui",
+  "django-widget-tweaks"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

@@ -1,7 +1,7 @@
 FROM debian:12.5 as base
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
-    apt-get update && apt-get install --no-install-recommends -yq python3 python3-pip git python3-venv python3-dev gettext
+    apt-get update && apt-get install --no-install-recommends -yq python3 python3-pip git python3-venv python3-dev gettext curl
 
 
 
@@ -16,6 +16,13 @@ ENV PATH=/app/.venv/bin:$PATH
 COPY ./pyproject.toml .
 COPY src/manage.py src/
 RUN pip install -e .
+
+FROM base as base-node
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+RUN bash nodesource_setup.sh
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+  --mount=target=/var/cache/apt,type=cache,sharing=locked \
+  apt-get install -y nodejs npm
 
 
 FROM scratch as source
@@ -32,19 +39,30 @@ RUN pip install -e .[prod]
 # Compile the translations for multilanguage
 FROM base as translation
 COPY --from=source /app .
-RUN DATABASE_URL="" DJANGO_BASE_SCHEMA_URL="" \
+RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
-  manage.py compilemessages
+  manage.py compilemessages -l no -l en
+
+FROM base-node as tailwind
+COPY --from=source /app .
+RUN DATABASE_URL="" \
+  DJANGO_SETTINGS_MODULE="config.settings.test" \
+  manage.py tailwind install
+RUN DATABASE_URL="" \
+  DJANGO_SETTINGS_MODULE="config.settings.test" \
+  manage.py tailwind build
+
 
 FROM base as django
 COPY --from=production /app .
 COPY --from=translation /app/src/locale /app/src/locale
 COPY --from=source /app .
+COPY --from=tailwind /app/src/theme/static /app/src/theme/static
 RUN mkdir media
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 
-FROM base as dev
+FROM base-node as dev
 RUN pip install -e .[dev]
 
 COPY --from=django /app/src src

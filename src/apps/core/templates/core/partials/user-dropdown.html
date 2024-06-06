@@ -1,34 +1,66 @@
 {% load i18n %}
 
-<li class="nav-item dropdown ms-lg-3">
-  <a class="nav-link dropdown-toggle pt-1 px-0"
-     href="#"
-     role="button"
-     data-bs-toggle="dropdown"
-     aria-expanded="false">
-    <div class="media d-flex align-items-center">
-      <div class="media-body ms-2 align-items-center d-none d-lg-block text-white">
-        <span class="mb-0 font-small {{ class }} fw-bold">{{ user }}</span>
-      </div>
-    </div>
+<div
+  class="relative"
+  x-data="{ dropdownOpen: false }"
+  @click.outside="dropdownOpen = false"
+>
+  <a
+    class="flex items-center gap-4"
+    href="#"
+    @click.prevent="dropdownOpen = ! dropdownOpen"
+  >
+    <span class="hidden text-right lg:block">
+      <span class="block text-sm font-medium text-black dark:text-white"
+        >{{ user }}</span
+      >
+    </span>
+
+    <span class="h-12 w-12 rounded-full bg-red"></span>
+
+    <i
+      :class="dropdownOpen ? 'fa-angle-up' : 'fa-angle-down'"
+      class="hidden fill-current sm:block fas"
+    ></i>
   </a>
-  <div class="dropdown-menu dropdown-menu-end mt-2 py-1">
-    <a class="dropdown-item d-flex align-items-center"
-       href="{% url 'users:redirect' %}">
-      My Profile
-    </a>
-    {% block user_dropdown_items %}{% endblock user_dropdown_items %}
-    {% if user.is_staff %}
-      {% block admin_dropdown_items %}{% endblock admin_dropdown_items %}
-      <a class="dropdown-item d-flex align-items-center"
-         href="{% url 'admin:index' %}">
-        Admin
-      </a>
-    {% endif %}
-    <div role="separator" class="dropdown-divider my-1"></div>
-    <a class="dropdown-item d-flex align-items-center"
-       href="{% url 'account_logout' %}">
-      Logout
-    </a>
+
+  <!-- Dropdown Start -->
+  <div
+    x-show="dropdownOpen"
+    class="absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
+  >
+    <ul
+      class="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark"
+    >
+      {% comment %}
+      <li>
+        <a
+          href=""
+          class="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+        >
+          <i class="fas fa-user"></i>
+          My Profile
+        </a>
+      </li>
+      {% endcomment %}
+      {% if user.is_staff %}
+      <li>
+        <a
+          href="{% url 'admin:index' %}"
+          class="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+        >
+          <i class="fas fa-cog"></i>
+          {% trans 'Admin' %}
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+    <a
+      href="{% url 'account_logout' %}"
+      class="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+    >
+      {% trans 'Log Out' %}
+  </a>
   </div>
-</li>
+  <!-- Dropdown End -->
+</div>

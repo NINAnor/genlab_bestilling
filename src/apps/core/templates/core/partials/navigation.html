@@ -1,37 +1,21 @@
 {% load i18n %}
 
-<nav class="navbar navbar-expand-md navbar-dark bg-primary" aria-label="">
-  <div class="container-fluid">
-    {% block navigation %}
-    <a class="navbar-brand fw-bolder" href="{% url 'home' %}">{% block navigation_title %}{{ PROJECT_NAME }}{% endblock navigation_title %}</a>
-    <button class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbar-main"
-            aria-controls="navbar-main"
-            aria-expanded="false"
-            aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbar-main">
-      <ul class="navbar-nav me-auto mb-2 mb-md-0">
-        {% block navigation_links %}
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
-          {% comment %} <a class="nav-link" aria-current="page" href="{% url 'projects-list' %}">Projects</a> {% endcomment %}
-        </li>
-        {% endblock navigation_links %}
-      </ul>
-      <ul class="navbar-nav">
-        {% if user.is_authenticated %}
-          {% include "core/partials/user-dropdown.html" %}
-        {% else %}
-          <li class="nav-item text-white">
-            <a class="nav-link" aria-current="page" href="{% url 'account_login' %}">Login</a>
-          </li>
-        {% endif %}
-      </ul>
+<header
+  class="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none"
+>
+  <div
+    class="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11"
+  >
+    <div>
+      <a class="navbar-brand fw-bolder" href="/">{% block navigation_title %}{{ PROJECT_NAME }}{% endblock navigation_title %}</a>
     </div>
-    {% endblock navigation %}
+
+    <div class="flex items-center gap-3 2xsm:gap-7">
+      {% if user.is_authenticated %}
+        {% include 'core/partials/user-dropdown.html' %}
+      {% else %}
+        <a href="{% url 'account_login' %}">Login</a>
+      {% endif %}
+    </div>
   </div>
-</nav>
+</header>

@@ -1,19 +1,13 @@
-from apps.ui.views import UICreateView, UIDetailView, UIListView
-from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from neapolitan.views import CRUDView
 
-from .models import GenLabProject, Order
-
-
-class GenLabProjectsListView(UIListView):
-    model = GenLabProject
-    filterset_fields = ("name",)
-    create_path = "projects-create"
+from .models import Order, Project
 
 
-class GenLabProjectCreateView(UICreateView):
-    model = GenLabProject
+class ProjectsView(LoginRequiredMixin, CRUDView):
+    model = Project
     fields = (
-        "project",
+        "number",
         "name",
         "area",
         "species",
@@ -22,14 +16,9 @@ class GenLabProjectCreateView(UICreateView):
         "expected_total_samples",
         "analysis_timerange",
     )
-    success_url = reverse_lazy("projects-list")
+    filterset_fields = ["name"]
 
 
-class GenLabProjectDetailView(UIDetailView):
-    model = GenLabProject
-
-
-class OrdersListView(UIListView):
+class OrdersView(CRUDView):
     model = Order
     filterset_fields = ("polymorphic_ctype",)
-    create_path = "projects-create"

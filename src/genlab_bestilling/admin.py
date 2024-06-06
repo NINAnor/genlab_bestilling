@@ -8,11 +8,11 @@ from .models import (
     EquimentOrderQuantity,
     EquipmentOrder,
     EquipmentType,
-    GenLabProject,
     Location,
     Marker,
     Order,
     Organization,
+    Project,
     Sample,
     SampleType,
     Species,
@@ -67,11 +67,11 @@ class LocationAdmin(ModelAdmin):
     search_fields = ["name"]
 
 
-@admin.register(GenLabProject)
-class GenLabProjectAdmin(ModelAdmin):
+@admin.register(Project)
+class ProjectAdmin(ModelAdmin):
     list_display = [
         "name",
-        "project",
+        "number",
         "verified",
         "samples_owner",
         "area",

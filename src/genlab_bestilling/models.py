@@ -64,14 +64,14 @@ class Location(models.Model):
     station_id = models.CharField(max_length=20)
 
 
-class GenLabProject(models.Model):
+class Project(models.Model):
     """
     A GenLab project, multiple GenLab projects can have the same NINA project code
     """
 
     name = models.CharField(max_length=255, null=True, blank=True)
     # external projects without project code? how to handle them?
-    project = models.BigIntegerField(verbose_name=_("Project number"))
+    number = models.BigIntegerField(verbose_name=_("Project number"))
     verified = models.BooleanField(default=False)
     samples_owner = models.ForeignKey(
         "Organization", on_delete=models.PROTECT, blank=True, null=True
@@ -88,7 +88,7 @@ class GenLabProject(models.Model):
 
 
 class Order(PolymorphicModel):
-    project = models.ForeignKey("GenLabProject", on_delete=models.CASCADE)
+    project = models.ForeignKey("Project", on_delete=models.CASCADE)
     species = models.ManyToManyField("Species")
     sample_types = models.ManyToManyField("SampleType")
     notes = models.TextField()

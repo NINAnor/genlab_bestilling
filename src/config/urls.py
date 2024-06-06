@@ -1,12 +1,25 @@
+from typing import Any
+
 from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import include, path, reverse_lazy
 from django.views import defaults as default_views
+from django.views import generic
+
+
+class HomeView(LoginRequiredMixin, generic.RedirectView):
+    def get_redirect_url(self, *args: Any, **kwargs: Any) -> str | None:
+        return reverse_lazy("project-list")
+
 
 urlpatterns = [
+    path("", HomeView.as_view(), name="home"),
     path(settings.ADMIN_URL, admin.site.urls),
     path("ht/", include("health_check.urls")),
     path("api/", include("config.routers")),
+    path("accounts/", include("allauth.urls")),
+    path("", include("genlab_bestilling.urls")),
 ]
 
 

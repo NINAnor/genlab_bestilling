@@ -9,8 +9,8 @@ from django_tables2.views import SingleTableView
 from formset.views import EditCollectionView
 from neapolitan.views import CRUDView
 
-from .forms import EquipmentOrderCollection
-from .models import EquipmentOrder, Order, Project
+from .forms import AnalysisOrderCollection, EquipmentOrderCollection
+from .models import AnalysisOrder, EquipmentOrder, Order, Project
 from .tables import OrderTable
 
 
@@ -53,7 +53,24 @@ class EquipmentOrderDetailView(DetailView):
 class EquipmentOrderEditView(EditCollectionView):
     model = EquipmentOrder
     collection_class = EquipmentOrderCollection
-    template_name = "genlab_bestilling/equipmentorder_form.html"
+    template_name = "genlab_bestilling/generic_form.html"
+
+    def get_success_url(self):
+        return reverse(
+            "project-order-list", kwargs={"project_id": self.kwargs["project_id"]}
+        )
+
+    def get_object(self, queryset: QuerySet[Any] | None = ...) -> Model:
+        try:
+            return super().get_object(queryset)
+        except AttributeError:
+            return self.model(project_id=self.kwargs["project_id"])
+
+
+class AnalysisOrderEditView(EditCollectionView):
+    model = AnalysisOrder
+    collection_class = AnalysisOrderCollection
+    template_name = "genlab_bestilling/generic_form.html"
 
     def get_success_url(self):
         return reverse(

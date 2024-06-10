@@ -1,0 +1,3 @@
+components:
+    table: "components/table.html"
+    table-cell: "components/table-cell.html"

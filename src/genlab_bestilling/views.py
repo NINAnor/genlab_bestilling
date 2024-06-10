@@ -1,7 +1,17 @@
+from typing import Any
+
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models.base import Model as Model
+from django.db.models.query import QuerySet
+from django.urls import reverse
+from django.views.generic import DetailView
+from django_tables2.views import SingleTableView
+from formset.views import EditCollectionView
 from neapolitan.views import CRUDView
 
-from .models import Order, Project
+from .forms import EquipmentOrderCollection
+from .models import EquipmentOrder, Order, Project
+from .tables import OrderTable
 
 
 class ProjectsView(LoginRequiredMixin, CRUDView):
@@ -19,6 +29,39 @@ class ProjectsView(LoginRequiredMixin, CRUDView):
     filterset_fields = ["name"]
 
 
-class OrdersView(CRUDView):
+class ProjectOrderListView(SingleTableView):
     model = Order
-    filterset_fields = ("polymorphic_ctype",)
+    table_class = OrderTable
+
+    def get_queryset(self) -> QuerySet[Any]:
+        self.project = Project.objects.get(id=self.kwargs["project_id"])
+        return super().get_queryset().filter(project_id=self.project.id)
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["project"] = self.project
+        return ctx
+
+
+class EquipmentOrderDetailView(DetailView):
+    model = EquipmentOrder
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project_id=self.kwargs["project_id"])
+
+
+class EquipmentOrderEditView(EditCollectionView):
+    model = EquipmentOrder
+    collection_class = EquipmentOrderCollection
+    template_name = "genlab_bestilling/equipmentorder_form.html"
+
+    def get_success_url(self):
+        return reverse(
+            "project-order-list", kwargs={"project_id": self.kwargs["project_id"]}
+        )
+
+    def get_object(self, queryset: QuerySet[Any] | None = ...) -> Model:
+        try:
+            return super().get_object(queryset)
+        except AttributeError:
+            return self.model(project_id=self.kwargs["project_id"])

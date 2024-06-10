@@ -42,7 +42,9 @@ dependencies = [
   "fontawesomefree",
   "django-allauth-ui",
   "django-widget-tweaks",
-  "django-taggit"
+  "django-taggit",
+  "django-tables2",
+  "django-formset"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

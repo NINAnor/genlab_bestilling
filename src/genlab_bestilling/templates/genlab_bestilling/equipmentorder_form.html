@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <h3 class="text-2xl">Create Equipment order</h3>
+
+    {% load formsetify %}
+
+    <django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
+        {{ form_collection }}
+        <button type="button" df-click="disable -> submit -> proceed !~ scrollToError">Submit</button>
+        <button type="button" df-click="reset">Reset to initial</button>
+    </django-formset>
+
+    <link href="{% static 'formset/css/collections.css' %}" rel="stylesheet">
+    <script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+{% endblock %}

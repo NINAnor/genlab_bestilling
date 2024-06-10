@@ -99,11 +99,14 @@ THIRD_PARTY_APPS = [
     "solo",
     "neapolitan",
     "django_htmx",
-    "template_partials",
+    # "template_partials",
     "tailwind",
     "fontawesomefree",
     "widget_tweaks",
     "taggit",
+    "slippers",
+    "django_tables2",
+    "formset",
 ]
 
 LOCAL_APPS = [
@@ -217,6 +220,7 @@ TEMPLATES = [
                 "apps.users.context_processors.allauth_settings",
                 "apps.core.context_processors.context_settings",
             ],
+            "builtins": ["slippers.templatetags.slippers"],
         },
     },
 ]

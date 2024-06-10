@@ -1,5 +1,6 @@
 from django.contrib.postgres.fields.ranges import DateRangeField
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 from taggit.managers import TaggableManager
@@ -93,9 +94,9 @@ class Order(PolymorphicModel):
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     species = models.ManyToManyField("Species")
     sample_types = models.ManyToManyField("SampleType")
-    notes = models.TextField()
+    notes = models.TextField(blank=True, null=True)
 
-    tags = TaggableManager()
+    tags = TaggableManager(blank=True)
 
 
 class EquipmentType(models.Model):
@@ -107,13 +108,23 @@ class EquipmentType(models.Model):
 
 
 class EquimentOrderQuantity(models.Model):
-    equipment = models.ForeignKey("EquipmentType", on_delete=models.CASCADE)
-    order = models.ForeignKey("EquipmentOrder", on_delete=models.CASCADE)
+    equipment = models.ForeignKey(
+        "EquipmentType", on_delete=models.CASCADE, related_name="orders"
+    )
+    order = models.ForeignKey(
+        "EquipmentOrder", on_delete=models.CASCADE, related_name="equipments"
+    )
     quantity = models.DecimalField(decimal_places=4, max_digits=14)
 
 
 class EquipmentOrder(Order):
     use_guid = models.BooleanField()  # TODO: default?
+
+    def get_absolute_url(self):
+        return reverse(
+            "project-equipment-detail",
+            kwargs={"pk": self.pk, "project_id": self.project_id},
+        )
 
 
 class AnalysisOrder(Order):

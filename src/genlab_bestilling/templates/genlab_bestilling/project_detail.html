@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load neapolitan %}
+{% load i18n %}
+
+{% block content %}
+    <h3 class="text-2xl">{{ object.name }} - {{ object.number }}</h3>
+
+    {% object_detail object view.fields %}
+
+    <div class="flex">
+        <a href="{% url 'project-equipment-create' project_id=object.id %}"><i class="fas fa-plus"></i> {% translate 'Equipment order' %}</a>
+
+    </div>
+{% endblock %}

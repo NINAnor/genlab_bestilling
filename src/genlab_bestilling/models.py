@@ -2,6 +2,7 @@ from django.contrib.postgres.fields.ranges import DateRangeField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
+from taggit.managers import TaggableManager
 
 
 class Organization(models.Model):
@@ -88,10 +89,13 @@ class Project(models.Model):
 
 
 class Order(PolymorphicModel):
+    name = models.CharField(null=True, blank=True)
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
     species = models.ManyToManyField("Species")
     sample_types = models.ManyToManyField("SampleType")
     notes = models.TextField()
+
+    tags = TaggableManager()
 
 
 class EquipmentType(models.Model):
@@ -131,3 +135,16 @@ class Sample(models.Model):
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
     location = models.ForeignKey("Location", on_delete=models.PROTECT)
     volume = models.FloatField(null=True, blank=True)
+
+    # plate
+    # coordinates on plate
+
+
+# class Analysis(models.Model):
+# type =
+# sample =
+# plate
+# coordinates on plate
+# result
+# status
+# assignee (one or plus?)

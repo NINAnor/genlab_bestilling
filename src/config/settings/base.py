@@ -103,6 +103,7 @@ THIRD_PARTY_APPS = [
     "tailwind",
     "fontawesomefree",
     "widget_tweaks",
+    "taggit",
 ]
 
 LOCAL_APPS = [

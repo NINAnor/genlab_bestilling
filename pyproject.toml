@@ -41,7 +41,8 @@ dependencies = [
   "neapolitan",
   "fontawesomefree",
   "django-allauth-ui",
-  "django-widget-tweaks"
+  "django-widget-tweaks",
+  "django-taggit"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

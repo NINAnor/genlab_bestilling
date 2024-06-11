@@ -4,26 +4,33 @@
 
 
 {% block content %}
-
     {% fragment as table_header %}
     {% #table-cell header=True %}Equipment{% /table-cell %}
+    {% #table-cell header=True %}Unit{% /table-cell %}
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
-    <h3 class="text-3xl">Order #{{ object.id }} - {{ object.name }}</h3>
+    <h3 class="text-4xl mb-5">Order #{{ object.id }} - {{ object.name }}</h3>
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
+    </div>
 
-    <h5 class="text-2xl">Equipment</h5>
+    {% object-detail object=object %}
+
+
+    <h5 class="text-2xl my-5">Equipment</h5>
     {% #table headers=table_header %}
-        {% for oq in object.equipmentorderquantity_set.all %}
+        {% for oq in object.equipments.all %}
             <tr>
                 {% #table-cell %}{{ oq.equipment }}{% /table-cell %}
                 {% #table-cell %}{{ oq.unit }}{% /table-cell %}
+                {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
             </tr>
         {% endfor %}
     {% /table %}
 
-    <div class="flex gap-10">
-        <button>Edit</button>
-        <button>Send Order</button>
+    <div class="flex gap-5 my-5">
+        <a class="btn bg-primary" href="{% url 'project-equipment-update' project_id=object.project_id pk=object.id %}">Edit</a>
+        <button class="btn bg-secondary">Confirm Order</button>
     </div>
 {% endblock %}

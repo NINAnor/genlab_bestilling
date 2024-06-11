@@ -19,4 +19,24 @@
     .alert.alert-warning {
         @apply border-yellow-500 bg-yellow-300;
     }
+
+    .tailwind-table thead tr:first-child {
+        @apply bg-gray-100 text-left;
+    }
+
+    .tailwind-table thead tr:first-child th {
+        @apply px-4 py-5 font-medium text-black;
+    }
+
+    .tailwind-table tbody tr td {
+        @apply border-b border-[#eee] px-4 py-5;
+    }
+
+    .tailwind-table tbody tr td a {
+        @apply text-primary;
+    }
+
+    .btn {
+        @apply px-3 py-2;
+    }
 }

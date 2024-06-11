@@ -3,7 +3,12 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
-    <h3 class="text-2xl">Orders relative to {{ project.name }} - {{project.number }}</h3>
+    <h3 class="text-4xl mb-5">Orders relative to {{ project.name }} - {{project.number }}</h3>
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="{% url 'project-detail' pk=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'project-equipment-create' project_id=project.id %}"><i class="fas fa-plus"></i> Equipment order</a>
+        <a class="btn bg-primary" href="{% url 'project-analysis-create' project_id=project.id %}"><i class="fas fa-plus"></i> Analysis order</a>
+    </div>
 
-    {% render_table object_list %}
+    {% render_table table %}
 {% endblock %}

@@ -1,14 +1,46 @@
 from django import forms
 from formset.collection import FormCollection
 from formset.renderers.tailwind import FormRenderer
+from formset.widgets import DualSortableSelector, Selectize
 
-from .models import AnalysisOrder, EquimentOrderQuantity, EquipmentOrder, Sample
+from .models import (
+    AnalysisOrder,
+    EquimentOrderQuantity,
+    EquipmentOrder,
+    Project,
+    Sample,
+)
+
+
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = (
+            "number",
+            "name",
+            "area",
+            "species",
+            "sample_types",
+            "analysis_types",
+            "expected_total_samples",
+            # "analysis_timerange",
+        )
+        widgets = {
+            "area": Selectize(search_lookup="name_icontains"),
+            "species": DualSortableSelector(search_lookup="name_icontains"),
+            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
+            "analysis_types": DualSortableSelector(search_lookup="name_icontains"),
+        }
 
 
 class EquipmentForm(forms.ModelForm):
     class Meta:
         model = EquipmentOrder
         fields = ("name", "use_guid", "species", "sample_types", "notes", "tags")
+        widgets = {
+            "species": DualSortableSelector(search_lookup="name_icontains"),
+            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
+        }
 
 
 class EquipmentOrderQuantityForm(forms.ModelForm):
@@ -17,6 +49,9 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
     class Meta:
         model = EquimentOrderQuantity
         fields = ("id", "equipment", "quantity")
+        widgets = {
+            "equipment": Selectize(search_lookup="name_icontains"),
+        }
 
 
 class EquipmentQuantityCollection(FormCollection):
@@ -56,6 +91,11 @@ class AnalysisOrderForm(forms.ModelForm):
             "markers",
             "return_samples",
         )
+        widgets = {
+            "species": DualSortableSelector(search_lookup="name_icontains"),
+            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
+            "markers": DualSortableSelector(search_lookup="name_icontains"),
+        }
 
 
 class SampleForm(forms.ModelForm):

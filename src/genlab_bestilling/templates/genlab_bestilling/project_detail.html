@@ -1,14 +1,17 @@
 {% extends "base.html" %}
-{% load neapolitan %}
+{% load core %}
 {% load i18n %}
 
 {% block content %}
-    <h3 class="text-2xl">{{ object.name }} - {{ object.number }}</h3>
+    <h3 class="text-4xl mb-5">{{ object.name }} - {{ object.number }}</h3>
 
-    {% object_detail object view.fields %}
+    {% object-detail object=object fields="name verified area expected_total_samples analysis_timerange" %}
 
-    <div class="flex">
-        <a href="{% url 'project-equipment-create' project_id=object.id %}"><i class="fas fa-plus"></i> {% translate 'Equipment order' %}</a>
-
+    <div class="flex gap-5 my-5">
+        <a class="btn bg-primary" href="{% url 'project-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'project-update' pk=project.id %}"><i class="fas fa-edit"></i> Edit</a>
+        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-eye"></i> Orders</a>
+        <a class="btn bg-primary" href="{% url 'project-equipment-create' project_id=project.id %}"><i class="fas fa-plus"></i> Equipment order</a>
+        <a class="btn bg-primary" href="{% url 'project-analysis-create' project_id=project.id %}"><i class="fas fa-plus"></i> Analysis order</a>
     </div>
 {% endblock %}

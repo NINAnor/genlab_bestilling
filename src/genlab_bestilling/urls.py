@@ -1,15 +1,41 @@
 from django.urls import path
 
 from .views import (
+    AnalysisOrderCreateView,
+    AnalysisOrderDetailView,
     AnalysisOrderEditView,
+    EquipmentOrderCreateView,
+    EquipmentOrderDetailView,
     EquipmentOrderEditView,
+    ProjectCreateView,
+    ProjectDetailView,
+    ProjectListView,
     ProjectOrderListView,
-    ProjectsView,
+    ProjectUpdateView,
 )
 
 appname = "genlab_bestilling"
 urlpatterns = [
-    *ProjectsView.get_urls(),
+    path(
+        "project/",
+        ProjectListView.as_view(),
+        name="project-list",
+    ),
+    path(
+        "project/create/",
+        ProjectCreateView.as_view(),
+        name="project-create",
+    ),
+    path(
+        "project/<int:pk>/",
+        ProjectDetailView.as_view(),
+        name="project-detail",
+    ),
+    path(
+        "project/<int:pk>/update/",
+        ProjectUpdateView.as_view(),
+        name="project-update",
+    ),
     path(
         "project/<int:project_id>/orders/",
         ProjectOrderListView.as_view(),
@@ -17,22 +43,32 @@ urlpatterns = [
     ),
     path(
         "project/<int:project_id>/orders/equipment/create/",
-        EquipmentOrderEditView.as_view(),
+        EquipmentOrderCreateView.as_view(),
         name="project-equipment-create",
     ),
     path(
         "project/<int:project_id>/orders/equipment/<int:pk>/",
-        EquipmentOrderEditView.as_view(),
+        EquipmentOrderDetailView.as_view(),
         name="project-equipment-detail",
     ),
     path(
+        "project/<int:project_id>/orders/equipment/<int:pk>/update/",
+        EquipmentOrderEditView.as_view(),
+        name="project-equipment-update",
+    ),
+    path(
         "project/<int:project_id>/orders/analysis/create/",
-        AnalysisOrderEditView.as_view(),
+        AnalysisOrderCreateView.as_view(),
         name="project-analysis-create",
     ),
     path(
         "project/<int:project_id>/orders/analysis/<int:pk>/",
-        AnalysisOrderEditView.as_view(),
+        AnalysisOrderDetailView.as_view(),
         name="project-analysis-detail",
+    ),
+    path(
+        "project/<int:project_id>/orders/analysis/<int:pk>/update/",
+        AnalysisOrderEditView.as_view(),
+        name="project-analysis-update",
     ),
 ]

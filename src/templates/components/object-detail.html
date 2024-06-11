@@ -1,0 +1,20 @@
+{% load core %}
+
+{% fragment as headers %}
+    {% #table-cell header=True %}Key{% /table-cell %}
+    {% #table-cell header=True %}Value{% /table-cell %}
+{% endfragment %}
+
+{% var fields=fields %}
+{% var object=object %}
+
+<div class="px-4 py-4 bg-white">
+    {% #table headers=headers %}
+    {% for f, v in object|get_fields:fields %}
+    <tr>
+        {% #table-cell %}{{ f.verbose_name }}{% /table-cell %}
+        {% #table-cell %}{{ v }}{% /table-cell %}
+    </tr>
+    {% endfor %}
+    {% /table %}
+</div>

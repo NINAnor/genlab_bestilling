@@ -1,3 +1,5 @@
 components:
     table: "components/table.html"
     table-cell: "components/table-cell.html"
+    formset: "components/formset.html"
+    object-detail: "components/object-detail.html"

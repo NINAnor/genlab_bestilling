@@ -88,6 +88,12 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse(
+            "project-detail",
+            kwargs={"pk": self.pk},
+        )
+
 
 class Order(PolymorphicModel):
     name = models.CharField(null=True, blank=True)
@@ -132,6 +138,12 @@ class AnalysisOrder(Order):
     isolate_samples = models.BooleanField()  # TODO: default?
     markers = models.ManyToManyField("Marker", blank=True)
     return_samples = models.BooleanField()  # TODO: default?
+
+    def get_absolute_url(self):
+        return reverse(
+            "project-analysis-detail",
+            kwargs={"pk": self.pk, "project_id": self.project_id},
+        )
 
 
 class Sample(models.Model):

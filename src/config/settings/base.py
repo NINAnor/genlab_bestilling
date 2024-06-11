@@ -349,3 +349,5 @@ CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ALLOW_CREDENTIALS = True
 
 TAILWIND_APP_NAME = "theme"
+
+DJANGO_TABLES2_TEMPLATE = "django_tables2/tailwind.html"

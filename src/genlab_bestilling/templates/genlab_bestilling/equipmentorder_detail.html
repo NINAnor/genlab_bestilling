@@ -18,7 +18,7 @@
     {% object-detail object=object %}
 
 
-    <h5 class="text-2xl my-5">Equipment</h5>
+    <h5 class="text-2xl my-5">Requested Equipment</h5>
     {% #table headers=table_header %}
         {% for oq in object.equipments.all %}
             <tr>
@@ -26,11 +26,16 @@
                 {% #table-cell %}{{ oq.unit }}{% /table-cell %}
                 {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
             </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3" class="text-center font-bold">No Equipment requested</td>
+            </tr>
         {% endfor %}
     {% /table %}
 
     <div class="flex gap-5 my-5">
         <a class="btn bg-primary" href="{% url 'project-equipment-update' project_id=object.project_id pk=object.id %}">Edit</a>
+        <a class="btn bg-secondary" href="{% url 'project-equipment-quantity-update' project_id=object.project_id pk=object.id %}">Edit requested equipment</a>
         <button class="btn bg-secondary">Confirm Order</button>
     </div>
 {% endblock %}

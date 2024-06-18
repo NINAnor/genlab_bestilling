@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.views.generic import CreateView, DetailView, UpdateView
 from django_tables2.views import SingleTableView
 from formset.views import (
+    BulkEditCollectionView,
     FormViewMixin,
     IncompleteSelectResponseMixin,
 )
@@ -15,9 +16,10 @@ from neapolitan.views import CRUDView
 from .forms import (
     AnalysisOrderForm,
     EquipmentOrderForm,
+    EquipmentQuantityCollection,
     ProjectForm,
 )
-from .models import AnalysisOrder, EquipmentOrder, Order, Project
+from .models import AnalysisOrder, EquimentOrderQuantity, EquipmentOrder, Order, Project
 from .tables import OrderTable, ProjectTable
 
 
@@ -71,6 +73,8 @@ class ProjectCreateView(FormsetCreateView):
 
 
 class ProjectNestedMixin(LoginRequiredMixin):
+    project_id_accessor = "project_id"
+
     def get_project(self):
         return Project.objects.get(id=self.kwargs["project_id"])
 
@@ -83,7 +87,8 @@ class ProjectNestedMixin(LoginRequiredMixin):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(project_id=self.project.id)
+        kwargs = {self.project_id_accessor: self.project.id}
+        return super().get_queryset().filter(**kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
@@ -118,7 +123,7 @@ class EquipmentOrderEditView(
 
     def get_success_url(self):
         return reverse(
-            "project-analysis-detail",
+            "project-order-detail",
             kwargs={"project_id": self.project.id, "pk": self.object.id},
         )
 
@@ -132,7 +137,7 @@ class EquipmentOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "project-analysis-detail",
+            "project-order-detail",
             kwargs={"project_id": self.project.id, "pk": self.object.id},
         )
 
@@ -172,3 +177,27 @@ class SamplesView(LoginRequiredMixin, DetailView):
     def get_queryset(self) -> QuerySet[Any]:
         self.project = Project.objects.get(id=self.kwargs["project_id"])
         return super().get_queryset().filter(project_id=self.project.id)
+
+
+class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionView):
+    collection_class = EquipmentQuantityCollection
+    template_name = "genlab_bestilling/equipmentorderquantity_form.html"
+    model = EquimentOrderQuantity
+    project_id_accessor = "order__project_id"
+
+    def get_collection_kwargs(self):
+        kwargs = super().get_collection_kwargs()
+        kwargs["order_id"] = self.kwargs["pk"]
+        return kwargs
+
+    def get_success_url(self):
+        return reverse(
+            "project-equipment-detail",
+            kwargs={"project_id": self.project.id, "pk": self.kwargs["pk"]},
+        )
+
+    def get_initial(self):
+        collection_class = self.get_collection_class()
+        queryset = self.get_queryset()
+        initial = collection_class(order_id=self.kwargs["pk"]).models_to_list(queryset)
+        return initial

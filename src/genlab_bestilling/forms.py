@@ -1,4 +1,6 @@
 from django import forms
+from django.db.utils import IntegrityError
+from django.forms.models import BaseModelForm, construct_instance
 from formset.collection import FormCollection
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
@@ -87,18 +89,69 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
 class EquipmentQuantityCollection(FormCollection):
     min_siblings = 1
     add_label = "Add equipment"
-    equipment = EquipmentOrderQuantityForm()
-    related_field = "order"
-    legend = "Equipments required"
+    equipments = EquipmentOrderQuantityForm()
+
+    def __init__(self, *args, order_id, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.order_id = order_id
 
     def retrieve_instance(self, data):
-        if data := data.get("equipment"):
+        if data := data.get("equipments"):
             try:
-                return self.instance.equipments.get(id=data.get("id") or -1)
+                return EquimentOrderQuantity.objects.get(id=data.get("id") or -1)
             except (AttributeError, EquimentOrderQuantity.DoesNotExist, ValueError):
                 return EquimentOrderQuantity(
-                    quantity=data.get("quantity"), order=self.instance
+                    equipment_id=data.get("equipment"),
+                    quantity=data.get("quantity"),
                 )
+
+    def construct_instance(self, instance=None):
+        """
+        Override method from:
+        https://github.com/jrief/django-formset/blob/releases/1.4/formset/collection.py#L447
+        """
+        assert (  # noqa: S101
+            self.is_valid()
+        ), f"Can not construct instance with invalid collection {self.__class__} object"
+        if self.has_many:
+            for valid_holders in self.valid_holders:
+                # first, handle holders which are forms
+                for _name, holder in valid_holders.items():
+                    if not isinstance(holder, BaseModelForm):
+                        continue
+                    if holder.marked_for_removal:
+                        holder.instance.delete()
+                        continue
+                    construct_instance(holder, holder.instance)
+                    if getattr(self, "related_field", None):
+                        setattr(holder.instance, self.related_field, instance)
+
+                    # NOTE: only added this line to inject the order id
+                    holder.instance.order_id = self.order_id
+
+                    try:
+                        holder.save()
+                    except (IntegrityError, ValueError) as error:
+                        # some errors are caught only after attempting to save
+                        holder._update_errors(error)
+
+                # next, handle holders which are sub-collections
+                for _name, holder in valid_holders.items():
+                    if callable(getattr(holder, "construct_instance", None)):
+                        holder.construct_instance(holder.instance)
+        else:
+            for name, holder in self.valid_holders.items():
+                if callable(getattr(holder, "construct_instance", None)):
+                    holder.construct_instance(instance)
+                elif isinstance(holder, BaseModelForm):
+                    opts = holder._meta
+                    holder.cleaned_data = self.cleaned_data[name]
+                    holder.instance = instance
+                    construct_instance(holder, instance, opts.fields, opts.exclude)
+                    try:
+                        holder.save()
+                    except IntegrityError as error:
+                        holder._update_errors(error)
 
 
 class AnalysisOrderForm(FormMixin, forms.ModelForm):

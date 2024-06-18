@@ -7,6 +7,7 @@ from .views import (
     EquipmentOrderCreateView,
     EquipmentOrderDetailView,
     EquipmentOrderEditView,
+    EquipmentOrderQuantityUpdateView,
     ProjectCreateView,
     ProjectDetailView,
     ProjectListView,
@@ -55,6 +56,11 @@ urlpatterns = [
         "projects/<int:project_id>/orders/equipment/<int:pk>/update/",
         EquipmentOrderEditView.as_view(),
         name="project-equipment-update",
+    ),
+    path(
+        "projects/<int:project_id>/orders/equipment/<int:pk>/quantity/",
+        EquipmentOrderQuantityUpdateView.as_view(),
+        name="project-equipment-quantity-update",
     ),
     path(
         "projects/<int:project_id>/orders/analysis/create/",

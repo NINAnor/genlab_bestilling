@@ -1,22 +1,39 @@
-import traceback
 from typing import Any
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.urls import reverse
-from django.views.generic import DetailView, UpdateView
+from django.views.generic import CreateView, DetailView, UpdateView
 from django_tables2.views import SingleTableView
 from formset.views import (
-    EditCollectionView,
     FormViewMixin,
     IncompleteSelectResponseMixin,
 )
 from neapolitan.views import CRUDView
 
-from .forms import AnalysisOrderCollection, EquipmentOrderCollection, ProjectForm
+from .forms import (
+    AnalysisOrderForm,
+    EquipmentOrderForm,
+    ProjectForm,
+)
 from .models import AnalysisOrder, EquipmentOrder, Order, Project
 from .tables import OrderTable, ProjectTable
+
+
+class FormsetCreateView(
+    IncompleteSelectResponseMixin,
+    FormViewMixin,
+    LoginRequiredMixin,
+    CreateView,
+):
+    pass
+
+
+class FormsetUpdateView(
+    IncompleteSelectResponseMixin, FormViewMixin, LoginRequiredMixin, UpdateView
+):
+    pass
 
 
 class ProjectsView(LoginRequiredMixin, CRUDView):
@@ -43,122 +60,115 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     model = Project
 
 
-class ProjectUpdateView(
-    LoginRequiredMixin, IncompleteSelectResponseMixin, FormViewMixin, UpdateView
-):
+class ProjectUpdateView(FormsetUpdateView):
     model = Project
     form_class = ProjectForm
 
 
-class ProjectCreateView(
-    LoginRequiredMixin, IncompleteSelectResponseMixin, FormViewMixin, UpdateView
-):
+class ProjectCreateView(FormsetCreateView):
     model = Project
     form_class = ProjectForm
 
-    def get_object(self, queryset: QuerySet[Any] | None = ...) -> Model:
-        try:
-            return super().get_object(queryset)
-        except AttributeError:
-            print(traceback.format_exc())
-            return self.model()
 
-    def get_success_url(self):
-        return reverse("project-detail", kwargs={"pk": self.object.id})
+class ProjectNestedMixin(LoginRequiredMixin):
+    def get_project(self):
+        return Project.objects.get(id=self.kwargs["project_id"])
+
+    def post(self, request, *args, **kwargs):
+        self.project = self.get_project()
+        return super().post(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.project = self.get_project()
+        return super().get(request, *args, **kwargs)
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project_id=self.project.id)
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["project"] = self.project
+        return ctx
+
+    def get_form_kwargs(self) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+        kwargs["project"] = self.project
+        return kwargs
 
 
-class ProjectOrderListView(LoginRequiredMixin, SingleTableView):
+class ProjectOrderListView(ProjectNestedMixin, SingleTableView):
     model = Order
     table_class = OrderTable
 
-    def get_queryset(self) -> QuerySet[Any]:
-        self.project = Project.objects.get(id=self.kwargs["project_id"])
-        return super().get_queryset().filter(project_id=self.project.id)
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
-        return ctx
-
-
-class EquipmentOrderDetailView(LoginRequiredMixin, DetailView):
+class EquipmentOrderDetailView(ProjectNestedMixin, DetailView):
     model = EquipmentOrder
 
-    def get_queryset(self) -> QuerySet[Any]:
-        self.project = Project.objects.get(id=self.kwargs["project_id"])
-        return super().get_queryset().filter(project_id=self.project.id)
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
-        return ctx
-
-
-class AnalysisOrderDetailView(LoginRequiredMixin, DetailView):
+class AnalysisOrderDetailView(ProjectNestedMixin, DetailView):
     model = AnalysisOrder
 
-    def get_queryset(self) -> QuerySet[Any]:
-        self.project = Project.objects.get(id=self.kwargs["project_id"])
-        return super().get_queryset().filter(project_id=self.project.id)
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
-        return ctx
-
-
-class EquipmentOrderEditView(LoginRequiredMixin, EditCollectionView):
+class EquipmentOrderEditView(
+    ProjectNestedMixin,
+    FormsetUpdateView,
+):
     model = EquipmentOrder
-    collection_class = EquipmentOrderCollection
-    template_name = "genlab_bestilling/equipmentorder_form.html"
-
-    def get_queryset(self) -> QuerySet[Any]:
-        self.project = Project.objects.get(id=self.kwargs["project_id"])
-        return super().get_queryset().filter(project_id=self.project.id)
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
-        return ctx
+    form_class = EquipmentOrderForm
 
     def get_success_url(self):
         return reverse(
-            "project-order-list", kwargs={"project_id": self.kwargs["project_id"]}
+            "project-analysis-detail",
+            kwargs={"project_id": self.project.id, "pk": self.object.id},
         )
 
 
-class EquipmentOrderCreateView(EquipmentOrderEditView):
-    def get_object(self, queryset: QuerySet[Any] | None = ...) -> Model:
-        try:
-            return super().get_object(self.get_queryset())
-        except AttributeError:
-            print(traceback.format_exc())
-            return self.model(project_id=self.kwargs["project_id"])
+class EquipmentOrderCreateView(
+    ProjectNestedMixin,
+    FormsetCreateView,
+):
+    model = EquipmentOrder
+    form_class = EquipmentOrderForm
+
+    def get_success_url(self):
+        return reverse(
+            "project-analysis-detail",
+            kwargs={"project_id": self.project.id, "pk": self.object.id},
+        )
 
 
-class AnalysisOrderEditView(LoginRequiredMixin, EditCollectionView):
+class AnalysisOrderEditView(
+    ProjectNestedMixin,
+    FormsetUpdateView,
+):
     model = AnalysisOrder
-    collection_class = AnalysisOrderCollection
-    template_name = "genlab_bestilling/analysisorder_form.html"
+    form_class = AnalysisOrderForm
+
+    def get_success_url(self):
+        return reverse(
+            "project-analysis-detail",
+            kwargs={"project_id": self.project.id, "pk": self.object.id},
+        )
+
+
+class AnalysisOrderCreateView(
+    ProjectNestedMixin,
+    FormsetCreateView,
+):
+    form_class = AnalysisOrderForm
+    model = AnalysisOrder
+
+    def get_success_url(self):
+        return reverse(
+            "project-analysis-detail",
+            kwargs={"project_id": self.project.id, "pk": self.object.id},
+        )
+
+
+class SamplesView(LoginRequiredMixin, DetailView):
+    model = AnalysisOrder
+    template_name = "genlab_bestilling/samples.html"
 
     def get_queryset(self) -> QuerySet[Any]:
         self.project = Project.objects.get(id=self.kwargs["project_id"])
         return super().get_queryset().filter(project_id=self.project.id)
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
-        return ctx
-
-    def get_success_url(self):
-        return reverse(
-            "project-order-list", kwargs={"project_id": self.kwargs["project_id"]}
-        )
-
-
-class AnalysisOrderCreateView(AnalysisOrderEditView):
-    def get_object(self, queryset: QuerySet[Any] | None = ...) -> Model:
-        try:
-            return super().get_object(self.get_queryset())
-        except AttributeError:
-            return self.model(project_id=self.kwargs["project_id"])

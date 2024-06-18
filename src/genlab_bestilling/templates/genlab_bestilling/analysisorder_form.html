@@ -2,15 +2,15 @@
 {% load core %}
 
 {% block content %}
-    <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ object|verbose_name }}{% endif %}</h3>
+    <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
 
     <div class="flex gap-5 mb-5">
         {% if object.id %}
         <a class="btn bg-primary" href="{% url 'project-analysis-detail' project_id=project.id pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% else %}
-        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=view.kwargs.project_id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% endif %}
     </div>
-    {% formset endpoint=request.path csrf_token=csrf_token form_collection=form_collection %}
+    {% formset endpoint=request.path csrf_token=csrf_token form=form %}
 
 {% endblock %}

@@ -79,7 +79,7 @@ class Project(models.Model):
         "Organization", on_delete=models.PROTECT, blank=True, null=True
     )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField("Species", blank=True)
+    species = models.ManyToManyField("Species", blank=True, related_name="projects")
     sample_types = models.ManyToManyField("SampleType", blank=True)
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
     expected_total_samples = models.IntegerField(null=True, blank=True)
@@ -147,7 +147,9 @@ class AnalysisOrder(Order):
 
 
 class Sample(models.Model):
-    order = models.ForeignKey("AnalysisOrder", on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        "AnalysisOrder", on_delete=models.CASCADE, related_name="samples"
+    )
     guid = models.CharField(max_length=200, null=True, blank=True)
     type = models.ForeignKey("SampleType", on_delete=models.PROTECT)
     species = models.ForeignKey("Species", on_delete=models.PROTECT)

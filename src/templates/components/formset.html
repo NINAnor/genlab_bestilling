@@ -6,7 +6,7 @@
 
 <django-formset endpoint="{{ endpoint }}" csrf-token="{{ csrf_token }}">
     {% if form_collection %}{{ form_collection }}{% endif %}
-    {% if form %}{% render_form form %}{% endif %}
+    {% if form %}{{ form }}{% endif %}
     <button class="btn bg-secondary text-white" type="button" df-click="disable -> submit -> proceed !~ scrollToError">{{ submit_text }}</button>
     <button class="btn bg-default" type="button" df-click="reset">{{ reset_text }}</button>
 </django-formset>

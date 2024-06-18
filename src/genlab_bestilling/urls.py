@@ -17,57 +17,57 @@ from .views import (
 appname = "genlab_bestilling"
 urlpatterns = [
     path(
-        "project/",
+        "projects/",
         ProjectListView.as_view(),
         name="project-list",
     ),
     path(
-        "project/create/",
+        "projects/create/",
         ProjectCreateView.as_view(),
         name="project-create",
     ),
     path(
-        "project/<int:pk>/",
+        "projects/<int:pk>/",
         ProjectDetailView.as_view(),
         name="project-detail",
     ),
     path(
-        "project/<int:pk>/update/",
+        "projects/<int:pk>/update/",
         ProjectUpdateView.as_view(),
         name="project-update",
     ),
     path(
-        "project/<int:project_id>/orders/",
+        "projects/<int:project_id>/orders/",
         ProjectOrderListView.as_view(),
         name="project-order-list",
     ),
     path(
-        "project/<int:project_id>/orders/equipment/create/",
+        "projects/<int:project_id>/orders/equipment/create/",
         EquipmentOrderCreateView.as_view(),
         name="project-equipment-create",
     ),
     path(
-        "project/<int:project_id>/orders/equipment/<int:pk>/",
+        "projects/<int:project_id>/orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="project-equipment-detail",
     ),
     path(
-        "project/<int:project_id>/orders/equipment/<int:pk>/update/",
+        "projects/<int:project_id>/orders/equipment/<int:pk>/update/",
         EquipmentOrderEditView.as_view(),
         name="project-equipment-update",
     ),
     path(
-        "project/<int:project_id>/orders/analysis/create/",
+        "projects/<int:project_id>/orders/analysis/create/",
         AnalysisOrderCreateView.as_view(),
         name="project-analysis-create",
     ),
     path(
-        "project/<int:project_id>/orders/analysis/<int:pk>/",
+        "projects/<int:project_id>/orders/analysis/<int:pk>/",
         AnalysisOrderDetailView.as_view(),
         name="project-analysis-detail",
     ),
     path(
-        "project/<int:project_id>/orders/analysis/<int:pk>/update/",
+        "projects/<int:project_id>/orders/analysis/<int:pk>/update/",
         AnalysisOrderEditView.as_view(),
         name="project-analysis-update",
     ),

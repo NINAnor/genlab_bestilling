@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">Samples</h3>
+
+    <div id="app" class="ag-theme-quartz" style="height: 500px"></div>
+
+{% endblock content %}
+
+{% block body_javascript %}
+    {{ block.super }}
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <script src="{% static 'js/samples-grid.js' %}"></script>
+{% endblock body_javascript%}

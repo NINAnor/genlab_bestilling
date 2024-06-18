@@ -97,7 +97,9 @@ class Project(models.Model):
 
 class Order(PolymorphicModel):
     name = models.CharField(null=True, blank=True)
-    project = models.ForeignKey("Project", on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="orders"
+    )
     species = models.ManyToManyField("Species")
     sample_types = models.ManyToManyField("SampleType")
     notes = models.TextField(blank=True, null=True)

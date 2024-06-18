@@ -14,7 +14,7 @@ def render(field, instance):
     v = getattr(instance, field.name)
 
     if isinstance(field, djfields.related.ManyToManyField):
-        return field.verbose_name or field.name, ",".join([str(e) for e in v.all()])
+        return field.verbose_name or field.name, ", ".join([str(e) for e in v.all()])
 
     if isinstance(field, djfields.related.ManyToOneRel):
         return None, None

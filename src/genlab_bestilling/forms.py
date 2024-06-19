@@ -1,11 +1,9 @@
 from django import forms
-from django.db.utils import IntegrityError
-from django.forms.models import BaseModelForm, construct_instance
-from formset.collection import FormCollection
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DualSortableSelector, Selectize
+from formset.widgets import DateInput, DualSortableSelector, Selectize
 
+from .formset_utils import ContextFormCollection
 from .models import (
     AnalysisOrder,
     EquimentOrderQuantity,
@@ -78,6 +76,17 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 class EquipmentOrderQuantityForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
+    def reinit(self, context):
+        self.order_id = context["order_id"]
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.order_id = self.order_id
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
+
     class Meta:
         model = EquimentOrderQuantity
         fields = ("id", "equipment", "quantity")
@@ -86,14 +95,10 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
         }
 
 
-class EquipmentQuantityCollection(FormCollection):
+class EquipmentQuantityCollection(ContextFormCollection):
     min_siblings = 1
     add_label = "Add equipment"
     equipments = EquipmentOrderQuantityForm()
-
-    def __init__(self, *args, order_id, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.order_id = order_id
 
     def retrieve_instance(self, data):
         if data := data.get("equipments"):
@@ -105,53 +110,12 @@ class EquipmentQuantityCollection(FormCollection):
                     quantity=data.get("quantity"),
                 )
 
-    def construct_instance(self, instance=None):
-        """
-        Override method from:
-        https://github.com/jrief/django-formset/blob/releases/1.4/formset/collection.py#L447
-        """
-        assert (  # noqa: S101
-            self.is_valid()
-        ), f"Can not construct instance with invalid collection {self.__class__} object"
-        if self.has_many:
-            for valid_holders in self.valid_holders:
-                # first, handle holders which are forms
-                for _name, holder in valid_holders.items():
-                    if not isinstance(holder, BaseModelForm):
-                        continue
-                    if holder.marked_for_removal:
-                        holder.instance.delete()
-                        continue
-                    construct_instance(holder, holder.instance)
-                    if getattr(self, "related_field", None):
-                        setattr(holder.instance, self.related_field, instance)
+    def update_holder_instances(self, name, holder):
+        if name == "equipments":
+            holder.reinit(self.context)
 
-                    # NOTE: only added this line to inject the order id
-                    holder.instance.order_id = self.order_id
-
-                    try:
-                        holder.save()
-                    except (IntegrityError, ValueError) as error:
-                        # some errors are caught only after attempting to save
-                        holder._update_errors(error)
-
-                # next, handle holders which are sub-collections
-                for _name, holder in valid_holders.items():
-                    if callable(getattr(holder, "construct_instance", None)):
-                        holder.construct_instance(holder.instance)
-        else:
-            for name, holder in self.valid_holders.items():
-                if callable(getattr(holder, "construct_instance", None)):
-                    holder.construct_instance(instance)
-                elif isinstance(holder, BaseModelForm):
-                    opts = holder._meta
-                    holder.cleaned_data = self.cleaned_data[name]
-                    holder.instance = instance
-                    construct_instance(holder, instance, opts.fields, opts.exclude)
-                    try:
-                        holder.save()
-                    except IntegrityError as error:
-                        holder._update_errors(error)
+    def update_instance_before_save(self, holder, context):
+        holder.instance.order_id = context["order_id"]
 
 
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
@@ -200,6 +164,24 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 class SampleForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
+    def reinit(self, context):
+        self.project = context["project"]
+        self.order_id = context["order_id"]
+        self.fields["type"].queryset = self.project.sample_types.all()
+        self.fields["species"].queryset = self.project.species.all()
+        self.fields["markers"].queryset = Marker.objects.filter(
+            species__projects__id=self.project.id
+        )
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.order_id = self.order_id
+        obj.area = self.project.area
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
+
     class Meta:
         model = Sample
         fields = (
@@ -211,18 +193,42 @@ class SampleForm(forms.ModelForm):
             "date",
             "notes",
             "pop_id",
-            "area",
             "location",
             "volume",
         )
 
+        widgets = {
+            "species": Selectize(
+                search_lookup="name_icontains",
+            ),
+            "location": Selectize(search_lookup="name_icontains"),
+            "type": Selectize(search_lookup="name_icontains"),
+            "markers": DualSortableSelector(search_lookup="name_icontains"),
+            "date": DateInput(),
+        }
 
-class SampleCollection(FormCollection):
+
+class SamplesCollection(ContextFormCollection):
     min_siblings = 1
     add_label = "Add sample"
-    sample = SampleForm()
-    legend = "Samples"
+    samples = SampleForm()
 
+    def update_holder_instances(self, name, holder):
+        if name == "samples":
+            holder.reinit(self.context)
 
-class SamplesCollection(FormCollection):
-    samples = SampleCollection()
+    def retrieve_instance(self, data):
+        if data := data.get("samples"):
+            try:
+                return Sample.objects.get(id=data.get("id") or -1)
+            except (AttributeError, Sample.DoesNotExist, ValueError):
+                return Sample(
+                    guid=data.get("guid"),
+                    type_id=data.get("type"),
+                    species_id=data.get("species"),
+                    date=data.get("date"),
+                    notes=data.get("notes"),
+                    pop_id=data.get("pop_id"),
+                    location_id=data.get("location"),
+                    volume=data.get("volume"),
+                )

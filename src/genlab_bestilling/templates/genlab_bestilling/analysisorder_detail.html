@@ -4,7 +4,15 @@
 
 
 {% block content %}
-
+    {% fragment as table_header %}
+    {% #table-cell header=True %}GUID{% /table-cell %}
+    {% #table-cell header=True %}Type{% /table-cell %}
+    {% #table-cell header=True %}Species{% /table-cell %}
+    {% #table-cell header=True %}Markers{% /table-cell %}
+    {% #table-cell header=True %}Location{% /table-cell %}
+    {% #table-cell header=True %}Date{% /table-cell %}
+    {% #table-cell header=True %}Volume{% /table-cell %}
+    {% endfragment %}
     <h3 class="text-4xl mb-5">Order #{{ object.id }} - {{ object.name }}</h3>
     <div class="flex gap-5 mb-5">
         <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
@@ -13,9 +21,28 @@
     {% object-detail object=object %}
 
 
-    <h5 class="text-2xl mb-5">Samples</h5>
+    <h5 class="text-2xl my-5">Samples</h5>
 
-    <div class="flex gap-5">
+    {% #table headers=table_header %}
+        {% for oq in object.samples.all %}
+            <tr>
+                {% #table-cell %}{{ oq.guid }}{% /table-cell %}
+                {% #table-cell %}{{ oq.type }}{% /table-cell %}
+                {% #table-cell %}{{ oq.species }}{% /table-cell %}
+                {% #table-cell %}{{ oq.markers.all|join:', ' }}{% /table-cell %}
+                {% #table-cell %}{{ oq.location }}{% /table-cell %}
+                {% #table-cell %}{{ oq.date }}{% /table-cell %}
+                {% #table-cell %}{{ oq.volume }}{% /table-cell %}
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7" class="text-center font-bold">No Samples found</td>
+            </tr>
+        {% endfor %}
+    {% /table %}
+
+
+    <div class="flex gap-5 my-5">
         <a class="btn bg-primary" href="{% url 'project-analysis-update' project_id=object.project_id pk=object.id %}">Edit</a>
         <button class="btn bg-secondary">Confirm Order</button>
     </div>

@@ -18,8 +18,16 @@ from .forms import (
     EquipmentOrderForm,
     EquipmentQuantityCollection,
     ProjectForm,
+    SamplesCollection,
 )
-from .models import AnalysisOrder, EquimentOrderQuantity, EquipmentOrder, Order, Project
+from .models import (
+    AnalysisOrder,
+    EquimentOrderQuantity,
+    EquipmentOrder,
+    Order,
+    Project,
+    Sample,
+)
 from .tables import OrderTable, ProjectTable
 
 
@@ -170,24 +178,18 @@ class AnalysisOrderCreateView(
         )
 
 
-class SamplesView(LoginRequiredMixin, DetailView):
-    model = AnalysisOrder
-    template_name = "genlab_bestilling/samples.html"
-
-    def get_queryset(self) -> QuerySet[Any]:
-        self.project = Project.objects.get(id=self.kwargs["project_id"])
-        return super().get_queryset().filter(project_id=self.project.id)
-
-
 class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionView):
     collection_class = EquipmentQuantityCollection
     template_name = "genlab_bestilling/equipmentorderquantity_form.html"
     model = EquimentOrderQuantity
     project_id_accessor = "order__project_id"
 
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(order_id=self.kwargs["pk"])
+
     def get_collection_kwargs(self):
         kwargs = super().get_collection_kwargs()
-        kwargs["order_id"] = self.kwargs["pk"]
+        kwargs["context"] = {"order_id": self.kwargs["pk"]}
         return kwargs
 
     def get_success_url(self):
@@ -199,5 +201,39 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
     def get_initial(self):
         collection_class = self.get_collection_class()
         queryset = self.get_queryset()
-        initial = collection_class(order_id=self.kwargs["pk"]).models_to_list(queryset)
+        initial = collection_class(
+            context={"order_id": self.kwargs["pk"]}
+        ).models_to_list(queryset)
+        return initial
+
+
+class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):
+    collection_class = SamplesCollection
+    template_name = "genlab_bestilling/sample_form.html"
+    model = Sample
+    project_id_accessor = "order__project_id"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(order_id=self.kwargs["pk"])
+
+    def get_collection_kwargs(self):
+        kwargs = super().get_collection_kwargs()
+        kwargs["context"] = {
+            "order_id": self.kwargs["pk"],
+            "project": self.project,
+        }
+        return kwargs
+
+    def get_success_url(self):
+        return reverse(
+            "project-analysis-detail",
+            kwargs={"project_id": self.project.id, "pk": self.kwargs["pk"]},
+        )
+
+    def get_initial(self):
+        collection_class = self.get_collection_class()
+        queryset = self.get_queryset()
+        initial = collection_class(
+            context={"order_id": self.kwargs["pk"], "project": self.project}
+        ).models_to_list(queryset)
         return initial

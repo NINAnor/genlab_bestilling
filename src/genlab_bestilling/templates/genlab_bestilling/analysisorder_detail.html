@@ -44,6 +44,7 @@
 
     <div class="flex gap-5 my-5">
         <a class="btn bg-primary" href="{% url 'project-analysis-update' project_id=object.project_id pk=object.id %}">Edit</a>
+        <a class="btn bg-primary" href="{% url 'project-analysis-samples' project_id=object.project_id pk=object.id %}">Edit Samples</a>
         <button class="btn bg-secondary">Confirm Order</button>
     </div>
 {% endblock %}

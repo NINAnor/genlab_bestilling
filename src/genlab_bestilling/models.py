@@ -96,6 +96,12 @@ class Project(models.Model):
 
 
 class Order(PolymorphicModel):
+    class OrderStatus(models.TextChoices):
+        DRAFT = "draft", _("Draft")
+        CONFIRMED = "confirmed", _("Confirmed")
+        PROCESSING = "processing", _("Processing")
+        COMPLETED = "completed", _("Completed")
+
     name = models.CharField(null=True, blank=True)
     project = models.ForeignKey(
         "Project", on_delete=models.CASCADE, related_name="orders"
@@ -103,6 +109,7 @@ class Order(PolymorphicModel):
     species = models.ManyToManyField("Species")
     sample_types = models.ManyToManyField("SampleType")
     notes = models.TextField(blank=True, null=True)
+    status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
 
     tags = TaggableManager(blank=True)
 

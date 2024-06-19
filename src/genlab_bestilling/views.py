@@ -81,6 +81,14 @@ class ProjectCreateView(FormsetCreateView):
 
 
 class ProjectNestedMixin(LoginRequiredMixin):
+    """
+    Provide a Mixin to simplify views that operates under /projects/<id>/
+
+    By default loads the project from the database,
+    filter the current queryset using the project
+    and adds it to the render context.
+    """
+
     project_id_accessor = "project_id"
 
     def get_project(self):
@@ -129,6 +137,9 @@ class EquipmentOrderEditView(
     model = EquipmentOrder
     form_class = EquipmentOrderForm
 
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
+
     def get_success_url(self):
         return reverse(
             "project-order-detail",
@@ -156,6 +167,9 @@ class AnalysisOrderEditView(
 ):
     model = AnalysisOrder
     form_class = AnalysisOrderForm
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
 
     def get_success_url(self):
         return reverse(
@@ -185,7 +199,11 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
     project_id_accessor = "order__project_id"
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(order_id=self.kwargs["pk"])
+        return (
+            super()
+            .get_queryset()
+            .filter(order_id=self.kwargs["pk"], status=Order.OrderStatus.DRAFT)
+        )
 
     def get_collection_kwargs(self):
         kwargs = super().get_collection_kwargs()
@@ -214,7 +232,11 @@ class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):
     project_id_accessor = "order__project_id"
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(order_id=self.kwargs["pk"])
+        return (
+            super()
+            .get_queryset()
+            .filter(order_id=self.kwargs["pk"], status=Order.OrderStatus.DRAFT)
+        )
 
     def get_collection_kwargs(self):
         kwargs = super().get_collection_kwargs()

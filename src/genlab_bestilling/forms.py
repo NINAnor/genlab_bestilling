@@ -14,7 +14,9 @@ from .models import (
 )
 
 
-class ProjectForm(forms.ModelForm):
+class ProjectForm(FormMixin, forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
     class Meta:
         model = Project
         fields = (
@@ -30,7 +32,9 @@ class ProjectForm(forms.ModelForm):
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
             "species": DualSortableSelector(
-                search_lookup="name_icontains", filter_by={"area": "area__id"}
+                search_lookup="name_icontains",
+                filter_by={"area": "area__id"},
+                attrs={"df-hide": ".area==''"},
             ),
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "analysis_types": DualSortableSelector(search_lookup="name_icontains"),

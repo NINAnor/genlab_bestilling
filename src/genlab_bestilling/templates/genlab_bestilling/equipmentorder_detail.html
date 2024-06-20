@@ -34,8 +34,11 @@
     {% /table %}
 
     <div class="flex gap-5 my-5">
+        {% if object.status == 'draft' %}
         <a class="btn bg-primary" href="{% url 'project-equipment-update' project_id=object.project_id pk=object.id %}">Edit</a>
         <a class="btn bg-secondary" href="{% url 'project-equipment-quantity-update' project_id=object.project_id pk=object.id %}">Edit requested equipment</a>
-        <button class="btn bg-secondary">Confirm Order</button>
+        {% url 'project-order-confirm' project_id=object.project_id pk=object.id as confirm_order_url %}
+        {% action-button action=confirm_order_url class="bg-secondary" submit_text="Confirm Order" csrf_token=csrf_token %}
+        {% endif %}
     </div>
 {% endblock %}

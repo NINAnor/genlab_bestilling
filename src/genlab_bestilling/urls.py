@@ -4,6 +4,7 @@ from .views import (
     AnalysisOrderCreateView,
     AnalysisOrderDetailView,
     AnalysisOrderEditView,
+    ConfirmOrderActionView,
     EquipmentOrderCreateView,
     EquipmentOrderDetailView,
     EquipmentOrderEditView,
@@ -82,5 +83,11 @@ urlpatterns = [
         "projects/<int:project_id>/orders/analysis/<int:pk>/samples/",
         SamplesUpdateView.as_view(),
         name="project-analysis-samples",
+    ),
+    # Actions
+    path(
+        "projects/<int:project_id>/orders/<int:pk>/confirm/",
+        ConfirmOrderActionView.as_view(),
+        name="project-order-confirm",
     ),
 ]

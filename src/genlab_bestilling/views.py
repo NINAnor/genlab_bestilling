@@ -3,8 +3,10 @@ from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
+from django.http import HttpResponse
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, UpdateView
+from django.views.generic import CreateView, DetailView, FormView, UpdateView
+from django.views.generic.detail import SingleObjectMixin
 from django_tables2.views import SingleTableView
 from formset.views import (
     BulkEditCollectionView,
@@ -14,6 +16,7 @@ from formset.views import (
 from neapolitan.views import CRUDView
 
 from .forms import (
+    ActionForm,
     AnalysisOrderForm,
     EquipmentOrderForm,
     EquipmentQuantityCollection,
@@ -29,6 +32,16 @@ from .models import (
     Sample,
 )
 from .tables import OrderTable, ProjectTable
+
+
+class ActionView(FormView):
+    form_class = ActionForm
+
+    def get(self, request, *args, **kwargs):
+        """
+        Action forms should be used just to modify the system
+        """
+        self.http_method_not_allowed(self, request, *args, **kwargs)
 
 
 class FormsetCreateView(
@@ -130,6 +143,24 @@ class AnalysisOrderDetailView(ProjectNestedMixin, DetailView):
     model = AnalysisOrder
 
 
+class ConfirmOrderActionView(ProjectNestedMixin, SingleObjectMixin, ActionView):
+    model = Order
+
+    def post(self, request, *args, **kwargs):
+        self.project = self.get_project()
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        # TODO: check state transition
+        self.object.status = Order.OrderStatus.CONFIRMED
+        self.object.save()
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return self.object.get_absolute_url()
+
+
 class EquipmentOrderEditView(
     ProjectNestedMixin,
     FormsetUpdateView,
@@ -202,7 +233,7 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
         return (
             super()
             .get_queryset()
-            .filter(order_id=self.kwargs["pk"], status=Order.OrderStatus.DRAFT)
+            .filter(order_id=self.kwargs["pk"], order__status=Order.OrderStatus.DRAFT)
         )
 
     def get_collection_kwargs(self):
@@ -235,7 +266,7 @@ class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):
         return (
             super()
             .get_queryset()
-            .filter(order_id=self.kwargs["pk"], status=Order.OrderStatus.DRAFT)
+            .filter(order_id=self.kwargs["pk"], order__status=Order.OrderStatus.DRAFT)
         )
 
     def get_collection_kwargs(self):

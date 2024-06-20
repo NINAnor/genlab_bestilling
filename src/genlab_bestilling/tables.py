@@ -9,7 +9,7 @@ class OrderTable(tables.Table):
 
     class Meta:
         model = Order
-        fields = ("name", "species", "sample_types", "polymorphic_ctype")
+        fields = ("name", "status", "polymorphic_ctype", "species", "sample_types")
 
         empty_text = "No Orders"
 

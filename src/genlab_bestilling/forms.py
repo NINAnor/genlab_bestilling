@@ -1,4 +1,9 @@
+from collections.abc import Mapping
+from typing import Any
+
 from django import forms
+from django.forms.renderers import BaseRenderer
+from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DateInput, DualSortableSelector, Selectize
@@ -236,3 +241,36 @@ class SamplesCollection(ContextFormCollection):
                     location_id=data.get("location"),
                     volume=data.get("volume"),
                 )
+
+
+class ActionForm(forms.Form):
+    hidden = forms.CharField(required=False, widget=forms.widgets.HiddenInput())
+
+    def __init__(
+        self,
+        data: Mapping[str, Any] | None,
+        files: Mapping[str, Any] | None,
+        auto_id: bool | str | None = None,
+        prefix: str | None = None,
+        initial: Mapping[str, Any] | None = None,
+        error_class: type[ErrorList] = None,
+        label_suffix: str | None = None,
+        empty_permitted: bool = None,
+        field_order: list[str] | None = None,
+        use_required_attribute: bool | None = None,
+        renderer: type[BaseRenderer] | None = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            data,
+            files,
+            auto_id,
+            prefix,
+            initial,
+            error_class,
+            label_suffix,
+            empty_permitted,
+            field_order,
+            use_required_attribute,
+            renderer,
+        )

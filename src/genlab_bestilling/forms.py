@@ -124,9 +124,6 @@ class EquipmentQuantityCollection(ContextFormCollection):
         if name == "equipments":
             holder.reinit(self.context)
 
-    def update_instance_before_save(self, holder, context):
-        holder.instance.order_id = context["order_id"]
-
 
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")

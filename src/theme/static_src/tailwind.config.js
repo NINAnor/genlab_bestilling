@@ -28,16 +28,19 @@ module.exports = {
          */
         '../../**/templates/**/*.html',
 
-        '../../../.venv/lib/python3.11/site-packages/**/templates/**/*.html',
+        '../../../.venv/lib64/python3.11/site-packages/tailwind_ui/templates/**/*.html',
+        '../../../.venv/lib64/python3.11/site-packages/formset/templates/formset/tailwind/**/*.html',
+        '../../../.venv/lib64/python3.11/site-packages/formset/renders/tailwind.py',
+        '../../../.venv/lib64/python3.11/site-packages/formset/templates/formset/tailwind/*.html',
 
         /**
          * JS: If you use Tailwind CSS in JavaScript, uncomment the following lines and make sure
          * patterns match your project structure.
          */
         /* JS 1: Ignore any JavaScript in node_modules folder. */
-        // '!../../**/node_modules',
+        '!../../**/node_modules',
         /* JS 2: Process all JavaScript files in the project. */
-        // '../../**/*.js',
+        '../../**/*.js',
 
         /**
          * Python: If you use Tailwind CSS classes in Python, uncomment the following line

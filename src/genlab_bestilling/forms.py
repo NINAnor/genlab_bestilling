@@ -108,6 +108,7 @@ class EquipmentQuantityCollection(ContextFormCollection):
     min_siblings = 1
     add_label = "Add equipment"
     equipments = EquipmentOrderQuantityForm()
+    default_renderer = FormRenderer(field_css_classes="mb-3")
 
     def retrieve_instance(self, data):
         if data := data.get("equipments"):
@@ -212,8 +213,9 @@ class SampleForm(forms.ModelForm):
             ),
             "location": Selectize(search_lookup="name_icontains"),
             "type": Selectize(search_lookup="name_icontains"),
-            "markers": DualSortableSelector(search_lookup="name_icontains"),
+            "markers": Selectize(search_lookup="name_icontains"),
             "date": DateInput(),
+            "notes": forms.widgets.Textarea(attrs={"rows": 1, "cols": 10}),
         }
 
 
@@ -221,6 +223,7 @@ class SamplesCollection(ContextFormCollection):
     min_siblings = 1
     add_label = "Add sample"
     samples = SampleForm()
+    default_renderer = FormRenderer(field_css_classes="mb-3")
 
     def update_holder_instances(self, name, holder):
         if name == "samples":

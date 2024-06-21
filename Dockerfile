@@ -41,7 +41,7 @@ FROM base as translation
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
-  manage.py compilemessages
+  manage.py compilemessages -l no
 
 FROM base-node as tailwind
 COPY --from=source /app .

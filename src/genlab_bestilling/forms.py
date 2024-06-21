@@ -136,7 +136,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         self.fields["sample_types"].queryset = project.sample_types.all()
         self.fields["markers"].queryset = Marker.objects.filter(
             species__projects__id=project.id
-        )
+        ).distinct()
 
     def save(self, commit=True):
         obj = super().save(commit=False)
@@ -210,7 +210,7 @@ class SampleForm(forms.ModelForm):
             ),
             "location": Selectize(search_lookup="name_icontains"),
             "type": Selectize(search_lookup="name_icontains"),
-            "markers": Selectize(search_lookup="name_icontains"),
+            "markers": DualSortableSelector(search_lookup="name_icontains"),
             "date": DateInput(),
             "notes": forms.widgets.Textarea(attrs={"rows": 1, "cols": 10}),
         }

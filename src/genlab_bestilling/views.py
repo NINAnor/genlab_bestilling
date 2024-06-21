@@ -87,10 +87,22 @@ class ProjectUpdateView(FormsetUpdateView):
     model = Project
     form_class = ProjectForm
 
+    def get_success_url(self):
+        return reverse(
+            "project-detail",
+            kwargs={"pk": self.object.id},
+        )
+
 
 class ProjectCreateView(FormsetCreateView):
     model = Project
     form_class = ProjectForm
+
+    def get_success_url(self):
+        return reverse(
+            "project-detail",
+            kwargs={"pk": self.object.id},
+        )
 
 
 class ProjectNestedMixin(LoginRequiredMixin):
@@ -173,7 +185,7 @@ class EquipmentOrderEditView(
 
     def get_success_url(self):
         return reverse(
-            "project-order-detail",
+            "project-equipment-detail",
             kwargs={"project_id": self.project.id, "pk": self.object.id},
         )
 
@@ -187,7 +199,7 @@ class EquipmentOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "project-order-detail",
+            "project-equipment-detail",
             kwargs={"project_id": self.project.id, "pk": self.object.id},
         )
 

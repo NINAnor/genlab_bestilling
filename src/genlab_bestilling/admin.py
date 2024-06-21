@@ -127,7 +127,7 @@ class EquipmentOrderAdmin(ModelAdmin):
 
 class SampleInline(admin.StackedInline):
     model = Sample
-    autocomplete_fields = ["species", "markers", "area", "location", "type"]
+    autocomplete_fields = ["species", "markers", "location", "type"]
 
 
 @admin.register(AnalysisOrder)
@@ -152,4 +152,4 @@ class SampleAdmin(ModelAdmin):
     search_fields = []
     readonly_fields = ["order"]
 
-    autocomplete_fields = ["species", "markers", "area", "location", "type"]
+    autocomplete_fields = ["species", "markers", "location", "type"]

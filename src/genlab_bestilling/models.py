@@ -181,10 +181,12 @@ class Sample(models.Model):
     species = models.ForeignKey("Species", on_delete=models.PROTECT)
     markers = models.ManyToManyField("Marker")
     date = models.DateField()
-    notes = models.TextField()
+    notes = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150)
-    area = models.ForeignKey("Area", on_delete=models.PROTECT)
-    location = models.ForeignKey("Location", on_delete=models.PROTECT)
+    # area = models.ForeignKey("Area", on_delete=models.PROTECT)
+    location = models.ForeignKey(
+        "Location", on_delete=models.PROTECT, null=True, blank=True
+    )
     volume = models.FloatField(null=True, blank=True)
 
     # plate

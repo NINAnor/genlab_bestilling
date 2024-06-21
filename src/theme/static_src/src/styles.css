@@ -173,5 +173,5 @@ django-form-collection .dj-form {
 }
 
 django-form-collection .dj-form .dj-form-errors {
-    @apply w-100;
+    @apply w-full;
 }

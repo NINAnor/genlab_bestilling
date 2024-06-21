@@ -16,7 +16,7 @@
         @apply border-blue-500 bg-blue-300;
     }
 
-    .alert.alert-danger {
+    .alert.alert-error {
         @apply border-red-500 bg-red-300;
     }
 

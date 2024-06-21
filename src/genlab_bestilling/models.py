@@ -96,6 +96,9 @@ class Project(models.Model):
 
 
 class Order(PolymorphicModel):
+    class CannotConfirm(Exception):
+        pass
+
     class OrderStatus(models.TextChoices):
         DRAFT = "draft", _("Draft")
         CONFIRMED = "confirmed", _("Confirmed")
@@ -112,6 +115,10 @@ class Order(PolymorphicModel):
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
 
     tags = TaggableManager(blank=True)
+
+    def confirm_order(self):
+        self.status = Order.OrderStatus.CONFIRMED
+        self.save()
 
 
 class EquipmentType(models.Model):
@@ -141,6 +148,11 @@ class EquipmentOrder(Order):
             kwargs={"pk": self.pk, "project_id": self.project_id},
         )
 
+    def confirm_order(self):
+        if not EquimentOrderQuantity.objects.filter(order=self).exists():
+            raise Order.CannotConfirm(_("No equipments found"))
+        return super().confirm_order()
+
 
 class AnalysisOrder(Order):
     has_guid = models.BooleanField()  # TODO: default?
@@ -153,6 +165,11 @@ class AnalysisOrder(Order):
             "project-analysis-detail",
             kwargs={"pk": self.pk, "project_id": self.project_id},
         )
+
+    def confirm_order(self):
+        if not self.samples.all().exists():
+            raise Order.CannotConfirm(_("No samples found"))
+        return super().confirm_order()
 
 
 class Sample(models.Model):

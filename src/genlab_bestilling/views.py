@@ -1,10 +1,12 @@
 from typing import Any
 
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView, FormView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_tables2.views import SingleTableView
@@ -164,9 +166,16 @@ class ConfirmOrderActionView(ProjectNestedMixin, SingleObjectMixin, ActionView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form: Any) -> HttpResponse:
-        # TODO: check state transition
-        self.object.status = Order.OrderStatus.CONFIRMED
-        self.object.save()
+        i = self.object.get_real_instance()
+        try:
+            # TODO: check state transition
+            i.confirm_order()
+            messages.add_message(
+                self.request, messages.SUCCESS, _("Your order is confirmed")
+            )
+        except Order.CannotConfirm as e:
+            messages.add_message(self.request, messages.ERROR, str(e))
+
         return super().form_valid(form)
 
     def get_success_url(self) -> str:

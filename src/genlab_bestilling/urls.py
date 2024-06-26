@@ -14,7 +14,7 @@ from .views import (
     ProjectListView,
     ProjectOrderListView,
     ProjectUpdateView,
-    SamplesUpdateView,
+    SamplesFrontendView,
 )
 
 appname = "genlab_bestilling"
@@ -81,7 +81,7 @@ urlpatterns = [
     ),
     path(
         "projects/<int:project_id>/orders/analysis/<int:pk>/samples/",
-        SamplesUpdateView.as_view(),
+        SamplesFrontendView.as_view(),
         name="project-analysis-samples",
     ),
     # Actions

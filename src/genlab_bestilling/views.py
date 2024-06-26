@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.http import HttpResponse
+from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView, FormView, UpdateView
@@ -275,6 +276,19 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
             context={"order_id": self.kwargs["pk"]}
         ).models_to_list(queryset)
         return initial
+
+
+class SamplesFrontendView(ProjectNestedMixin, DetailView):
+    model = AnalysisOrder
+    template_name = "genlab_bestilling/sample_form_frontend.html"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["frontend_args"] = {
+            "order": self.object.id,
+            "csrf": get_token(self.request),
+        }
+        return context
 
 
 class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):

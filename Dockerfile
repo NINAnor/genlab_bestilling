@@ -30,6 +30,18 @@ WORKDIR /app
 COPY src src
 
 
+FROM node:20 as frontend-base
+WORKDIR /app
+COPY src/frontend/package.json src/frontend/package-lock.json .
+RUN npm install
+
+
+FROM frontend-base as frontend
+COPY src/frontend/src src
+COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs .
+
+FROM frontend as frontend-prod
+RUN npm run build
 
 
 FROM base as production

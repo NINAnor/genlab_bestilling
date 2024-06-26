@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load core %}
+{% load django_vite %}
+
+{% block head_javascript %}
+{% vite_react_refresh nonce="{{ request.csp_nonce }}" %}
+{% vite_asset 'src/samples/main.jsx' nonce="{{ request.csp_nonce }}" %}
+{% endblock head_javascript %}
+
+{% block content %}
+    <div id="root"></div>
+{% endblock %}

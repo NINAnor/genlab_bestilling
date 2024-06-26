@@ -44,7 +44,8 @@ dependencies = [
   "django-widget-tweaks",
   "django-taggit",
   "django-tables2",
-  "django-formset"
+  "django-formset",
+  "django-vite"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

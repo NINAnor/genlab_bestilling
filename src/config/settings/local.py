@@ -59,3 +59,5 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 
 INSTALLED_APPS += ["models2puml"]
+
+DJANGO_VITE = {"default": {"dev_mode": True}}

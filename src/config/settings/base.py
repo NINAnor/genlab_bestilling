@@ -107,6 +107,7 @@ THIRD_PARTY_APPS = [
     "slippers",
     "django_tables2",
     "formset",
+    "django_vite",
 ]
 
 LOCAL_APPS = [
@@ -114,6 +115,7 @@ LOCAL_APPS = [
     "apps.core",
     "genlab_bestilling",
     "theme",
+    "frontend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + ADMIN_APPS + THIRD_PARTY_APPS + LOCAL_APPS

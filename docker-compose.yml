@@ -132,3 +132,14 @@ services:
       - ./media:/media_files
     ports:
       - 8000:80
+
+  frontend:
+    profiles:
+      - dev
+    build:
+      target: frontend
+    command: npm run dev -- --host 0.0.0.0 --cors
+    ports:
+      - 5173:5173
+    volumes:
+      - ./src/frontend/src:/app/src

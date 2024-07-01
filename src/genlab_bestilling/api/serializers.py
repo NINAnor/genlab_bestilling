@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Sample
+from ..models import Marker, Sample
 
 
 class OperationStatusSerializer(serializers.Serializer):
@@ -11,6 +11,12 @@ class OperationStatusSerializer(serializers.Serializer):
 class EnumSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
+
+
+class MarkerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Marker
+        fields = ("name",)
 
 
 class SampleSerializer(serializers.ModelSerializer):

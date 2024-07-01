@@ -4,12 +4,21 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from genlab_bestilling.api.views import SampleViewset
+from genlab_bestilling.api.views import (
+    MarkerViewset,
+    SampleTypeViewset,
+    SampleViewset,
+    SpeciesViewset,
+)
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 
 router.register("samples", SampleViewset, basename="samples")
+router.register("species", SpeciesViewset, basename="species")
+router.register("markers", MarkerViewset, basename="markers")
+router.register("sample-types", SampleTypeViewset, basename="sample_types")
+
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),

@@ -109,8 +109,8 @@ class Order(PolymorphicModel):
     project = models.ForeignKey(
         "Project", on_delete=models.CASCADE, related_name="orders"
     )
-    species = models.ManyToManyField("Species")
-    sample_types = models.ManyToManyField("SampleType")
+    species = models.ManyToManyField("Species", related_name="orders")
+    sample_types = models.ManyToManyField("SampleType", related_name="orders")
     notes = models.TextField(blank=True, null=True)
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
 
@@ -157,7 +157,7 @@ class EquipmentOrder(Order):
 class AnalysisOrder(Order):
     has_guid = models.BooleanField()  # TODO: default?
     isolate_samples = models.BooleanField()  # TODO: default?
-    markers = models.ManyToManyField("Marker", blank=True)
+    markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?
 
     def get_absolute_url(self):

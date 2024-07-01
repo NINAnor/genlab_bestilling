@@ -3,11 +3,13 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.pagination import CursorPagination
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet, mixins
 
-from ..filters import SampleFilter
-from ..models import Sample
+from ..filters import MarkerFilter, SampleFilter, SampleTypeFilter, SpeciesFilter
+from ..models import Marker, Sample, SampleType, Species
 from .serializers import (
+    EnumSerializer,
+    MarkerSerializer,
     OperationStatusSerializer,
     SampleBulkSerializer,
     SampleSerializer,
@@ -42,3 +44,21 @@ class SampleViewset(ModelViewSet):
             Sample.objects.bulk_create(samples, 50)
 
         return Response(data=OperationStatusSerializer({"success": True}).data)
+
+
+class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = SampleType.objects.all().order_by("name")
+    serializer_class = EnumSerializer
+    filterset_class = SampleTypeFilter
+
+
+class SpeciesViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = Species.objects.all().order_by("name")
+    serializer_class = EnumSerializer
+    filterset_class = SpeciesFilter
+
+
+class MarkerViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = Marker.objects.all().order_by("name")
+    serializer_class = MarkerSerializer
+    filterset_class = MarkerFilter

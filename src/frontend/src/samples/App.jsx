@@ -1,20 +1,18 @@
-import { useState } from 'react'
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
+import Table from './components/Table'
+import SampleForm from './components/SampleForm'
+
+const queryClient = new QueryClient()
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button className="btn bg-primary" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-    </>
+    <QueryClientProvider client={queryClient}>
+      <SampleForm />
+      <Table />
+    </QueryClientProvider>
   )
 }
 

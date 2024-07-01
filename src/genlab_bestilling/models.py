@@ -177,12 +177,14 @@ class Sample(models.Model):
         "AnalysisOrder", on_delete=models.CASCADE, related_name="samples"
     )
     guid = models.CharField(max_length=200, null=True, blank=True)
-    type = models.ForeignKey("SampleType", on_delete=models.PROTECT)
+    type = models.ForeignKey(
+        "SampleType", on_delete=models.PROTECT, null=True, blank=True
+    )
     species = models.ForeignKey("Species", on_delete=models.PROTECT)
-    markers = models.ManyToManyField("Marker")
+    markers = models.ManyToManyField("Marker", blank=True)
     date = models.DateField()
     notes = models.TextField(null=True, blank=True)
-    pop_id = models.CharField(max_length=150)
+    pop_id = models.CharField(max_length=150, null=True, blank=True)
     # area = models.ForeignKey("Area", on_delete=models.PROTECT)
     location = models.ForeignKey(
         "Location", on_delete=models.PROTECT, null=True, blank=True

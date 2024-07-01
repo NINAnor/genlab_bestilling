@@ -108,6 +108,7 @@ THIRD_PARTY_APPS = [
     "django_tables2",
     "formset",
     "django_vite",
+    "django_filters",
 ]
 
 LOCAL_APPS = [

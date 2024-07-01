@@ -12,7 +12,7 @@ export default function SampleForm() {
   const queryClient = useQueryClient()
 
   const bulkCreate = useMutation({
-    mutationFn: ({ value }) => {
+    mutationFn: (value) => {
       return client.post('/api/samples/bulk/', { ...value, order: config.order })
     },
     onSuccess: () => {
@@ -21,9 +21,19 @@ export default function SampleForm() {
   })
 
   const { handleSubmit, Field } = useForm({
-    onSubmit: bulkCreate.mutate,
+    onSubmit: async({ value, formApi })  => {
+      try {
+        await bulkCreate.mutateAsync(value)
+        formApi.reset()
+      } catch(e) {
+        console.log(e);
+      }
+    },
     defaultValues: {
       quantity: 1,
+      species: null,
+      pop_id: null,
+      date: null,
     }
   });
 
@@ -39,9 +49,9 @@ export default function SampleForm() {
         {({ state, handleChange, handleBlur }) => (
           <HUIField>
             <Label className="block">Species</Label>
-            <Input
+            <input
               className="mt-1 block"
-              defaultValue={state.value}
+              value={state.value || ''}
               onChange={(e) => handleChange(e.target.value)}
               onBlur={handleBlur}
             />
@@ -52,9 +62,9 @@ export default function SampleForm() {
         {({ state, handleChange, handleBlur }) => (
           <HUIField>
           <Label className="block">Pop ID</Label>
-          <Input
+          <input
             className="mt-1 block"
-            defaultValue={state.value}
+            value={state.value || ''}
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}
           />
@@ -65,9 +75,9 @@ export default function SampleForm() {
         {({ state, handleChange, handleBlur }) => (
           <HUIField>
           <Label className="block">Date</Label>
-          <Input
+          <input
             className="mt-1 block"
-            defaultValue={state.value}
+            value={state.value || ''}
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}
           />
@@ -78,10 +88,10 @@ export default function SampleForm() {
         {({ state, handleChange, handleBlur }) => (
           <HUIField>
           <Label className="block">Quantity</Label>
-          <Input
+          <input
             type="number"
             className="mt-1 block"
-            defaultValue={state.value}
+            value={state.value}
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}
           />

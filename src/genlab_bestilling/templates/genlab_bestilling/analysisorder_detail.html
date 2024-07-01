@@ -23,7 +23,7 @@
 
     <h5 class="text-2xl my-5">Samples</h5>
 
-    {% #table headers=table_header %}
+    {% comment %} {% #table headers=table_header %}
         {% for oq in object.samples.all %}
             <tr>
                 {% #table-cell %}{{ oq.guid }}{% /table-cell %}
@@ -39,7 +39,7 @@
                 <td colspan="7" class="text-center font-bold">No Samples found</td>
             </tr>
         {% endfor %}
-    {% /table %}
+    {% /table %} {% endcomment %}
 
 
     <div class="flex gap-5 my-5">

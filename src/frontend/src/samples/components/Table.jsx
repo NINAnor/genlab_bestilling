@@ -16,6 +16,8 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Button, Input } from "@headlessui/react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
+import SimpleCellInput from "./Cell/SimpleCellInput";
+import DateCell from "./Cell/DateCell";
 
 async function getSamples({ pageParam }) {
   const url = pageParam || `/api/samples/?order=${config.order}`;
@@ -28,6 +30,7 @@ const columnHelper = createColumnHelper();
 const COLUMNS = [
   columnHelper.accessor("guid", {
     header: "GUID",
+    cell: SimpleCellInput,
   }),
   columnHelper.accessor("species", {
     header: "Species",
@@ -38,12 +41,15 @@ const COLUMNS = [
   }),
   columnHelper.accessor("date", {
     header: "Date",
+    cell: DateCell,
   }),
   columnHelper.accessor("pop_id", {
     header: "Pop ID",
+    cell: SimpleCellInput,
   }),
   columnHelper.accessor("notes", {
     header: "Notes",
+    cell: SimpleCellInput,
   }),
   columnHelper.accessor("type", {
     header: "Type",
@@ -58,50 +64,29 @@ const COLUMNS = [
   }),
   columnHelper.display({
     header: "Actions",
-    cell: ({ table, row: { original }}) => {
+    cell: ({ table, row: { original } }) => {
+      const [running, setRunning] = useState(false);
 
-      const runDelete = useCallback(() =>
-        table.options.meta?.deleteRow({ id: original.id }))
+      const runDelete = useCallback(async () => {
+        setRunning(true);
+        await table.options.meta?.deleteRow({ id: original.id });
+        setRunning(false);
+      }, []);
 
       return (
         <div className="flex">
-          <button className="btn bg-red-500 text-white" onClick={runDelete}><i className="fas fa-trash"></i></button>
+          <button
+            disabled={running}
+            className="btn bg-red-500 text-white"
+            onClick={runDelete}
+          >
+            <i className={`fas ${running ? 'fa-spin fa-spinner' : 'fa-trash'}`}></i>
+          </button>
         </div>
       );
     },
   }),
 ];
-
-const fallbackData = [];
-
-const defaultColumn = {
-  cell: ({ getValue, row: { original }, column: { id }, table }) => {
-    const initialValue = getValue() || "";
-    // We need to keep and update the state of the cell normally
-    const [value, setValue] = useState(initialValue);
-
-    // When the input is blurred, we'll call our table meta's updateData function
-    const onBlur = () => {
-      if (value !== initialValue) {
-        table.options.meta?.updateData({ id: original.id, [id]: value });
-      }
-    };
-
-    // If the initialValue is changed external, sync it up with our state
-    useEffect(() => {
-      setValue(initialValue || "");
-    }, [initialValue]);
-
-    return (
-      <Input
-        className="border-0 w-full"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={onBlur}
-      />
-    );
-  },
-};
 
 export default function Table() {
   const tableContainerRef = useRef(null);
@@ -165,14 +150,13 @@ export default function Table() {
       return client.delete(`/api/samples/${id}/`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['samples']})
+      queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
   });
 
   const table = useReactTable({
-    data: flatData ?? fallbackData,
+    data: flatData,
     columns: COLUMNS,
-    defaultColumn,
     getCoreRowModel: getCoreRowModel(),
     meta: {
       updateData: updateCell.mutateAsync,
@@ -209,7 +193,7 @@ export default function Table() {
           }}
         >
           <table className="grid w-full">
-            <thead className="grid sticky top-0 bg-white border-b z-[100]">
+            <thead className="grid sticky top-0 bg-white border-b z-[10]">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr
                   className="bg-gray-2 text-left dark:bg-meta-4 flex w-full"
@@ -280,7 +264,7 @@ export default function Table() {
         {(isLoading || isFetching) && (
           <p className="font-bold text-center">Loading...</p>
         )}
-        {(updateCell.isPending) && (
+        {updateCell.isPending && (
           <p className="font-bold text-center">Saving...</p>
         )}
       </div>

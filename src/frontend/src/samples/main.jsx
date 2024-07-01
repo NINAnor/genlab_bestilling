@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import 'vite/modulepreload-polyfill';
+import './index.css';
 
 import App from './App.jsx'
 

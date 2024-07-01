@@ -23,6 +23,16 @@ class SampleSerializer(serializers.ModelSerializer):
     type = EnumSerializer()
     species = EnumSerializer()
     location = EnumSerializer(allow_null=True, required=False)
+    date = serializers.DateField(
+        required=False,
+        input_formats=[
+            "iso-8601",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%m/%d/%Y",
+        ],
+    )
 
     class Meta:
         model = Sample
@@ -43,6 +53,16 @@ class SampleSerializer(serializers.ModelSerializer):
 
 class SampleBulkSerializer(serializers.ModelSerializer):
     quantity = serializers.IntegerField()
+    date = serializers.DateField(
+        required=False,
+        input_formats=[
+            "iso-8601",
+            "%Y-%m-%dT%H:%M:%S",
+            "%Y-%m-%d",
+            "%Y-%m-%dT%H:%M:%SZ",
+            "%m/%d/%Y",
+        ],
+    )
 
     class Meta:
         model = Sample

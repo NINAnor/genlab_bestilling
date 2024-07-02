@@ -2,7 +2,6 @@ import {
   keepPreviousData,
   useInfiniteQuery,
   useMutation,
-  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { config, client } from "../config";
@@ -12,12 +11,14 @@ import {
   getCoreRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Button, Input } from "@headlessui/react";
+import { useEffect, useRef, useCallback, useMemo } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import SimpleCellInput from "./Cell/SimpleCellInput";
 import DateCell from "./Cell/DateCell";
+import SelectCell from "./Cell/SelectCell";
+import ActionsCell from "./Cell/ActionsCell";
+import MultiSelectCell from "./Cell/MultiSelectCell";
 
 async function getSamples({ pageParam }) {
   const url = pageParam || `/api/samples/?order=${config.order}`;
@@ -27,6 +28,18 @@ async function getSamples({ pageParam }) {
 
 const columnHelper = createColumnHelper();
 
+const speciesOptions = async (input) => {
+  return (await client.get(`/api/species/?order=${config.order}&name__icontains=${input}`)).data;
+};
+
+const sampleTypesOptions = async (input) => {
+  return (await client.get(`/api/sample-types/?order=${config.order}&name__icontains=${input}`)).data;
+};
+
+const markersOptions = async (input) => {
+  return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
+};
+
 const COLUMNS = [
   columnHelper.accessor("guid", {
     header: "GUID",
@@ -34,10 +47,7 @@ const COLUMNS = [
   }),
   columnHelper.accessor("species", {
     header: "Species",
-    cell: (props) => {
-      const v = props.getValue();
-      return v ? v.name : null;
-    },
+    cell: (props) => <SelectCell {...props} loadOptions={speciesOptions} queryKey={'species'} />,
   }),
   columnHelper.accessor("date", {
     header: "Date",
@@ -47,44 +57,21 @@ const COLUMNS = [
     header: "Pop ID",
     cell: SimpleCellInput,
   }),
+  columnHelper.accessor("type", {
+    header: "Type",
+    cell: (props) => <SelectCell {...props} loadOptions={sampleTypesOptions} queryKey={'sampleTypes'} />,
+  }),
+  columnHelper.accessor("markers", {
+    header: "Markers",
+    cell: (props) => <MultiSelectCell {...props} loadOptions={markersOptions} queryKey={'markers'} idField="name" />,
+  }),
   columnHelper.accessor("notes", {
     header: "Notes",
     cell: SimpleCellInput,
   }),
-  columnHelper.accessor("type", {
-    header: "Type",
-    cell: (props) => (props.getValue() ? props.getValue().name : null),
-  }),
-  columnHelper.accessor("markers", {
-    header: "Markers",
-    cell: (props) => {
-      const v = props.getValue();
-      return v ? v.join(", ") : null;
-    },
-  }),
   columnHelper.display({
     header: "Actions",
-    cell: ({ table, row: { original } }) => {
-      const [running, setRunning] = useState(false);
-
-      const runDelete = useCallback(async () => {
-        setRunning(true);
-        await table.options.meta?.deleteRow({ id: original.id });
-        setRunning(false);
-      }, []);
-
-      return (
-        <div className="flex">
-          <button
-            disabled={running}
-            className="btn bg-red-500 text-white"
-            onClick={runDelete}
-          >
-            <i className={`fas ${running ? 'fa-spin fa-spinner' : 'fa-trash'}`}></i>
-          </button>
-        </div>
-      );
-    },
+    cell: ActionsCell,
   }),
 ];
 

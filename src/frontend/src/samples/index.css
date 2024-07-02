@@ -1,5 +1,5 @@
 
-table .react-datepicker-popper, form .react-datepicker-popper {
+table .react-datepicker-popper, form .react-datepicker-popper, form .react-select__menu, table .react-select__menu {
     z-index: 999;
 }
 

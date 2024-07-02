@@ -13,6 +13,7 @@ from .serializers import (
     OperationStatusSerializer,
     SampleBulkSerializer,
     SampleSerializer,
+    SampleUpdateSerializer,
 )
 
 
@@ -26,6 +27,11 @@ class SampleViewset(ModelViewSet):
     serializer_class = SampleSerializer
     filterset_class = SampleFilter
     pagination_class = IDCursorPagination
+
+    def get_serializer_class(self):
+        if self.action in ["update", "partial_update"]:
+            return SampleUpdateSerializer
+        return super().get_serializer_class()
 
     @extend_schema(
         request=SampleBulkSerializer, responses={200: OperationStatusSerializer}

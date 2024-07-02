@@ -2,9 +2,18 @@ import { useForm } from "@tanstack/react-form";
 import { Field as HUIField, Input, Button, Label } from "@headlessui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client, config } from "../config";
-import DatePicker from 'react-datepicker';
+import DatePicker from "react-datepicker";
+import AsyncSelect from "react-select/async";
 
 import "react-datepicker/dist/react-datepicker.css";
+
+const speciesOptions = async (input) => {
+  let base = `/api/species/?order=${config.order}`
+  if (input) {
+    base += `&name__icontains=${input}`
+  }
+  return (await client.get(base)).data;
+};
 
 export default function SampleForm() {
   const queryClient = useQueryClient();
@@ -14,6 +23,7 @@ export default function SampleForm() {
       return client.post("/api/samples/bulk/", {
         ...value,
         date: value.date.toLocaleDateString("en-US"),
+        species: value.species.id,
         order: config.order,
       });
     },
@@ -52,11 +62,16 @@ export default function SampleForm() {
         {({ state, handleChange, handleBlur }) => (
           <HUIField>
             <Label className="block">Species</Label>
-            <input
-              className="mt-1 block"
-              value={state.value || ""}
-              onChange={(e) => handleChange(e.target.value)}
+            <AsyncSelect
+              defaultOptions
+              loadOptions={speciesOptions}
+              getOptionLabel={(o) => o.name}
+              getOptionValue={(o) => o.id}
               onBlur={handleBlur}
+              classNamePrefix="react-select"
+              className=""
+              value={state.value}
+              onChange={handleChange}
             />
           </HUIField>
         )}

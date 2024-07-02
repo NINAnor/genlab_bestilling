@@ -13,7 +13,6 @@ class BaseOrderFilter(filters.FilterSet):
     order = filters.NumberFilter(field_name="order", method="filter_order")
 
     def filter_order(self, queryset, name, value):
-        print(value, name)
         return queryset.filter(orders__id=value)
 
 

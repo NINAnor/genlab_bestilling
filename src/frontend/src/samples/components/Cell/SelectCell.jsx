@@ -4,6 +4,15 @@ import AsyncSelect from "react-select/async";
 
 const datePortal = document.getElementById('date-portal');
 
+
+const CLASSNAMES = {
+  container: () => 'flex w-full',
+  control: (state) => 'px-4 w-full cursor-auto',
+  menu: () => 'bg-white border border-[#444] cursor-auto',
+  option: () => 'px-4 my-2 cursor-auto hover:bg-primary',
+  multiValue: () => 'bg-primary px-1 rounded cursor-auto',
+}
+
 export default function SelectCell({
   getValue,
   row: { original },
@@ -38,10 +47,11 @@ export default function SelectCell({
       getOptionValue={(o) => o.id}
       onBlur={handleBlur}
       classNamePrefix="react-select"
-      className=""
+      classNames={CLASSNAMES}
       value={value}
       onChange={setValue}
       menuPortalTarget={datePortal}
+      unstyled
     />
   );
 }

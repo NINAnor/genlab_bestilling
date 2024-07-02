@@ -228,7 +228,7 @@ export default function Table() {
                       return (
                         <td
                           key={cell.id}
-                          className="border-b border-r first:border-l border-[#333] flex"
+                          className="border-b border-r first:border-l border-[#444] flex"
                           style={{
                             width: cell.column.getSize(),
                           }}

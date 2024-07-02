@@ -22,6 +22,9 @@
 
 
     <h5 class="text-2xl my-5">Samples</h5>
+    <div class="bg-white p-4">
+        <p>Uploaded {{ object.samples.count }} samples</p>
+    </div>
 
     {% comment %} {% #table headers=table_header %}
         {% for oq in object.samples.all %}

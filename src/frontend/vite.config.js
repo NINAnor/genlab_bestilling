@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   // NOTE: same as STATIC_URL
-  base: "/static/",
+  base: "/static/frontend/",
   build: {
     manifest: "manifest.json",
     // NOTE: django app static folder

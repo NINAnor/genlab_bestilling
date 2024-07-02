@@ -356,3 +356,10 @@ CORS_ALLOW_CREDENTIALS = True
 TAILWIND_APP_NAME = "theme"
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/tailwind.html"
+
+DJANGO_VITE = {
+    "default": {
+        "static_url_prefix": "frontend",
+        "dev_mode": DEBUG,
+    }
+}

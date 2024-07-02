@@ -1,5 +1,5 @@
 from .base import *  # noqa
-from .base import env
+from .base import env, DJANGO_VITE
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -60,4 +60,4 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 INSTALLED_APPS += ["models2puml"]
 
-DJANGO_VITE = {"default": {"dev_mode": True}}
+DJANGO_VITE["default"]["dev_mode"] = True

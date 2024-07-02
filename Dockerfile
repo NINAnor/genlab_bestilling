@@ -70,6 +70,7 @@ COPY --from=production /app .
 COPY --from=translation /app/src/locale /app/src/locale
 COPY --from=source /app .
 COPY --from=tailwind /app/src/theme/static /app/src/theme/static
+COPY --from=frontend-prod /app/static /app/src/frontend/static
 RUN mkdir media
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]

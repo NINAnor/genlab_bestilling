@@ -120,7 +120,7 @@ class ProjectNestedMixin(LoginRequiredMixin):
     project_id_accessor = "project_id"
 
     def get_project(self):
-        return Project.objects.get(id=self.kwargs["project_id"])
+        return Project.objects.get(id=self.kwargs["project_id"], verified=True)
 
     def post(self, request, *args, **kwargs):
         self.project = self.get_project()

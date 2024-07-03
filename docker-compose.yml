@@ -5,8 +5,13 @@ volumes:
 x-django-env: &django-env
   DATABASE_URL: "postgis://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable"
   DJANGO_SETTINGS_MODULE: config.settings.production
-  DJANGO_ACCOUNT_ALLOW_REGISTRATION: "False"
   USE_DOCKER: "yes"
+  OIDC_PROVIDER_ID: nina
+  OIDC_CLIENT_ID: "${OIDC_CLIENT_ID}"
+  OIDC_SECRET: "${OIDC_SECRET}"
+  OIDC_PROVIDER_URL: "${OIDC_PROVIDER_URL}"
+  OIDC_PROVIDER_NAME: NINA
+
 
 x-django-prod-env: &django-prod-env
   <<: *django-env

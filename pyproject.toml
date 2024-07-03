@@ -40,7 +40,7 @@ dependencies = [
   "django-template-partials",
   "neapolitan",
   "fontawesomefree",
-  "django-allauth-ui==0.3.8",
+  "django-allauth-ui==1.1.6",
   "django-widget-tweaks",
   "django-taggit",
   "django-tables2",

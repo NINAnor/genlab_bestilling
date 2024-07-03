@@ -85,6 +85,13 @@ class Project(models.Model):
         blank=True,
         related_name="projects_owned",
     )
+    creator = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_created",
+    )
     members = models.ManyToManyField(
         "users.User", blank=True, related_name="projects_member"
     )

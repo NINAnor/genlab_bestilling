@@ -22,6 +22,19 @@ from .models import (
 class ProjectForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        if self.user:
+            obj.creator = self.user
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
+
     class Meta:
         model = Project
         fields = (

@@ -78,6 +78,16 @@ class Project(models.Model):
     samples_owner = models.ForeignKey(
         "Organization", on_delete=models.PROTECT, blank=True, null=True
     )
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_owned",
+    )
+    members = models.ManyToManyField(
+        "users.User", blank=True, related_name="projects_member"
+    )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
     species = models.ManyToManyField("Species", blank=True, related_name="projects")
     sample_types = models.ManyToManyField("SampleType", blank=True)

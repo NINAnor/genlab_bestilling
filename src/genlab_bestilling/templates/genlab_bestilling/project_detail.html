@@ -12,8 +12,8 @@
   >{% endif %}
 </div>
 
-{% if project.verified %}
-<div class="alert alert-danger">
+{% if not project.verified %}
+<div class="alert alert-warning">
   <p>Project number needs to be verified before adding orders</p>
 </div>
 {% endif %}

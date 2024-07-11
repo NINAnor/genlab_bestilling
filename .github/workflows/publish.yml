@@ -56,30 +56,30 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  publish_docs:
-    if: github.ref == 'refs/heads/main'
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ninanor/genlab_bestilling/backend-docs:main
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+  # publish_docs:
+  #   if: github.ref == 'refs/heads/main'
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: ghcr.io/ninanor/genlab_bestilling/backend-docs:main
+  #     credentials:
+  #       username: ${{ github.actor }}
+  #       password: ${{ secrets.GITHUB_TOKEN }}
 
-    permissions:
-      pages: write
-      id-token: write
+  #   permissions:
+  #     pages: write
+  #     id-token: write
 
-    environment:
-      # environment created automatically by GitHub
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  #   environment:
+  #     # environment created automatically by GitHub
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
 
-    steps:
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: "/var/www"
-      # - name: Deploy to GitHub Pages
-      #   id: deployment
-      #   uses: actions/deploy-pages@v2
+  #   steps:
+  #     - name: Upload artifact
+  #       uses: actions/upload-pages-artifact@v1
+  #       with:
+  #         path: "/var/www"
+  #     # - name: Deploy to GitHub Pages
+  #     #   id: deployment
+  #     #   uses: actions/deploy-pages@v2

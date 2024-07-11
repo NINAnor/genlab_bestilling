@@ -322,21 +322,22 @@ SOCIALACCOUNT_ADAPTER = "apps.users.adapters.SocialAccountAdapter"
 ACCOUNT_FORMS = {"signup": "apps.users.forms.UserSignupForm"}
 
 SOCIALACCOUNT_ONLY = True
-SOCIALACCOUNT_PROVIDERS = {
-    "openid_connect": {
-        "APPS": [
-            {
-                "provider_id": env("OIDC_PROVIDER_ID"),
-                "name": env("OIDC_PROVIDER_NAME"),
-                "client_id": env("OIDC_CLIENT_ID"),
-                "secret": env("OIDC_SECRET"),
-                "settings": {
-                    "server_url": env("OIDC_PROVIDER_URL"),
+if env("OIDC_CLIENT_ID", default=None):
+    SOCIALACCOUNT_PROVIDERS = {
+        "openid_connect": {
+            "APPS": [
+                {
+                    "provider_id": env("OIDC_PROVIDER_ID"),
+                    "name": env("OIDC_PROVIDER_NAME"),
+                    "client_id": env("OIDC_CLIENT_ID"),
+                    "secret": env("OIDC_SECRET"),
+                    "settings": {
+                        "server_url": env("OIDC_PROVIDER_URL"),
+                    },
                 },
-            },
-        ]
+            ]
+        }
     }
-}
 
 
 # Django REST-Framework

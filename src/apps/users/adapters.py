@@ -1,11 +1,21 @@
-from __future__ import annotations
-
+import logging
+import traceback
 from typing import Self
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.conf import settings
 from django.http import HttpRequest
+
+
+def report(e):
+    logging.error(str(e))
+    try:
+        from sentry_sdk import capture_exception
+
+        capture_exception(e)
+    except Exception:
+        logging.error(traceback.format_exc())
 
 
 class AccountAdapter(DefaultAccountAdapter):
@@ -18,5 +28,14 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     just for debugging obscure integration exceptions
     """
 
-    def authentication_error(self, *args, **kwargs):
-        print(args, kwargs)
+    def on_authentication_error(
+        self: Self, request, provider, error=None, exception=None, extra_context=None
+    ):
+        report(exception)
+        return super().on_authentication_error(
+            request,
+            provider,
+            error=error,
+            exception=exception,
+            extra_context=extra_context,
+        )

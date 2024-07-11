@@ -2,6 +2,8 @@ from collections.abc import Mapping
 from typing import Any
 
 from django import forms
+
+# from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
 from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
@@ -57,6 +59,56 @@ class ProjectForm(FormMixin, forms.ModelForm):
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "analysis_types": DualSortableSelector(search_lookup="name_icontains"),
         }
+
+
+class ProjectEditForm(ProjectForm):
+    class Meta(ProjectForm.Meta):
+        fields = (
+            "name",
+            "species",
+            "sample_types",
+            "analysis_types",
+            "expected_total_samples",
+        )
+
+    # def clean_species(self) -> dict[str, Any]:
+    #     species = self.cleaned_data.get("species")
+
+    #     difference = set(
+    #         list(self.instance.species.all().values_list("id", flat=True))
+    #     ) - set(map(lambda s: s.id, species))
+
+    #     if difference:
+    #         raise ValidationError("Cannot remove old species, only add is allowed")
+
+    #     return species
+
+    # def clean_sample_types(self) -> dict[str, Any]:
+    #     species = self.cleaned_data.get("sample_types")
+
+    #     difference = set(
+    #         list(self.instance.sample_types.all().values_list("id", flat=True))
+    #     ) - set(map(lambda s: s.id, species))
+
+    #     if difference:
+    #         raise ValidationError(
+    #           "Cannot remove old sample types, only add is allowed")
+
+    #     return species
+
+    # def clean_analysis_types(self) -> dict[str, Any]:
+    #     species = self.cleaned_data.get("analysis_types")
+
+    #     difference = set(
+    #         list(self.instance.analysis_types.all().values_list("id", flat=True))
+    #     ) - set(map(lambda s: s.id, species))
+
+    #     if difference:
+    #         raise ValidationError(
+    #             "Cannot remove old analysis types, only add is allowed"
+    #         )
+
+    #     return species
 
 
 class EquipmentOrderForm(FormMixin, forms.ModelForm):

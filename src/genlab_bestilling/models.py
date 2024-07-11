@@ -103,7 +103,7 @@ class Project(models.Model):
     analysis_timerange = DateRangeField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name or self.number)
 
     def get_absolute_url(self):
         return reverse(

@@ -23,6 +23,7 @@ from .forms import (
     AnalysisOrderForm,
     EquipmentOrderForm,
     EquipmentQuantityCollection,
+    ProjectEditForm,
     ProjectForm,
     SamplesCollection,
 )
@@ -88,7 +89,7 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
 
 class ProjectUpdateView(FormsetUpdateView):
     model = Project
-    form_class = ProjectForm
+    form_class = ProjectEditForm
 
     def get_success_url(self):
         return reverse(

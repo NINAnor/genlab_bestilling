@@ -317,7 +317,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "apps.users.adapters.AccountAdapter"
-SOCIALACCOUNT_ADAPTER = "apps.users.adapters.SocialAccountAdapter"
+# SOCIALACCOUNT_ADAPTER = "apps.users.adapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 ACCOUNT_FORMS = {"signup": "apps.users.forms.UserSignupForm"}
 

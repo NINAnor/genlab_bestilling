@@ -324,6 +324,7 @@ if env("SOCIALACCOUNT_ADAPTER", default=None):
 ACCOUNT_FORMS = {"signup": "apps.users.forms.UserSignupForm"}
 
 SOCIALACCOUNT_ONLY = True
+SOCIALACCOUNT_STORE_TOKENS = True
 if env("OIDC_CLIENT_ID", default=None):
     SOCIALACCOUNT_PROVIDERS = {
         "openid_connect": {

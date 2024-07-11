@@ -8,11 +8,13 @@ from django.conf import settings
 from django.http import HttpRequest
 
 
-def report(e):
+def report(e, error):
     logging.error(str(e))
+    logging.error(str(error))
     try:
-        from sentry_sdk import capture_exception
+        from sentry_sdk import capture_exception, set_context
 
+        set_context("oauth error", {"error": str(error)})
         capture_exception(e)
     except Exception:
         logging.error(traceback.format_exc())
@@ -31,7 +33,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def on_authentication_error(
         self: Self, request, provider, error=None, exception=None, extra_context=None
     ):
-        report(exception)
+        report(exception, error)
         return super().on_authentication_error(
             request,
             provider,

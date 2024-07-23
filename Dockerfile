@@ -1,12 +1,7 @@
-FROM debian:12.5 as base
+FROM debian:12.5 AS base
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     apt-get update && apt-get install --no-install-recommends -yq python3 python3-pip git python3-venv python3-dev gettext curl
-
-
-
-
-
 
 
 WORKDIR /app
@@ -17,7 +12,7 @@ COPY ./pyproject.toml .
 COPY src/manage.py src/
 RUN pip install -e .
 
-FROM base as base-node
+FROM base AS base-node
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
 RUN bash nodesource_setup.sh
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -25,37 +20,37 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   apt-get install -y nodejs npm
 
 
-FROM scratch as source
+FROM scratch AS source
 WORKDIR /app
 COPY src src
 
 
-FROM node:20 as frontend-base
+FROM node:20 AS frontend-base
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/package-lock.json .
 RUN npm install
 
 
-FROM frontend-base as frontend
+FROM frontend-base AS frontend
 COPY src/frontend/src src
 COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs .
 
-FROM frontend as frontend-prod
+FROM frontend AS frontend-prod
 RUN npm run build
 
 
-FROM base as production
+FROM base AS production
 RUN pip install -e .[prod]
 
 
 # Compile the translations for multilanguage
-FROM base as translation
+FROM base AS translation
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   manage.py compilemessages -l no
 
-FROM base-node as tailwind
+FROM base-node AS tailwind
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
@@ -65,7 +60,7 @@ RUN DATABASE_URL="" \
   manage.py tailwind build
 
 
-FROM base as django
+FROM base AS django
 COPY --from=production /app .
 COPY --from=translation /app/src/locale /app/src/locale
 COPY --from=source /app .
@@ -75,7 +70,7 @@ RUN mkdir media
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 
-FROM base-node as dev
+FROM base-node AS dev
 RUN pip install -e .[dev]
 
 COPY --from=django /app/src src

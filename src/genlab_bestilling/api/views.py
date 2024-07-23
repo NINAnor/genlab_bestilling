@@ -5,10 +5,18 @@ from rest_framework.pagination import CursorPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, mixins
 
-from ..filters import MarkerFilter, SampleFilter, SampleTypeFilter, SpeciesFilter
-from ..models import Marker, Sample, SampleType, Species
+from ..filters import (
+    LocationFilter,
+    MarkerFilter,
+    SampleFilter,
+    SampleTypeFilter,
+    SpeciesFilter,
+)
+from ..models import Location, Marker, Sample, SampleType, Species
 from .serializers import (
     EnumSerializer,
+    LocationCreateSerializer,
+    LocationSerializer,
     MarkerSerializer,
     OperationStatusSerializer,
     SampleBulkSerializer,
@@ -68,3 +76,14 @@ class MarkerViewset(mixins.ListModelMixin, GenericViewSet):
     queryset = Marker.objects.all().order_by("name")
     serializer_class = MarkerSerializer
     filterset_class = MarkerFilter
+
+
+class LocationViewset(mixins.ListModelMixin, mixins.CreateModelMixin, GenericViewSet):
+    queryset = Location.objects.all().order_by("name")
+    serializer_class = LocationSerializer
+    filterset_class = LocationFilter
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return LocationCreateSerializer
+        return super().get_serializer_class()

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Marker, Sample, SampleType, Species
+from ..models import Location, Marker, Sample, SampleType, Species
 
 
 class OperationStatusSerializer(serializers.Serializer):
@@ -31,10 +31,27 @@ class SpeciesSerializer(serializers.ModelSerializer):
         fields = ("id", "name")
 
 
+class LocationSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Location
+        fields = ("id", "name")
+
+    def get_name(self, obj):
+        return str(obj)
+
+
+class LocationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ("id", "name")
+
+
 class SampleSerializer(serializers.ModelSerializer):
     type = SampleTypeSerializer()
     species = SpeciesSerializer()
-    location = EnumSerializer(allow_null=True, required=False)
+    location = LocationSerializer(allow_null=True, required=False)
     markers = MarkerSerializer(many=True)
     date = serializers.DateField(
         required=False,
@@ -47,12 +64,23 @@ class SampleSerializer(serializers.ModelSerializer):
         ],
     )
 
+    # TODO: validate location
+    ## species in (Laks, Ørret, Elvemusling and  Salamander)
+    #   - should have location with river_id
+    ## order.project.area in (
+    #   Akvatisk, Amfibier, Biodiversitet, Fisk, Parasitt og sykdomspåvisning
+    # )
+    #   - should have a location
+    ## other
+    # - location is optional
+
     class Meta:
         model = Sample
         fields = (
             "id",
             "order",
             "guid",
+            "name",
             "species",
             "markers",
             "date",
@@ -113,6 +141,7 @@ class SampleBulkSerializer(serializers.ModelSerializer):
             "species",
             "date",
             "pop_id",
+            "type",
             "location",
             "quantity",
         )

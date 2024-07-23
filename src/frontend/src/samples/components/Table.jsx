@@ -18,7 +18,8 @@ import SimpleCellInput from "./Cell/SimpleCellInput";
 import DateCell from "./Cell/DateCell";
 import SelectCell from "./Cell/SelectCell";
 import ActionsCell from "./Cell/ActionsCell";
-import MultiSelectCell from "./Cell/MultiSelectCell";
+import SelectCreateCell from "./Cell/SelectCreateCell";
+// import MultiSelectCell from "./Cell/MultiSelectCell";
 
 async function getSamples({ pageParam }) {
   const url = pageParam || `/api/samples/?order=${config.order}`;
@@ -36,13 +37,31 @@ const sampleTypesOptions = async (input) => {
   return (await client.get(`/api/sample-types/?order=${config.order}&name__icontains=${input}`)).data;
 };
 
-const markersOptions = async (input) => {
-  return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
+// const markersOptions = async (input) => {
+//   return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
+// };
+
+const locationOptions = async (input, species) => {
+  let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
+  if (input) {
+    base += `&name__icontains=${input}`;
+  }
+  return (await client.get(base)).data;
 };
+
+const locationCreate = async (value) => {
+  return client.post("/api/locations/", {
+    name: value,
+  });
+}
 
 const COLUMNS = [
   columnHelper.accessor("guid", {
     header: "GUID",
+    cell: SimpleCellInput,
+  }),
+  columnHelper.accessor("name", {
+    header: "Name",
     cell: SimpleCellInput,
   }),
   columnHelper.accessor("species", {
@@ -57,14 +76,18 @@ const COLUMNS = [
     header: "Pop ID",
     cell: SimpleCellInput,
   }),
+  columnHelper.accessor("location", {
+    header: "Location",
+    cell: (props) => <SelectCreateCell {...props} loadOptions={locationOptions} queryKey={'locations'} onCreate={locationCreate} />,
+  }),
   columnHelper.accessor("type", {
     header: "Type",
     cell: (props) => <SelectCell {...props} loadOptions={sampleTypesOptions} queryKey={'sampleTypes'} />,
   }),
-  columnHelper.accessor("markers", {
-    header: "Markers",
-    cell: (props) => <MultiSelectCell {...props} loadOptions={markersOptions} queryKey={'markers'} idField="name" />,
-  }),
+  // columnHelper.accessor("markers", {
+  //   header: "Markers",
+  //   cell: (props) => <MultiSelectCell {...props} loadOptions={markersOptions} queryKey={'markers'} idField="name" />,
+  // }),
   columnHelper.accessor("notes", {
     header: "Notes",
     cell: SimpleCellInput,

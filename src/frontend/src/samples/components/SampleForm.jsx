@@ -1,18 +1,23 @@
 import { useForm } from "@tanstack/react-form";
-import { Field as HUIField, Input, Button, Label } from "@headlessui/react";
+import { Field as HUIField, Button, Label } from "@headlessui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client, config } from "../config";
 import DatePicker from "react-datepicker";
 import AsyncSelect from "react-select/async";
+import AsyncCreatableSelect from "react-select/async-creatable";
 
 import "react-datepicker/dist/react-datepicker.css";
 
 const speciesOptions = async (input) => {
-  let base = `/api/species/?order=${config.order}`
+  let base = `/api/species/?order=${config.order}`;
   if (input) {
-    base += `&name__icontains=${input}`
+    base += `&name__icontains=${input}`;
   }
   return (await client.get(base)).data;
+};
+
+const sampleTypesOptions = async (input) => {
+  return (await client.get(`/api/sample-types/?order=${config.order}&name__icontains=${input}`)).data;
 };
 
 export default function SampleForm() {
@@ -24,6 +29,8 @@ export default function SampleForm() {
         ...value,
         date: value.date.toLocaleDateString("en-US"),
         species: value.species.id,
+        type: value.type?.id,
+        location: value.location?.id,
         order: config.order,
       });
     },
@@ -32,7 +39,7 @@ export default function SampleForm() {
     },
   });
 
-  const { handleSubmit, Field, Subscribe } = useForm({
+  const { handleSubmit, Field, Subscribe, setFieldValue } = useForm({
     onSubmit: async ({ value, formApi }) => {
       try {
         await bulkCreate.mutateAsync(value);
@@ -46,8 +53,29 @@ export default function SampleForm() {
       species: null,
       pop_id: null,
       date: null,
+      location: null,
+      type: null,
     },
   });
+
+  const createLocation = useMutation({
+    mutationFn: (value) => {
+      return client.post("/api/locations/", {
+        name: value,
+      });
+    },
+    onSuccess: (data) => {
+      setFieldValue('location', data.data)
+    },
+  });
+
+  const locationOptions = async (input, species) => {
+    let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
+    if (input) {
+      base += `&name__icontains=${input}`;
+    }
+    return (await client.get(base)).data;
+  };
 
   return (
     <form
@@ -55,7 +83,7 @@ export default function SampleForm() {
         e.preventDefault();
         handleSubmit();
       }}
-      className="flex gap-4 mb-5 items-end"
+      className="flex gap-4 mb-5 items-end flex-wrap"
       id="add-rows"
     >
       <Field name="species">
@@ -65,6 +93,24 @@ export default function SampleForm() {
             <AsyncSelect
               defaultOptions
               loadOptions={speciesOptions}
+              getOptionLabel={(o) => o.name}
+              getOptionValue={(o) => o.id}
+              onBlur={handleBlur}
+              classNamePrefix="react-select"
+              className=""
+              value={state.value}
+              onChange={handleChange}
+            />
+          </HUIField>
+        )}
+      </Field>
+      <Field name="type">
+        {({ state, handleChange, handleBlur }) => (
+          <HUIField>
+            <Label className="block">Type</Label>
+            <AsyncSelect
+              defaultOptions
+              loadOptions={sampleTypesOptions}
               getOptionLabel={(o) => o.name}
               getOptionValue={(o) => o.id}
               onBlur={handleBlur}
@@ -104,6 +150,34 @@ export default function SampleForm() {
           </HUIField>
         )}
       </Field>
+      <Subscribe
+        selector={(state) => state.values.species}
+      >
+        {(species) => (
+          <Field name="location">
+            {({ state, handleChange, handleBlur }) => (
+              <HUIField>
+                <Label className="block">Location</Label>
+                <AsyncCreatableSelect
+                  defaultOptions
+                  isClearable
+                  isDisabled={!species}
+                  loadOptions={(input) => locationOptions(input, species)}
+                  getOptionLabel={(o) => o.name}
+                  getOptionValue={(o) => o.id}
+                  getNewOptionData={(inputValue, optionLabel) => ({ id: inputValue, name: optionLabel })}
+                  onBlur={handleBlur}
+                  classNamePrefix="react-select"
+                  className=""
+                  value={state.value}
+                  onChange={handleChange}
+                  onCreateOption={createLocation.mutate}
+                />
+              </HUIField>
+            )}
+          </Field>
+        )}
+      </Subscribe>
       <Field name="quantity">
         {({ state, handleChange, handleBlur }) => (
           <HUIField>

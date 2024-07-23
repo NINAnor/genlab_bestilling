@@ -5,6 +5,7 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from genlab_bestilling.api.views import (
+    LocationViewset,
     MarkerViewset,
     SampleTypeViewset,
     SampleViewset,
@@ -18,6 +19,7 @@ router.register("samples", SampleViewset, basename="samples")
 router.register("species", SpeciesViewset, basename="species")
 router.register("markers", MarkerViewset, basename="markers")
 router.register("sample-types", SampleTypeViewset, basename="sample_types")
+router.register("locations", LocationViewset, basename="locations")
 
 
 urlpatterns = [

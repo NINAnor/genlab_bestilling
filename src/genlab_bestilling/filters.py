@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from .models import Marker, Sample, SampleType, Species
+from .models import Location, Marker, Sample, SampleType, Species
 
 
 class SampleFilter(filters.FilterSet):
@@ -31,4 +31,10 @@ class SpeciesFilter(BaseOrderFilter):
 class MarkerFilter(BaseOrderFilter):
     class Meta:
         model = Marker
+        fields = {"name": ["icontains"]}
+
+
+class LocationFilter(filters.FilterSet):
+    class Meta:
+        model = Location
         fields = {"name": ["icontains"]}

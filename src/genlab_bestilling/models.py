@@ -62,8 +62,14 @@ class AnalysisType(models.Model):
 
 class Location(models.Model):
     name = models.CharField(max_length=250)
-    river_id = models.CharField(max_length=250)
-    station_id = models.CharField(max_length=20)
+    river_id = models.CharField(max_length=250, null=True, blank=True)
+    station_id = models.CharField(max_length=20, null=True, blank=True)
+
+    def __str__(self):
+        if self.river_id:
+            return f"{self.river_id} {self.station_id} {self.name}"
+
+        return self.name
 
 
 class Project(models.Model):
@@ -194,6 +200,7 @@ class Sample(models.Model):
         "AnalysisOrder", on_delete=models.CASCADE, related_name="samples"
     )
     guid = models.CharField(max_length=200, null=True, blank=True)
+    name = models.CharField(null=True, blank=True)
     type = models.ForeignKey(
         "SampleType", on_delete=models.PROTECT, null=True, blank=True
     )
@@ -202,7 +209,6 @@ class Sample(models.Model):
     date = models.DateField()
     notes = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
-    # area = models.ForeignKey("Area", on_delete=models.PROTECT)
     location = models.ForeignKey(
         "Location", on_delete=models.PROTECT, null=True, blank=True
     )

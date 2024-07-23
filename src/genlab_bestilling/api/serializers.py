@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from ..models import Location, Marker, Sample, SampleType, Species
+from ..models import (
+    AnalysisOrder,
+    Location,
+    Marker,
+    Project,
+    Sample,
+    SampleType,
+    Species,
+)
 
 
 class OperationStatusSerializer(serializers.Serializer):
@@ -145,3 +153,23 @@ class SampleBulkSerializer(serializers.ModelSerializer):
             "location",
             "quantity",
         )
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = (
+            "id",
+            "number",
+            "area",
+        )
+
+
+class AnalysisSerializer(serializers.ModelSerializer):
+    species = SpeciesSerializer(many=True, read_only=True)
+    sample_types = SampleTypeSerializer(many=True, read_only=True)
+    project = ProjectSerializer()
+
+    class Meta:
+        model = AnalysisOrder
+        fields = ("id", "project", "species", "sample_types", "needs_guid")

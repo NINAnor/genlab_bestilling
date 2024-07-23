@@ -20,6 +20,15 @@ const sampleTypesOptions = async (input) => {
   return (await client.get(`/api/sample-types/?order=${config.order}&name__icontains=${input}`)).data;
 };
 
+const DEFAULT = {
+  quantity: 1,
+  species: config.analysis_data.species?.length === 1 ? config.analysis_data.species[0] : null,
+  pop_id: null,
+  date: null,
+  location: null,
+  type: config.analysis_data.sample_types?.length === 1 ? config.analysis_data.sample_types[0] : null,
+}
+
 export default function SampleForm() {
   const queryClient = useQueryClient();
 
@@ -48,14 +57,7 @@ export default function SampleForm() {
         console.log(e);
       }
     },
-    defaultValues: {
-      quantity: 1,
-      species: null,
-      pop_id: null,
-      date: null,
-      location: null,
-      type: null,
-    },
+    defaultValues: DEFAULT,
   });
 
   const createLocation = useMutation({

@@ -18,6 +18,7 @@ from formset.views import (
 )
 from neapolitan.views import CRUDView
 
+from .api.serializers import AnalysisSerializer
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
@@ -293,6 +294,7 @@ class SamplesFrontendView(ProjectNestedMixin, DetailView):
         context["frontend_args"] = {
             "order": self.object.id,
             "csrf": get_token(self.request),
+            "analysis_data": AnalysisSerializer(self.object).data,
         }
         return context
 

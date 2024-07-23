@@ -163,7 +163,7 @@ class EquimentOrderQuantity(models.Model):
 
 
 class EquipmentOrder(Order):
-    use_guid = models.BooleanField()  # TODO: default?
+    needs_guid = models.BooleanField()  # TODO: default?
 
     def get_absolute_url(self):
         return reverse(
@@ -178,7 +178,7 @@ class EquipmentOrder(Order):
 
 
 class AnalysisOrder(Order):
-    has_guid = models.BooleanField()  # TODO: default?
+    needs_guid = models.BooleanField(default=False)  # TODO: default?
     isolate_samples = models.BooleanField()  # TODO: default?
     markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?

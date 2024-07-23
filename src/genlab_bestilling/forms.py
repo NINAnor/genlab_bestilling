@@ -133,7 +133,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         model = EquipmentOrder
         fields = (
             "name",
-            "use_guid",
+            "needs_guid",
             "species",
             "sample_types",
             "notes",
@@ -215,7 +215,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         model = AnalysisOrder
         fields = (
             "name",
-            "has_guid",
+            "needs_guid",
             "species",
             "sample_types",
             "notes",

@@ -56,10 +56,10 @@ const locationCreate = async (value) => {
 }
 
 const COLUMNS = [
-  columnHelper.accessor("guid", {
+  !config.analysis_data.needs_guid ? columnHelper.accessor("guid", {
     header: "GUID",
     cell: SimpleCellInput,
-  }),
+  }) : null,
   columnHelper.accessor("name", {
     header: "Name",
     cell: SimpleCellInput,
@@ -96,7 +96,7 @@ const COLUMNS = [
     header: "Actions",
     cell: ActionsCell,
   }),
-];
+].filter(_ => _);
 
 export default function Table() {
   const tableContainerRef = useRef(null);

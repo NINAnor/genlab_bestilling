@@ -3,6 +3,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
+from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
 
@@ -16,6 +17,7 @@ class Organization(models.Model):
 
 class Area(models.Model):
     name = models.CharField(max_length=255)
+    location_mandatory = models.BooleanField(default=False)
 
     # TODO: unique name
     def __str__(self) -> str:
@@ -35,6 +37,9 @@ class Species(models.Model):
     name = models.CharField(max_length=255)
     area = models.ForeignKey("Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField("Marker")
+    location_type = models.ForeignKey(
+        "LocationType", null=True, blank=True, on_delete=models.CASCADE
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -60,8 +65,15 @@ class AnalysisType(models.Model):
         return self.name
 
 
+class LocationType(models.Model):
+    name = models.CharField(max_length=250)
+
+
 class Location(models.Model):
     name = models.CharField(max_length=250)
+    type = models.ForeignKey(
+        "LocationType", null=True, blank=True, on_delete=models.CASCADE
+    )
     river_id = models.CharField(max_length=250, null=True, blank=True)
     station_id = models.CharField(max_length=20, null=True, blank=True)
 
@@ -213,6 +225,33 @@ class Sample(models.Model):
         "Location", on_delete=models.PROTECT, null=True, blank=True
     )
     volume = models.FloatField(null=True, blank=True)
+
+    @property
+    def has_error(self):
+        if not all(
+            [
+                self.name,
+                self.type,
+                self.guid,
+                self.species,
+                self.date,
+            ]
+        ):
+            raise ValidationError(
+                "GUID, Name, Sample Type, Species and Date are required"
+            )
+
+        if (
+            self.species.location_type
+            and self.species.location_type_id == self.location.type_id
+        ):
+            # Check if the selected species has a specific location type
+            raise ValidationError("Location is required")
+        elif self.order.project.area.location_mandatory:
+            # Check if the project area requires a location
+            raise ValidationError("Location is required")
+        else:
+            return False
 
     # plate
     # coordinates on plate

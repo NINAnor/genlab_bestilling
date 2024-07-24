@@ -30,6 +30,7 @@ dependencies = [
   "dj-rest-auth",
   "django-rest-framework",
   "drf-spectacular",
+  "drf-standardized-errors[openapi]",
   "djangorestframework-simplejwt",
   "django-cors-headers",
   "django-polymorphic",

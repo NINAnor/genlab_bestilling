@@ -97,6 +97,14 @@ const COLUMNS = [
     header: "Actions",
     cell: ActionsCell,
   }),
+  columnHelper.accessor("has_error", {
+    header: "Valid",
+    cell: ({ getValue }) => (
+      <span className="text-2xl text-center flex items-center w-full justify-center">
+        {getValue() ? <i className="fas fa-times text-red-400" title={getValue()} /> : <i className="fas fa-check text-green-400" />}
+      </span>
+    ),
+  }),
 ].filter(_ => _);
 
 export default function Table() {
@@ -153,6 +161,7 @@ export default function Table() {
     },
     onSuccess: () => {
       toast.success('Updated');
+      queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
     onError: () => {
       toast.error('There was an error')

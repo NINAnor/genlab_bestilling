@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from ..models import (
     AnalysisOrder,
@@ -61,6 +61,7 @@ class SampleSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     markers = MarkerSerializer(many=True)
+    has_error = serializers.SerializerMethodField()
     date = serializers.DateField(
         required=False,
         input_formats=[
@@ -82,6 +83,12 @@ class SampleSerializer(serializers.ModelSerializer):
     ## other
     # - location is optional
 
+    def get_has_error(self, obj):
+        try:
+            return obj.has_error
+        except exceptions.ValidationError as e:
+            return e.detail[0]
+
     class Meta:
         model = Sample
         fields = (
@@ -97,10 +104,12 @@ class SampleSerializer(serializers.ModelSerializer):
             "location",
             "volume",
             "type",
+            "has_error",
         )
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):
+    has_error = serializers.SerializerMethodField()
     date = serializers.DateField(
         required=False,
         input_formats=[
@@ -112,6 +121,12 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
         ],
     )
 
+    def get_has_error(self, obj):
+        try:
+            return obj.has_error
+        except exceptions.ValidationError as e:
+            return e.detail[0]
+
     class Meta:
         model = Sample
         fields = (
@@ -121,11 +136,12 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
             "species",
             "markers",
             "date",
+            "name",
             "notes",
             "pop_id",
             "location",
-            "volume",
             "type",
+            "has_error",
         )
 
 

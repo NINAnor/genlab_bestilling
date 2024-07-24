@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
@@ -31,7 +33,19 @@ class IDCursorPagination(CursorPagination):
 
 
 class SampleViewset(ModelViewSet):
-    queryset = Sample.objects.all().select_related("type", "species").order_by("id")
+    queryset = (
+        Sample.objects.all()
+        .select_related(
+            "type",
+            "species",
+            "order",
+            "order__project",
+            "order__project__area",
+            "location",
+        )
+        .prefetch_related("markers")
+        .order_by("id")
+    )
     serializer_class = SampleSerializer
     filterset_class = SampleFilter
     pagination_class = IDCursorPagination
@@ -50,10 +64,12 @@ class SampleViewset(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         qty = serializer.validated_data.pop("quantity")
+        order = serializer.validated_data["order"]
         samples = []
         with transaction.atomic():
             for _ in range(qty):
-                samples.append(Sample(**serializer.validated_data))
+                guid = uuid.uuid4() if order.needs_guid else None
+                samples.append(Sample(guid=guid, **serializer.validated_data))
 
             Sample.objects.bulk_create(samples, 50)
 

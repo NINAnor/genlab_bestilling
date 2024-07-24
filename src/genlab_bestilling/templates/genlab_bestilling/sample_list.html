@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load neapolitan %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">Samples for Analysis #{{ view.kwargs.pk }}</h3>
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="{% url 'project-analysis-detail' project_id=project.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back</a>
+     </div>
+
+    {% render_table table %}
+{% endblock %}

@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from .models import Order, Project
+from .models import Order, Project, Sample
 
 
 class OrderTable(tables.Table):
@@ -34,3 +34,21 @@ class ProjectTable(tables.Table):
         )
 
         empty_text = "No Projects"
+
+
+class SampleTable(tables.Table):
+    class Meta:
+        model = Sample
+        fields = (
+            "guid",
+            "name",
+            "species",
+            "type",
+            "date",
+            "pop_id",
+            "location",
+            "notes",
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+
+        empty_text = "No Samples"

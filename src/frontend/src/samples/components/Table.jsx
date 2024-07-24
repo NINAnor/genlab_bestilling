@@ -359,7 +359,7 @@ export default function Table() {
         </div>
       )}
       <div className="mt-4 flex gap-8 justify-center">
-        <a href="../" className="btn bg-yellow-200">
+        <a href="../../" className="btn bg-yellow-200">
           Back
         </a>
         <button

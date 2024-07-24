@@ -32,8 +32,16 @@
         @apply px-4 py-5 font-medium text-black;
     }
 
+    .tailwind-table.table-sm thead tr:first-child th {
+        @apply py-1;
+    }
+
     .tailwind-table tbody tr td {
         @apply border-b border-[#eee] px-4 py-5;
+    }
+
+    .tailwind-table.table-sm tbody tr td {
+        @apply py-1;
     }
 
     .tailwind-table tbody tr td a {
@@ -174,4 +182,16 @@ django-form-collection .dj-form {
 
 django-form-collection .dj-form .dj-form-errors {
     @apply w-full;
+}
+
+.pagination {
+    @apply flex gap-5 pt-5 justify-center;
+}
+
+.pagination li {
+    @apply py-2 px-4 rounded;
+}
+
+.pagination li.active {
+    @apply bg-primary;
 }

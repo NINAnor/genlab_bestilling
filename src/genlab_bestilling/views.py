@@ -36,7 +36,7 @@ from .models import (
     Project,
     Sample,
 )
-from .tables import OrderTable, ProjectTable
+from .tables import OrderTable, ProjectTable, SampleTable
 
 
 class ActionView(FormView):
@@ -297,6 +297,19 @@ class SamplesFrontendView(ProjectNestedMixin, DetailView):
             "analysis_data": AnalysisSerializer(self.object).data,
         }
         return context
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
+
+
+class SamplesListView(ProjectNestedMixin, SingleTableView):
+    project_id_accessor = "order__project_id"
+
+    model = Sample
+    table_class = SampleTable
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().select_related("type", "location", "species")
 
 
 class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):

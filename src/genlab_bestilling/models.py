@@ -91,7 +91,7 @@ class Project(models.Model):
 
     name = models.CharField(max_length=255, null=True, blank=True)
     # external projects without project code? how to handle them?
-    number = models.BigIntegerField(verbose_name=_("Project number"))
+    number = models.CharField(verbose_name=_("Project number"))
     verified = models.BooleanField(default=False)
     samples_owner = models.ForeignKey(
         "Organization", on_delete=models.PROTECT, blank=True, null=True

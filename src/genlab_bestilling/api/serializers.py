@@ -2,9 +2,9 @@ from rest_framework import exceptions, serializers
 
 from ..models import (
     AnalysisOrder,
+    Genrequest,
     Location,
     Marker,
-    Project,
     Sample,
     SampleType,
     Species,
@@ -76,7 +76,7 @@ class SampleSerializer(serializers.ModelSerializer):
     # TODO: validate location
     ## species in (Laks, Ørret, Elvemusling and  Salamander)
     #   - should have location with river_id
-    ## order.project.area in (
+    ## order.genrequest.area in (
     #   Akvatisk, Amfibier, Biodiversitet, Fisk, Parasitt og sykdomspåvisning
     # )
     #   - should have a location
@@ -171,9 +171,9 @@ class SampleBulkSerializer(serializers.ModelSerializer):
         )
 
 
-class ProjectSerializer(serializers.ModelSerializer):
+class GenrequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Project
+        model = Genrequest
         fields = (
             "id",
             "number",
@@ -184,8 +184,8 @@ class ProjectSerializer(serializers.ModelSerializer):
 class AnalysisSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer(many=True, read_only=True)
     sample_types = SampleTypeSerializer(many=True, read_only=True)
-    project = ProjectSerializer()
+    genrequest = GenrequestSerializer()
 
     class Meta:
         model = AnalysisOrder
-        fields = ("id", "project", "species", "sample_types", "needs_guid")
+        fields = ("id", "genrequest", "species", "sample_types", "needs_guid")

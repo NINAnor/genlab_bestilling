@@ -84,13 +84,12 @@ class Location(models.Model):
         return self.name
 
 
-class Project(models.Model):
+class Genrequest(models.Model):
     """
-    A GenLab project, multiple GenLab projects can have the same NINA project code
+    A GenLab genrequest, multiple GenLab requests can have the same NINA project number
     """
 
     name = models.CharField(max_length=255, null=True, blank=True)
-    # external projects without project code? how to handle them?
     number = models.CharField(verbose_name=_("Project number"))
     verified = models.BooleanField(default=False)
     samples_owner = models.ForeignKey(
@@ -101,20 +100,20 @@ class Project(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="projects_owned",
+        related_name="genrequests_owned",
     )
     creator = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="projects_created",
+        related_name="genrequests_created",
     )
     members = models.ManyToManyField(
-        "users.User", blank=True, related_name="projects_member"
+        "users.User", blank=True, related_name="genrequests_member"
     )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField("Species", blank=True, related_name="projects")
+    species = models.ManyToManyField("Species", blank=True, related_name="genrequests")
     sample_types = models.ManyToManyField("SampleType", blank=True)
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
     expected_total_samples = models.IntegerField(null=True, blank=True)
@@ -125,7 +124,7 @@ class Project(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            "project-detail",
+            "genrequest-detail",
             kwargs={"pk": self.pk},
         )
 
@@ -141,8 +140,8 @@ class Order(PolymorphicModel):
         COMPLETED = "completed", _("Completed")
 
     name = models.CharField(null=True, blank=True)
-    project = models.ForeignKey(
-        "Project", on_delete=models.CASCADE, related_name="orders"
+    genrequest = models.ForeignKey(
+        "Genrequest", on_delete=models.CASCADE, related_name="orders"
     )
     species = models.ManyToManyField("Species", related_name="orders")
     sample_types = models.ManyToManyField("SampleType", related_name="orders")
@@ -179,8 +178,8 @@ class EquipmentOrder(Order):
 
     def get_absolute_url(self):
         return reverse(
-            "project-equipment-detail",
-            kwargs={"pk": self.pk, "project_id": self.project_id},
+            "genrequest-equipment-detail",
+            kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
     def confirm_order(self):
@@ -197,8 +196,8 @@ class AnalysisOrder(Order):
 
     def get_absolute_url(self):
         return reverse(
-            "project-analysis-detail",
-            kwargs={"pk": self.pk, "project_id": self.project_id},
+            "genrequest-analysis-detail",
+            kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
     def confirm_order(self):
@@ -259,8 +258,8 @@ class Sample(models.Model):
         ):
             # Check if the selected species has a specific location type
             raise ValidationError("Location is required")
-        elif self.order.project.area.location_mandatory:
-            # Check if the project area requires a location
+        elif self.order.genrequest.area.location_mandatory:
+            # Check if the genrequest area requires a location
             raise ValidationError("Location is required")
         else:
             return False

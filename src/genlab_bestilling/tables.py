@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from .models import Order, Project, Sample
+from .models import Genrequest, Order, Sample
 
 
 class OrderTable(tables.Table):
@@ -17,11 +17,11 @@ class OrderTable(tables.Table):
         return value.name
 
 
-class ProjectTable(tables.Table):
+class GenrequestTable(tables.Table):
     number = tables.Column(linkify=True)
 
     class Meta:
-        model = Project
+        model = Genrequest
         fields = (
             "number",
             "name",
@@ -33,7 +33,7 @@ class ProjectTable(tables.Table):
             "analysis_timerange",
         )
 
-        empty_text = "No Projects"
+        empty_text = "No requests"
 
 
 class SampleTable(tables.Table):

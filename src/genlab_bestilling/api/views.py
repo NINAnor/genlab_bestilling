@@ -40,8 +40,8 @@ class SampleViewset(ModelViewSet):
             "type",
             "species",
             "order",
-            "order__project",
-            "order__project__area",
+            "order__genrequest",
+            "order__genrequest__area",
             "location",
         )
         .prefetch_related("markers")
@@ -87,7 +87,7 @@ class AnalysisOrderViewset(
     def confirm_order(self, request, pk):
         obj = self.get_object()
         obj.confirm_order()
-        return Response(self.get_serializer_class(object).data)
+        return Response(self.get_serializer(obj).data)
 
 
 class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):

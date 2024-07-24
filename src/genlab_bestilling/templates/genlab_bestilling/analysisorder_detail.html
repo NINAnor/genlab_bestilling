@@ -15,7 +15,7 @@
     {% endfragment %}
     <h3 class="text-4xl mb-5">Order #{{ object.id }} - {{ object.name }}</h3>
     <div class="flex gap-5 mb-5">
-        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
     </div>
 
     {% object-detail object=object %}
@@ -47,14 +47,14 @@
 
     <div class="flex gap-5 my-5">
         {% if object.status == 'draft' %}
-        <a class="btn bg-primary" href="{% url 'project-analysis-update' project_id=object.project_id pk=object.id %}">Edit</a>
-        <a class="btn bg-primary" href="{% url 'project-analysis-samples-edit' project_id=object.project_id pk=object.id %}">Edit Samples</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=object.genrequest_id pk=object.id %}">Edit Samples</a>
         {% comment %}
-        {% url 'project-order-confirm' project_id=object.project_id pk=object.id as confirm_order_url %}
+        {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
         {% action-button action=confirm_order_url class="bg-secondary" submit_text="Confirm Order" csrf_token=csrf_token %}
         {% endcomment %}
         {% elif object.status == 'confirmed' %}
-        <a class="btn bg-primary" href="{% url 'project-analysis-samples' project_id=object.project_id pk=object.id %}">Samples</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}
     </div>
 {% endblock %}

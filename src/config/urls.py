@@ -10,7 +10,7 @@ from django.views import generic
 
 class HomeView(LoginRequiredMixin, generic.RedirectView):
     def get_redirect_url(self, *args: Any, **kwargs: Any) -> str | None:
-        return reverse_lazy("project-list")
+        return reverse_lazy("genrequest-list")
 
 
 urlpatterns = [

@@ -5,9 +5,9 @@
     <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
     <div class="flex gap-5 mb-5">
         {% if object.id %}
-        <a class="btn bg-primary" href="{% url 'project-equipment-detail' project_id=project.id pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-equipment-detail' genrequest_id=genrequest.id pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% else %}
-        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=project.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% endif %}
     </div>
     {% formset endpoint=request.path csrf_token=csrf_token form=form %}

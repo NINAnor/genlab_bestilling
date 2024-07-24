@@ -8,11 +8,11 @@ from .models import (
     EquimentOrderQuantity,
     EquipmentOrder,
     EquipmentType,
+    Genrequest,
     Location,
     Marker,
     Order,
     Organization,
-    Project,
     Sample,
     SampleType,
     Species,
@@ -67,8 +67,8 @@ class LocationAdmin(ModelAdmin):
     search_fields = ["name"]
 
 
-@admin.register(Project)
-class ProjectAdmin(ModelAdmin):
+@admin.register(Genrequest)
+class GenrequestAdmin(ModelAdmin):
     list_display = [
         "name",
         "number",
@@ -92,12 +92,12 @@ class ProjectAdmin(ModelAdmin):
 class OrderAdmin(ModelAdmin):
     list_display = [
         "id",
-        "project",
+        "genrequest",
     ]
-    search_fields = ["id", "project"]
+    search_fields = ["id", "genrequest"]
 
     autocomplete_fields = [
-        "project",
+        "genrequest",
         "species",
         "sample_types",
     ]
@@ -112,12 +112,12 @@ class EquimentOrderQuantityInline(admin.TabularInline):
 class EquipmentOrderAdmin(ModelAdmin):
     list_display = [
         "id",
-        "project",
+        "genrequest",
     ]
-    search_fields = ["id", "project"]
+    search_fields = ["id", "genrequest"]
 
     autocomplete_fields = [
-        "project",
+        "genrequest",
         "species",
         "sample_types",
     ]
@@ -134,11 +134,11 @@ class SampleInline(admin.StackedInline):
 class AnalysisOrderAdmin(ModelAdmin):
     list_display = [
         "id",
-        "project",
+        "genrequest",
     ]
-    search_fields = ["id", "project"]
+    search_fields = ["id", "genrequest"]
     inlines = [SampleInline]
-    autocomplete_fields = ["project", "species", "sample_types", "markers"]
+    autocomplete_fields = ["genrequest", "species", "sample_types", "markers"]
 
 
 @admin.register(Sample)

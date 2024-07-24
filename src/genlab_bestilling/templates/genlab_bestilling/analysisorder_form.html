@@ -6,9 +6,9 @@
 
     <div class="flex gap-5 mb-5">
         {% if object.id %}
-        <a class="btn bg-primary" href="{% url 'project-analysis-detail' project_id=project.id pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% else %}
-        <a class="btn bg-primary" href="{% url 'project-order-list' project_id=view.kwargs.project_id %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=view.kwargs.genrequest_id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% endif %}
     </div>
     {% formset endpoint=request.path csrf_token=csrf_token form=form %}

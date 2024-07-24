@@ -5,14 +5,14 @@
 {% block content %}
 <div class="flex items-center mb-5 gap-2">
   <h3 class="text-4xl">{{ object.name }} - {{ object.number }}</h3>
-  {% if project.verified %}<span class="bg-green-500 px-2 rounded text-sm"
+  {% if genrequest.verified %}<span class="bg-green-500 px-2 rounded text-sm"
     >Verified</span
   >{% else %}<span class="bg-red-500 text-white px-2 rounded text-sm"
     >Not verified</span
   >{% endif %}
 </div>
 
-{% if not project.verified %}
+{% if not genrequest.verified %}
 <div class="alert alert-warning">
   <p>Project number needs to be verified before adding orders</p>
 </div>
@@ -22,26 +22,26 @@
   {% object-detail object=object %}
 
   <div class="flex gap-5 my-5">
-    <a class="btn bg-primary" href="{% url 'project-list' %}"
+    <a class="btn bg-primary" href="{% url 'genrequest-list' %}"
       ><i class="fas fa-arrow-left"></i> back</a
     >
-    <a class="btn bg-primary" href="{% url 'project-update' pk=project.id %}"
+    <a class="btn bg-primary" href="{% url 'genrequest-update' pk=genrequest.id %}"
       ><i class="fas fa-edit"></i> Edit</a
     >
-    {% if project.verified %}
+    {% if genrequest.verified %}
     <a
       class="btn bg-primary"
-      href="{% url 'project-order-list' project_id=project.id %}"
+      href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"
       ><i class="fas fa-eye"></i> Orders</a
     >
     <a
       class="btn bg-primary"
-      href="{% url 'project-equipment-create' project_id=project.id %}"
+      href="{% url 'genrequest-equipment-create' genrequest_id=genrequest.id %}"
       ><i class="fas fa-plus"></i> Equipment order</a
     >
     <a
       class="btn bg-primary"
-      href="{% url 'project-analysis-create' project_id=project.id %}"
+      href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"
       ><i class="fas fa-plus"></i> Analysis order</a
     >
     {% endif %}

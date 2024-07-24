@@ -15,13 +15,13 @@ from .models import (
     AnalysisOrder,
     EquimentOrderQuantity,
     EquipmentOrder,
+    Genrequest,
     Marker,
-    Project,
     Sample,
 )
 
 
-class ProjectForm(FormMixin, forms.ModelForm):
+class GenrequestForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
     def __init__(self, *args, user=None, **kwargs):
@@ -38,7 +38,7 @@ class ProjectForm(FormMixin, forms.ModelForm):
         return obj
 
     class Meta:
-        model = Project
+        model = Genrequest
         fields = (
             "number",
             "name",
@@ -61,8 +61,8 @@ class ProjectForm(FormMixin, forms.ModelForm):
         }
 
 
-class ProjectEditForm(ProjectForm):
-    class Meta(ProjectForm.Meta):
+class GenrequestEditForm(GenrequestForm):
+    class Meta(GenrequestForm.Meta):
         fields = (
             "name",
             "species",
@@ -114,16 +114,16 @@ class ProjectEditForm(ProjectForm):
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, project, **kwargs):
+    def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, **kwargs)
-        self.project = project
+        self.genrequest = genrequest
 
-        self.fields["species"].queryset = project.species.all()
-        self.fields["sample_types"].queryset = project.sample_types.all()
+        self.fields["species"].queryset = genrequest.species.all()
+        self.fields["sample_types"].queryset = genrequest.sample_types.all()
 
     def save(self, commit=True):
         obj = super().save(commit=False)
-        obj.project = self.project
+        obj.genrequest = self.genrequest
         if commit:
             obj.save()
             self.save_m2m()
@@ -193,19 +193,19 @@ class EquipmentQuantityCollection(ContextFormCollection):
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, project, **kwargs):
+    def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, **kwargs)
-        self.project = project
+        self.genrequest = genrequest
 
-        self.fields["species"].queryset = project.species.all()
-        self.fields["sample_types"].queryset = project.sample_types.all()
+        self.fields["species"].queryset = genrequest.species.all()
+        self.fields["sample_types"].queryset = genrequest.sample_types.all()
         self.fields["markers"].queryset = Marker.objects.filter(
-            species__projects__id=project.id
+            species__genrequests__id=genrequest.id
         ).distinct()
 
     def save(self, commit=True):
         obj = super().save(commit=False)
-        obj.project = self.project
+        obj.genrequest = self.genrequest
         if commit:
             obj.save()
             self.save_m2m()
@@ -237,18 +237,18 @@ class SampleForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
     def reinit(self, context):
-        self.project = context["project"]
+        self.genrequest = context["genrequest"]
         self.order_id = context["order_id"]
-        self.fields["type"].queryset = self.project.sample_types.all()
-        self.fields["species"].queryset = self.project.species.all()
+        self.fields["type"].queryset = self.genrequest.sample_types.all()
+        self.fields["species"].queryset = self.genrequest.species.all()
         self.fields["markers"].queryset = Marker.objects.filter(
-            species__projects__id=self.project.id
+            species__genrequests__id=self.genrequest.id
         )
 
     def save(self, commit=True):
         obj = super().save(commit=False)
         obj.order_id = self.order_id
-        obj.area = self.project.area
+        obj.area = self.genrequest.area
         if commit:
             obj.save()
             self.save_m2m()

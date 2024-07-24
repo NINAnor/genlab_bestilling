@@ -24,19 +24,19 @@ from .forms import (
     AnalysisOrderForm,
     EquipmentOrderForm,
     EquipmentQuantityCollection,
-    ProjectEditForm,
-    ProjectForm,
+    GenrequestEditForm,
+    GenrequestForm,
     SamplesCollection,
 )
 from .models import (
     AnalysisOrder,
     EquimentOrderQuantity,
     EquipmentOrder,
+    Genrequest,
     Order,
-    Project,
     Sample,
 )
-from .tables import OrderTable, ProjectTable, SampleTable
+from .tables import GenrequestTable, OrderTable, SampleTable
 
 
 class ActionView(FormView):
@@ -64,8 +64,8 @@ class FormsetUpdateView(
     pass
 
 
-class ProjectsView(LoginRequiredMixin, CRUDView):
-    model = Project
+class GenrequestsView(LoginRequiredMixin, CRUDView):
+    model = Genrequest
     fields = (
         "number",
         "name",
@@ -79,29 +79,29 @@ class ProjectsView(LoginRequiredMixin, CRUDView):
     filterset_fields = ["name"]
 
 
-class ProjectListView(LoginRequiredMixin, SingleTableView):
-    model = Project
-    table_class = ProjectTable
+class GenrequestListView(LoginRequiredMixin, SingleTableView):
+    model = Genrequest
+    table_class = GenrequestTable
 
 
-class ProjectDetailView(LoginRequiredMixin, DetailView):
-    model = Project
+class GenrequestDetailView(LoginRequiredMixin, DetailView):
+    model = Genrequest
 
 
-class ProjectUpdateView(FormsetUpdateView):
-    model = Project
-    form_class = ProjectEditForm
+class GenrequestUpdateView(FormsetUpdateView):
+    model = Genrequest
+    form_class = GenrequestEditForm
 
     def get_success_url(self):
         return reverse(
-            "project-detail",
+            "genrequest-detail",
             kwargs={"pk": self.object.id},
         )
 
 
-class ProjectCreateView(FormsetCreateView):
-    model = Project
-    form_class = ProjectForm
+class GenrequestCreateView(FormsetCreateView):
+    model = Genrequest
+    form_class = GenrequestForm
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -110,66 +110,66 @@ class ProjectCreateView(FormsetCreateView):
 
     def get_success_url(self):
         return reverse(
-            "project-detail",
+            "genrequest-detail",
             kwargs={"pk": self.object.id},
         )
 
 
-class ProjectNestedMixin(LoginRequiredMixin):
+class GenrequestNestedMixin(LoginRequiredMixin):
     """
-    Provide a Mixin to simplify views that operates under /projects/<id>/
+    Provide a Mixin to simplify views that operates under /genrequests/<id>/
 
-    By default loads the project from the database,
-    filter the current queryset using the project
+    By default loads the genrequest from the database,
+    filter the current queryset using the genrequest
     and adds it to the render context.
     """
 
-    project_id_accessor = "project_id"
+    genrequest_id_accessor = "genrequest_id"
 
-    def get_project(self):
-        return Project.objects.get(id=self.kwargs["project_id"], verified=True)
+    def get_genrequest(self):
+        return Genrequest.objects.get(id=self.kwargs["genrequest_id"], verified=True)
 
     def post(self, request, *args, **kwargs):
-        self.project = self.get_project()
+        self.genrequest = self.get_genrequest()
         return super().post(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        self.project = self.get_project()
+        self.genrequest = self.get_genrequest()
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
-        kwargs = {self.project_id_accessor: self.project.id}
+        kwargs = {self.genrequest_id_accessor: self.genrequest.id}
         return super().get_queryset().filter(**kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
-        ctx["project"] = self.project
+        ctx["genrequest"] = self.genrequest
         return ctx
 
     def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
-        kwargs["project"] = self.project
+        kwargs["genrequest"] = self.genrequest
         return kwargs
 
 
-class ProjectOrderListView(ProjectNestedMixin, SingleTableView):
+class GenrequestOrderListView(GenrequestNestedMixin, SingleTableView):
     model = Order
     table_class = OrderTable
 
 
-class EquipmentOrderDetailView(ProjectNestedMixin, DetailView):
+class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
     model = EquipmentOrder
 
 
-class AnalysisOrderDetailView(ProjectNestedMixin, DetailView):
+class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
 
 
-class ConfirmOrderActionView(ProjectNestedMixin, SingleObjectMixin, ActionView):
+class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):
     model = Order
 
     def post(self, request, *args, **kwargs):
-        self.project = self.get_project()
+        self.genrequest = self.get_genrequest()
         self.object = self.get_object()
         return super().post(request, *args, **kwargs)
 
@@ -191,7 +191,7 @@ class ConfirmOrderActionView(ProjectNestedMixin, SingleObjectMixin, ActionView):
 
 
 class EquipmentOrderEditView(
-    ProjectNestedMixin,
+    GenrequestNestedMixin,
     FormsetUpdateView,
 ):
     model = EquipmentOrder
@@ -202,13 +202,13 @@ class EquipmentOrderEditView(
 
     def get_success_url(self):
         return reverse(
-            "project-equipment-detail",
-            kwargs={"project_id": self.project.id, "pk": self.object.id},
+            "genrequest-equipment-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 
 
 class EquipmentOrderCreateView(
-    ProjectNestedMixin,
+    GenrequestNestedMixin,
     FormsetCreateView,
 ):
     model = EquipmentOrder
@@ -216,13 +216,13 @@ class EquipmentOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "project-equipment-detail",
-            kwargs={"project_id": self.project.id, "pk": self.object.id},
+            "genrequest-equipment-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 
 
 class AnalysisOrderEditView(
-    ProjectNestedMixin,
+    GenrequestNestedMixin,
     FormsetUpdateView,
 ):
     model = AnalysisOrder
@@ -233,13 +233,13 @@ class AnalysisOrderEditView(
 
     def get_success_url(self):
         return reverse(
-            "project-analysis-detail",
-            kwargs={"project_id": self.project.id, "pk": self.object.id},
+            "genrequest-analysis-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 
 
 class AnalysisOrderCreateView(
-    ProjectNestedMixin,
+    GenrequestNestedMixin,
     FormsetCreateView,
 ):
     form_class = AnalysisOrderForm
@@ -247,16 +247,16 @@ class AnalysisOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "project-analysis-detail",
-            kwargs={"project_id": self.project.id, "pk": self.object.id},
+            "genrequest-analysis-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 
 
-class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionView):
+class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
     collection_class = EquipmentQuantityCollection
     template_name = "genlab_bestilling/equipmentorderquantity_form.html"
     model = EquimentOrderQuantity
-    project_id_accessor = "order__project_id"
+    genrequest_id_accessor = "order__genrequest_id"
 
     def get_queryset(self) -> QuerySet[Any]:
         return (
@@ -272,8 +272,8 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
 
     def get_success_url(self):
         return reverse(
-            "project-equipment-detail",
-            kwargs={"project_id": self.project.id, "pk": self.kwargs["pk"]},
+            "genrequest-equipment-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.kwargs["pk"]},
         )
 
     def get_initial(self):
@@ -285,7 +285,7 @@ class EquipmentOrderQuantityUpdateView(ProjectNestedMixin, BulkEditCollectionVie
         return initial
 
 
-class SamplesFrontendView(ProjectNestedMixin, DetailView):
+class SamplesFrontendView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
     template_name = "genlab_bestilling/sample_form_frontend.html"
 
@@ -302,8 +302,8 @@ class SamplesFrontendView(ProjectNestedMixin, DetailView):
         return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
 
 
-class SamplesListView(ProjectNestedMixin, SingleTableView):
-    project_id_accessor = "order__project_id"
+class SamplesListView(GenrequestNestedMixin, SingleTableView):
+    genrequest_id_accessor = "order__genrequest_id"
 
     model = Sample
     table_class = SampleTable
@@ -312,11 +312,11 @@ class SamplesListView(ProjectNestedMixin, SingleTableView):
         return super().get_queryset().select_related("type", "location", "species")
 
 
-class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):
+class SamplesUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
     collection_class = SamplesCollection
     template_name = "genlab_bestilling/sample_form.html"
     model = Sample
-    project_id_accessor = "order__project_id"
+    genrequest_id_accessor = "order__genrequest_id"
 
     def get_queryset(self) -> QuerySet[Any]:
         return (
@@ -329,20 +329,20 @@ class SamplesUpdateView(ProjectNestedMixin, BulkEditCollectionView):
         kwargs = super().get_collection_kwargs()
         kwargs["context"] = {
             "order_id": self.kwargs["pk"],
-            "project": self.project,
+            "genrequest": self.genrequest,
         }
         return kwargs
 
     def get_success_url(self):
         return reverse(
-            "project-analysis-detail",
-            kwargs={"project_id": self.project.id, "pk": self.kwargs["pk"]},
+            "genrequest-analysis-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.kwargs["pk"]},
         )
 
     def get_initial(self):
         collection_class = self.get_collection_class()
         queryset = self.get_queryset()
         initial = collection_class(
-            context={"order_id": self.kwargs["pk"], "project": self.project}
+            context={"order_id": self.kwargs["pk"], "genrequest": self.genrequest}
         ).models_to_list(queryset)
         return initial

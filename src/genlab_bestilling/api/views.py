@@ -4,6 +4,7 @@ from django.db import transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.pagination import CursorPagination
+from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, mixins
 
@@ -33,6 +34,13 @@ class IDCursorPagination(CursorPagination):
     page_size = 50
 
 
+class AllowSampleDraft(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj.order.status != AnalysisOrder.OrderStatus.DRAFT:
+            return request.method in SAFE_METHODS
+        return True
+
+
 class SampleViewset(ModelViewSet):
     queryset = (
         Sample.objects.all()
@@ -50,6 +58,7 @@ class SampleViewset(ModelViewSet):
     serializer_class = SampleSerializer
     filterset_class = SampleFilter
     pagination_class = IDCursorPagination
+    permission_classes = [AllowSampleDraft, IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ["update", "partial_update"]:
@@ -77,13 +86,25 @@ class SampleViewset(ModelViewSet):
         return Response(data=OperationStatusSerializer({"success": True}).data)
 
 
+class AllowOrderDraft(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if obj.status != AnalysisOrder.OrderStatus.DRAFT:
+            return request.method in SAFE_METHODS
+        return True
+
+
 class AnalysisOrderViewset(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
 ):
     queryset = AnalysisOrder.objects.all()
     serializer_class = AnalysisSerializer
 
-    @action(methods=["POST"], url_path="confirm", detail=True)
+    @action(
+        methods=["POST"],
+        url_path="confirm",
+        detail=True,
+        permission_classes=[AllowOrderDraft],
+    )
     def confirm_order(self, request, pk):
         obj = self.get_object()
         obj.confirm_order()

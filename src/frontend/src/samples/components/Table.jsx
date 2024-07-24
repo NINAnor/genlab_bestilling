@@ -20,6 +20,7 @@ import SelectCell from "./Cell/SelectCell";
 import ActionsCell from "./Cell/ActionsCell";
 import SelectCreateCell from "./Cell/SelectCreateCell";
 import toast from "react-hot-toast";
+import { AxiosError } from "axios";
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
 async function getSamples({ pageParam }) {
@@ -145,6 +146,16 @@ const COLUMNS = [
   }),
 ].filter((_) => _);
 
+function handleError(e) {
+  if (e instanceof AxiosError) {
+    e.response.data.errors.forEach(err => {
+      toast.error(err.detail)
+    })
+  } else {
+    toast.error("There was an error");
+  }
+}
+
 export default function Table() {
   const tableContainerRef = useRef(null);
   const queryClient = useQueryClient();
@@ -201,9 +212,7 @@ export default function Table() {
       toast.success("Updated");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
-    onError: () => {
-      toast.error("There was an error");
-    },
+    onError: handleError,
   });
 
   const deleteRow = useMutation({
@@ -214,9 +223,7 @@ export default function Table() {
       toast.success("Deleted");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
-    onError: () => {
-      toast.error("There was an error");
-    },
+    onError: handleError,
   });
 
   const mutateConfirm = useMutation({
@@ -227,9 +234,7 @@ export default function Table() {
       toast.success("Confirmed");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
-    onError: () => {
-      toast.error("There was an error");
-    },
+    onError: handleError,
   });
 
   const table = useReactTable({

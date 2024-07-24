@@ -11,6 +11,7 @@ const queryClient = new QueryClient()
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <h2 className='text-4xl font-bold mb-5'>Edit Samples</h2>
       <Toaster />
       <SampleForm />
       <Table />

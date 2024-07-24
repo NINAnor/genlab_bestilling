@@ -1,5 +1,5 @@
 from django.contrib.postgres.fields.ranges import DateRangeField
-from django.db import models
+from django.db import models, transaction
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
@@ -202,9 +202,21 @@ class AnalysisOrder(Order):
         )
 
     def confirm_order(self):
-        if not self.samples.all().exists():
-            raise Order.CannotConfirm(_("No samples found"))
-        return super().confirm_order()
+        with transaction.atomic():
+            if not self.samples.all().exists():
+                raise ValidationError(_("No samples found"))
+
+            invalid = 0
+            for sample in self.samples.all():
+                try:
+                    sample.has_error  # noqa: B018
+                except ValidationError:
+                    invalid += 1
+
+            if invalid > 0:
+                raise ValidationError(f"Found {invalid} invalid or incompleted samples")
+
+            return super().confirm_order()
 
 
 class Sample(models.Model):

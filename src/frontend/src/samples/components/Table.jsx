@@ -31,11 +31,19 @@ async function getSamples({ pageParam }) {
 const columnHelper = createColumnHelper();
 
 const speciesOptions = async (input) => {
-  return (await client.get(`/api/species/?order=${config.order}&name__icontains=${input}`)).data;
+  return (
+    await client.get(
+      `/api/species/?order=${config.order}&name__icontains=${input}`
+    )
+  ).data;
 };
 
 const sampleTypesOptions = async (input) => {
-  return (await client.get(`/api/sample-types/?order=${config.order}&name__icontains=${input}`)).data;
+  return (
+    await client.get(
+      `/api/sample-types/?order=${config.order}&name__icontains=${input}`
+    )
+  ).data;
 };
 
 // const markersOptions = async (input) => {
@@ -54,20 +62,28 @@ const locationCreate = async (value) => {
   return client.post("/api/locations/", {
     name: value,
   });
-}
+};
 
 const COLUMNS = [
-  !config.analysis_data.needs_guid ? columnHelper.accessor("guid", {
-    header: "GUID",
-    cell: SimpleCellInput,
-  }) : null,
+  !config.analysis_data.needs_guid
+    ? columnHelper.accessor("guid", {
+        header: "GUID",
+        cell: SimpleCellInput,
+      })
+    : null,
   columnHelper.accessor("name", {
     header: "Name",
     cell: SimpleCellInput,
   }),
   columnHelper.accessor("species", {
     header: "Species",
-    cell: (props) => <SelectCell {...props} loadOptions={speciesOptions} queryKey={'species'} />,
+    cell: (props) => (
+      <SelectCell
+        {...props}
+        loadOptions={speciesOptions}
+        queryKey={"species"}
+      />
+    ),
   }),
   columnHelper.accessor("date", {
     header: "Date",
@@ -79,11 +95,24 @@ const COLUMNS = [
   }),
   columnHelper.accessor("location", {
     header: "Location",
-    cell: (props) => <SelectCreateCell {...props} loadOptions={locationOptions} queryKey={'locations'} onCreate={locationCreate} />,
+    cell: (props) => (
+      <SelectCreateCell
+        {...props}
+        loadOptions={locationOptions}
+        queryKey={"locations"}
+        onCreate={locationCreate}
+      />
+    ),
   }),
   columnHelper.accessor("type", {
     header: "Type",
-    cell: (props) => <SelectCell {...props} loadOptions={sampleTypesOptions} queryKey={'sampleTypes'} />,
+    cell: (props) => (
+      <SelectCell
+        {...props}
+        loadOptions={sampleTypesOptions}
+        queryKey={"sampleTypes"}
+      />
+    ),
   }),
   // columnHelper.accessor("markers", {
   //   header: "Markers",
@@ -98,14 +127,23 @@ const COLUMNS = [
     cell: ActionsCell,
   }),
   columnHelper.accessor("has_error", {
-    header: "Valid",
+    header: "Completed",
     cell: ({ getValue }) => (
       <span className="text-2xl text-center flex items-center w-full justify-center">
-        {getValue() ? <i className="fas fa-times text-red-400" title={getValue()} /> : <i className="fas fa-check text-green-400" />}
+        {getValue() ? (
+          <>
+            <i className="fas fa-times text-red-400" />
+            <span className="text-sm ml-3">
+              <i className="fas fa-info-circle text-blue-500" title={getValue()} />
+            </span>
+          </>
+        ) : (
+          <i className="fas fa-check text-green-400" />
+        )}
       </span>
     ),
   }),
-].filter(_ => _);
+].filter((_) => _);
 
 export default function Table() {
   const tableContainerRef = useRef(null);
@@ -160,12 +198,12 @@ export default function Table() {
       return client.patch(`/api/samples/${id}/`, data);
     },
     onSuccess: () => {
-      toast.success('Updated');
+      toast.success("Updated");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
     onError: () => {
-      toast.error('There was an error')
-    }
+      toast.error("There was an error");
+    },
   });
 
   const deleteRow = useMutation({
@@ -173,12 +211,25 @@ export default function Table() {
       return client.delete(`/api/samples/${id}/`);
     },
     onSuccess: () => {
-      toast.success('Deleted')
+      toast.success("Deleted");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
     onError: () => {
-      toast.error('There was an error')
-    }
+      toast.error("There was an error");
+    },
+  });
+
+  const mutateConfirm = useMutation({
+    mutationFn: () => {
+      return client.post(`/api/analysis-order/${config.order}/confirm/`);
+    },
+    onSuccess: () => {
+      toast.success("Confirmed");
+      queryClient.invalidateQueries({ queryKey: ["samples"] });
+    },
+    onError: () => {
+      toast.error("There was an error");
+    },
   });
 
   const table = useReactTable({
@@ -287,13 +338,38 @@ export default function Table() {
           </table>
         </div>
         <div className="flex justify-center py-5">
-          {(isLoading || isFetching || updateCell.isPending || deleteRow.isPending) && (
+          {(isLoading ||
+            isFetching ||
+            updateCell.isPending ||
+            deleteRow.isPending) && (
             <i className="fas fa-spinner fa-spin text-lg" />
           )}
         </div>
       </div>
-      <div className="mt-4 flex justify-center">
-        <a href="../" className='btn bg-primary'>Back</a>
+      {mutateConfirm.error && (
+        <div className="mb-2 bg-red-300 p-2 rounded my-5">
+          <h4 className="text-xl font-bold capitalize">
+            {mutateConfirm.error.response.data.type.replace("_", " ")}
+          </h4>
+          <ul className="list-disc px-5">
+            {mutateConfirm.error.response.data.errors.map((e) => (
+              <li key={e.attr + e.code}>{e.detail}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="mt-4 flex gap-8 justify-center">
+        <a href="../" className="btn bg-yellow-200">
+          Back
+        </a>
+        <button
+          className="btn bg-secondary disabled:opacity-70"
+          onClick={mutateConfirm.mutate}
+          disabled={mutateConfirm.isPending}
+        >
+          Confirm Order{" "}
+          {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
+        </button>
       </div>
     </>
   );

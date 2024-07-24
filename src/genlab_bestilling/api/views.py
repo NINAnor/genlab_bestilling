@@ -14,8 +14,9 @@ from ..filters import (
     SampleTypeFilter,
     SpeciesFilter,
 )
-from ..models import Location, Marker, Sample, SampleType, Species
+from ..models import AnalysisOrder, Location, Marker, Sample, SampleType, Species
 from .serializers import (
+    AnalysisSerializer,
     EnumSerializer,
     LocationCreateSerializer,
     LocationSerializer,
@@ -74,6 +75,19 @@ class SampleViewset(ModelViewSet):
             Sample.objects.bulk_create(samples, 50)
 
         return Response(data=OperationStatusSerializer({"success": True}).data)
+
+
+class AnalysisOrderViewset(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
+):
+    queryset = AnalysisOrder.objects.all()
+    serializer_class = AnalysisSerializer
+
+    @action(methods=["POST"], url_path="confirm", detail=True)
+    def confirm_order(self, request, pk):
+        obj = self.get_object()
+        obj.confirm_order()
+        return Response(self.get_serializer_class(object).data)
 
 
 class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):

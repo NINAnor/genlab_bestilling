@@ -13,7 +13,7 @@ export default function ActionsCell({ table, row: { original } }) {
     <div className="flex">
       <button
         disabled={running}
-        className="btn bg-red-500 text-white"
+        className="btn bg-red-500 text-white rounded"
         onClick={runDelete}
       >
         <i className={`fas ${running ? "fa-spin fa-spinner" : "fa-trash"}`}></i>

@@ -109,6 +109,7 @@ THIRD_PARTY_APPS = [
     "formset",
     "django_vite",
     "django_filters",
+    "drf_standardized_errors",
 ]
 
 LOCAL_APPS = [
@@ -354,6 +355,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
 # DJ Rest Auth

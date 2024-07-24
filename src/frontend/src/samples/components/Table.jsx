@@ -19,6 +19,7 @@ import DateCell from "./Cell/DateCell";
 import SelectCell from "./Cell/SelectCell";
 import ActionsCell from "./Cell/ActionsCell";
 import SelectCreateCell from "./Cell/SelectCreateCell";
+import toast from "react-hot-toast";
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
 async function getSamples({ pageParam }) {
@@ -151,8 +152,11 @@ export default function Table() {
       return client.patch(`/api/samples/${id}/`, data);
     },
     onSuccess: () => {
-      // TODO: feedback
+      toast.success('Updated');
     },
+    onError: () => {
+      toast.error('There was an error')
+    }
   });
 
   const deleteRow = useMutation({
@@ -160,8 +164,12 @@ export default function Table() {
       return client.delete(`/api/samples/${id}/`);
     },
     onSuccess: () => {
+      toast.success('Deleted')
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
+    onError: () => {
+      toast.error('There was an error')
+    }
   });
 
   const table = useReactTable({
@@ -269,14 +277,14 @@ export default function Table() {
             </tbody>
           </table>
         </div>
+        <div className="flex justify-center py-5">
+          {(isLoading || isFetching || updateCell.isPending || deleteRow.isPending) && (
+            <i className="fas fa-spinner fa-spin text-lg" />
+          )}
+        </div>
       </div>
-      <div className="mt-4">
-        {(isLoading || isFetching) && (
-          <p className="font-bold text-center">Loading...</p>
-        )}
-        {updateCell.isPending && (
-          <p className="font-bold text-center">Saving...</p>
-        )}
+      <div className="mt-4 flex justify-center">
+        <a href="../" className='btn bg-primary'>Back</a>
       </div>
     </>
   );

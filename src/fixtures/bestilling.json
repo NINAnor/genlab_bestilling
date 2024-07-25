@@ -1,79 +1,104 @@
 [
     {
+        "model": "genlab_bestilling.organization",
+        "pk": 1,
+        "fields": {
+            "name": "NINA"
+        }
+    },
+    {
+        "model": "genlab_bestilling.organization",
+        "pk": 2,
+        "fields": {
+            "name": "Veterinærinstituttet"
+        }
+    },
+    {
         "model": "genlab_bestilling.area",
         "pk": 1,
         "fields": {
-            "name": "Akvatisk"
+            "name": "Akvatisk",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 2,
         "fields": {
-            "name": "Amfibier"
+            "name": "Amfibier",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 3,
         "fields": {
-            "name": "Biodiversitet (metabarcoding)"
+            "name": "Biodiversitet (metabarcoding)",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 4,
         "fields": {
-            "name": "Fisk"
+            "name": "Fisk",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 5,
         "fields": {
-            "name": "Fugl"
+            "name": "Fugl",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 6,
         "fields": {
-            "name": "Hjortedyr"
+            "name": "Hjortedyr",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 7,
         "fields": {
-            "name": "Parasitt og sykdomspåvisning"
+            "name": "Parasitt og sykdomspåvisning",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 8,
         "fields": {
-            "name": "Planter"
+            "name": "Planter",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 9,
         "fields": {
-            "name": "Terrestrisk"
+            "name": "Terrestrisk",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 10,
         "fields": {
-            "name": "Annet"
+            "name": "Annet",
+            "location_mandatory": false
         }
     },
     {
         "model": "genlab_bestilling.area",
         "pk": 11,
         "fields": {
-            "name": "Rovdyr"
+            "name": "Rovdyr",
+            "location_mandatory": false
         }
     },
     {
@@ -192,9 +217,10 @@
         "fields": {
             "name": "Elvemusling",
             "area": 1,
+            "location_type": null,
             "markers": [
-                "qPCR",
-                "STR"
+                "STR",
+                "qPCR"
             ]
         }
     },
@@ -204,6 +230,7 @@
         "fields": {
             "name": "Havnespy",
             "area": 1,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -215,6 +242,7 @@
         "fields": {
             "name": "Edelkreps",
             "area": 1,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -226,6 +254,7 @@
         "fields": {
             "name": "Signalkreps",
             "area": 1,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -237,6 +266,7 @@
         "fields": {
             "name": "Buttsnutefrosk",
             "area": 2,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -248,9 +278,10 @@
         "fields": {
             "name": "Spissnutefrosk",
             "area": 2,
+            "location_type": null,
             "markers": [
-                "qPCR",
-                "STR"
+                "STR",
+                "qPCR"
             ]
         }
     },
@@ -260,6 +291,7 @@
         "fields": {
             "name": "Damfrosk",
             "area": 2,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -271,6 +303,7 @@
         "fields": {
             "name": "Padde",
             "area": 2,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -282,9 +315,10 @@
         "fields": {
             "name": "Småsalamander",
             "area": 2,
+            "location_type": null,
             "markers": [
-                "qPCR",
-                "STR"
+                "STR",
+                "qPCR"
             ]
         }
     },
@@ -294,9 +328,10 @@
         "fields": {
             "name": "Storsalamander",
             "area": 2,
+            "location_type": null,
             "markers": [
-                "qPCR",
-                "STR"
+                "STR",
+                "qPCR"
             ]
         }
     },
@@ -306,9 +341,10 @@
         "fields": {
             "name": "Planter",
             "area": 3,
+            "location_type": null,
             "markers": [
-                "ITS-S2/ITS-4",
-                "ITS-u3/ITS-u4"
+                "ITS-u3/ITS-u4",
+                "ITS-S2/ITS-4"
             ]
         }
     },
@@ -318,6 +354,7 @@
         "fields": {
             "name": "Sopp",
             "area": 3,
+            "location_type": null,
             "markers": [
                 "ITS-7/ITS-4"
             ]
@@ -329,10 +366,11 @@
         "fields": {
             "name": "Invertebrater",
             "area": 3,
+            "location_type": null,
             "markers": [
+                "BF3/BR2",
                 "Leray",
-                "BF3-mod/BR2-mod",
-                "BF3/BR2"
+                "BF3-mod/BR2-mod"
             ]
         }
     },
@@ -342,6 +380,7 @@
         "fields": {
             "name": "Insekter",
             "area": 3,
+            "location_type": null,
             "markers": [
                 "fwhF2/EPTDr2n"
             ]
@@ -353,10 +392,11 @@
         "fields": {
             "name": "Vertebrater",
             "area": 3,
+            "location_type": null,
             "markers": [
+                "MiFish",
                 "12S-V5",
-                "COI Metazoa",
-                "MiFish"
+                "COI Metazoa"
             ]
         }
     },
@@ -366,9 +406,10 @@
         "fields": {
             "name": "Alger",
             "area": 3,
+            "location_type": null,
             "markers": [
-                "TAReuk",
-                "Cha3/ITS-u4"
+                "Cha3/ITS-u4",
+                "TAReuk"
             ]
         }
     },
@@ -378,6 +419,7 @@
         "fields": {
             "name": "Nematoder",
             "area": 3,
+            "location_type": null,
             "markers": [
                 "NC1/NC2"
             ]
@@ -389,6 +431,7 @@
         "fields": {
             "name": "Bakterier",
             "area": 3,
+            "location_type": null,
             "markers": [
                 "16S"
             ]
@@ -400,6 +443,7 @@
         "fields": {
             "name": "Gjedde",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -411,11 +455,12 @@
         "fields": {
             "name": "Laks",
             "area": 4,
+            "location_type": null,
             "markers": [
-                "SNP nøytral",
                 "STR",
-                "SNP O/V",
-                "Artstest L/Ø"
+                "Artstest L/Ø",
+                "SNP nøytral",
+                "SNP O/V"
             ]
         }
     },
@@ -425,6 +470,7 @@
         "fields": {
             "name": "Mort",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -436,6 +482,7 @@
         "fields": {
             "name": "Pukkellaks",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -447,6 +494,7 @@
         "fields": {
             "name": "Røye",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -458,6 +506,7 @@
         "fields": {
             "name": "Svartmunnet kutling",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -469,6 +518,7 @@
         "fields": {
             "name": "Ørekyte",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -480,6 +530,7 @@
         "fields": {
             "name": "Ørret",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "SNP",
                 "qPCR"
@@ -492,6 +543,7 @@
         "fields": {
             "name": "Ål",
             "area": 4,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -503,6 +555,7 @@
         "fields": {
             "name": "Alke",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -515,6 +568,7 @@
         "fields": {
             "name": "Alkekonge",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -527,6 +581,7 @@
         "fields": {
             "name": "Antarktispetrell",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -539,6 +594,7 @@
         "fields": {
             "name": "Blåmeis",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -551,6 +607,7 @@
         "fields": {
             "name": "Dverggås",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -562,6 +619,7 @@
         "fields": {
             "name": "Fiskeørn",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -573,6 +631,7 @@
         "fields": {
             "name": "Fjelljo",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -584,6 +643,7 @@
         "fields": {
             "name": "Fjellrype",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -596,6 +656,7 @@
         "fields": {
             "name": "Grågås",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -607,6 +668,7 @@
         "fields": {
             "name": "Gråspurv",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -618,6 +680,7 @@
         "fields": {
             "name": "Havhest",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -630,6 +693,7 @@
         "fields": {
             "name": "Havsvale",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -642,6 +706,7 @@
         "fields": {
             "name": "Havørn",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -654,6 +719,7 @@
         "fields": {
             "name": "Hubro",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -666,6 +732,7 @@
         "fields": {
             "name": "Hønsehauk",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -677,6 +744,7 @@
         "fields": {
             "name": "Ismåke",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -689,6 +757,7 @@
         "fields": {
             "name": "Kattugle",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -701,6 +770,7 @@
         "fields": {
             "name": "Kjøttmeis",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -713,9 +783,10 @@
         "fields": {
             "name": "Kongeørn",
             "area": 5,
+            "location_type": null,
             "markers": [
-                "SNP",
                 "STR",
+                "SNP",
                 "Kjønnstest"
             ]
         }
@@ -726,6 +797,7 @@
         "fields": {
             "name": "Kortnebbgås",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -737,6 +809,7 @@
         "fields": {
             "name": "Krykkje",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -749,6 +822,7 @@
         "fields": {
             "name": "Lappmeis",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -761,6 +835,7 @@
         "fields": {
             "name": "Lirype",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -773,6 +848,7 @@
         "fields": {
             "name": "Lomvi",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -785,6 +861,7 @@
         "fields": {
             "name": "Lunde",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -797,6 +874,7 @@
         "fields": {
             "name": "Orrfugl",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -808,6 +886,7 @@
         "fields": {
             "name": "Polarlomvi",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -820,6 +899,7 @@
         "fields": {
             "name": "Polarmåke",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -832,6 +912,7 @@
         "fields": {
             "name": "Snøugle",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -843,6 +924,7 @@
         "fields": {
             "name": "Storfugl",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -854,6 +936,7 @@
         "fields": {
             "name": "Storjo",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -866,6 +949,7 @@
         "fields": {
             "name": "Storskarv",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -877,6 +961,7 @@
         "fields": {
             "name": "Svartmeis",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -889,6 +974,7 @@
         "fields": {
             "name": "Sædgås",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -901,6 +987,7 @@
         "fields": {
             "name": "Teist",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -913,6 +1000,7 @@
         "fields": {
             "name": "Toppskarv",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "STR",
                 "Kjønnstest"
@@ -925,6 +1013,7 @@
         "fields": {
             "name": "Tundragås",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -936,6 +1025,7 @@
         "fields": {
             "name": "Tyvjo",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -947,6 +1037,7 @@
         "fields": {
             "name": "Ærfugl",
             "area": 5,
+            "location_type": null,
             "markers": [
                 "Kjønnstest"
             ]
@@ -958,6 +1049,7 @@
         "fields": {
             "name": "Elg",
             "area": 6,
+            "location_type": null,
             "markers": [
                 "SNP"
             ]
@@ -969,6 +1061,7 @@
         "fields": {
             "name": "Hjort",
             "area": 6,
+            "location_type": null,
             "markers": [
                 "SNP"
             ]
@@ -980,9 +1073,10 @@
         "fields": {
             "name": "Rein",
             "area": 6,
+            "location_type": null,
             "markers": [
-                "qPCR",
-                "STR"
+                "STR",
+                "qPCR"
             ]
         }
     },
@@ -992,6 +1086,7 @@
         "fields": {
             "name": "BD (Batrachochytrium dendrobatidis)",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1003,6 +1098,7 @@
         "fields": {
             "name": "B.sal (Batrachochytrium salamandrivorans)",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1014,6 +1110,7 @@
         "fields": {
             "name": "Bufonid herpesvirus 1",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1025,6 +1122,7 @@
         "fields": {
             "name": "Krepsepest",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1036,6 +1134,7 @@
         "fields": {
             "name": "Gyro (Gyrodactylus salaris)",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1047,6 +1146,7 @@
         "fields": {
             "name": "Gyro (Gyrodactylus derjavinoides)",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1058,6 +1158,7 @@
         "fields": {
             "name": "Lakselus",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1069,6 +1170,7 @@
         "fields": {
             "name": "Nematoder",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1080,6 +1182,7 @@
         "fields": {
             "name": "Skottelus",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1091,6 +1194,7 @@
         "fields": {
             "name": "ILA",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1102,6 +1206,7 @@
         "fields": {
             "name": "Costia",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1113,6 +1218,7 @@
         "fields": {
             "name": "Red skin disease",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1124,6 +1230,7 @@
         "fields": {
             "name": "PKD parasitt",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1135,6 +1242,7 @@
         "fields": {
             "name": "Schistosomiasis",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1146,6 +1254,7 @@
         "fields": {
             "name": "Cryptosporidium",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1157,6 +1266,7 @@
         "fields": {
             "name": "Giardia",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1168,6 +1278,7 @@
         "fields": {
             "name": "Mikrober feces",
             "area": 7,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1179,6 +1290,7 @@
         "fields": {
             "name": "Dragehode",
             "area": 8,
+            "location_type": null,
             "markers": [
                 "SNP"
             ]
@@ -1190,6 +1302,7 @@
         "fields": {
             "name": "Moser (Sphagnum)",
             "area": 8,
+            "location_type": null,
             "markers": [
                 "STR"
             ]
@@ -1201,9 +1314,10 @@
         "fields": {
             "name": "Brunbjørn",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1213,9 +1327,10 @@
         "fields": {
             "name": "Fjellrev",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1225,9 +1340,10 @@
         "fields": {
             "name": "Gaupe",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1237,6 +1353,7 @@
         "fields": {
             "name": "Gullsjakal",
             "area": 11,
+            "location_type": null,
             "markers": [
                 "STR"
             ]
@@ -1248,9 +1365,10 @@
         "fields": {
             "name": "Jerv",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1260,6 +1378,7 @@
         "fields": {
             "name": "Mink",
             "area": 11,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1271,6 +1390,7 @@
         "fields": {
             "name": "Oter",
             "area": 11,
+            "location_type": null,
             "markers": [
                 "STR"
             ]
@@ -1282,9 +1402,10 @@
         "fields": {
             "name": "Rødrev",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1294,9 +1415,10 @@
         "fields": {
             "name": "Ulv",
             "area": 11,
+            "location_type": null,
             "markers": [
-                "SNP",
-                "STR"
+                "STR",
+                "SNP"
             ]
         }
     },
@@ -1306,6 +1428,7 @@
         "fields": {
             "name": "Mårhund",
             "area": 11,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1317,6 +1440,7 @@
         "fields": {
             "name": "Sau",
             "area": 9,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1328,6 +1452,7 @@
         "fields": {
             "name": "Geit",
             "area": 9,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1339,6 +1464,7 @@
         "fields": {
             "name": "Villsvin",
             "area": 9,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1350,6 +1476,7 @@
         "fields": {
             "name": "Dragehodeglansbille",
             "area": 9,
+            "location_type": null,
             "markers": [
                 "SNP"
             ]
@@ -1361,6 +1488,7 @@
         "fields": {
             "name": "Hare",
             "area": 9,
+            "location_type": null,
             "markers": [
                 "STR"
             ]
@@ -1372,6 +1500,7 @@
         "fields": {
             "name": "Ukjent art",
             "area": 10,
+            "location_type": null,
             "markers": [
                 ""
             ]
@@ -1383,6 +1512,7 @@
         "fields": {
             "name": "Vasspest",
             "area": 1,
+            "location_type": null,
             "markers": [
                 "qPCR"
             ]
@@ -1554,6 +1684,34 @@
         "pk": 8,
         "fields": {
             "name": "Slektskapsanalyser"
+        }
+    },
+    {
+        "model": "genlab_bestilling.locationtype",
+        "pk": 1,
+        "fields": {
+            "name": "Laks locations"
+        }
+    },
+    {
+        "model": "genlab_bestilling.locationtype",
+        "pk": 2,
+        "fields": {
+            "name": "Ørret locations"
+        }
+    },
+    {
+        "model": "genlab_bestilling.locationtype",
+        "pk": 3,
+        "fields": {
+            "name": "Elvemusling location"
+        }
+    },
+    {
+        "model": "genlab_bestilling.locationtype",
+        "pk": 4,
+        "fields": {
+            "name": "Salamander locations"
         }
     },
     {

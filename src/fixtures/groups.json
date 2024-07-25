@@ -95,6 +95,11 @@
                     "locationtype"
                 ],
                 [
+                    "view_analysistype",
+                    "genlab_bestilling",
+                    "analysistype"
+                ],
+                [
                     "view_marker",
                     "genlab_bestilling",
                     "marker"

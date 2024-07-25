@@ -176,7 +176,7 @@ class GenrequestSerializer(serializers.ModelSerializer):
         model = Genrequest
         fields = (
             "id",
-            "number",
+            "project",
             "area",
         )
 

@@ -83,14 +83,23 @@ class GenrequestListView(LoginRequiredMixin, SingleTableView):
     model = Genrequest
     table_class = GenrequestTable
 
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project__memberships=self.request.user)
+
 
 class GenrequestDetailView(LoginRequiredMixin, DetailView):
     model = Genrequest
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project__memberships=self.request.user)
 
 
 class GenrequestUpdateView(FormsetUpdateView):
     model = Genrequest
     form_class = GenrequestEditForm
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project__memberships=self.request.user)
 
     def get_success_url(self):
         return reverse(
@@ -102,6 +111,9 @@ class GenrequestUpdateView(FormsetUpdateView):
 class GenrequestCreateView(FormsetCreateView):
     model = Genrequest
     form_class = GenrequestForm
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter(project__memberships=self.request.user)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -124,10 +136,18 @@ class GenrequestNestedMixin(LoginRequiredMixin):
     and adds it to the render context.
     """
 
-    genrequest_id_accessor = "genrequest_id"
+    genrequest_accessor = "genrequest"
 
     def get_genrequest(self):
-        return Genrequest.objects.get(id=self.kwargs["genrequest_id"], verified=True)
+        return Genrequest.objects.filter(project__memberships=self.request.user).get(
+            id=self.kwargs["genrequest_id"]
+        )
+
+    def get_project_filtered(self, qs):
+        filters = {
+            f"{self.genrequest_accessor}__project__memberships": self.request.user
+        }
+        return qs.filter(**filters)
 
     def post(self, request, *args, **kwargs):
         self.genrequest = self.get_genrequest()
@@ -138,8 +158,9 @@ class GenrequestNestedMixin(LoginRequiredMixin):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
-        kwargs = {self.genrequest_id_accessor: self.genrequest.id}
-        return super().get_queryset().filter(**kwargs)
+        qs = self.get_project_filtered(qs=super().get_queryset())
+        kwargs = {f"{self.genrequest_accessor}_id": self.genrequest.id}
+        return qs.filter(**kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
@@ -256,7 +277,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
     collection_class = EquipmentQuantityCollection
     template_name = "genlab_bestilling/equipmentorderquantity_form.html"
     model = EquimentOrderQuantity
-    genrequest_id_accessor = "order__genrequest_id"
+    genrequest_accessor = "order__genrequest"
 
     def get_queryset(self) -> QuerySet[Any]:
         return (
@@ -303,7 +324,7 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
 
 
 class SamplesListView(GenrequestNestedMixin, SingleTableView):
-    genrequest_id_accessor = "order__genrequest_id"
+    genrequest_accessor = "order__genrequest"
 
     model = Sample
     table_class = SampleTable
@@ -316,7 +337,7 @@ class SamplesUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
     collection_class = SamplesCollection
     template_name = "genlab_bestilling/sample_form.html"
     model = Sample
-    genrequest_id_accessor = "order__genrequest_id"
+    genrequest_accessor = "order__genrequest"
 
     def get_queryset(self) -> QuerySet[Any]:
         return (

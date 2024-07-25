@@ -9,6 +9,7 @@ from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DateInput, DualSortableSelector, Selectize
+from nina.models import Project
 
 from .libs.formset import ContextFormCollection
 from .models import (
@@ -28,6 +29,10 @@ class GenrequestForm(FormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
+        self.fields["project"].queryset = Project.objects.filter(
+            memberships=user,
+        )
+
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user:
@@ -40,10 +45,11 @@ class GenrequestForm(FormMixin, forms.ModelForm):
     class Meta:
         model = Genrequest
         fields = (
-            "number",
+            "project",
             "name",
             "area",
             "species",
+            "samples_owner",
             "sample_types",
             "analysis_types",
             "expected_total_samples",
@@ -51,6 +57,8 @@ class GenrequestForm(FormMixin, forms.ModelForm):
         )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
+            "samples_owner": Selectize(search_lookup="name_icontains"),
+            "project": Selectize(search_lookup="number_istartswith"),
             "species": DualSortableSelector(
                 search_lookup="name_icontains",
                 filter_by={"area": "area__id"},

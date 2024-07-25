@@ -71,8 +71,7 @@ class LocationAdmin(ModelAdmin):
 class GenrequestAdmin(ModelAdmin):
     list_display = [
         "name",
-        "number",
-        "verified",
+        "project",
         "samples_owner",
         "area",
         "analysis_timerange",

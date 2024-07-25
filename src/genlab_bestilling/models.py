@@ -90,17 +90,9 @@ class Genrequest(models.Model):
     """
 
     name = models.CharField(max_length=255, null=True, blank=True)
-    number = models.CharField(verbose_name=_("Project number"))
-    verified = models.BooleanField(default=False)
+    project = models.ForeignKey("nina.Project", on_delete=models.PROTECT)
     samples_owner = models.ForeignKey(
         "Organization", on_delete=models.PROTECT, blank=True, null=True
-    )
-    owner = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="genrequests_owned",
     )
     creator = models.ForeignKey(
         "users.User",
@@ -108,9 +100,6 @@ class Genrequest(models.Model):
         null=True,
         blank=True,
         related_name="genrequests_created",
-    )
-    members = models.ManyToManyField(
-        "users.User", blank=True, related_name="genrequests_member"
     )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
     species = models.ManyToManyField("Species", blank=True, related_name="genrequests")
@@ -120,7 +109,7 @@ class Genrequest(models.Model):
     analysis_timerange = DateRangeField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.name or self.number)
+        return str(self.name or self.project_id)
 
     def get_absolute_url(self):
         return reverse(

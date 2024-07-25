@@ -4,19 +4,8 @@
 
 {% block content %}
 <div class="flex items-center mb-5 gap-2">
-  <h3 class="text-4xl">{{ object.name }} - {{ object.number }}</h3>
-  {% if genrequest.verified %}<span class="bg-green-500 px-2 rounded text-sm"
-    >Verified</span
-  >{% else %}<span class="bg-red-500 text-white px-2 rounded text-sm"
-    >Not verified</span
-  >{% endif %}
+  <h3 class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
 </div>
-
-{% if not genrequest.verified %}
-<div class="alert alert-warning">
-  <p>Project number needs to be verified before adding orders</p>
-</div>
-{% endif %}
 
 <div>
   {% object-detail object=object %}
@@ -28,7 +17,6 @@
     <a class="btn bg-primary" href="{% url 'genrequest-update' pk=genrequest.id %}"
       ><i class="fas fa-edit"></i> Edit</a
     >
-    {% if genrequest.verified %}
     <a
       class="btn bg-primary"
       href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"
@@ -44,7 +32,6 @@
       href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"
       ><i class="fas fa-plus"></i> Analysis order</a
     >
-    {% endif %}
   </div>
 </div>
 {% endblock %}

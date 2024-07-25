@@ -18,12 +18,12 @@ class OrderTable(tables.Table):
 
 
 class GenrequestTable(tables.Table):
-    number = tables.Column(linkify=True)
+    project_id = tables.Column(linkify=True)
 
     class Meta:
         model = Genrequest
         fields = (
-            "number",
+            "project_id",
             "name",
             "area",
             "species",

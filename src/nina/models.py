@@ -37,6 +37,6 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         if self.name:
-            return "{self.number} {self.name}"
+            return f"{self.number} {self.name}"
 
         return self.number

@@ -30,7 +30,7 @@
     class="absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark"
   >
     <ul
-      class="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark"
+      class="flex flex-col border-b border-stroke dark:border-strokedark"
     >
       {% comment %}
       <li>
@@ -47,20 +47,24 @@
       <li>
         <a
           href="{% url 'admin:index' %}"
-          class="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          class="flex items-center gap-3.5 px-6 border-b py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
         >
-          <i class="fas fa-cog"></i>
-          {% trans 'Admin' %}
+          <span>
+            <i class="fas fa-cog"></i>
+            {% trans 'Admin' %}
+          </span>
         </a>
       </li>
       {% endif %}
+      <li>
+        <a
+          href="{% url 'account_logout' %}"
+          class="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+        >
+          {% trans 'Log Out' %}
+        </a>
+      </li>
     </ul>
-    <a
-      href="{% url 'account_logout' %}"
-      class="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-    >
-      {% trans 'Log Out' %}
-  </a>
   </div>
   <!-- Dropdown End -->
 </div>

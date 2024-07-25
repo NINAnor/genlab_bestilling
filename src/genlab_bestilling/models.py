@@ -44,6 +44,9 @@ class Species(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    class Meta:
+        verbose_name_plural = "Species"
+
 
 # TODO: better understand "other" case. should the user be able to insert new orws?
 # if yes, he may input a species that is already present
@@ -67,6 +70,9 @@ class AnalysisType(models.Model):
 
 class LocationType(models.Model):
     name = models.CharField(max_length=250)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Location(models.Model):
@@ -109,13 +115,16 @@ class Genrequest(models.Model):
     analysis_timerange = DateRangeField(null=True, blank=True)
 
     def __str__(self):
-        return str(self.name or self.project_id)
+        return f"#GEN_{self.id}"
 
     def get_absolute_url(self):
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
+
+    class Meta:
+        verbose_name = "Genetic Request"
 
 
 class Order(PolymorphicModel):
@@ -143,6 +152,9 @@ class Order(PolymorphicModel):
         self.status = Order.OrderStatus.CONFIRMED
         self.save()
 
+    def __str__(self):
+        return f"#ORD_{self.id}"
+
 
 class EquipmentType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
@@ -165,6 +177,9 @@ class EquimentOrderQuantity(models.Model):
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?
 
+    def __str__(self) -> str:
+        return f"#EQO_{self.id}"
+
     def get_absolute_url(self):
         return reverse(
             "genrequest-equipment-detail",
@@ -182,6 +197,9 @@ class AnalysisOrder(Order):
     isolate_samples = models.BooleanField()  # TODO: default?
     markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?
+
+    def __str__(self) -> str:
+        return f"#ANO_{self.id}"
 
     def get_absolute_url(self):
         return reverse(
@@ -225,6 +243,9 @@ class Sample(models.Model):
         "Location", on_delete=models.PROTECT, null=True, blank=True
     )
     volume = models.FloatField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"#SMP_{self.id}"
 
     @property
     def has_error(self):

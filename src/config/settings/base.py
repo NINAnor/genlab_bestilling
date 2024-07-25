@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import environ
+from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent.parent
@@ -75,6 +76,7 @@ DJANGO_APPS = [
 
 ADMIN_APPS = [
     "unfold",
+    "unfold.contrib.filters",
     "django.contrib.admin",
 ]
 
@@ -388,4 +390,38 @@ DJANGO_VITE = {
         "static_url_prefix": "frontend",
         "dev_mode": DEBUG,
     }
+}
+
+UNFOLD = {
+    "SITE_TITLE": "GenLab",
+    "SITE_HEADER": "GenLab",
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "sizes": "32x32",
+            "type": "image/svg+xml",
+            "href": lambda request: static("images/favicons/favicon.ico"),
+        },
+    ],
+    "SITE_LOGO": lambda request: static("images/logo.png"),
+    "THEME": "light",
+    "COLORS": {
+        "primary": {
+            "50": "#004C6C",
+            "100": "#004C6C",
+            "200": "#004C6C",
+            "300": "#004C6C",
+            "400": "#004C6C",
+            "500": "#004C6C",
+            "600": "#004C6C",
+            "700": "#004C6C",
+            "800": "#004C6C",
+            "900": "#004C6C",
+            "950": "#004C6C",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "show_all_applications": False,
+    },
 }

@@ -60,7 +60,6 @@ class SampleSerializer(serializers.ModelSerializer):
     type = SampleTypeSerializer()
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
-    markers = MarkerSerializer(many=True)
     has_error = serializers.SerializerMethodField()
     date = serializers.DateField(
         required=False,
@@ -97,7 +96,6 @@ class SampleSerializer(serializers.ModelSerializer):
             "guid",
             "name",
             "species",
-            "markers",
             "date",
             "notes",
             "pop_id",

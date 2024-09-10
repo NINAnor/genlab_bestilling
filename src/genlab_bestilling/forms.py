@@ -250,9 +250,6 @@ class SampleForm(forms.ModelForm):
         self.order_id = context["order_id"]
         self.fields["type"].queryset = self.genrequest.sample_types.all()
         self.fields["species"].queryset = self.genrequest.species.all()
-        self.fields["markers"].queryset = Marker.objects.filter(
-            species__genrequests__id=self.genrequest.id
-        )
 
     def save(self, commit=True):
         obj = super().save(commit=False)
@@ -270,7 +267,6 @@ class SampleForm(forms.ModelForm):
             "guid",
             "type",
             "species",
-            "markers",
             "date",
             "notes",
             "pop_id",
@@ -284,7 +280,6 @@ class SampleForm(forms.ModelForm):
             ),
             "location": Selectize(search_lookup="name_icontains"),
             "type": Selectize(search_lookup="name_icontains"),
-            "markers": DualSortableSelector(search_lookup="name_icontains"),
             "date": DateInput(),
             "notes": forms.widgets.Textarea(attrs={"rows": 1, "cols": 10}),
         }

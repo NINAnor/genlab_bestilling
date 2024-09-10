@@ -235,7 +235,6 @@ class Sample(models.Model):
         "SampleType", on_delete=models.PROTECT, null=True, blank=True
     )
     species = models.ForeignKey("Species", on_delete=models.PROTECT)
-    markers = models.ManyToManyField("Marker", blank=True)
     date = models.DateField()
     notes = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)

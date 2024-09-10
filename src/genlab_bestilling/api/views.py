@@ -52,7 +52,6 @@ class SampleViewset(ModelViewSet):
             "order__genrequest__area",
             "location",
         )
-        .prefetch_related("markers")
         .order_by("id")
     )
     serializer_class = SampleSerializer

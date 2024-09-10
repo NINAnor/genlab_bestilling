@@ -142,7 +142,7 @@ class EquipmentOrderAdmin(ModelAdmin):
 class SampleInline(TabularInline):
     model = Sample
     tab = True
-    autocomplete_fields = ["species", "markers", "location", "type"]
+    autocomplete_fields = ["species", "location", "type"]
     hide_title = True
 
 
@@ -192,4 +192,4 @@ class SampleAdmin(ModelAdmin):
     ]
     list_filter_submit = True
 
-    autocomplete_fields = ["species", "markers", "location", "type"]
+    autocomplete_fields = ["species", "location", "type"]

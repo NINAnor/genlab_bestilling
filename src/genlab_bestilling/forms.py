@@ -29,9 +29,10 @@ class GenrequestForm(FormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
 
-        self.fields["project"].queryset = Project.objects.filter(
-            memberships=user,
-        )
+        if "project" in self.fields:
+            self.fields["project"].queryset = Project.objects.filter(
+                memberships=user,
+            )
 
     def save(self, commit=True):
         obj = super().save(commit=False)

@@ -191,7 +191,7 @@ export default function Table() {
         if (
           scrollHeight - scrollTop - clientHeight < 500 &&
           !isFetching &&
-          last.next
+          last?.next
         ) {
           fetchNextPage();
         }

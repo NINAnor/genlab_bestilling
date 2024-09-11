@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 
+[x-cloak] { display: none !important; }
+
 @layer components {
     .alert {
         @apply flex w-full bg-opacity-30 text-lg font-bold text-black border-l-4 md:p-7 border mb-1 items-center justify-between;

@@ -1,7 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.contrib.filters.admin import (
-    RangeDateFilter,
     RelatedDropdownFilter,
 )
 
@@ -179,13 +178,12 @@ class SampleAdmin(ModelAdmin):
         "species",
         "pop_id",
         "location",
-        "date",
+        "year",
     ]
     search_fields = ["name", "guid", "order__id", "id"]
     readonly_fields = ["order"]
     list_filter = [
         ("order", RelatedDropdownFilter),
-        ("date", RangeDateFilter),
         ("type", RelatedDropdownFilter),
         ("species", RelatedDropdownFilter),
         ("location", RelatedDropdownFilter),

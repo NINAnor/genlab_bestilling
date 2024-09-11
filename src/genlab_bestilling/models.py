@@ -235,7 +235,7 @@ class Sample(models.Model):
         "SampleType", on_delete=models.PROTECT, null=True, blank=True
     )
     species = models.ForeignKey("Species", on_delete=models.PROTECT)
-    date = models.DateField()
+    year = models.IntegerField()
     notes = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
     location = models.ForeignKey(
@@ -254,11 +254,11 @@ class Sample(models.Model):
                 self.type,
                 self.guid,
                 self.species,
-                self.date,
+                self.year,
             ]
         ):
             raise ValidationError(
-                "GUID, Name, Sample Type, Species and Date are required"
+                "GUID, Name, Sample Type, Species and Year are required"
             )
 
         if (

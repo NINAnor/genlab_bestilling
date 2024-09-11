@@ -8,7 +8,7 @@ from django.forms.renderers import BaseRenderer
 from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DateInput, DualSortableSelector, Selectize
+from formset.widgets import DualSortableSelector, Selectize
 from nina.models import Project
 
 from .libs.formset import ContextFormCollection
@@ -267,7 +267,6 @@ class SampleForm(forms.ModelForm):
             "guid",
             "type",
             "species",
-            "date",
             "notes",
             "pop_id",
             "location",
@@ -280,7 +279,6 @@ class SampleForm(forms.ModelForm):
             ),
             "location": Selectize(search_lookup="name_icontains"),
             "type": Selectize(search_lookup="name_icontains"),
-            "date": DateInput(),
             "notes": forms.widgets.Textarea(attrs={"rows": 1, "cols": 10}),
         }
 
@@ -304,7 +302,6 @@ class SamplesCollection(ContextFormCollection):
                     guid=data.get("guid"),
                     type_id=data.get("type"),
                     species_id=data.get("species"),
-                    date=data.get("date"),
                     notes=data.get("notes"),
                     pop_id=data.get("pop_id"),
                     location_id=data.get("location"),

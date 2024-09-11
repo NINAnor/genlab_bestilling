@@ -61,16 +61,6 @@ class SampleSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     has_error = serializers.SerializerMethodField()
-    date = serializers.DateField(
-        required=False,
-        input_formats=[
-            "iso-8601",
-            "%Y-%m-%dT%H:%M:%S",
-            "%Y-%m-%d",
-            "%Y-%m-%dT%H:%M:%SZ",
-            "%m/%d/%Y",
-        ],
-    )
 
     # TODO: validate location
     ## species in (Laks, Ørret, Elvemusling and  Salamander)
@@ -96,7 +86,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "guid",
             "name",
             "species",
-            "date",
+            "year",
             "notes",
             "pop_id",
             "location",
@@ -108,16 +98,6 @@ class SampleSerializer(serializers.ModelSerializer):
 
 class SampleUpdateSerializer(serializers.ModelSerializer):
     has_error = serializers.SerializerMethodField()
-    date = serializers.DateField(
-        required=False,
-        input_formats=[
-            "iso-8601",
-            "%Y-%m-%dT%H:%M:%S",
-            "%Y-%m-%d",
-            "%Y-%m-%dT%H:%M:%SZ",
-            "%m/%d/%Y",
-        ],
-    )
 
     def get_has_error(self, obj):
         try:
@@ -132,8 +112,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
             "order",
             "guid",
             "species",
-            "markers",
-            "date",
+            "year",
             "name",
             "notes",
             "pop_id",
@@ -145,15 +124,14 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
 
 class SampleBulkSerializer(serializers.ModelSerializer):
     quantity = serializers.IntegerField()
-    date = serializers.DateField(
-        required=False,
-        input_formats=[
-            "iso-8601",
-            "%Y-%m-%dT%H:%M:%S",
-            "%Y-%m-%d",
-            "%Y-%m-%dT%H:%M:%SZ",
-            "%m/%d/%Y",
-        ],
+    name = serializers.ListField(
+        child=serializers.CharField(required=False, allow_blank=True), required=False
+    )
+    pop_id = serializers.ListField(
+        child=serializers.CharField(required=False, allow_blank=True), required=False
+    )
+    guid = serializers.ListField(
+        child=serializers.CharField(required=False, allow_blank=True), required=False
     )
 
     class Meta:
@@ -161,7 +139,9 @@ class SampleBulkSerializer(serializers.ModelSerializer):
         fields = (
             "order",
             "species",
-            "date",
+            "year",
+            "guid",
+            "name",
             "pop_id",
             "type",
             "location",

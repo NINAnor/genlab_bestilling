@@ -13,7 +13,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <h2 className='text-4xl font-bold mb-5'>Edit Samples</h2>
       <Toaster />
-      <SampleForm />
+      <div className='p-4 bg-white mb-2 rounded'>
+        <SampleForm />
+      </div>
       <Table />
     </QueryClientProvider>
   )

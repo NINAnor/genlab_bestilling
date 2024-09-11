@@ -21,6 +21,7 @@ import ActionsCell from "./Cell/ActionsCell";
 import SelectCreateCell from "./Cell/SelectCreateCell";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import NumberCellInput from "./Cell/NumberCellInput";
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
 async function getSamples({ pageParam }) {
@@ -86,9 +87,9 @@ const COLUMNS = [
       />
     ),
   }),
-  columnHelper.accessor("date", {
-    header: "Date",
-    cell: DateCell,
+  columnHelper.accessor("year", {
+    header: "Year",
+    cell: NumberCellInput,
   }),
   columnHelper.accessor("pop_id", {
     header: "Pop ID",

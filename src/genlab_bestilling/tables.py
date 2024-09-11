@@ -44,7 +44,7 @@ class SampleTable(tables.Table):
             "name",
             "species",
             "type",
-            "date",
+            "year",
             "pop_id",
             "location",
             "notes",

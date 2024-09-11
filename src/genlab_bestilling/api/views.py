@@ -73,12 +73,34 @@ class SampleViewset(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         qty = serializer.validated_data.pop("quantity")
+        lists = [
+            "pop_id",
+            "name",
+            "guid",
+        ]
+        lists_data = {
+            li: serializer.validated_data.pop(li)
+            for li in lists
+            if li in serializer.validated_data
+        }
+        print(lists_data)
+
         order = serializer.validated_data["order"]
         samples = []
         with transaction.atomic():
-            for _ in range(qty):
-                guid = uuid.uuid4() if order.needs_guid else None
-                samples.append(Sample(guid=guid, **serializer.validated_data))
+            for i in range(qty):
+                extra = {}
+
+                extra["guid"] = uuid.uuid4() if order.needs_guid else None
+
+                for li in lists:
+                    if li in lists_data:
+                        try:
+                            extra[li] = lists_data[li][i]
+                        except IndexError:
+                            pass
+
+                samples.append(Sample(**extra, **serializer.validated_data))
 
             Sample.objects.bulk_create(samples, 50)
 

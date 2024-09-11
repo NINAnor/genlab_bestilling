@@ -163,20 +163,22 @@ export default function SampleForm() {
         id="add-rows"
       >
         <div className="flex gap-8 mb-4">
-          <Field name="guid">
-            {({ state, handleChange, handleBlur }) => (
-              <HUIField>
-                <Label className="block">
-                  guid - total: {state.value.length}
-                </Label>
-                <PastableArrayInput
-                  state={state}
-                  handleBlur={handleBlur}
-                  handleChange={handleChange}
-                />
-              </HUIField>
-            )}
-          </Field>
+          {!config.analysis_data.needs_guid && (
+            <Field name="guid">
+              {({ state, handleChange, handleBlur }) => (
+                <HUIField>
+                  <Label className="block">
+                    guid - total: {state.value.length}
+                  </Label>
+                  <PastableArrayInput
+                    state={state}
+                    handleBlur={handleBlur}
+                    handleChange={handleChange}
+                  />
+                </HUIField>
+              )}
+            </Field>
+          )}
           <Field name="name">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>

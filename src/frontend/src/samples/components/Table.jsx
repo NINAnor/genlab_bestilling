@@ -369,7 +369,7 @@ export default function Table() {
           Back
         </a>
         <button
-          className="btn bg-secondary disabled:opacity-70"
+          className="btn bg-secondary disabled:opacity-70 text-white"
           onClick={mutateConfirm.mutate}
           disabled={mutateConfirm.isPending}
         >

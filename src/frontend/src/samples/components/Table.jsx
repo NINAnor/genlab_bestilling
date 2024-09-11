@@ -231,7 +231,7 @@ export default function Table() {
       return client.post(`/api/analysis-order/${config.order}/confirm/`);
     },
     onSuccess: () => {
-      toast.success("Confirmed");
+      toast.success("Validation success, you can now confirm the order");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
     onError: handleError,
@@ -367,12 +367,15 @@ export default function Table() {
         <a href="../../" className="btn bg-yellow-200">
           Back
         </a>
+        <a href="../" className="btn bg-yellow-200">
+          Summary
+        </a>
         <button
           className="btn bg-secondary disabled:opacity-70 text-white"
           onClick={mutateConfirm.mutate}
           disabled={mutateConfirm.isPending}
         >
-          Confirm Order{" "}
+          Validate samples{" "}
           {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
         </button>
       </div>

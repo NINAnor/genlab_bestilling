@@ -15,7 +15,6 @@
     {% endfragment %}
     <h3 class="text-4xl mb-5">Order #{{ object.id }} - {{ object.name }}</h3>
     <div class="flex gap-5 mb-5">
-        <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
     </div>
 
     {% object-detail object=object %}
@@ -26,33 +25,14 @@
         <p>Uploaded {{ object.samples.count }} samples</p>
     </div>
 
-    {% comment %} {% #table headers=table_header %}
-        {% for oq in object.samples.all %}
-            <tr>
-                {% #table-cell %}{{ oq.guid }}{% /table-cell %}
-                {% #table-cell %}{{ oq.type }}{% /table-cell %}
-                {% #table-cell %}{{ oq.species }}{% /table-cell %}
-                {% #table-cell %}{{ oq.markers.all|join:', ' }}{% /table-cell %}
-                {% #table-cell %}{{ oq.location }}{% /table-cell %}
-                {% #table-cell %}{{ oq.date }}{% /table-cell %}
-                {% #table-cell %}{{ oq.volume }}{% /table-cell %}
-            </tr>
-        {% empty %}
-            <tr>
-                <td colspan="7" class="text-center font-bold">No Samples found</td>
-            </tr>
-        {% endfor %}
-    {% /table %} {% endcomment %}
-
-
     <div class="flex gap-5 my-5">
+        <a class="btn bg-yellow-200" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% if object.status == 'draft' %}
-        <a class="btn bg-primary" href="{% url 'genrequest-analysis-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit Order</a>
         <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=object.genrequest_id pk=object.id %}">Edit Samples</a>
-        {% comment %}
+        <a class="ml-auto btn bg-secondary text-white" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Summary Samples</a>
         {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary" submit_text="Confirm Order" csrf_token=csrf_token %}
-        {% endcomment %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
         {% elif object.status == 'confirmed' %}
         <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}

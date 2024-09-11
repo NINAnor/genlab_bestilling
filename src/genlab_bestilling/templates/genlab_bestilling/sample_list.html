@@ -4,9 +4,13 @@
 
 {% block content %}
     <h3 class="text-4xl mb-5">Samples for Analysis #{{ view.kwargs.pk }}</h3>
-    <div class="flex gap-5 mb-5">
-        <a class="btn bg-primary" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back</a>
-     </div>
-
     {% render_table table %}
+    <div class="flex gap-5 mt-5">
+        <a class="btn bg-yellow-200" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back to order</a>
+        {% if analysis.status == 'draft' %}
+        {% url 'genrequest-order-confirm' genrequest_id=view.kwargs.genrequest_id pk=view.kwargs.pk as confirm_order_url %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
+        <a class="ml-auto btn bg-blue-300" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">edit samples</a>
+        {% endif %}
+    </div>
 {% endblock %}

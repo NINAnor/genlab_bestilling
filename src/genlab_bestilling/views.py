@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -203,12 +203,19 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
                 self.request, messages.SUCCESS, _("Your order is confirmed")
             )
         except Order.CannotConfirm as e:
-            messages.add_message(self.request, messages.ERROR, str(e))
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+            )
 
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
         return self.object.get_absolute_url()
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class EquipmentOrderEditView(
@@ -268,7 +275,7 @@ class AnalysisOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "genrequest-analysis-detail",
+            "genrequest-analysis-samples-edit",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 
@@ -325,12 +332,18 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
 
 class SamplesListView(GenrequestNestedMixin, SingleTableView):
     genrequest_accessor = "order__genrequest"
+    table_pagination = False
 
     model = Sample
     table_class = SampleTable
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().select_related("type", "location", "species")
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["analysis"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        return context
 
 
 class SamplesUpdateView(GenrequestNestedMixin, BulkEditCollectionView):

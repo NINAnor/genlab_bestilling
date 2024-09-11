@@ -83,7 +83,6 @@ class SampleViewset(ModelViewSet):
             for li in lists
             if li in serializer.validated_data
         }
-        print(lists_data)
 
         order = serializer.validated_data["order"]
         samples = []
@@ -128,7 +127,7 @@ class AnalysisOrderViewset(
     )
     def confirm_order(self, request, pk):
         obj = self.get_object()
-        obj.confirm_order()
+        obj.confirm_order(persist=False)
         return Response(self.get_serializer(obj).data)
 
 

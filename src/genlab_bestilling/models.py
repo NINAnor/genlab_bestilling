@@ -128,7 +128,7 @@ class Genrequest(models.Model):
 
 
 class Order(PolymorphicModel):
-    class CannotConfirm(Exception):
+    class CannotConfirm(ValidationError):
         pass
 
     class OrderStatus(models.TextChoices):
@@ -207,7 +207,7 @@ class AnalysisOrder(Order):
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def confirm_order(self):
+    def confirm_order(self, persist=True):
         with transaction.atomic():
             if not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
@@ -220,9 +220,12 @@ class AnalysisOrder(Order):
                     invalid += 1
 
             if invalid > 0:
-                raise ValidationError(f"Found {invalid} invalid or incompleted samples")
+                raise Order.CannotConfirm(
+                    f"Found {invalid} invalid or incompleted samples"
+                )
 
-            return super().confirm_order()
+            if persist:
+                super().confirm_order()
 
 
 class Sample(models.Model):

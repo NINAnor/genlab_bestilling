@@ -15,7 +15,6 @@ import { useEffect, useRef, useCallback, useMemo } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import SimpleCellInput from "./Cell/SimpleCellInput";
-import DateCell from "./Cell/DateCell";
 import SelectCell from "./Cell/SelectCell";
 import ActionsCell from "./Cell/ActionsCell";
 import SelectCreateCell from "./Cell/SelectCreateCell";
@@ -52,7 +51,7 @@ const sampleTypesOptions = async (input) => {
 //   return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
 // };
 
-const locationOptions = async (input, species) => {
+const locationOptions = species => async (input) => {
   let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
   if (input) {
     base += `&name__icontains=${input}`;
@@ -100,7 +99,7 @@ const COLUMNS = [
     cell: (props) => (
       <SelectCreateCell
         {...props}
-        loadOptions={locationOptions}
+        loadOptions={locationOptions(props.row.getValue('species'))}
         queryKey={"locations"}
         onCreate={locationCreate}
       />

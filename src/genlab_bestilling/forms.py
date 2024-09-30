@@ -6,7 +6,6 @@ from django import forms
 # from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
 from django.forms.utils import ErrorList
-from formset.ranges import DateRangePicker
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DualSortableSelector, Selectize
@@ -55,7 +54,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "sample_types",
             "analysis_types",
             "expected_total_samples",
-            "analysis_timerange",
+            # "analysis_timerange",
         )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
@@ -68,7 +67,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             ),
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "analysis_types": DualSortableSelector(search_lookup="name_icontains"),
-            "analysis_timerange": DateRangePicker(),
+            # "analysis_timerange": DateRangePicker(),
         }
 
 
@@ -80,7 +79,7 @@ class GenrequestEditForm(GenrequestForm):
             "sample_types",
             "analysis_types",
             "expected_total_samples",
-            "analysis_timerange",
+            # "analysis_timerange",
         )
 
     # def clean_species(self) -> dict[str, Any]:

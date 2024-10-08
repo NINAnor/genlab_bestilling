@@ -73,8 +73,8 @@ class OrganizationAdmin(ModelAdmin):
 
 @admin.register(Location)
 class LocationAdmin(ModelAdmin):
-    list_display = ["name", "type", "river_id", "station_id"]
-    search_fields = ["name", "river_id", "station_id"]
+    list_display = ["name", "type", "river_id", "code"]
+    search_fields = ["name", "river_id", "code"]
     list_filter = [("type", RelatedDropdownFilter)]
     list_filter_submit = True
 

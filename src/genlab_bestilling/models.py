@@ -81,11 +81,12 @@ class Location(models.Model):
         "LocationType", null=True, blank=True, on_delete=models.CASCADE
     )
     river_id = models.CharField(max_length=250, null=True, blank=True)
-    station_id = models.CharField(max_length=20, null=True, blank=True)
+    code = models.CharField(max_length=20, null=True, blank=True)
+    fylke = models.CharField(null=True, blank=True)
 
     def __str__(self):
         if self.river_id:
-            return f"{self.river_id} {self.station_id} {self.name}"
+            return f"{self.river_id} {self.name}"
 
         return self.name
 

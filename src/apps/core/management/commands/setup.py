@@ -11,4 +11,5 @@ class Command(BaseCommand):
             call_command("loaddata", "users.json")
 
         call_command("loaddata", "bestilling.json")
+        call_command("loaddata", "location.json")
         call_command("loaddata", "groups.json")

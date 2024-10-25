@@ -262,7 +262,7 @@ class Sample(models.Model):
             ]
         ):
             raise ValidationError(
-                "GUID, Name, Sample Type, Species and Year are required"
+                "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
         if (

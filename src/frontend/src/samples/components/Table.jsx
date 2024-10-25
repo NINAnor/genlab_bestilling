@@ -51,7 +51,7 @@ const sampleTypesOptions = async (input) => {
 //   return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
 // };
 
-const locationOptions = species => async (input) => {
+const locationOptions = (species) => async (input) => {
   let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
   if (input) {
     base += `&name__icontains=${input}`;
@@ -73,7 +73,7 @@ const COLUMNS = [
       })
     : null,
   columnHelper.accessor("name", {
-    header: "Name",
+    header: "Sample Name",
     cell: SimpleCellInput,
   }),
   columnHelper.accessor("species", {
@@ -99,14 +99,14 @@ const COLUMNS = [
     cell: (props) => (
       <SelectCreateCell
         {...props}
-        loadOptions={locationOptions(props.row.getValue('species'))}
+        loadOptions={locationOptions(props.row.getValue("species"))}
         queryKey={"locations"}
         onCreate={locationCreate}
       />
     ),
   }),
   columnHelper.accessor("type", {
-    header: "Type",
+    header: "Sample Type",
     cell: (props) => (
       <SelectCell
         {...props}
@@ -135,7 +135,10 @@ const COLUMNS = [
           <>
             <i className="fas fa-times text-red-400" />
             <span className="text-sm ml-3">
-              <i className="fas fa-info-circle text-blue-500" title={getValue()} />
+              <i
+                className="fas fa-info-circle text-blue-500"
+                title={getValue()}
+              />
             </span>
           </>
         ) : (
@@ -148,9 +151,9 @@ const COLUMNS = [
 
 function handleError(e) {
   if (e instanceof AxiosError) {
-    e.response.data.errors.forEach(err => {
-      toast.error(err.detail)
-    })
+    e.response.data.errors.forEach((err) => {
+      toast.error(err.detail);
+    });
   } else {
     toast.error("There was an error");
   }

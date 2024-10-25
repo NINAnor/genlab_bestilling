@@ -168,7 +168,7 @@ export default function SampleForm() {
               {({ state, handleChange, handleBlur }) => (
                 <HUIField>
                   <Label className="block">
-                    guid - total: {state.value.length}
+                    Guid - total: {state.value.length}
                   </Label>
                   <PastableArrayInput
                     state={state}
@@ -183,7 +183,7 @@ export default function SampleForm() {
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
                 <Label className="block">
-                  name - total: {state.value.length}
+                  Sample Name - total: {state.value.length}
                 </Label>
                 <PastableArrayInput
                   state={state}
@@ -231,7 +231,7 @@ export default function SampleForm() {
           <Field name="type">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
-                <Label className="block">Type</Label>
+                <Label className="block">Sample Type</Label>
                 <AsyncSelect
                   defaultOptions
                   loadOptions={sampleTypesOptions}

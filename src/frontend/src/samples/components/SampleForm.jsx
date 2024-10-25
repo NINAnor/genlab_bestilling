@@ -326,9 +326,16 @@ export default function SampleForm() {
         </div>
         <div className="flex gap-8 mb-4 items-start">
           <Subscribe
-            selector={(state) => [state.canSubmit, state.isSubmitting]}
+            selector={(state) => [
+              state.canSubmit,
+              state.isSubmitting,
+              state.values.quantity || 0,
+              state.values.guid.length,
+              state.values.name.length,
+              state.values.pop_id.length,
+            ]}
           >
-            {([canSubmit, isSubmitting]) => (
+            {([canSubmit, isSubmitting, ...rows]) => (
               <Button
                 type="submit"
                 className="btn bg-primary block"
@@ -337,7 +344,7 @@ export default function SampleForm() {
                 {isSubmitting ? (
                   <i className="fas fa-spin fa-spinner"></i>
                 ) : (
-                  "Add"
+                  `Add ${Math.max(...rows)} rows`
                 )}
               </Button>
             )}

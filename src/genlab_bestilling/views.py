@@ -338,7 +338,12 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
     table_class = SampleTable
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().select_related("type", "location", "species")
+        return (
+            super()
+            .get_queryset()
+            .select_related("type", "location", "species")
+            .filter(order=self.kwargs["pk"])
+        )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)

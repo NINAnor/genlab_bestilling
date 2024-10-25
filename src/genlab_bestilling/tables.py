@@ -5,16 +5,26 @@ from .models import Genrequest, Order, Sample
 
 class OrderTable(tables.Table):
     polymorphic_ctype = tables.Column(verbose_name="Type")
-    name = tables.Column(linkify=True)
+    id = tables.Column(linkify=True, orderable=False, empty_values=())
 
     class Meta:
         model = Order
         fields = ("name", "status", "polymorphic_ctype", "species", "sample_types")
-
+        sequence = (
+            "id",
+            "name",
+            "status",
+            "polymorphic_ctype",
+            "species",
+            "sample_types",
+        )
         empty_text = "No Orders"
 
     def render_polymorphic_ctype(self, value):
         return value.name
+
+    def render_id(self, record):
+        return str(record)
 
 
 class GenrequestTable(tables.Table):

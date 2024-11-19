@@ -244,7 +244,7 @@ class EquipmentOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "genrequest-equipment-detail",
+            "genrequest-equipment-quantity-update",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 

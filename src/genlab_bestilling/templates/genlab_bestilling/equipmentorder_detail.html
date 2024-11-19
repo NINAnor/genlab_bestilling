@@ -22,8 +22,8 @@
     {% #table headers=table_header %}
         {% for oq in object.equipments.all %}
             <tr>
-                {% #table-cell %}{{ oq.equipment }}{% /table-cell %}
-                {% #table-cell %}{{ oq.unit }}{% /table-cell %}
+                {% #table-cell %}{{ oq.equipment.name }}{% /table-cell %}
+                {% #table-cell %}{{ oq.equipment.unit }}{% /table-cell %}
                 {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
             </tr>
         {% empty %}

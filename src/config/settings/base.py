@@ -328,25 +328,32 @@ if env("SOCIALACCOUNT_ADAPTER", default=None):
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 ACCOUNT_FORMS = {"signup": "apps.users.forms.UserSignupForm"}
 
-SOCIALACCOUNT_ONLY = True
-SOCIALACCOUNT_STORE_TOKENS = True
-if env("OIDC_CLIENT_ID", default=None):
+if env("SOCIALACCOUNT_ADAPTER", default=None):
+    SOCIALACCOUNT_ADAPTER = env("SOCIALACCOUNT_ADAPTER")
+
+if OIDC_CLIENT_ID := env("OIDC_CLIENT_ID", default=None):
+    SOCIALACCOUNT_ONLY = True
+    SOCIALACCOUNT_STORE_TOKENS = env("SOCIALACCOUNT_STORE_TOKENS", default=False)
+    extra = {}
+    if OIDC_SECRET := env("OIDC_SECRET", default=None):
+        extra["secret"] = OIDC_SECRET
+
     SOCIALACCOUNT_PROVIDERS = {
         "openid_connect": {
+            "OAUTH_PKCE_ENABLED": env("OAUTH_PKCE_ENABLED", default=False),
             "APPS": [
                 {
                     "provider_id": env("OIDC_PROVIDER_ID"),
                     "name": env("OIDC_PROVIDER_NAME"),
-                    "client_id": env("OIDC_CLIENT_ID"),
-                    "secret": env("OIDC_SECRET"),
+                    "client_id": OIDC_CLIENT_ID,
                     "settings": {
                         "server_url": env("OIDC_PROVIDER_URL"),
                     },
+                    **extra,
                 },
-            ]
-        }
+            ],
+        },
     }
-
 
 # Django REST-Framework
 REST_FRAMEWORK = {

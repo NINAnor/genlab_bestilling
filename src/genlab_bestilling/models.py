@@ -162,7 +162,7 @@ class EquipmentType(models.Model):
     unit = models.CharField(max_length=50)
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} ({self.unit})" if self.unit else self.name
 
 
 class EquimentOrderQuantity(models.Model):

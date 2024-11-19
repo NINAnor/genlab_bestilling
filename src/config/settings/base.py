@@ -332,7 +332,7 @@ if env("SOCIALACCOUNT_ADAPTER", default=None):
     SOCIALACCOUNT_ADAPTER = env("SOCIALACCOUNT_ADAPTER")
 
 if OIDC_CLIENT_ID := env("OIDC_CLIENT_ID", default=None):
-    SOCIALACCOUNT_ONLY = True
+    SOCIALACCOUNT_ONLY = env.bool("SOCIALACCOUNT_ONLY", default=True)
     SOCIALACCOUNT_STORE_TOKENS = env("SOCIALACCOUNT_STORE_TOKENS", default=False)
     extra = {}
     if OIDC_SECRET := env("OIDC_SECRET", default=None):

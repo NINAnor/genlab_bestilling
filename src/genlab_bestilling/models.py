@@ -1,6 +1,7 @@
 from django.contrib.postgres.fields.ranges import DateRangeField
 from django.db import models, transaction
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
@@ -116,6 +117,8 @@ class Genrequest(models.Model):
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
     expected_total_samples = models.IntegerField(null=True, blank=True)
     analysis_timerange = DateRangeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
 
     objects = managers.GenrequestQuerySet.as_manager()
 
@@ -150,12 +153,16 @@ class Order(PolymorphicModel):
     sample_types = models.ManyToManyField("SampleType", related_name="orders")
     notes = models.TextField(blank=True, null=True)
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
 
     def confirm_order(self):
         self.status = Order.OrderStatus.CONFIRMED
+        self.confirmed_at = timezone.now()
         self.save()
 
     def clone(self):

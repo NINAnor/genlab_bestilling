@@ -8,7 +8,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, FormView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    FormView,
+    UpdateView,
+)
 from django.views.generic.detail import SingleObjectMixin
 from django_tables2.views import SingleTableView
 from formset.views import (
@@ -184,6 +190,33 @@ class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
 
 class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
+
+
+class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
+    model = Order
+    template_name = "genlab_bestilling/order_confirm_delete.html"
+
+    def get_queryset(self) -> QuerySet[Any]:
+        qs = super().get_queryset()
+        return qs.filter(status=Order.OrderStatus.DRAFT)
+
+    def get_object(self, queryset=None) -> Order:
+        return (super().get_object(queryset)).get_real_instance()
+
+    def get_form_kwargs(self) -> dict[str, Any]:
+        kwargs = super().get_form_kwargs()
+        del kwargs["genrequest"]
+        return kwargs
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f"Order #{self.kwargs['pk']} deleted!")
+        return response
+
+    def get_success_url(self) -> str:
+        return reverse(
+            "genrequest-order-list", kwargs={"genrequest_id": self.genrequest.pk}
+        )
 
 
 class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):

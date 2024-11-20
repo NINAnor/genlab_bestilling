@@ -10,7 +10,7 @@
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
-    <h3 class="text-4xl mb-5">Order #{{ object.id }} - {{ object.name }}</h3>
+    <h3 class="text-4xl mb-5">Order #{{ object }}</h3>
     <div class="flex gap-5 mb-5">
         <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
     </div>
@@ -36,9 +36,10 @@
     <div class="flex gap-5 my-5">
         {% if object.status == 'draft' %}
         <a class="btn bg-primary" href="{% url 'genrequest-equipment-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
-        <a class="btn bg-secondary" href="{% url 'genrequest-equipment-quantity-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit requested equipment</a>
+        <a class="btn bg-secondary text-white" href="{% url 'genrequest-equipment-quantity-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit requested equipment</a>
         {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary" submit_text="Confirm Order" csrf_token=csrf_token %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
+        <a class="btn bg-red-500 text-white" href="{% url 'genrequest-equipment-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
         {% endif %}
     </div>
 {% endblock %}

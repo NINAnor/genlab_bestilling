@@ -12,6 +12,7 @@ from .views import (
     GenrequestCreateView,
     GenrequestDetailView,
     GenrequestListView,
+    GenrequestOrderDeleteView,
     GenrequestOrderListView,
     GenrequestUpdateView,
     SamplesFrontendView,
@@ -56,6 +57,11 @@ urlpatterns = [
         name="genrequest-equipment-detail",
     ),
     path(
+        "genrequests/<int:genrequest_id>/orders/equipment/<int:pk>/delete/",
+        GenrequestOrderDeleteView.as_view(),
+        name="genrequest-equipment-delete",
+    ),
+    path(
         "genrequests/<int:genrequest_id>/orders/equipment/<int:pk>/update/",
         EquipmentOrderEditView.as_view(),
         name="genrequest-equipment-update",
@@ -79,6 +85,11 @@ urlpatterns = [
         "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/update/",
         AnalysisOrderEditView.as_view(),
         name="genrequest-analysis-update",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/delete/",
+        GenrequestOrderDeleteView.as_view(),
+        name="genrequest-analysis-delete",
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/samples/",

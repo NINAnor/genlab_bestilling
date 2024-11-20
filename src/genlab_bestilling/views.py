@@ -90,14 +90,14 @@ class GenrequestListView(LoginRequiredMixin, SingleTableView):
     table_class = GenrequestTable
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(project__memberships=self.request.user)
+        return super().get_queryset().filter_allowed(self.request.user)
 
 
 class GenrequestDetailView(LoginRequiredMixin, DetailView):
     model = Genrequest
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(project__memberships=self.request.user)
+        return super().get_queryset().filter_allowed(self.request.user)
 
 
 class GenrequestUpdateView(FormsetUpdateView):
@@ -105,7 +105,7 @@ class GenrequestUpdateView(FormsetUpdateView):
     form_class = GenrequestEditForm
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(project__memberships=self.request.user)
+        return super().get_queryset().filter_allowed(self.request.user)
 
     def get_success_url(self):
         return reverse(
@@ -119,7 +119,7 @@ class GenrequestCreateView(FormsetCreateView):
     form_class = GenrequestForm
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(project__memberships=self.request.user)
+        return super().get_queryset().filter_allowed(self.request.user)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -145,15 +145,9 @@ class GenrequestNestedMixin(LoginRequiredMixin):
     genrequest_accessor = "genrequest"
 
     def get_genrequest(self):
-        return Genrequest.objects.filter(project__memberships=self.request.user).get(
+        return Genrequest.objects.filter_allowed(self.request.user).get(
             id=self.kwargs["genrequest_id"]
         )
-
-    def get_project_filtered(self, qs):
-        filters = {
-            f"{self.genrequest_accessor}__project__memberships": self.request.user
-        }
-        return qs.filter(**filters)
 
     def post(self, request, *args, **kwargs):
         self.genrequest = self.get_genrequest()
@@ -164,7 +158,7 @@ class GenrequestNestedMixin(LoginRequiredMixin):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
-        qs = self.get_project_filtered(qs=super().get_queryset())
+        qs = super().get_queryset().filter_allowed(self.request.user)
         kwargs = {f"{self.genrequest_accessor}_id": self.genrequest.id}
         return qs.filter(**kwargs)
 
@@ -182,6 +176,14 @@ class GenrequestNestedMixin(LoginRequiredMixin):
 class GenrequestOrderListView(GenrequestNestedMixin, SingleTableView):
     model = Order
     table_class = OrderTable
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("genrequest", "polymorphic_ctype")
+            .prefetch_related("species", "sample_types", "genrequest__analysis_types")
+        )
 
 
 class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
@@ -222,16 +224,18 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
 class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):
     model = Order
 
+    def get_queryset(self):
+        return super().get_queryset().filter_in_draft()
+
     def post(self, request, *args, **kwargs):
         self.genrequest = self.get_genrequest()
-        self.object = self.get_object()
+        self.object = (self.get_object()).get_real_instance()
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form: Any) -> HttpResponse:
-        i = self.object.get_real_instance()
         try:
             # TODO: check state transition
-            i.confirm_order()
+            self.object.confirm_order()
             messages.add_message(
                 self.request, messages.SUCCESS, _("Your order is confirmed")
             )
@@ -290,7 +294,7 @@ class EquipmentOrderEditView(
     form_class = EquipmentOrderForm
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
+        return super().get_queryset().filter_in_draft()
 
     def get_success_url(self):
         return reverse(
@@ -321,7 +325,7 @@ class AnalysisOrderEditView(
     form_class = AnalysisOrderForm
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
+        return super().get_queryset().filter_in_draft()
 
     def get_success_url(self):
         return reverse(
@@ -352,9 +356,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
 
     def get_queryset(self) -> QuerySet[Any]:
         return (
-            super()
-            .get_queryset()
-            .filter(order_id=self.kwargs["pk"], order__status=Order.OrderStatus.DRAFT)
+            super().get_queryset().filter_in_draft().filter(order_id=self.kwargs["pk"])
         )
 
     def get_collection_kwargs(self):
@@ -391,7 +393,7 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
         return context
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DRAFT)
+        return super().get_queryset().filter_in_draft()
 
 
 class SamplesListView(GenrequestNestedMixin, SingleTableView):
@@ -423,9 +425,7 @@ class SamplesUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
 
     def get_queryset(self) -> QuerySet[Any]:
         return (
-            super()
-            .get_queryset()
-            .filter(order_id=self.kwargs["pk"], order__status=Order.OrderStatus.DRAFT)
+            super().get_queryset().filter_in_draft().filter(order_id=self.kwargs["pk"])
         )
 
     def get_collection_kwargs(self):

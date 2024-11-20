@@ -149,6 +149,12 @@ class SampleBulkSerializer(serializers.ModelSerializer):
         )
 
 
+class SampleDeleteBulkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = ("order",)
+
+
 class GenrequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genrequest

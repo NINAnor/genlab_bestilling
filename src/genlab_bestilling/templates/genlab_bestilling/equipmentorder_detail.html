@@ -10,7 +10,7 @@
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
-    <h3 class="text-4xl mb-5">Order #{{ object }}</h3>
+    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
     <div class="flex gap-5 mb-5">
         <a class="btn bg-primary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
     </div>

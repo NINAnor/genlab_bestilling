@@ -6,6 +6,8 @@ from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
+from . import managers
+
 
 class Organization(models.Model):
     name = models.CharField(max_length=255)
@@ -115,6 +117,8 @@ class Genrequest(models.Model):
     expected_total_samples = models.IntegerField(null=True, blank=True)
     analysis_timerange = DateRangeField(null=True, blank=True)
 
+    objects = managers.GenrequestQuerySet.as_manager()
+
     def __str__(self):
         return f"#GEN_{self.id}"
 
@@ -148,6 +152,7 @@ class Order(PolymorphicModel):
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
 
     tags = TaggableManager(blank=True)
+    objects = managers.OrderManager()
 
     def confirm_order(self):
         self.status = Order.OrderStatus.CONFIRMED
@@ -184,12 +189,14 @@ class EquimentOrderQuantity(models.Model):
     )
     quantity = models.DecimalField(decimal_places=4, max_digits=14)
 
+    objects = managers.EquipmentOrderQuantityQuerySet.as_manager()
+
 
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?
 
     def __str__(self) -> str:
-        return f"#EQO_{self.id}"
+        return f"#EQP_{self.id}"
 
     def get_absolute_url(self):
         return reverse(
@@ -210,7 +217,7 @@ class AnalysisOrder(Order):
     return_samples = models.BooleanField()  # TODO: default?
 
     def __str__(self) -> str:
-        return f"#ANO_{self.id}"
+        return f"#ANL_{self.id}"
 
     def get_absolute_url(self):
         return reverse(
@@ -261,6 +268,8 @@ class Sample(models.Model):
         "Location", on_delete=models.PROTECT, null=True, blank=True
     )
     volume = models.FloatField(null=True, blank=True)
+
+    objects = managers.SampleQuerySet.as_manager()
 
     def __str__(self) -> str:
         return f"#SMP_{self.id}"

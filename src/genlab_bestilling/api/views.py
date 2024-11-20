@@ -42,22 +42,27 @@ class AllowSampleDraft(BasePermission):
 
 
 class SampleViewset(ModelViewSet):
-    queryset = (
-        Sample.objects.all()
-        .select_related(
-            "type",
-            "species",
-            "order",
-            "order__genrequest",
-            "order__genrequest__area",
-            "location",
-        )
-        .order_by("id")
-    )
+    queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filterset_class = SampleFilter
     pagination_class = IDCursorPagination
     permission_classes = [AllowSampleDraft, IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)
+            .select_related(
+                "type",
+                "species",
+                "order",
+                "order__genrequest",
+                "order__genrequest__area",
+                "location",
+            )
+            .order_by("id")
+        )
 
     def get_serializer_class(self):
         if self.action in ["update", "partial_update"]:
@@ -85,6 +90,8 @@ class SampleViewset(ModelViewSet):
         }
 
         order = serializer.validated_data["order"]
+        # TODO: raise validation issue if order is not "owned"
+        # by a project the user is part of
         samples = []
         with transaction.atomic():
             for i in range(qty):
@@ -119,6 +126,12 @@ class AnalysisOrderViewset(
     queryset = AnalysisOrder.objects.all()
     serializer_class = AnalysisSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset().filter_allowed(self.request.user)
+        if self.request.method not in SAFE_METHODS:
+            qs = qs.filter_in_draft()
+        return qs
+
     @action(
         methods=["POST"],
         url_path="confirm",
@@ -129,6 +142,20 @@ class AnalysisOrderViewset(
         obj = self.get_object()
         obj.confirm_order(persist=False)
         return Response(self.get_serializer(obj).data)
+
+    @extend_schema(responses={200: OperationStatusSerializer})
+    @action(
+        methods=["POST"],
+        url_path="delete-samples",
+        detail=True,
+        permission_classes=[AllowOrderDraft],
+    )
+    def bulk_delete(self, request, pk):
+        obj = self.get_object()
+        with transaction.atomic():
+            obj.samples.all().delete()
+
+        return Response(data=OperationStatusSerializer({"success": True}).data)
 
 
 class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):

@@ -23,6 +23,10 @@ import { AxiosError } from "axios";
 import NumberCellInput from "./Cell/NumberCellInput";
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
+function askConfirm(fn) {
+  return () => confirm('Are you really sure?') && fn()
+}
+
 async function getSamples({ pageParam }) {
   const url = pageParam || `/api/samples/?order=${config.order}`;
   const response = await client.get(url);
@@ -150,6 +154,8 @@ const COLUMNS = [
 ].filter((_) => _);
 
 function handleError(e) {
+  console.error(e)
+
   if (e instanceof AxiosError) {
     e.response.data.errors.forEach((err) => {
       toast.error(err.detail);
@@ -239,6 +245,27 @@ export default function Table() {
     },
     onError: handleError,
   });
+
+  const mutateDeleteAllRows = useMutation({
+    mutationFn: () => {
+      return client.post(`/api/analysis-order/${config.order}/delete-samples/`);
+    },
+    onSuccess: () => {
+      toast.success("Samples deleted!");
+      queryClient.invalidateQueries({ queryKey: ["samples"] });
+    },
+    onError: (e) => {
+      console.error(e)
+      toast.error("There was an error!");
+    },
+  });
+
+  const pendingState = isLoading ||
+    isFetching ||
+    mutateDeleteAllRows.isPending ||
+    mutateConfirm.isPending ||
+    deleteRow.isPending ||
+    updateCell.isPending
 
   const table = useReactTable({
     data: flatData,
@@ -348,8 +375,7 @@ export default function Table() {
         <div className="flex justify-center py-5">
           {(isLoading ||
             isFetching ||
-            updateCell.isPending ||
-            deleteRow.isPending) && (
+            pendingState) && (
             <i className="fas fa-spinner fa-spin text-lg" />
           )}
         </div>
@@ -376,10 +402,18 @@ export default function Table() {
         <button
           className="btn bg-secondary disabled:opacity-70 text-white"
           onClick={mutateConfirm.mutate}
-          disabled={mutateConfirm.isPending}
+          disabled={pendingState}
         >
           Validate samples{" "}
           {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
+        </button>
+        <button
+          className="btn bg-red-500 disabled:opacity-70 text-white"
+          onClick={askConfirm(mutateDeleteAllRows.mutate)}
+          disabled={pendingState}
+        >
+          Delete all samples{" "}
+          {mutateDeleteAllRows.isPending && <i className="fas fa-spinner fa-spin" />}
         </button>
       </div>
     </>

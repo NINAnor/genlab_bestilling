@@ -153,6 +153,16 @@ class Order(PolymorphicModel):
         self.status = Order.OrderStatus.CONFIRMED
         self.save()
 
+    def clone(self):
+        species = self.species.all()
+        sample_types = self.sample_types.all()
+        self.id = None
+        self.pk = None
+        self.status = self.OrderStatus.DRAFT
+        self.save()
+        self.species.add(*species)
+        self.sample_types.add(*sample_types)
+
     def __str__(self):
         return f"#ORD_{self.id}"
 
@@ -207,6 +217,11 @@ class AnalysisOrder(Order):
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def clone(self):
+        markers = self.markers.all()
+        super().clone()
+        self.markers.add(*markers)
 
     def confirm_order(self, persist=True):
         with transaction.atomic():

@@ -4,6 +4,7 @@ from .views import (
     AnalysisOrderCreateView,
     AnalysisOrderDetailView,
     AnalysisOrderEditView,
+    CloneOrderActionView,
     ConfirmOrderActionView,
     EquipmentOrderCreateView,
     EquipmentOrderDetailView,
@@ -45,6 +46,11 @@ urlpatterns = [
         "genrequests/<int:genrequest_id>/orders/",
         GenrequestOrderListView.as_view(),
         name="genrequest-order-list",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/<int:pk>/clone/",
+        CloneOrderActionView.as_view(),
+        name="genrequest-order-clone",
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/equipment/create/",

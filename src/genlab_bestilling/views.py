@@ -251,6 +251,37 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
         return HttpResponseRedirect(self.get_success_url())
 
 
+class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):
+    model = Order
+
+    def post(self, request, *args, **kwargs):
+        self.genrequest = self.get_genrequest()
+        self.object = (self.get_object()).get_real_instance()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        try:
+            # NOTE: this will mutate self.object!!
+            self.object.clone()
+            messages.add_message(
+                self.request, messages.SUCCESS, _("Your order is cloned")
+            )
+        except Order.CannotConfirm as e:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+            )
+
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return self.object.get_absolute_url()
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect(self.get_success_url())
+
+
 class EquipmentOrderEditView(
     GenrequestNestedMixin,
     FormsetUpdateView,

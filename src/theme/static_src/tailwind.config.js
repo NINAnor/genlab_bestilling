@@ -27,6 +27,7 @@ module.exports = {
          * Adjust the following line to match your project structure.
          */
         '../../**/templates/**/*.html',
+        '../../**/**/templates/**/*.html',
 
         '../../../.venv/lib64/python3.11/site-packages/tailwind_ui/templates/**/*.html',
         '../../../.venv/lib64/python3.11/site-packages/formset/templates/formset/tailwind/**/*.html',

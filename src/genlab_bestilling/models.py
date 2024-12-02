@@ -36,19 +36,22 @@ class Marker(models.Model):
 
 
 class Species(models.Model):
-    # TODO: use IDs from Artsdatabanken?
     name = models.CharField(max_length=255)
     area = models.ForeignKey("Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField("Marker")
     location_type = models.ForeignKey(
         "LocationType", null=True, blank=True, on_delete=models.CASCADE
     )
+    code = models.CharField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
 
     class Meta:
         verbose_name_plural = "Species"
+        constraints = [
+            models.UniqueConstraint(name="unique species code", fields=["code"])
+        ]
 
 
 # TODO: better understand "other" case. should the user be able to insert new orws?
@@ -145,6 +148,9 @@ class Order(PolymorphicModel):
         PROCESSING = "processing", _("Processing")
         COMPLETED = "completed", _("Completed")
 
+        CHECKED = "checked", _("Checked")
+        EXTRACTED = "extracted", _("Extracted")
+
     name = models.CharField(null=True, blank=True)
     genrequest = models.ForeignKey(
         "Genrequest", on_delete=models.CASCADE, related_name="orders"
@@ -174,6 +180,18 @@ class Order(PolymorphicModel):
         self.save()
         self.species.add(*species)
         self.sample_types.add(*sample_types)
+
+    def order_manually_checked(self):
+        self.status = Order.OrderStatus.CHECKED
+        self.save()
+
+    def to_draft(self):
+        self.status = Order.OrderStatus.DRAFT
+        self.confirmed_at = None
+        self.save()
+
+    def get_type(self):
+        return "order"
 
     def __str__(self):
         return f"#ORD_{self.id}"
@@ -216,6 +234,9 @@ class EquipmentOrder(Order):
             raise Order.CannotConfirm(_("No equipments found"))
         return super().confirm_order()
 
+    def get_type(self):
+        return "equipment"
+
 
 class AnalysisOrder(Order):
     needs_guid = models.BooleanField(default=False)  # TODO: default?
@@ -231,6 +252,9 @@ class AnalysisOrder(Order):
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_type(self):
+        return "analysis"
 
     def clone(self):
         markers = self.markers.all()
@@ -276,10 +300,17 @@ class Sample(models.Model):
     )
     volume = models.FloatField(null=True, blank=True)
 
+    extractions = models.ManyToManyField("ExtractionPlate", blank=True)
+    desired_extractions = models.IntegerField(default=1)
+    genlab_id = models.CharField(null=True, blank=True)
+    parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
+    running_number = models.IntegerField(blank=True, null=True)
+    replica_number = models.IntegerField(blank=True, null=True)
+
     objects = managers.SampleQuerySet.as_manager()
 
     def __str__(self) -> str:
-        return f"#SMP_{self.id}"
+        return self.genlab_id or f"#SMP_{self.id}"
 
     @property
     def has_error(self):
@@ -308,9 +339,6 @@ class Sample(models.Model):
         else:
             return False
 
-    # plate
-    # coordinates on plate
-
 
 # class Analysis(models.Model):
 # type =
@@ -320,3 +348,35 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
+
+
+# Some extracts can be placed in multiple wells
+class ExtractPlatePosition(models.Model):
+    plate = models.ForeignKey(
+        "ExtractionPlate", on_delete=models.DO_NOTHING, related_name="sample_positions"
+    )
+    sample = models.ForeignKey(
+        "Sample", on_delete=models.PROTECT, related_name="plate_positions"
+    )
+    position = models.IntegerField()
+
+    # TODO: unique position per plate
+
+
+class ExtractionPlate(models.Model):
+    name = models.CharField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    # freezer
+    # shelf
+
+
+class Analysis(models.Model):
+    name = models.CharField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    analysis_date = models.DateTimeField(null=True, blank=True)
+    marker = models.ForeignKey("Marker", on_delete=models.DO_NOTHING)
+    result_file = models.FileField(null=True, blank=True)
+    samples = models.ManyToManyField("Sample", blank=True)
+    extra = models.JSONField(null=True, blank=True)

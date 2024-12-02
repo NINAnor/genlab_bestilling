@@ -20,6 +20,7 @@ urlpatterns = [
     path("api/", include("config.routers")),
     path("accounts/", include("allauth.urls")),
     path("", include("genlab_bestilling.urls")),
+    path("staff/", include("genlab_bestilling.staff.urls", namespace="staff")),
 ]
 
 

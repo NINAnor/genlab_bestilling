@@ -22,7 +22,7 @@ This will create some shortcuts to run docker commands.
 ### Development setup
 ```
 docker compose --profile dev up -d --build
-# or dpli_dev up -d --build
+# or dpcli_dev up -d --build
 ```
 This will build the docker images for local development and startup everything.
 **NOTE**: the `docker-compose.yml` uses bind-mounts, so editing your local django files will trigger a server reload without needing to rebuild the whole image.
@@ -32,7 +32,7 @@ The development setup will by default create a administrator user (admin@nina.no
 At every container start it will apply new migrations.
 
 #### Django commands
-Django provides useful command line tools that can be executed with `manage.py`, to see a list of all the available commands run inside the django container `manage.py help`.
+Django provides useful command line tools that can be executed with `manage.py`, to see a list of all the available commands run inside the django container `src/manage.py help`.
 Check [Django documentation](https://docs.djangoproject.com/en/5.0/ref/django-admin/) for a list of the builtin commands.
 Here are some examples of how to run them from your command line:
 ```
@@ -40,7 +40,7 @@ djcli_dev makemigrations # it will detect changes in your model files and will c
 ```
 This is actually an alias for
 ```
-docker compose --profile dev exec -it django-dev mange.py makemigrations
+docker compose --profile dev exec -it django-dev src/manage.py makemigrations
 ```
 
 You can then review the migration script created and apply it with:
@@ -62,7 +62,7 @@ models2puml #
 This setup will create docker images optimized for production, without devtools installed
 ```
 docker compose --profile prod up -d --build
-# or dpli_prod up -d --build
+# or dpcli_prod up -d --build
 ```
 
 ## How to update

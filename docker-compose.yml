@@ -77,6 +77,20 @@ services:
       <<: *django-dev-env
       DJANGO_MIGRATE: 1
 
+  queue:
+    <<: *django-prod
+    environment:
+      <<: *django-prod-env
+      WAIT_FOR_HTTP: http://django:8000/ht/
+    command: python manage.py procrastinate worker
+
+  queue-dev:
+    <<: *django-dev
+    environment:
+      <<: *django-dev-env
+      WAIT_FOR_HTTP: http://django:8000/ht/
+    command: python manage.py procrastinate worker
+
   tailwind:
     <<: *django-dev
     tty: true
@@ -94,28 +108,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 5432:5432
-
-  # documentation
-  docs-dev:
-    build:
-      context: ./docs
-      target: dev
-    volumes:
-      - ./docs:/book
-    ports:
-      - '3001:3000'
-    command: serve --hostname 0.0.0.0
-    profiles:
-      - dev
-
-  docs:
-    build:
-      context: ./docs
-      target: prod
-    ports:
-      - '3000:80'
-    profiles:
-      - prod
 
   nginx:
     build:

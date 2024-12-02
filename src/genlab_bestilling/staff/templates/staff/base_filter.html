@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">{% block page-title %}{% endblock page-title %}</h3>
+    {% block page-inner %}{% endblock page-inner %}
+
+    <form method="get" class="py-3 px-4 border mb-3 ">
+        <div class="flex gap-4">
+            {{ filter.form | crispy }}
+        </div>
+        {% csrf_token %}
+        <button class="btn bg-primary" type="submit">Search</button>
+    </form>
+
+    {% render_table table %}
+{% endblock %}

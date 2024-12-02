@@ -119,6 +119,7 @@ LOCAL_APPS = [
     "apps.users",
     "apps.core",
     "genlab_bestilling",
+    "genlab_bestilling.staff",
     "theme",
     "frontend",
     "nina",

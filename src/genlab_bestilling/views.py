@@ -54,6 +54,9 @@ class ActionView(FormView):
         """
         self.http_method_not_allowed(self, request, *args, **kwargs)
 
+    def get_success_url(self) -> str:
+        return self.request.path_info
+
 
 class FormsetCreateView(
     IncompleteSelectResponseMixin,

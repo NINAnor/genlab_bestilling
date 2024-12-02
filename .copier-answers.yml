@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier
-_commit: v0.0.1
+_commit: v0.0.2
 _src_path: gh:ninanor/python-template
 author_name: Niccolò Cantù
 debug: false
@@ -9,6 +9,7 @@ gis: false
 ldap: false
 project_name: GenLab Bestilling System
 project_slug: genlab_bestilling
+queue: true
 repo_name: genlab_bestilling
 repo_org: ninanor
 rest: true

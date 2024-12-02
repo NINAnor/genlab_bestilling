@@ -54,6 +54,7 @@ DATABASES["default"]["ENGINE"] = "psqlextra.backend"
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)  # noqa F405
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -113,6 +114,7 @@ THIRD_PARTY_APPS = [
     "django_vite",
     "django_filters",
     "drf_standardized_errors",
+    "procrastinate.contrib.django",
 ]
 
 LOCAL_APPS = [

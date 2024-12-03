@@ -34,3 +34,6 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"pk": self.id})
+
+    def is_genlab_staff(self) -> bool:
+        return self.groups.filter(name="genlab").exists()

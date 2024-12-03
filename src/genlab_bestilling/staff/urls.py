@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 
 from ..models import AnalysisOrder, EquipmentOrder
 from .views import (
@@ -14,6 +15,7 @@ from .views import (
 app_name = "genlab.staff"
 
 urlpatterns = [
+    path("", TemplateView.as_view(template_name="staff/base.html"), name="dashboard"),
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"
     ),

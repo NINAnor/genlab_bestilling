@@ -1,7 +1,7 @@
 from typing import Any
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
@@ -16,10 +16,13 @@ from .filters import AnalysisOrderFilter, SampleFilter
 from .tables import AnalysisOrderTable, EquipmentOrderTable, SampleTable
 
 
-class StaffMixin(LoginRequiredMixin):
+class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
         names = super().get_template_names()
         return [name.replace("genlab_bestilling", "staff") for name in names]
+
+    def test_func(self):
+        return self.request.user.is_genlab_staff()
 
 
 class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):

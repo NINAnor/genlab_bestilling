@@ -118,7 +118,6 @@ class Genrequest(models.Model):
     species = models.ManyToManyField("Species", blank=True, related_name="genrequests")
     sample_types = models.ManyToManyField("SampleType", blank=True)
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
-    expected_total_samples = models.IntegerField(null=True, blank=True)
     analysis_timerange = DateRangeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
@@ -243,6 +242,7 @@ class AnalysisOrder(Order):
     isolate_samples = models.BooleanField()  # TODO: default?
     markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?
+    expected_total_samples = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"#ANL_{self.id}"
@@ -304,8 +304,6 @@ class Sample(models.Model):
     desired_extractions = models.IntegerField(default=1)
     genlab_id = models.CharField(null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
-    running_number = models.IntegerField(blank=True, null=True)
-    replica_number = models.IntegerField(blank=True, null=True)
 
     objects = managers.SampleQuerySet.as_manager()
 
@@ -367,6 +365,7 @@ class ExtractionPlate(models.Model):
     name = models.CharField()
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
+    extracted_at = models.DateTimeField(null=True, blank=True)
     # freezer
     # shelf
 

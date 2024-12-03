@@ -53,7 +53,6 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "samples_owner",
             "sample_types",
             "analysis_types",
-            "expected_total_samples",
             # "analysis_timerange",
         )
         widgets = {
@@ -78,7 +77,6 @@ class GenrequestEditForm(GenrequestForm):
             "species",
             "sample_types",
             "analysis_types",
-            "expected_total_samples",
             # "analysis_timerange",
         )
 
@@ -234,6 +232,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "isolate_samples",
             "markers",
             "return_samples",
+            "expected_total_samples",
         )
         widgets = {
             "species": DualSortableSelector(

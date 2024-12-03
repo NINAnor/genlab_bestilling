@@ -14,12 +14,33 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             """
+            CREATE or replace FUNCTION get_genlab_sequence_name(species_code varchar, year integer) RETURNS varchar
+                LANGUAGE plpgsql
+                AS $$
+            declare seq_name varchar;
+            begin
+            seq_name = format('seq_G%s%s', year, species_code);
+            execute format('create sequence if not exists %s', seq_name);
+            return seq_name;
+            end
+            $$;
+
+            CREATE or replace FUNCTION get_replica_sequence_name(genlab_id varchar) RETURNS varchar
+                LANGUAGE plpgsql
+                AS $$
+            declare seq_name varchar;
+            begin
+            seq_name = format('rep_%s', genlab_id);
+            execute format('create sequence if not exists %s', seq_name);
+            return seq_name;
+            end
+            $$;
+
             CREATE or replace FUNCTION generate_genlab_id(species_code varchar, year integer) RETURNS varchar
                 LANGUAGE plpgsql
                 AS $$
             begin
-            execute format('create sequence if not exists seq_G%s%s', year, species_code);
-            return 'G' || year % 100 || species_code || LPAD(nextval(format('seq_G%s%s', year, species_code))::text, 5, '0');
+            return 'G' || year % 100 || species_code || LPAD(nextval(get_genlab_sequence_name(species_code, year))::text, 5, '0');
             end
             $$;
 
@@ -27,14 +48,15 @@ class Migration(migrations.Migration):
                 LANGUAGE plpgsql
                 AS $$
             begin
-            execute format('create sequence if not exists rep_%s maxvalue 26', genlab_id);
-            return genlab_id || CHR(64 + nextval(format('rep_%s', genlab_id))::integer);
+            return genlab_id || CHR(64 + nextval(get_replica_sequence_name(genlab_id))::integer);
             end
             $$;
         """,
             """
-            DROP FUNCTION generate_genlab_id(species_code varchar, year integer);
-            DROP FUNCTION generate_replica(genlab_id varchar);
+            DROP FUNCTION IF EXISTS get_genlab_sequence_name(species_code varchar, year integer);
+            DROP FUNCTION IF EXISTS get_replica_sequence_name(genlab_id varchar);
+            DROP FUNCTION IF EXISTS generate_genlab_id(species_code varchar, year integer);
+            DROP FUNCTION IF EXISTS generate_replica(genlab_id varchar);
         """,
         )
     ]

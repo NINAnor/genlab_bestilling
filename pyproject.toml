@@ -48,7 +48,8 @@ dependencies = [
   "django-taggit",
   "django-tables2",
   "django-formset",
-  "django-vite"
+  "django-vite",
+  "sqlglot[rs]"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

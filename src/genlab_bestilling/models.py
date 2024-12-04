@@ -360,10 +360,15 @@ class ExtractPlatePosition(models.Model):
         "ExtractionPlate", on_delete=models.DO_NOTHING, related_name="sample_positions"
     )
     sample = models.ForeignKey(
-        "Sample", on_delete=models.PROTECT, related_name="plate_positions"
+        "Sample",
+        on_delete=models.PROTECT,
+        related_name="plate_positions",
+        null=True,
+        blank=True,
     )
     position = models.IntegerField()
     extracted_at = models.DateTimeField(auto_now=True)
+    notes = models.CharField(null=True, blank=True)
 
     # TODO: unique position per plate
     class Meta:

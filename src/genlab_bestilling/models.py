@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
+from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
@@ -281,6 +282,10 @@ class AnalysisOrder(Order):
 
             if persist:
                 super().confirm_order()
+
+    def order_manually_checked(self):
+        super().order_manually_checked()
+        app.configure_task(name="generate-genlab-ids").defer()
 
 
 class Sample(models.Model):

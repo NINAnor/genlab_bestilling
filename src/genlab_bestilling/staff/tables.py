@@ -64,11 +64,6 @@ class EquipmentOrderTable(OrderTable):
 
 
 class OrderSampleTable(tables.Table):
-    # guid = tables.Column(
-    #     linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),
-    #     orderable=False,
-    #     empty_values=(),
-    # )
     plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
@@ -97,11 +92,6 @@ class OrderSampleTable(tables.Table):
 
 
 class SampleTable(tables.Table):
-    # guid = tables.Column(
-    #     linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),
-    #     orderable=False,
-    #     empty_values=(),
-    # )
     plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
@@ -119,6 +109,9 @@ class SampleTable(tables.Table):
             "location",
             "notes",
             "desired_extractions",
+            "order",
+            "order__status",
+            "order__genrequest__project",
             "plate_positions",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}

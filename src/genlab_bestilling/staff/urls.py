@@ -7,6 +7,7 @@ from .views import (
     AnalysisOrderListView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
+    ExtractionPlateListView,
     ManaullyCheckedOrderActionView,
     OrderToDraftActionView,
     SamplesListView,
@@ -52,5 +53,10 @@ urlpatterns = [
         "orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="order-equipment-detail",
+    ),
+    path(
+        "orders/plates/",
+        ExtractionPlateListView.as_view(),
+        name="plates-list",
     ),
 ]

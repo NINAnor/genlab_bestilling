@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from ..models import AnalysisOrder, EquipmentOrder, Order, Sample
+from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Order, Sample
 
 
 class OrderTable(tables.Table):
@@ -94,3 +94,17 @@ class SampleTable(tables.Table):
 
     def render_plate_positions(self, value):
         return ", ".join([str(v) for v in value.all()])
+
+
+class PlateTable(tables.Table):
+    class Meta:
+        model = ExtractionPlate
+        fields = (
+            "id",
+            "created_at",
+            "last_updated_at",
+            "samples_count",
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+
+        empty_text = "No Plates"

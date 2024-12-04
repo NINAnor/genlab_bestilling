@@ -1,6 +1,6 @@
 import django_filters as filters
 
-from ..models import AnalysisOrder, Sample
+from ..models import AnalysisOrder, ExtractionPlate, Sample
 
 
 class AnalysisOrderFilter(filters.FilterSet):
@@ -29,4 +29,12 @@ class SampleFilter(filters.FilterSet):
             "pop_id",
             "type",
             "desired_extractions",
+        ]
+
+
+class ExtractionPlateFilter(filters.FilterSet):
+    class Meta:
+        model = ExtractionPlate
+        fields = [
+            "id",
         ]

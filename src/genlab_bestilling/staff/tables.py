@@ -69,6 +69,9 @@ class SampleTable(tables.Table):
     #     orderable=False,
     #     empty_values=(),
     # )
+    plate_positions = tables.Column(
+        empty_values=(), orderable=False, verbose_name="Extraction position"
+    )
 
     class Meta:
         model = Sample
@@ -82,8 +85,12 @@ class SampleTable(tables.Table):
             "pop_id",
             "location",
             "notes",
-            "desidered_extractions",
+            "desired_extractions",
+            "plate_positions",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
+
+    def render_plate_positions(self, value):
+        return ", ".join([str(v) for v in value.all()])

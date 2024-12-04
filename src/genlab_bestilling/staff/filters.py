@@ -18,7 +18,7 @@ class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
         fields = [
-            "order",
+            # "order",
             "guid",
             "name",
             "genlab_id",

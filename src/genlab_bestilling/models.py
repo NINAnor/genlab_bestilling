@@ -316,6 +316,11 @@ class Sample(models.Model):
     def __str__(self) -> str:
         return self.genlab_id or f"#SMP_{self.id}"
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["genlab_id"], name="unique_genlab_id")
+        ]
+
     @property
     def has_error(self):
         if not all(
@@ -370,7 +375,6 @@ class ExtractPlatePosition(models.Model):
     extracted_at = models.DateTimeField(auto_now=True)
     notes = models.CharField(null=True, blank=True)
 
-    # TODO: unique position per plate
     class Meta:
         constraints = [
             models.UniqueConstraint(

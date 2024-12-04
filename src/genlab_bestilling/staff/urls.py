@@ -9,6 +9,7 @@ from .views import (
     EqupimentOrderListView,
     ExtractionPlateListView,
     ManaullyCheckedOrderActionView,
+    OrderSamplesListView,
     OrderToDraftActionView,
     SamplesListView,
 )
@@ -46,7 +47,7 @@ urlpatterns = [
     ),
     path(
         "orders/analysis/<int:pk>/samples/",
-        SamplesListView.as_view(),
+        OrderSamplesListView.as_view(),
         name="order-analysis-samples",
     ),
     path(

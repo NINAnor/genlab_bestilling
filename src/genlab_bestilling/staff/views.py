@@ -84,6 +84,7 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .get_queryset()
             .select_related("type", "location", "species")
             .filter(order=self.kwargs["pk"])
+            .order_by("species__name", "year", "location__name", "name")
         )
 
     def get_context_data(self, **kwargs):

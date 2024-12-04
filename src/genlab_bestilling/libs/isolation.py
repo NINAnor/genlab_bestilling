@@ -11,7 +11,7 @@ def isolate(order_id):
             Sample.objects.select_related("species", "location")
             .filter(order_id=order_id)
             .exclude(genlab_id=None)
-            .order_by("year", "species__name", "location__name")
+            .order_by("species__name", "year", "location__name", "name")
         )
 
         # TODO: Get incomplete plates if available!

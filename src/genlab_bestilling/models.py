@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
 from . import managers
+from .libs.helpers import position_to_coordinates
 
 
 class Organization(models.Model):
@@ -366,6 +367,9 @@ class ExtractPlatePosition(models.Model):
                 fields=["plate", "position"], name="unique_positions_in_plate"
             )
         ]
+
+    def __str__(self) -> str:
+        return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
 
 
 class ExtractionPlate(models.Model):

@@ -2,6 +2,7 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
@@ -10,10 +11,10 @@ from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from ..models import AnalysisOrder, EquipmentOrder, Order, Sample
+from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Order, Sample
 from ..views import ActionView
-from .filters import AnalysisOrderFilter, SampleFilter
-from .tables import AnalysisOrderTable, EquipmentOrderTable, SampleTable
+from .filters import AnalysisOrderFilter, ExtractionPlateFilter, SampleFilter
+from .tables import AnalysisOrderTable, EquipmentOrderTable, PlateTable, SampleTable
 
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -41,6 +42,21 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types", "genrequest__analysis_types")
+        )
+
+
+class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = ExtractionPlate
+    table_class = PlateTable
+    filterset_class = ExtractionPlateFilter
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related()
+            .prefetch_related("sample_positions")
+            .annotate(samples_count=models.Count("sample_positions"))
         )
 
 

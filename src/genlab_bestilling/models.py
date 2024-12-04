@@ -357,15 +357,21 @@ class ExtractPlatePosition(models.Model):
         "Sample", on_delete=models.PROTECT, related_name="plate_positions"
     )
     position = models.IntegerField()
+    extracted_at = models.DateTimeField(auto_now=True)
 
     # TODO: unique position per plate
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plate", "position"], name="unique_positions_in_plate"
+            )
+        ]
 
 
 class ExtractionPlate(models.Model):
-    name = models.CharField()
+    name = models.CharField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
-    extracted_at = models.DateTimeField(null=True, blank=True)
     # freezer
     # shelf
 

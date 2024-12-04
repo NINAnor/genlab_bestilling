@@ -1,11 +1,13 @@
 {% extends "staff/base_filter.html" %}
 
 {% block page-title %}
-{{ analysis }} - Samples
+{% if analysis %}{{ analysis }} - Samples{% else %}Samples{% endif %}
 {% endblock page-title %}
 
 {% block page-inner %}
+{% if analysis %}
 <div class="flex gap-5 mb-5">
     <a class="btn bg-primary" href="{% url 'staff:order-analysis-detail' pk=analysis.id %}"><i class="fas fa-arrow-left"></i> back</a>
 </div>
+{% endif %}
 {% endblock page-inner %}

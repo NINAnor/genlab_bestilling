@@ -7,7 +7,7 @@
     {% block page-inner %}{% endblock page-inner %}
 
     <form method="get" class="py-3 px-4 border mb-3 ">
-        <div class="flex gap-4">
+        <div class="flex flex-wrap gap-4">
             {{ filter.form | crispy }}
         </div>
         {% csrf_token %}

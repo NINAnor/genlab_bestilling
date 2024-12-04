@@ -50,6 +50,11 @@ urlpatterns = [
         name="order-analysis-samples",
     ),
     path(
+        "samples/",
+        SamplesListView.as_view(),
+        name="samples-list",
+    ),
+    path(
         "orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="order-equipment-detail",

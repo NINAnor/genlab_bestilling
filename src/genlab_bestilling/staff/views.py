@@ -13,8 +13,19 @@ from django_tables2.views import SingleTableMixin
 
 from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Order, Sample
 from ..views import ActionView
-from .filters import AnalysisOrderFilter, ExtractionPlateFilter, SampleFilter
-from .tables import AnalysisOrderTable, EquipmentOrderTable, PlateTable, SampleTable
+from .filters import (
+    AnalysisOrderFilter,
+    ExtractionPlateFilter,
+    OrderSampleFilter,
+    SampleFilter,
+)
+from .tables import (
+    AnalysisOrderTable,
+    EquipmentOrderTable,
+    OrderSampleTable,
+    PlateTable,
+    SampleTable,
+)
 
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
@@ -87,18 +98,19 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
-class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
+class OrderSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_pagination = False
 
     model = Sample
-    table_class = SampleTable
-    filterset_class = SampleFilter
+    table_class = OrderSampleTable
+    filterset_class = OrderSampleFilter
 
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .select_related("type", "location", "species")
+            .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
             .order_by("species__name", "year", "location__name", "name")
         )
@@ -107,6 +119,22 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context["analysis"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
+
+
+class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
+    model = Sample
+    table_class = SampleTable
+    filterset_class = SampleFilter
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("type", "location", "species", "order")
+            .prefetch_related("plate_positions")
+            .exclude(order__status=Order.OrderStatus.DRAFT)
+            .order_by("species__name", "year", "location__name", "name")
+        )
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):

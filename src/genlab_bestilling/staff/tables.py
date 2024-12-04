@@ -63,6 +63,39 @@ class EquipmentOrderTable(OrderTable):
         model = EquipmentOrder
 
 
+class OrderSampleTable(tables.Table):
+    # guid = tables.Column(
+    #     linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),
+    #     orderable=False,
+    #     empty_values=(),
+    # )
+    plate_positions = tables.Column(
+        empty_values=(), orderable=False, verbose_name="Extraction position"
+    )
+
+    class Meta:
+        model = Sample
+        fields = (
+            "genlab_id",
+            "guid",
+            "name",
+            "species",
+            "type",
+            "year",
+            "pop_id",
+            "location",
+            "notes",
+            "desired_extractions",
+            "plate_positions",
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+
+        empty_text = "No Samples"
+
+    def render_plate_positions(self, value):
+        return ", ".join([str(v) for v in value.all()])
+
+
 class SampleTable(tables.Table):
     # guid = tables.Column(
     #     linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),

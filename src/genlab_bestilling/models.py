@@ -285,7 +285,7 @@ class AnalysisOrder(Order):
 
     def order_manually_checked(self):
         super().order_manually_checked()
-        app.configure_task(name="generate-genlab-ids").defer()
+        app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
 
 
 class Sample(models.Model):

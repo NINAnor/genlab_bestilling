@@ -23,7 +23,9 @@ class EquipmentOrderQuantityQuerySet(models.QuerySet):
         return self.filter(order__genrequest__project__memberships=user)
 
     def filter_in_draft(self):
-        return self.select("order").filter(order__status=self.model.OrderStatus.DRAFT)
+        return self.select_related("order").filter(
+            order__status=self.model.OrderStatus.DRAFT
+        )
 
 
 class SampleQuerySet(models.QuerySet):
@@ -31,4 +33,6 @@ class SampleQuerySet(models.QuerySet):
         return self.filter(order__genrequest__project__memberships=user)
 
     def filter_in_draft(self):
-        return self.select("order").filter(order__status=self.model.OrderStatus.DRAFT)
+        return self.select_related("order").filter(
+            order__status=self.model.OrderStatus.DRAFT
+        )

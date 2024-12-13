@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from django import forms
+from django.contrib.postgres.forms.ranges import RangeWidget
 
 # from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
@@ -20,6 +21,10 @@ from .models import (
     Marker,
     Sample,
 )
+
+
+class DateInput(forms.DateInput):
+    input_type = "date"
 
 
 class GenrequestForm(FormMixin, forms.ModelForm):
@@ -53,7 +58,8 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "samples_owner",
             "sample_types",
             "analysis_types",
-            # "analysis_timerange",
+            "expected_total_samples",
+            "analysis_timerange",
         )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
@@ -66,7 +72,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             ),
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "analysis_types": DualSortableSelector(search_lookup="name_icontains"),
-            # "analysis_timerange": DateRangePicker(),
+            "analysis_timerange": RangeWidget(DateInput),
         }
 
 
@@ -77,7 +83,8 @@ class GenrequestEditForm(GenrequestForm):
             "species",
             "sample_types",
             "analysis_types",
-            # "analysis_timerange",
+            "analysis_timerange",
+            "expected_total_samples",
         )
 
     # def clean_species(self) -> dict[str, Any]:
@@ -199,12 +206,41 @@ class EquipmentQuantityCollection(ContextFormCollection):
             holder.reinit(self.context)
 
 
+YES_NO_CHOICES = ((False, "No"), (True, "Yes"))
+
+
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    needs_guid = forms.TypedChoiceField(
+        label="I need to generate GUID",
+        help_text="Choose yes if your samples don't have already a GUID, "
+        + "the system will generate a new GUID",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
+    isolate_samples = forms.TypedChoiceField(
+        label="I want samples to be isolated",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
+    return_samples = forms.TypedChoiceField(
+        label="I want samples to be returned after analysis",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
+
+        self.fields["name"].help_text = (
+            "You can provide a descriptive name "
+            + "for this order to help you find it later"
+        )
 
         self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
@@ -232,7 +268,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "isolate_samples",
             "markers",
             "return_samples",
-            "expected_total_samples",
         )
         widgets = {
             "species": DualSortableSelector(

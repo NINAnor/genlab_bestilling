@@ -104,10 +104,20 @@ class Genrequest(models.Model):
     A GenLab genrequest, multiple GenLab requests can have the same NINA project number
     """
 
-    name = models.CharField(max_length=255, null=True, blank=True)
-    project = models.ForeignKey("nina.Project", on_delete=models.PROTECT)
+    name = models.CharField(
+        max_length=255, null=True, blank=True, verbose_name="Description"
+    )
+    project = models.ForeignKey(
+        "nina.Project",
+        on_delete=models.PROTECT,
+        verbose_name="UBW Project Name",
+        help_text="Choose the UBW NINA Project for billing",
+    )
     samples_owner = models.ForeignKey(
-        "Organization", on_delete=models.PROTECT, blank=True, null=True
+        "Organization",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
     )
     creator = models.ForeignKey(
         "users.User",
@@ -118,9 +128,25 @@ class Genrequest(models.Model):
     )
     area = models.ForeignKey("Area", on_delete=models.PROTECT)
     species = models.ManyToManyField("Species", blank=True, related_name="genrequests")
-    sample_types = models.ManyToManyField("SampleType", blank=True)
+    sample_types = models.ManyToManyField(
+        "SampleType",
+        blank=True,
+        help_text="samples you plan to deliver, you can choose more than one. "
+        + "ONLY sample types selected here will be available later",
+    )
     analysis_types = models.ManyToManyField("AnalysisType", blank=True)
-    analysis_timerange = DateRangeField(null=True, blank=True)
+    analysis_timerange = DateRangeField(
+        null=True,
+        blank=True,
+        help_text="This helps the Lab estimating the workload, "
+        + "provide the timeframe for the analysis",
+    )
+    expected_total_samples = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="This helps the Lab estimating the workload, "
+        + "provide how many samples you're going to deliver",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 
@@ -244,7 +270,6 @@ class AnalysisOrder(Order):
     isolate_samples = models.BooleanField()  # TODO: default?
     markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?
-    expected_total_samples = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"#ANL_{self.id}"

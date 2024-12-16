@@ -1,19 +1,5 @@
 [
     {
-        "model": "genlab_bestilling.organization",
-        "pk": 1,
-        "fields": {
-            "name": "NINA"
-        }
-    },
-    {
-        "model": "genlab_bestilling.organization",
-        "pk": 2,
-        "fields": {
-            "name": "Veterinærinstituttet"
-        }
-    },
-    {
         "model": "genlab_bestilling.area",
         "pk": 1,
         "fields": {
@@ -99,6 +85,28 @@
         "fields": {
             "name": "Rovdyr",
             "location_mandatory": false
+        }
+    },
+    {
+        "model": "genlab_bestilling.area",
+        "pk": 12,
+        "fields": {
+            "name": "MiljøDNA",
+            "location_mandatory": false
+        }
+    },
+    {
+        "model": "genlab_bestilling.organization",
+        "pk": 1,
+        "fields": {
+            "name": "NINA"
+        }
+    },
+    {
+        "model": "genlab_bestilling.organization",
+        "pk": 2,
+        "fields": {
+            "name": "Veterinærinstituttet"
         }
     },
     {
@@ -218,9 +226,10 @@
             "name": "Elvemusling",
             "area": 1,
             "location_type": null,
+            "code": "E",
             "markers": [
-                "STR",
-                "qPCR"
+                "qPCR",
+                "STR"
             ]
         }
     },
@@ -231,6 +240,7 @@
             "name": "Havnespy",
             "area": 1,
             "location_type": null,
+            "code": "HAS",
             "markers": [
                 "qPCR"
             ]
@@ -243,6 +253,7 @@
             "name": "Edelkreps",
             "area": 1,
             "location_type": null,
+            "code": "EDK",
             "markers": [
                 "qPCR"
             ]
@@ -255,6 +266,7 @@
             "name": "Signalkreps",
             "area": 1,
             "location_type": null,
+            "code": "SIK",
             "markers": [
                 "qPCR"
             ]
@@ -267,6 +279,7 @@
             "name": "Buttsnutefrosk",
             "area": 2,
             "location_type": null,
+            "code": "BFR",
             "markers": [
                 "qPCR"
             ]
@@ -279,9 +292,10 @@
             "name": "Spissnutefrosk",
             "area": 2,
             "location_type": null,
+            "code": "SFR",
             "markers": [
-                "STR",
-                "qPCR"
+                "qPCR",
+                "STR"
             ]
         }
     },
@@ -292,6 +306,7 @@
             "name": "Damfrosk",
             "area": 2,
             "location_type": null,
+            "code": "DFR",
             "markers": [
                 "qPCR"
             ]
@@ -304,6 +319,7 @@
             "name": "Padde",
             "area": 2,
             "location_type": null,
+            "code": "PAD",
             "markers": [
                 "qPCR"
             ]
@@ -316,9 +332,10 @@
             "name": "Småsalamander",
             "area": 2,
             "location_type": null,
+            "code": "SSM",
             "markers": [
-                "STR",
-                "qPCR"
+                "qPCR",
+                "STR"
             ]
         }
     },
@@ -329,9 +346,10 @@
             "name": "Storsalamander",
             "area": 2,
             "location_type": null,
+            "code": "SST",
             "markers": [
-                "STR",
-                "qPCR"
+                "qPCR",
+                "STR"
             ]
         }
     },
@@ -342,6 +360,7 @@
             "name": "Planter",
             "area": 3,
             "location_type": null,
+            "code": "P",
             "markers": [
                 "ITS-u3/ITS-u4",
                 "ITS-S2/ITS-4"
@@ -355,6 +374,7 @@
             "name": "Sopp",
             "area": 3,
             "location_type": null,
+            "code": "S",
             "markers": [
                 "ITS-7/ITS-4"
             ]
@@ -367,9 +387,10 @@
             "name": "Invertebrater",
             "area": 3,
             "location_type": null,
+            "code": "INV",
             "markers": [
-                "BF3/BR2",
                 "Leray",
+                "BF3/BR2",
                 "BF3-mod/BR2-mod"
             ]
         }
@@ -381,6 +402,7 @@
             "name": "Insekter",
             "area": 3,
             "location_type": null,
+            "code": "INS",
             "markers": [
                 "fwhF2/EPTDr2n"
             ]
@@ -393,9 +415,10 @@
             "name": "Vertebrater",
             "area": 3,
             "location_type": null,
+            "code": "VER",
             "markers": [
-                "MiFish",
                 "12S-V5",
+                "MiFish",
                 "COI Metazoa"
             ]
         }
@@ -407,6 +430,7 @@
             "name": "Alger",
             "area": 3,
             "location_type": null,
+            "code": "ALG",
             "markers": [
                 "Cha3/ITS-u4",
                 "TAReuk"
@@ -420,6 +444,7 @@
             "name": "Nematoder",
             "area": 3,
             "location_type": null,
+            "code": "NEM",
             "markers": [
                 "NC1/NC2"
             ]
@@ -432,6 +457,7 @@
             "name": "Bakterier",
             "area": 3,
             "location_type": null,
+            "code": "BKT",
             "markers": [
                 "16S"
             ]
@@ -444,6 +470,7 @@
             "name": "Gjedde",
             "area": 4,
             "location_type": null,
+            "code": "GJE",
             "markers": [
                 "qPCR"
             ]
@@ -456,11 +483,12 @@
             "name": "Laks",
             "area": 4,
             "location_type": null,
+            "code": "L",
             "markers": [
-                "STR",
-                "Artstest L/Ø",
                 "SNP nøytral",
-                "SNP O/V"
+                "Artstest L/Ø",
+                "SNP O/V",
+                "STR"
             ]
         }
     },
@@ -471,6 +499,7 @@
             "name": "Mort",
             "area": 4,
             "location_type": null,
+            "code": "MRT",
             "markers": [
                 "qPCR"
             ]
@@ -483,6 +512,7 @@
             "name": "Pukkellaks",
             "area": 4,
             "location_type": null,
+            "code": "PKL",
             "markers": [
                 "qPCR"
             ]
@@ -495,6 +525,7 @@
             "name": "Røye",
             "area": 4,
             "location_type": null,
+            "code": "ROY",
             "markers": [
                 "qPCR"
             ]
@@ -507,6 +538,7 @@
             "name": "Svartmunnet kutling",
             "area": 4,
             "location_type": null,
+            "code": "SVK",
             "markers": [
                 "qPCR"
             ]
@@ -519,6 +551,7 @@
             "name": "Ørekyte",
             "area": 4,
             "location_type": null,
+            "code": "ORK",
             "markers": [
                 "qPCR"
             ]
@@ -531,6 +564,7 @@
             "name": "Ørret",
             "area": 4,
             "location_type": null,
+            "code": "O",
             "markers": [
                 "SNP",
                 "qPCR"
@@ -544,6 +578,7 @@
             "name": "Ål",
             "area": 4,
             "location_type": null,
+            "code": "EEL",
             "markers": [
                 "qPCR"
             ]
@@ -556,9 +591,10 @@
             "name": "Alke",
             "area": 5,
             "location_type": null,
+            "code": "AKE",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -569,9 +605,10 @@
             "name": "Alkekonge",
             "area": 5,
             "location_type": null,
+            "code": "AKK",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -582,9 +619,10 @@
             "name": "Antarktispetrell",
             "area": 5,
             "location_type": null,
+            "code": "APT",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -595,9 +633,10 @@
             "name": "Blåmeis",
             "area": 5,
             "location_type": null,
+            "code": "BMS",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -608,6 +647,7 @@
             "name": "Dverggås",
             "area": 5,
             "location_type": null,
+            "code": "DVG",
             "markers": [
                 "Kjønnstest"
             ]
@@ -620,6 +660,7 @@
             "name": "Fiskeørn",
             "area": 5,
             "location_type": null,
+            "code": "FOR",
             "markers": [
                 "Kjønnstest"
             ]
@@ -632,6 +673,7 @@
             "name": "Fjelljo",
             "area": 5,
             "location_type": null,
+            "code": "FJJ",
             "markers": [
                 "Kjønnstest"
             ]
@@ -644,9 +686,10 @@
             "name": "Fjellrype",
             "area": 5,
             "location_type": null,
+            "code": "FJR",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -657,6 +700,7 @@
             "name": "Grågås",
             "area": 5,
             "location_type": null,
+            "code": "GRG",
             "markers": [
                 "Kjønnstest"
             ]
@@ -669,6 +713,7 @@
             "name": "Gråspurv",
             "area": 5,
             "location_type": null,
+            "code": "GSP",
             "markers": [
                 "Kjønnstest"
             ]
@@ -681,9 +726,10 @@
             "name": "Havhest",
             "area": 5,
             "location_type": null,
+            "code": "HVH",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -694,9 +740,10 @@
             "name": "Havsvale",
             "area": 5,
             "location_type": null,
+            "code": "HVS",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -707,9 +754,10 @@
             "name": "Havørn",
             "area": 5,
             "location_type": null,
+            "code": "HVO",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -720,9 +768,10 @@
             "name": "Hubro",
             "area": 5,
             "location_type": null,
+            "code": "HBR",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -733,6 +782,7 @@
             "name": "Hønsehauk",
             "area": 5,
             "location_type": null,
+            "code": "HHK",
             "markers": [
                 "Kjønnstest"
             ]
@@ -745,9 +795,10 @@
             "name": "Ismåke",
             "area": 5,
             "location_type": null,
+            "code": "ISM",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -758,9 +809,10 @@
             "name": "Kattugle",
             "area": 5,
             "location_type": null,
+            "code": "KTU",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -771,9 +823,10 @@
             "name": "Kjøttmeis",
             "area": 5,
             "location_type": null,
+            "code": "KJM",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -784,10 +837,11 @@
             "name": "Kongeørn",
             "area": 5,
             "location_type": null,
+            "code": "KOR",
             "markers": [
-                "STR",
                 "SNP",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -798,6 +852,7 @@
             "name": "Kortnebbgås",
             "area": 5,
             "location_type": null,
+            "code": "KNG",
             "markers": [
                 "Kjønnstest"
             ]
@@ -810,9 +865,10 @@
             "name": "Krykkje",
             "area": 5,
             "location_type": null,
+            "code": "KKJ",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -823,9 +879,10 @@
             "name": "Lappmeis",
             "area": 5,
             "location_type": null,
+            "code": "LPM",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -836,9 +893,10 @@
             "name": "Lirype",
             "area": 5,
             "location_type": null,
+            "code": "LRP",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -849,9 +907,10 @@
             "name": "Lomvi",
             "area": 5,
             "location_type": null,
+            "code": "LMV",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -862,9 +921,10 @@
             "name": "Lunde",
             "area": 5,
             "location_type": null,
+            "code": "LND",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -875,6 +935,7 @@
             "name": "Orrfugl",
             "area": 5,
             "location_type": null,
+            "code": "ORF",
             "markers": [
                 "Kjønnstest"
             ]
@@ -887,9 +948,10 @@
             "name": "Polarlomvi",
             "area": 5,
             "location_type": null,
+            "code": "PMV",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -900,9 +962,10 @@
             "name": "Polarmåke",
             "area": 5,
             "location_type": null,
+            "code": "PMK",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -913,6 +976,7 @@
             "name": "Snøugle",
             "area": 5,
             "location_type": null,
+            "code": "SNU",
             "markers": [
                 "Kjønnstest"
             ]
@@ -925,6 +989,7 @@
             "name": "Storfugl",
             "area": 5,
             "location_type": null,
+            "code": "STF",
             "markers": [
                 "Kjønnstest"
             ]
@@ -937,9 +1002,10 @@
             "name": "Storjo",
             "area": 5,
             "location_type": null,
+            "code": "STJ",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -950,6 +1016,7 @@
             "name": "Storskarv",
             "area": 5,
             "location_type": null,
+            "code": "STS",
             "markers": [
                 "Kjønnstest"
             ]
@@ -962,9 +1029,10 @@
             "name": "Svartmeis",
             "area": 5,
             "location_type": null,
+            "code": "SVM",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -975,9 +1043,10 @@
             "name": "Sædgås",
             "area": 5,
             "location_type": null,
+            "code": "SDG",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -988,9 +1057,10 @@
             "name": "Teist",
             "area": 5,
             "location_type": null,
+            "code": "TST",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -1001,9 +1071,10 @@
             "name": "Toppskarv",
             "area": 5,
             "location_type": null,
+            "code": "TSK",
             "markers": [
-                "STR",
-                "Kjønnstest"
+                "Kjønnstest",
+                "STR"
             ]
         }
     },
@@ -1014,6 +1085,7 @@
             "name": "Tundragås",
             "area": 5,
             "location_type": null,
+            "code": "TGO",
             "markers": [
                 "Kjønnstest"
             ]
@@ -1026,6 +1098,7 @@
             "name": "Tyvjo",
             "area": 5,
             "location_type": null,
+            "code": "TYV",
             "markers": [
                 "Kjønnstest"
             ]
@@ -1038,6 +1111,7 @@
             "name": "Ærfugl",
             "area": 5,
             "location_type": null,
+            "code": "AER",
             "markers": [
                 "Kjønnstest"
             ]
@@ -1050,6 +1124,7 @@
             "name": "Elg",
             "area": 6,
             "location_type": null,
+            "code": "EL",
             "markers": [
                 "SNP"
             ]
@@ -1062,6 +1137,7 @@
             "name": "Hjort",
             "area": 6,
             "location_type": null,
+            "code": "HJR",
             "markers": [
                 "SNP"
             ]
@@ -1074,9 +1150,10 @@
             "name": "Rein",
             "area": 6,
             "location_type": null,
+            "code": "REI",
             "markers": [
-                "STR",
-                "qPCR"
+                "qPCR",
+                "STR"
             ]
         }
     },
@@ -1087,6 +1164,7 @@
             "name": "BD (Batrachochytrium dendrobatidis)",
             "area": 7,
             "location_type": null,
+            "code": "BDN",
             "markers": [
                 "qPCR"
             ]
@@ -1099,6 +1177,7 @@
             "name": "B.sal (Batrachochytrium salamandrivorans)",
             "area": 7,
             "location_type": null,
+            "code": "BSL",
             "markers": [
                 "qPCR"
             ]
@@ -1111,6 +1190,7 @@
             "name": "Bufonid herpesvirus 1",
             "area": 7,
             "location_type": null,
+            "code": "BHV",
             "markers": [
                 "qPCR"
             ]
@@ -1123,6 +1203,7 @@
             "name": "Krepsepest",
             "area": 7,
             "location_type": null,
+            "code": "KSP",
             "markers": [
                 "qPCR"
             ]
@@ -1135,6 +1216,7 @@
             "name": "Gyro (Gyrodactylus salaris)",
             "area": 7,
             "location_type": null,
+            "code": "GYS",
             "markers": [
                 "qPCR"
             ]
@@ -1147,6 +1229,7 @@
             "name": "Gyro (Gyrodactylus derjavinoides)",
             "area": 7,
             "location_type": null,
+            "code": "GYD",
             "markers": [
                 "qPCR"
             ]
@@ -1159,6 +1242,7 @@
             "name": "Lakselus",
             "area": 7,
             "location_type": null,
+            "code": "LL",
             "markers": [
                 "qPCR"
             ]
@@ -1171,6 +1255,7 @@
             "name": "Nematoder",
             "area": 7,
             "location_type": null,
+            "code": "NEM2",
             "markers": [
                 "qPCR"
             ]
@@ -1183,6 +1268,7 @@
             "name": "Skottelus",
             "area": 7,
             "location_type": null,
+            "code": "SKL",
             "markers": [
                 "qPCR"
             ]
@@ -1195,6 +1281,7 @@
             "name": "ILA",
             "area": 7,
             "location_type": null,
+            "code": "ILA",
             "markers": [
                 "qPCR"
             ]
@@ -1207,6 +1294,7 @@
             "name": "Costia",
             "area": 7,
             "location_type": null,
+            "code": "CST",
             "markers": [
                 "qPCR"
             ]
@@ -1219,6 +1307,7 @@
             "name": "Red skin disease",
             "area": 7,
             "location_type": null,
+            "code": "RSD",
             "markers": [
                 "qPCR"
             ]
@@ -1231,6 +1320,7 @@
             "name": "PKD parasitt",
             "area": 7,
             "location_type": null,
+            "code": "PKD",
             "markers": [
                 "qPCR"
             ]
@@ -1243,6 +1333,7 @@
             "name": "Schistosomiasis",
             "area": 7,
             "location_type": null,
+            "code": "SCH",
             "markers": [
                 "qPCR"
             ]
@@ -1255,6 +1346,7 @@
             "name": "Cryptosporidium",
             "area": 7,
             "location_type": null,
+            "code": "CRY",
             "markers": [
                 "qPCR"
             ]
@@ -1267,6 +1359,7 @@
             "name": "Giardia",
             "area": 7,
             "location_type": null,
+            "code": "GIA",
             "markers": [
                 "qPCR"
             ]
@@ -1279,6 +1372,7 @@
             "name": "Mikrober feces",
             "area": 7,
             "location_type": null,
+            "code": "MFE",
             "markers": [
                 "qPCR"
             ]
@@ -1291,6 +1385,7 @@
             "name": "Dragehode",
             "area": 8,
             "location_type": null,
+            "code": "DGH",
             "markers": [
                 "SNP"
             ]
@@ -1303,6 +1398,7 @@
             "name": "Moser (Sphagnum)",
             "area": 8,
             "location_type": null,
+            "code": "MSR",
             "markers": [
                 "STR"
             ]
@@ -1315,9 +1411,10 @@
             "name": "Brunbjørn",
             "area": 11,
             "location_type": null,
+            "code": "BBJ",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1328,9 +1425,10 @@
             "name": "Fjellrev",
             "area": 11,
             "location_type": null,
+            "code": "FRV",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1341,9 +1439,10 @@
             "name": "Gaupe",
             "area": 11,
             "location_type": null,
+            "code": "GUP",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1354,6 +1453,7 @@
             "name": "Gullsjakal",
             "area": 11,
             "location_type": null,
+            "code": "GSJ",
             "markers": [
                 "STR"
             ]
@@ -1366,9 +1466,10 @@
             "name": "Jerv",
             "area": 11,
             "location_type": null,
+            "code": "J",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1379,6 +1480,7 @@
             "name": "Mink",
             "area": 11,
             "location_type": null,
+            "code": "MNK",
             "markers": [
                 "qPCR"
             ]
@@ -1391,6 +1493,7 @@
             "name": "Oter",
             "area": 11,
             "location_type": null,
+            "code": "OTE",
             "markers": [
                 "STR"
             ]
@@ -1403,9 +1506,10 @@
             "name": "Rødrev",
             "area": 11,
             "location_type": null,
+            "code": "RRV",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1416,9 +1520,10 @@
             "name": "Ulv",
             "area": 11,
             "location_type": null,
+            "code": "U",
             "markers": [
-                "STR",
-                "SNP"
+                "SNP",
+                "STR"
             ]
         }
     },
@@ -1429,6 +1534,7 @@
             "name": "Mårhund",
             "area": 11,
             "location_type": null,
+            "code": "MHD",
             "markers": [
                 "qPCR"
             ]
@@ -1441,6 +1547,7 @@
             "name": "Sau",
             "area": 9,
             "location_type": null,
+            "code": "SAU",
             "markers": [
                 "qPCR"
             ]
@@ -1453,6 +1560,7 @@
             "name": "Geit",
             "area": 9,
             "location_type": null,
+            "code": "GEI",
             "markers": [
                 "qPCR"
             ]
@@ -1465,6 +1573,7 @@
             "name": "Villsvin",
             "area": 9,
             "location_type": null,
+            "code": "VSV",
             "markers": [
                 "qPCR"
             ]
@@ -1477,6 +1586,7 @@
             "name": "Dragehodeglansbille",
             "area": 9,
             "location_type": null,
+            "code": "DHG",
             "markers": [
                 "SNP"
             ]
@@ -1489,6 +1599,7 @@
             "name": "Hare",
             "area": 9,
             "location_type": null,
+            "code": "HAR",
             "markers": [
                 "STR"
             ]
@@ -1501,6 +1612,7 @@
             "name": "Ukjent art",
             "area": 10,
             "location_type": null,
+            "code": "UKJ",
             "markers": [
                 ""
             ]
@@ -1513,6 +1625,20 @@
             "name": "Vasspest",
             "area": 1,
             "location_type": null,
+            "code": "VAS",
+            "markers": [
+                "qPCR"
+            ]
+        }
+    },
+    {
+        "model": "genlab_bestilling.species",
+        "pk": 106,
+        "fields": {
+            "name": "MiljøDNA",
+            "area": 12,
+            "location_type": null,
+            "code": "MLJ",
             "markers": [
                 "qPCR"
             ]

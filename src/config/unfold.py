@@ -47,26 +47,26 @@ ORGS_LINK = {
     "icon": "groups",
     "link": reverse_lazy("admin:genlab_bestilling_organization_changelist"),
 }
-ANALYSIS_ORDER_LINK = {
-    "title": _("Analysis Orders"),
-    "icon": "lab_research",
-    "link": reverse_lazy("admin:genlab_bestilling_analysisorder_changelist"),
-}
-EQUIPMENT_ORDER_LINK = {
-    "title": _("Equipment Orders"),
-    "icon": "orders",
-    "link": reverse_lazy("admin:genlab_bestilling_equipmentorder_changelist"),
-}
+# ANALYSIS_ORDER_LINK = {
+#     "title": _("Analysis Orders"),
+#     "icon": "lab_research",
+#     "link": reverse_lazy("admin:genlab_bestilling_analysisorder_changelist"),
+# }
+# EQUIPMENT_ORDER_LINK = {
+#     "title": _("Equipment Orders"),
+#     "icon": "orders",
+#     "link": reverse_lazy("admin:genlab_bestilling_equipmentorder_changelist"),
+# }
 GENREQUEST_LINK = {
     "title": _("Requests"),
     "icon": "inbox",
     "link": reverse_lazy("admin:genlab_bestilling_genrequest_changelist"),
 }
-SAMPLES_LINK = {
-    "title": _("Samples"),
-    "icon": "labs",
-    "link": reverse_lazy("admin:genlab_bestilling_sample_changelist"),
-}
+# SAMPLES_LINK = {
+#     "title": _("Samples"),
+#     "icon": "labs",
+#     "link": reverse_lazy("admin:genlab_bestilling_sample_changelist"),
+# }
 PROJECTS_LINK = {
     "title": _("Projects"),
     "icon": "folder_shared",
@@ -126,8 +126,8 @@ UNFOLD = {
                         "link": reverse_lazy("admin:index"),
                     },
                     GENREQUEST_LINK,
-                    EQUIPMENT_ORDER_LINK,
-                    ANALYSIS_ORDER_LINK,
+                    # EQUIPMENT_ORDER_LINK,
+                    # ANALYSIS_ORDER_LINK,
                     PROJECTS_LINK,
                     USERS_LINK,
                 ],
@@ -153,8 +153,8 @@ UNFOLD = {
         {
             "models": ["genlab_bestilling.analysisorder", "genlab_bestilling.sample"],
             "items": [
-                SAMPLES_LINK,
-                ANALYSIS_ORDER_LINK,
+                # SAMPLES_LINK,
+                # ANALYSIS_ORDER_LINK,
             ],
         },
         {

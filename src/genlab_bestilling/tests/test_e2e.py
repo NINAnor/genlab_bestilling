@@ -1,0 +1,10 @@
+def test_login(page, live_server_url):
+    page.goto(live_server_url)
+    page.get_by_label("Email").click()
+    page.get_by_label("Email").fill("admin@nina.no")
+    page.get_by_label("Email").press("Tab")
+    page.get_by_label("Password").fill("admin")
+    page.get_by_label("Password").press("Enter")
+    assert page.url == "{}{}".format(live_server_url, "/genrequests/")
+    page.get_by_role("link", name="+ Request").click()
+    assert page.url == "{}{}".format(live_server_url, "/genrequests/create/")

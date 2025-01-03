@@ -72,6 +72,8 @@ ENTRYPOINT ["./entrypoint.sh"]
 
 FROM base-node AS dev
 RUN pip install -e .[dev]
+RUN python -m playwright install
+RUN python -m playwright install-deps
 
 COPY --from=django /app/src src
 COPY --from=translation /app/src/locale /app/src/locale

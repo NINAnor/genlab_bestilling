@@ -38,12 +38,15 @@ class GenrequestTable(tables.Table):
             "area",
             "species",
             "sample_types",
-            "analysis_types",
             "expected_total_samples",
             "analysis_timerange",
+            "tags",
         )
 
         empty_text = "No requests"
+
+    def render_tags(self, record):
+        return ",".join(map(str, record.tags.all()))
 
 
 class SampleTable(tables.Table):

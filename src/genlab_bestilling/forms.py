@@ -58,6 +58,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "sample_types",
             "markers",
             "expected_total_samples",
+            "tags",
             # "analysis_timerange",
         )
         widgets = {
@@ -83,13 +84,19 @@ class GenrequestForm(FormMixin, forms.ModelForm):
 class GenrequestEditForm(GenrequestForm):
     class Meta(GenrequestForm.Meta):
         fields = (
+            "area",
             "name",
             "species",
             "sample_types",
             "markers",
-            "analysis_timerange",
+            # "analysis_timerange",
             "expected_total_samples",
+            "tags",
         )
+        widgets = {
+            **GenrequestForm.Meta.widgets,
+            "area": forms.widgets.HiddenInput(),
+        }
 
     # def clean_species(self) -> dict[str, Any]:
     #     species = self.cleaned_data.get("species")

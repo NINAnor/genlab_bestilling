@@ -146,6 +146,7 @@ class Genrequest(models.Model):
     last_modified_at = models.DateTimeField(auto_now=True)
 
     objects = managers.GenrequestQuerySet.as_manager()
+    tags = TaggableManager(blank=True)
 
     def __str__(self):
         return f"#GEN_{self.id}"

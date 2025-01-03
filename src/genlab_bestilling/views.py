@@ -93,7 +93,13 @@ class GenrequestListView(LoginRequiredMixin, SingleTableView):
     table_class = GenrequestTable
 
     def get_queryset(self) -> QuerySet[Any]:
-        return super().get_queryset().filter_allowed(self.request.user)
+        return (
+            super()
+            .get_queryset()
+            .select_related("project", "area")
+            .prefetch_related("tags", "sample_types", "species")
+            .filter_allowed(self.request.user)
+        )
 
 
 class GenrequestDetailView(LoginRequiredMixin, DetailView):

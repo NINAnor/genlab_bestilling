@@ -129,7 +129,7 @@ class Genrequest(models.Model):
         help_text="samples you plan to deliver, you can choose more than one. "
         + "ONLY sample types selected here will be available later",
     )
-    analysis_types = models.ManyToManyField("AnalysisType", blank=True)
+    markers = models.ManyToManyField("Marker", blank=True)
     analysis_timerange = DateRangeField(
         null=True,
         blank=True,

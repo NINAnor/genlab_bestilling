@@ -92,7 +92,7 @@ class GenrequestAdmin(ModelAdmin):
         ("project", RelatedDropdownFilter),
         ("area", RelatedDropdownFilter),
         ("sample_types", RelatedDropdownFilter),
-        ("analysis_types", RelatedDropdownFilter),
+        ("markers", RelatedDropdownFilter),
         ("species", RelatedDropdownFilter),
         ("samples_owner", RelatedDropdownFilter),
         ("creator", RelatedDropdownFilter),
@@ -104,5 +104,5 @@ class GenrequestAdmin(ModelAdmin):
         "project",
         "species",
         "sample_types",
-        "analysis_types",
+        "markers",
     ]

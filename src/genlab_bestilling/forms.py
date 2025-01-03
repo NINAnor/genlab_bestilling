@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from django import forms
-from django.contrib.postgres.forms.ranges import RangeWidget
 
 # from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
@@ -57,9 +56,9 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "species",
             "samples_owner",
             "sample_types",
-            "analysis_types",
+            "markers",
             "expected_total_samples",
-            "analysis_timerange",
+            # "analysis_timerange",
         )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
@@ -68,11 +67,16 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "species": DualSortableSelector(
                 search_lookup="name_icontains",
                 filter_by={"area": "area__id"},
-                attrs={"df-hide": ".area==''"},
             ),
-            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
-            "analysis_types": DualSortableSelector(search_lookup="name_icontains"),
-            "analysis_timerange": RangeWidget(DateInput),
+            "sample_types": DualSortableSelector(
+                search_lookup="name_icontains",
+                filter_by={"area": "areas__id"},
+            ),
+            "markers": DualSortableSelector(
+                search_lookup="name_icontains",
+                filter_by={"species": "species__id"},
+            ),
+            # "analysis_timerange": RangeWidget(DateInput),
         }
 
 
@@ -82,7 +86,7 @@ class GenrequestEditForm(GenrequestForm):
             "name",
             "species",
             "sample_types",
-            "analysis_types",
+            "markers",
             "analysis_timerange",
             "expected_total_samples",
         )

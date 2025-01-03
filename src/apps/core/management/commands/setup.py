@@ -18,5 +18,7 @@ class Command(BaseCommand):
         call_command("loaddata", "bestilling.json")
         call_command("loaddata", "locations.json")
         call_command("loaddata", "groups.json")
+        call_command("loaddata", "nina.json")
+
         species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")
         sample_types_from_tsv(settings.SRC_DIR / "fixtures" / "sample_types.tsv")

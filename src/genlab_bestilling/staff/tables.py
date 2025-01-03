@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Order, Sample
+from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Sample
 
 
 class OrderTable(tables.Table):
@@ -11,7 +11,6 @@ class OrderTable(tables.Table):
     )
 
     class Meta:
-        model = Order
         fields = (
             "name",
             "status",

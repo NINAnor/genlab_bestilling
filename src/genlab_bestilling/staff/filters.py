@@ -28,7 +28,7 @@ class OrderSampleFilter(filters.FilterSet):
             "location",
             "pop_id",
             "type",
-            "desired_extractions",
+            # "desired_extractions",
         ]
 
 
@@ -36,9 +36,9 @@ class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
         fields = [
-            "order",
-            "order__status",
-            "order__genrequest__project",
+            # "order",
+            # "order__status",
+            # "order__genrequest__project",
             "guid",
             "name",
             "genlab_id",
@@ -48,7 +48,7 @@ class SampleFilter(filters.FilterSet):
             "location",
             "pop_id",
             "type",
-            "desired_extractions",
+            # "desired_extractions",
             "plate_positions__plate",
         ]
 

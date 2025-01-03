@@ -6,7 +6,10 @@ from .models import Location, Marker, Sample, SampleType, Species
 class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
-        fields = ["order", "species"]
+        fields = [
+            # "order",
+            "species"
+        ]
 
 
 class BaseOrderFilter(filters.FilterSet):

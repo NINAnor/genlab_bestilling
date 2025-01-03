@@ -31,8 +31,8 @@ class Area(models.Model):
 
 class Marker(models.Model):
     name = models.CharField(primary_key=True)
+    analysis_type = models.ForeignKey("AnalysisType", on_delete=models.DO_NOTHING)
 
-    # TODO: unique name
     def __str__(self) -> str:
         return self.name
 
@@ -56,14 +56,9 @@ class Species(models.Model):
         ]
 
 
-# TODO: better understand "other" case. should the user be able to insert new orws?
-# if yes, he may input a species that is already present
-# at least the area of interest should be "fixed" or
-#   species could have more than just one area of interest
-
-
 class SampleType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
+    areas = models.ManyToManyField("Area", blank=True)
 
     def __str__(self) -> str:
         return self.name
@@ -175,15 +170,10 @@ class Order(PolymorphicModel):
         PROCESSING = "processing", _("Processing")
         COMPLETED = "completed", _("Completed")
 
-        CHECKED = "checked", _("Checked")
-        EXTRACTED = "extracted", _("Extracted")
-
     name = models.CharField(null=True, blank=True)
     genrequest = models.ForeignKey(
         "Genrequest", on_delete=models.CASCADE, related_name="orders"
     )
-    species = models.ManyToManyField("Species", related_name="orders")
-    sample_types = models.ManyToManyField("SampleType", related_name="orders")
     notes = models.TextField(blank=True, null=True)
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -199,17 +189,9 @@ class Order(PolymorphicModel):
         self.save()
 
     def clone(self):
-        species = self.species.all()
-        sample_types = self.sample_types.all()
         self.id = None
         self.pk = None
         self.status = self.OrderStatus.DRAFT
-        self.save()
-        self.species.add(*species)
-        self.sample_types.add(*sample_types)
-
-    def order_manually_checked(self):
-        self.status = Order.OrderStatus.CHECKED
         self.save()
 
     def to_draft(self):
@@ -246,6 +228,7 @@ class EquimentOrderQuantity(models.Model):
 
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?
+    sample_types = models.ManyToManyField("SampleType", blank=True)
 
     def __str__(self) -> str:
         return f"#EQP_{self.id}"
@@ -265,28 +248,28 @@ class EquipmentOrder(Order):
         return "equipment"
 
 
-class AnalysisOrder(Order):
+class ExtractionOrder(Order):
+    class Status(models.TextChoices):
+        TO_CHECK = "needs_check", _("Needs check")
+        CHECKED = "checked", _("Checked")
+
+    internal_status = models.CharField(default=Status.TO_CHECK, choices=Status)
+    species = models.ManyToManyField("Species", blank=True)
+    sample_types = models.ManyToManyField("SampleType", blank=True)
     needs_guid = models.BooleanField(default=False)  # TODO: default?
-    isolate_samples = models.BooleanField()  # TODO: default?
-    markers = models.ManyToManyField("Marker", blank=True, related_name="orders")
     return_samples = models.BooleanField()  # TODO: default?
 
     def __str__(self) -> str:
-        return f"#ANL_{self.id}"
+        return f"#EXT_{self.id}"
+
+    def get_type(self):
+        return "extraction"
 
     def get_absolute_url(self):
         return reverse(
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
-
-    def get_type(self):
-        return "analysis"
-
-    def clone(self):
-        markers = self.markers.all()
-        super().clone()
-        self.markers.add(*markers)
 
     def confirm_order(self, persist=True):
         with transaction.atomic():
@@ -313,9 +296,48 @@ class AnalysisOrder(Order):
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
 
 
+class AnalysisOrder(Order):
+    samples = models.ManyToManyField(
+        "Sample", blank=True, through="SampleMarkerAnalysis"
+    )
+
+    def __str__(self) -> str:
+        return f"#ANL_{self.id}"
+
+    def get_absolute_url(self):
+        return reverse(
+            "genrequest-analysis-detail",
+            kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
+        )
+
+    def get_type(self):
+        return "analysis"
+
+    def confirm_order(self, persist=True):
+        with transaction.atomic():
+            if not self.samples.all().exists():
+                raise ValidationError(_("No samples found"))
+
+            if persist:
+                super().confirm_order()
+
+
+class SampleMarkerAnalysis(models.Model):
+    sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    analysis = models.ForeignKey("AnalysisOrder", on_delete=models.CASCADE)
+    markers = models.ManyToManyField("Marker", blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["sample", "analysis"], name="unique_sample_per_analysis"
+            )
+        ]
+
+
 class Sample(models.Model):
-    order = models.ForeignKey(
-        "AnalysisOrder", on_delete=models.CASCADE, related_name="samples"
+    extraction_order = models.ForeignKey(
+        "ExtractionOrder", on_delete=models.CASCADE, related_name="samples"
     )
     guid = models.CharField(max_length=200, null=True, blank=True)
     name = models.CharField(null=True, blank=True)
@@ -330,10 +352,9 @@ class Sample(models.Model):
         "Location", on_delete=models.PROTECT, null=True, blank=True
     )
     volume = models.FloatField(null=True, blank=True)
+    genlab_id = models.CharField(null=True, blank=True)
 
     extractions = models.ManyToManyField("ExtractionPlate", blank=True)
-    desired_extractions = models.IntegerField(default=1)
-    genlab_id = models.CharField(null=True, blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
     objects = managers.SampleQuerySet.as_manager()

@@ -4,12 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        (
-            "genlab_bestilling",
-            "0007_analysis_extractionplate_extractplateposition_and_more",
-        ),
-    ]
+    dependencies = []
 
     operations = [
         migrations.RunSQL(

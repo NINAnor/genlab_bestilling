@@ -14,7 +14,6 @@ from .views import (
     GenrequestDetailView,
     GenrequestListView,
     GenrequestOrderDeleteView,
-    GenrequestOrderListView,
     GenrequestUpdateView,
     SamplesFrontendView,
     SamplesListView,
@@ -42,11 +41,11 @@ urlpatterns = [
         GenrequestUpdateView.as_view(),
         name="genrequest-update",
     ),
-    path(
-        "genrequests/<int:genrequest_id>/orders/",
-        GenrequestOrderListView.as_view(),
-        name="genrequest-order-list",
-    ),
+    # path(
+    #     "genrequests/<int:genrequest_id>/orders/",
+    #     GenrequestOrderListView.as_view(),
+    #     name="genrequest-order-list",
+    # ),
     path(
         "genrequests/<int:genrequest_id>/orders/<int:pk>/clone/",
         CloneOrderActionView.as_view(),

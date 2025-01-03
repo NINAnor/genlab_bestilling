@@ -1,22 +1,18 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin, TabularInline
+from unfold.admin import ModelAdmin
 from unfold.contrib.filters.admin import (
     RelatedDropdownFilter,
 )
 
 from .models import (
-    AnalysisOrder,
     AnalysisType,
     Area,
-    EquimentOrderQuantity,
-    EquipmentOrder,
     EquipmentType,
     Genrequest,
     Location,
     LocationType,
     Marker,
     Organization,
-    Sample,
     SampleType,
     Species,
 )
@@ -110,84 +106,3 @@ class GenrequestAdmin(ModelAdmin):
         "sample_types",
         "analysis_types",
     ]
-
-
-class EquimentOrderQuantityInline(TabularInline):
-    model = EquimentOrderQuantity
-    hide_title = True
-    autocomplete_fields = ["equipment"]
-
-
-@admin.register(EquipmentOrder)
-class EquipmentOrderAdmin(ModelAdmin):
-    list_display = [
-        "id",
-        "name",
-        "genrequest",
-        "status",
-    ]
-    search_fields = ["id", "name", "genrequest__id"]
-    autocomplete_fields = ["genrequest", "species", "sample_types"]
-    list_filter = [
-        ("genrequest", RelatedDropdownFilter),
-        "status",
-        ("species", RelatedDropdownFilter),
-    ]
-    list_filter_submit = True
-
-    inlines = [EquimentOrderQuantityInline]
-
-
-class SampleInline(TabularInline):
-    model = Sample
-    tab = True
-    autocomplete_fields = ["species", "location", "type"]
-    hide_title = True
-
-
-@admin.register(AnalysisOrder)
-class AnalysisOrderAdmin(ModelAdmin):
-    list_display = [
-        "id",
-        "name",
-        "genrequest",
-        "status",
-        "isolate_samples",
-        "return_samples",
-    ]
-    search_fields = ["id", "name", "genrequest__id"]
-    inlines = [SampleInline]
-    autocomplete_fields = ["genrequest", "species", "sample_types", "markers"]
-    list_filter = [
-        ("genrequest", RelatedDropdownFilter),
-        "status",
-        "isolate_samples",
-        "return_samples",
-        ("species", RelatedDropdownFilter),
-    ]
-    list_filter_submit = True
-
-
-@admin.register(Sample)
-class SampleAdmin(ModelAdmin):
-    list_display = [
-        "order",
-        "name",
-        "guid",
-        "type",
-        "species",
-        "pop_id",
-        "location",
-        "year",
-    ]
-    search_fields = ["name", "guid", "order__id", "id"]
-    readonly_fields = ["order"]
-    list_filter = [
-        ("order", RelatedDropdownFilter),
-        ("type", RelatedDropdownFilter),
-        ("species", RelatedDropdownFilter),
-        ("location", RelatedDropdownFilter),
-    ]
-    list_filter_submit = True
-
-    autocomplete_fields = ["species", "location", "type"]

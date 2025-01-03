@@ -134,7 +134,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
-        self.fields["species"].queryset = genrequest.species.all()
+        # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
 
     def save(self, commit=True):
@@ -150,7 +150,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         fields = (
             "name",
             "needs_guid",
-            "species",
+            # "species",
             "sample_types",
             "notes",
             "tags",
@@ -261,12 +261,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         fields = (
             "name",
             "needs_guid",
-            "species",
-            "sample_types",
+            # "species",
+            # "sample_types",
             "notes",
             "tags",
             "isolate_samples",
-            "markers",
+            # "markers",
             "return_samples",
         )
         widgets = {

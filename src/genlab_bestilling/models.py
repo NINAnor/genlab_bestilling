@@ -192,6 +192,7 @@ class Order(PolymorphicModel):
         self.id = None
         self.pk = None
         self.status = self.OrderStatus.DRAFT
+        self.confirmed_at = None
         self.save()
 
     def to_draft(self):
@@ -246,6 +247,11 @@ class EquipmentOrder(Order):
 
     def get_type(self):
         return "equipment"
+
+    def clone(self):
+        sample_types = self.sample_types.all()
+        super().clone()
+        self.sample_types.add(*sample_types)
 
 
 class ExtractionOrder(Order):

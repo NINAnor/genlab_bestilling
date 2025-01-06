@@ -19,7 +19,6 @@ from .models import (
     ExtractionOrder,
     Genrequest,
     Marker,
-    Sample,
 )
 
 
@@ -103,45 +102,6 @@ class GenrequestEditForm(GenrequestForm):
             "expected_total_samples",
             "tags",
         )
-
-    # def clean_species(self) -> dict[str, Any]:
-    #     species = self.cleaned_data.get("species")
-
-    #     difference = set(
-    #         list(self.instance.species.all().values_list("id", flat=True))
-    #     ) - set(map(lambda s: s.id, species))
-
-    #     if difference:
-    #         raise ValidationError("Cannot remove old species, only add is allowed")
-
-    #     return species
-
-    # def clean_sample_types(self) -> dict[str, Any]:
-    #     species = self.cleaned_data.get("sample_types")
-
-    #     difference = set(
-    #         list(self.instance.sample_types.all().values_list("id", flat=True))
-    #     ) - set(map(lambda s: s.id, species))
-
-    #     if difference:
-    #         raise ValidationError(
-    #           "Cannot remove old sample types, only add is allowed")
-
-    #     return species
-
-    # def clean_analysis_types(self) -> dict[str, Any]:
-    #     species = self.cleaned_data.get("analysis_types")
-
-    #     difference = set(
-    #         list(self.instance.analysis_types.all().values_list("id", flat=True))
-    #     ) - set(map(lambda s: s.id, species))
-
-    #     if difference:
-    #         raise ValidationError(
-    #             "Cannot remove old analysis types, only add is allowed"
-    #         )
-
-    #     return species
 
 
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
@@ -362,73 +322,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
         }
-
-
-class SampleForm(forms.ModelForm):
-    id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
-
-    def reinit(self, context):
-        self.genrequest = context["genrequest"]
-        self.order_id = context["order_id"]
-        self.fields["type"].queryset = self.genrequest.sample_types.all()
-        self.fields["species"].queryset = self.genrequest.species.all()
-
-    def save(self, commit=True):
-        obj = super().save(commit=False)
-        obj.order_id = self.order_id
-        obj.area = self.genrequest.area
-        if commit:
-            obj.save()
-            self.save_m2m()
-        return obj
-
-    class Meta:
-        model = Sample
-        fields = (
-            "id",
-            "guid",
-            "type",
-            "species",
-            "notes",
-            "pop_id",
-            "location",
-            "volume",
-        )
-
-        widgets = {
-            "species": Selectize(
-                search_lookup="name_icontains",
-            ),
-            "location": Selectize(search_lookup="name_icontains"),
-            "type": Selectize(search_lookup="name_icontains"),
-            "notes": forms.widgets.Textarea(attrs={"rows": 1, "cols": 10}),
-        }
-
-
-class SamplesCollection(ContextFormCollection):
-    min_siblings = 1
-    add_label = "Add sample"
-    samples = SampleForm()
-    default_renderer = FormRenderer(field_css_classes="mb-3")
-
-    def update_holder_instances(self, name, holder):
-        if name == "samples":
-            holder.reinit(self.context)
-
-    def retrieve_instance(self, data):
-        if data := data.get("samples"):
-            try:
-                return Sample.objects.get(id=data.get("id") or -1)
-            except (AttributeError, Sample.DoesNotExist, ValueError):
-                return Sample(
-                    guid=data.get("guid"),
-                    type_id=data.get("type"),
-                    species_id=data.get("species"),
-                    notes=data.get("notes"),
-                    pop_id=data.get("pop_id"),
-                    location_id=data.get("location"),
-                    volume=data.get("volume"),
-                )
 
 
 class ActionForm(forms.Form):

@@ -1,5 +1,8 @@
 import re
 
+import pytest
+from playwright.sync_api import expect
+
 
 def do_login(page):
     page.get_by_label("Email").click()
@@ -136,3 +139,47 @@ def test_equipment_flow(page, live_server_url):
 
     page.get_by_role("button", name="Confirm Order").click()
     page.wait_for_load_state()
+
+
+@pytest.mark.skip()
+def test_extraction_flow(page, live_server_url):
+    page.goto(live_server_url + "/genrequests/1/")
+    page.get_by_role("link", name="Hide »").click()
+    do_login(page)
+
+    page.get_by_role("link", name="+ Extraction order").click()
+    page.get_by_label("Name:").click()
+    page.get_by_label("Name:").fill("ext 1")
+    page.get_by_label("Name:").dblclick()
+    page.get_by_label("Name:").fill("test")
+    page.locator("#id_needs_guid_1").check()
+    page.get_by_role("listbox").first.select_option("3")
+    page.get_by_role("listbox").first.select_option("1")
+    page.get_by_role("button", name="Move selected right").first.click()
+    page.get_by_role("listbox").nth(2).select_option("1")
+    page.get_by_role("button", name="Move selected right").nth(1).click()
+    page.get_by_label("Tags:").click()
+    page.get_by_label("Tags:").fill("test")
+    page.locator("#id_pre_isolated").get_by_text("No").click()
+    page.locator("#id_return_samples").get_by_text("No").click()
+    page.get_by_role("button", name="Submit").click()
+    page.wait_for_load_state()
+
+    page.locator("div").filter(has_text=re.compile(r"^Year$")).get_by_role(
+        "textbox"
+    ).click()
+    page.locator("div").filter(has_text=re.compile(r"^Year$")).get_by_role(
+        "textbox"
+    ).fill("2050")
+    page.get_by_role("button", name="Add 1 rows").click()
+    page.get_by_role("textbox").nth(2).click()
+    page.get_by_role("textbox").nth(2).fill("test")
+    page.locator("div").filter(has_text="Sample NameSpeciesYearPop").nth(4).click()
+    page.get_by_role("button", name="Validate samples").click()
+    page.get_by_role("link", name="Summary").click()
+    page.wait_for_load_state()
+    page.get_by_role("link", name=" back to order").click()
+    page.wait_for_load_state()
+    page.get_by_role("button", name="Confirm Order").click()
+    page.wait_for_load_state()
+    expect(page.locator("tbody")).to_contain_text("confirmed")

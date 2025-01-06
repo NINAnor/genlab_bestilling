@@ -388,9 +388,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
     genrequest_accessor = "order__genrequest"
 
     def get_queryset(self) -> QuerySet[Any]:
-        return (
-            super().get_queryset().filter_in_draft().filter(order_id=self.kwargs["pk"])
-        )
+        return super().get_queryset().filter(order_id=self.kwargs["pk"])
 
     def get_collection_kwargs(self):
         kwargs = super().get_collection_kwargs()

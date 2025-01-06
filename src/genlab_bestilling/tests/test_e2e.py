@@ -71,3 +71,68 @@ def test_genrequest_flow(page, live_server_url):
     )
     page.get_by_role("button", name="Confirm").click()
     assert re.match(r"\/genrequests\/", get_path(page.url, live_server_url))
+
+
+def test_equipment_flow(page, live_server_url):
+    page.goto(live_server_url + "/genrequests/1/")
+    page.get_by_role("link", name="Hide »").click()
+    do_login(page)
+
+    page.get_by_role("link", name="+ Equipment order").click()
+    page.wait_for_load_state()
+
+    page.get_by_label("Name:").click()
+    page.get_by_label("Name:").fill("test equipment")
+    page.get_by_text("Name: Needs guidSample types:").click()
+    page.get_by_label("Needs guid").check()
+    page.get_by_role("listbox").first.select_option("1")
+    page.get_by_role("button", name="Move selected right").click()
+    page.get_by_label("Tags:").click()
+    page.get_by_label("Tags:").fill("test")
+    page.get_by_role("button", name="Submit").click()
+    page.wait_for_load_state()
+
+    page.get_by_placeholder("Select").click()
+    page.locator('[id="id_0\\.equipments\\.equipment-opt-1"]').click()
+    page.get_by_label("Quantity:").click()
+    page.get_by_label("Quantity:").fill("2")
+    page.get_by_role("button", name="Add equipment").click()
+    page.locator('[id="id_1\\.equipments\\.equipment-ts-control"]').click()
+    page.locator('[id="id_1\\.equipments\\.equipment-opt-6"]').click()
+    page.locator('[id="id_1\\.equipments\\.quantity"]').click()
+    page.locator('[id="id_1\\.equipments\\.quantity"]').fill("3")
+    page.get_by_role("button", name="Submit").click()
+    page.wait_for_load_state()
+
+    page.get_by_role("link", name="Edit", exact=True).click()
+    page.wait_for_load_state()
+
+    page.locator("div").filter(
+        has_text=re.compile(r"^SkjellDNA-ekstrakt$")
+    ).get_by_role("listbox").select_option("18")
+    page.get_by_role("button", name="Move selected right").click()
+    page.get_by_role("button", name="Submit").click()
+    page.wait_for_load_state()
+
+    page.get_by_role("link", name="Edit requested equipment").click()
+    page.get_by_role("button", name="Add equipment").click()
+    page.locator(
+        "django-form-collection:nth-child(3) > .dj-form > div:nth-child(3)"
+        + " > .shadow-wrapper > .ts-wrapper > .ts-control"
+    ).click()
+    page.locator('[id="id_2\\.equipments\\.equipment-opt-7"]').click()
+    page.locator('[id="id_2\\.equipments\\.quantity"]').click()
+    page.locator('[id="id_2\\.equipments\\.quantity"]').fill("1")
+    page.locator('[id="id_0\\.equipments\\.quantity"]').click()
+    page.locator('django-form-collection[sibling-position="0"]').hover()
+    page.locator(
+        'django-form-collection[sibling-position="0"] > button.remove-collection'
+    ).wait_for()
+    page.locator(
+        'django-form-collection[sibling-position="0"] > button.remove-collection'
+    ).click()
+    page.get_by_role("button", name="Submit").click()
+    page.wait_for_load_state()
+
+    page.get_by_role("button", name="Confirm Order").click()
+    page.wait_for_load_state()

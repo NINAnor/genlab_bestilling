@@ -1,7 +1,7 @@
 from rest_framework import exceptions, serializers
 
 from ..models import (
-    AnalysisOrder,
+    ExtractionOrder,
     Genrequest,
     Location,
     Marker,
@@ -165,11 +165,11 @@ class GenrequestSerializer(serializers.ModelSerializer):
         )
 
 
-class AnalysisSerializer(serializers.ModelSerializer):
+class ExtractionSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer(many=True, read_only=True)
     sample_types = SampleTypeSerializer(many=True, read_only=True)
     genrequest = GenrequestSerializer()
 
     class Meta:
-        model = AnalysisOrder
+        model = ExtractionOrder
         fields = ("id", "genrequest", "species", "sample_types", "needs_guid")

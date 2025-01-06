@@ -15,10 +15,10 @@ from ..filters import (
     SampleTypeFilter,
     SpeciesFilter,
 )
-from ..models import AnalysisOrder, Location, Marker, Sample, SampleType, Species
+from ..models import ExtractionOrder, Location, Marker, Sample, SampleType, Species
 from .serializers import (
-    AnalysisSerializer,
     EnumSerializer,
+    ExtractionSerializer,
     LocationCreateSerializer,
     LocationSerializer,
     MarkerSerializer,
@@ -36,7 +36,7 @@ class IDCursorPagination(CursorPagination):
 
 class AllowSampleDraft(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if obj.order.status != AnalysisOrder.OrderStatus.DRAFT:
+        if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:
             return request.method in SAFE_METHODS
         return True
 
@@ -115,16 +115,16 @@ class SampleViewset(ModelViewSet):
 
 class AllowOrderDraft(BasePermission):
     def has_object_permission(self, request, view, obj):
-        if obj.status != AnalysisOrder.OrderStatus.DRAFT:
+        if obj.status != ExtractionOrder.OrderStatus.DRAFT:
             return request.method in SAFE_METHODS
         return True
 
 
-class AnalysisOrderViewset(
+class ExtractionOrderViewset(
     mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
 ):
-    queryset = AnalysisOrder.objects.all()
-    serializer_class = AnalysisSerializer
+    queryset = ExtractionOrder.objects.all()
+    serializer_class = ExtractionSerializer
 
     def get_queryset(self):
         qs = super().get_queryset().filter_allowed(self.request.user)

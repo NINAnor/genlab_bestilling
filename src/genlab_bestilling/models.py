@@ -272,6 +272,15 @@ class ExtractionOrder(Order):
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
+    def clone(self):
+        species = self.species.all()
+        sample_types = self.sample_types.all()
+
+        super().clone()
+
+        self.species.add(*species)
+        self.sample_types.add(*sample_types)
+
     def confirm_order(self, persist=True):
         with transaction.atomic():
             if not self.samples.all().exists():
@@ -337,7 +346,7 @@ class SampleMarkerAnalysis(models.Model):
 
 
 class Sample(models.Model):
-    extraction_order = models.ForeignKey(
+    order = models.ForeignKey(
         "ExtractionOrder", on_delete=models.CASCADE, related_name="samples"
     )
     guid = models.CharField(max_length=200, null=True, blank=True)

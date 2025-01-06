@@ -38,7 +38,7 @@ const columnHelper = createColumnHelper();
 const speciesOptions = async (input) => {
   return (
     await client.get(
-      `/api/species/?order=${config.order}&name__icontains=${input}`
+      `/api/species/?ext_order=${config.order}&name__icontains=${input}`
     )
   ).data;
 };
@@ -46,7 +46,7 @@ const speciesOptions = async (input) => {
 const sampleTypesOptions = async (input) => {
   return (
     await client.get(
-      `/api/sample-types/?order=${config.order}&name__icontains=${input}`
+      `/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`
     )
   ).data;
 };
@@ -237,7 +237,7 @@ export default function Table() {
 
   const mutateConfirm = useMutation({
     mutationFn: () => {
-      return client.post(`/api/analysis-order/${config.order}/confirm/`);
+      return client.post(`/api/extraction-order/${config.order}/confirm/`);
     },
     onSuccess: () => {
       toast.success("Validation success, you can now confirm the order");
@@ -248,7 +248,7 @@ export default function Table() {
 
   const mutateDeleteAllRows = useMutation({
     mutationFn: () => {
-      return client.post(`/api/analysis-order/${config.order}/delete-samples/`);
+      return client.post(`/api/extraction-order/${config.order}/delete-samples/`);
     },
     onSuccess: () => {
       toast.success("Samples deleted!");

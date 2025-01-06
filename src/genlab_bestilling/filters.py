@@ -6,17 +6,14 @@ from .models import Location, Marker, Sample, SampleType, Species
 class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
-        fields = [
-            # "order",
-            "species"
-        ]
+        fields = ["order", "species"]
 
 
 class BaseOrderFilter(filters.FilterSet):
-    order = filters.NumberFilter(field_name="order", method="filter_order")
+    ext_order = filters.NumberFilter(field_name="ext_order", method="filter_ext_order")
 
-    def filter_order(self, queryset, name, value):
-        return queryset.filter(orders__id=value)
+    def filter_ext_order(self, queryset, name, value):
+        return queryset.filter(extractionorder=value)
 
 
 class SampleTypeFilter(BaseOrderFilter):

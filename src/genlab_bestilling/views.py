@@ -23,7 +23,7 @@ from formset.views import (
     IncompleteSelectResponseMixin,
 )
 
-from .api.serializers import AnalysisSerializer
+from .api.serializers import ExtractionSerializer
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
@@ -32,7 +32,6 @@ from .forms import (
     ExtractionOrderForm,
     GenrequestEditForm,
     GenrequestForm,
-    SamplesCollection,
 )
 from .models import (
     AnalysisOrder,
@@ -375,11 +374,11 @@ class ExtractionOrderCreateView(
     form_class = ExtractionOrderForm
     model = ExtractionOrder
 
-    # def get_success_url(self):
-    #     return reverse(
-    #         "genrequest-analysis-samples-edit",
-    #         kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
-    #     )
+    def get_success_url(self):
+        return reverse(
+            "genrequest-analysis-samples-edit",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+        )
 
 
 class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
@@ -414,7 +413,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
 
 
 class SamplesFrontendView(GenrequestNestedMixin, DetailView):
-    model = AnalysisOrder
+    model = ExtractionOrder
     template_name = "genlab_bestilling/sample_form_frontend.html"
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
@@ -422,7 +421,7 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
         context["frontend_args"] = {
             "order": self.object.id,
             "csrf": get_token(self.request),
-            "analysis_data": AnalysisSerializer(self.object).data,
+            "analysis_data": ExtractionSerializer(self.object).data,
         }
         return context
 
@@ -449,39 +448,5 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["analysis"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["extraction"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
-
-
-class SamplesUpdateView(GenrequestNestedMixin, BulkEditCollectionView):
-    collection_class = SamplesCollection
-    template_name = "genlab_bestilling/sample_form.html"
-    model = Sample
-    genrequest_accessor = "order__genrequest"
-
-    def get_queryset(self) -> QuerySet[Any]:
-        return (
-            super().get_queryset().filter_in_draft().filter(order_id=self.kwargs["pk"])
-        )
-
-    def get_collection_kwargs(self):
-        kwargs = super().get_collection_kwargs()
-        kwargs["context"] = {
-            "order_id": self.kwargs["pk"],
-            "genrequest": self.genrequest,
-        }
-        return kwargs
-
-    def get_success_url(self):
-        return reverse(
-            "genrequest-analysis-detail",
-            kwargs={"genrequest_id": self.genrequest.id, "pk": self.kwargs["pk"]},
-        )
-
-    def get_initial(self):
-        collection_class = self.get_collection_class()
-        queryset = self.get_queryset()
-        initial = collection_class(
-            context={"order_id": self.kwargs["pk"], "genrequest": self.genrequest}
-        ).models_to_list(queryset)
-        return initial

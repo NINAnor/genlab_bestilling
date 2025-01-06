@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import PastableArrayInput from "./PastableArrayInput";
 
 const speciesOptions = async (input) => {
-  let base = `/api/species/?order=${config.order}`;
+  let base = `/api/species/?ext_order=${config.order}`;
   if (input) {
     base += `&name__icontains=${input}`;
   }
@@ -19,7 +19,7 @@ const speciesOptions = async (input) => {
 const sampleTypesOptions = async (input) => {
   return (
     await client.get(
-      `/api/sample-types/?order=${config.order}&name__icontains=${input}`
+      `/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`
     )
   ).data;
 };
@@ -121,7 +121,7 @@ export default function SampleForm() {
   });
 
   const locationOptions = async (input, species) => {
-    let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
+    let base = `/api/locations/?ext_order=${config.order}&species=${species?.id}`;
     if (input) {
       base += `&name__icontains=${input}`;
     }

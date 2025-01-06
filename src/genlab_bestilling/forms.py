@@ -237,7 +237,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
-    isolate_samples = forms.TypedChoiceField(
+    pre_isolated = forms.TypedChoiceField(
         label="The samples I'm delivering are already isolated"
         + " and don't require to be stored",
         coerce=lambda x: x == "True",
@@ -283,8 +283,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "sample_types",
             "notes",
             "tags",
-            "isolate_samples",
-            # "markers",
+            "pre_isolated",
             "return_samples",
         )
         widgets = {

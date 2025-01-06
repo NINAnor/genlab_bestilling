@@ -22,6 +22,7 @@ from formset.views import (
     FormViewMixin,
     IncompleteSelectResponseMixin,
 )
+from rest_framework.exceptions import ValidationError
 
 from .api.serializers import ExtractionSerializer
 from .forms import (
@@ -241,13 +242,12 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
             messages.add_message(
                 self.request, messages.SUCCESS, _("Your order is confirmed")
             )
-        except Order.CannotConfirm as e:
+        except (Order.CannotConfirm, ValidationError) as e:
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 f'Error: {",".join(map(lambda error: str(error), e.detail))}',
             )
-
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
@@ -376,7 +376,7 @@ class ExtractionOrderCreateView(
 
     def get_success_url(self):
         return reverse(
-            "genrequest-analysis-samples-edit",
+            "genrequest-extraction-samples-edit",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
 

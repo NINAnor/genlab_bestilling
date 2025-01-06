@@ -9,14 +9,18 @@ class OrderTable(tables.Table):
 
     class Meta:
         model = Order
-        fields = ("name", "status", "polymorphic_ctype", "species", "sample_types")
+        fields = (
+            "name",
+            "status",
+            "polymorphic_ctype",
+            "created_at",
+            "last_modified_at",
+        )
         sequence = (
             "id",
             "name",
             "status",
             "polymorphic_ctype",
-            "species",
-            "sample_types",
         )
         empty_text = "No Orders"
 
@@ -39,7 +43,8 @@ class GenrequestTable(tables.Table):
             "species",
             "sample_types",
             "expected_total_samples",
-            "analysis_timerange",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
             "tags",
         )
 

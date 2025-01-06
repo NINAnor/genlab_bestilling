@@ -20,7 +20,6 @@ class OrderTable(tables.Table):
             "genrequest__name",
             "genrequest__project",
             "genrequest__area",
-            "genrequest__analysis_timerange",
             "genrequest__expected_total_samples",
             "genrequest__samples_owner",
             "created_at",

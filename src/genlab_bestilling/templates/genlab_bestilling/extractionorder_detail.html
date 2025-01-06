@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+
+{% block content %}
+    {% fragment as table_header %}
+    {% #table-cell header=True %}GUID{% /table-cell %}
+    {% #table-cell header=True %}Type{% /table-cell %}
+    {% #table-cell header=True %}Species{% /table-cell %}
+    {% #table-cell header=True %}Markers{% /table-cell %}
+    {% #table-cell header=True %}Location{% /table-cell %}
+    {% #table-cell header=True %}Date{% /table-cell %}
+    {% #table-cell header=True %}Volume{% /table-cell %}
+    {% endfragment %}
+    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
+    <div class="flex gap-5 mb-5">
+    </div>
+
+    {% object-detail object=object %}
+
+
+    <h5 class="text-2xl my-5">Delivered Samples</h5>
+    <div class="bg-white p-4">
+        <p>Uploaded {{ object.samples.count }} samples</p>
+    </div>
+
+    <div class="flex gap-5 my-5">
+        <a class="btn bg-yellow-200" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
+        {% if object.status == 'draft' %}
+        <a class="btn bg-primary" href="{% url 'genrequest-extraction-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit Order</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=object.genrequest_id pk=object.id %}">Edit Samples</a>
+        <a class="ml-auto btn bg-secondary text-white" href="{% url 'genrequest-extraction-samples' genrequest_id=object.genrequest_id pk=object.id %}">Summary Samples</a>
+        {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
+        {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
+        {% action-button action=clone_order_url class="bg-secondary text-white" submit_text="Clone Order" csrf_token=csrf_token %}
+        <a class="btn bg-red-500 text-white" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
+        {% elif object.status == 'confirmed' %}
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
+        {% endif %}
+    </div>
+{% endblock %}

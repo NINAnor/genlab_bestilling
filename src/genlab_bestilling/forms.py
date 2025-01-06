@@ -16,6 +16,7 @@ from .models import (
     AnalysisOrder,
     EquimentOrderQuantity,
     EquipmentOrder,
+    ExtractionOrder,
     Genrequest,
     Marker,
     Sample,
@@ -59,7 +60,8 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "markers",
             "expected_total_samples",
             "tags",
-            # "analysis_timerange",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
         )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
@@ -77,11 +79,18 @@ class GenrequestForm(FormMixin, forms.ModelForm):
                 search_lookup="name_icontains",
                 filter_by={"species": "species__id"},
             ),
-            # "analysis_timerange": RangeWidget(DateInput),
         }
 
 
 class GenrequestEditForm(GenrequestForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["area"].disabled = True
+
+        self.fields["markers"].queryset = Marker.objects.filter(
+            species__id__in=self.instance.species.all(),
+        )
+
     class Meta(GenrequestForm.Meta):
         fields = (
             "area",
@@ -89,14 +98,11 @@ class GenrequestEditForm(GenrequestForm):
             "species",
             "sample_types",
             "markers",
-            # "analysis_timerange",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
             "expected_total_samples",
             "tags",
         )
-        widgets = {
-            **GenrequestForm.Meta.widgets,
-            "area": forms.widgets.HiddenInput(),
-        }
 
     # def clean_species(self) -> dict[str, Any]:
     #     species = self.cleaned_data.get("species")
@@ -218,6 +224,76 @@ class EquipmentQuantityCollection(ContextFormCollection):
 
 
 YES_NO_CHOICES = ((False, "No"), (True, "Yes"))
+
+
+class ExtractionOrderForm(FormMixin, forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    needs_guid = forms.TypedChoiceField(
+        label="I need to generate GUID",
+        help_text="Choose yes if your samples don't have already a GUID, "
+        + "the system will generate a new GUID",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
+    isolate_samples = forms.TypedChoiceField(
+        label="The samples I'm delivering are already isolated"
+        + " and don't require to be stored",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
+    return_samples = forms.TypedChoiceField(
+        label="I want samples to be returned after analysis",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
+
+    def __init__(self, *args, genrequest, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.genrequest = genrequest
+
+        self.fields["name"].help_text = (
+            "You can provide a descriptive name "
+            + "for this order to help you find it later"
+        )
+
+        self.fields["species"].queryset = genrequest.species.all()
+        self.fields["sample_types"].queryset = genrequest.sample_types.all()
+        # self.fields["markers"].queryset = Marker.objects.filter(
+        #     species__genrequests__id=genrequest.id
+        # ).distinct()
+
+    def save(self, commit=True):
+        obj = super().save(commit=False)
+        obj.genrequest = self.genrequest
+        if commit:
+            obj.save()
+            self.save_m2m()
+        return obj
+
+    class Meta:
+        model = ExtractionOrder
+        fields = (
+            "name",
+            "needs_guid",
+            "species",
+            "sample_types",
+            "notes",
+            "tags",
+            "isolate_samples",
+            # "markers",
+            "return_samples",
+        )
+        widgets = {
+            "species": DualSortableSelector(
+                search_lookup="name_icontains",
+            ),
+            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
+            # "markers": DualSortableSelector(search_lookup="name_icontains"),
+        }
 
 
 class AnalysisOrderForm(FormMixin, forms.ModelForm):

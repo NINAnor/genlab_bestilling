@@ -8,10 +8,11 @@
       "samples_owner": 1,
       "creator": 1,
       "area": 1,
-      "analysis_timerange": null,
       "expected_total_samples": 500,
       "created_at": "2025-01-06T08:37:09.663Z",
       "last_modified_at": "2025-01-06T08:37:10.789Z",
+      "expected_samples_delivery_date": "2025-06-01",
+      "expected_analysis_delivery_date": "2025-10-01",
       "species": [1, 3, 4],
       "sample_types": [1, 18],
       "markers": ["Spissnutefrosk A","Salamander 2", "Elvemusling A"]

@@ -10,7 +10,11 @@ from .views import (
     EquipmentOrderDetailView,
     EquipmentOrderEditView,
     EquipmentOrderQuantityUpdateView,
+    ExtractionOrderCreateView,
+    ExtractionOrderDetailView,
+    ExtractionOrderEditView,
     GenrequestCreateView,
+    GenrequestDeleteView,
     GenrequestDetailView,
     GenrequestListView,
     GenrequestOrderDeleteView,
@@ -41,6 +45,11 @@ urlpatterns = [
         "genrequests/<int:pk>/update/",
         GenrequestUpdateView.as_view(),
         name="genrequest-update",
+    ),
+    path(
+        "genrequests/<int:pk>/delete/",
+        GenrequestDeleteView.as_view(),
+        name="genrequest-delete",
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/",
@@ -106,6 +115,36 @@ urlpatterns = [
         "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/samples/edit/",
         SamplesFrontendView.as_view(),
         name="genrequest-analysis-samples-edit",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/create/",
+        ExtractionOrderCreateView.as_view(),
+        name="genrequest-extraction-create",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/<int:pk>/",
+        ExtractionOrderDetailView.as_view(),
+        name="genrequest-extraction-detail",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/<int:pk>/update/",
+        ExtractionOrderEditView.as_view(),
+        name="genrequest-extraction-update",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/<int:pk>/delete/",
+        GenrequestOrderDeleteView.as_view(),
+        name="genrequest-extraction-delete",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/<int:pk>/samples/",
+        SamplesListView.as_view(),
+        name="genrequest-extraction-samples",
+    ),
+    path(
+        "genrequests/<int:genrequest_id>/orders/extraction/<int:pk>/samples/edit/",
+        SamplesFrontendView.as_view(),
+        name="genrequest-extraction-samples-edit",
     ),
     # Actions
     path(

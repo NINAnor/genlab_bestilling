@@ -83,7 +83,6 @@ class GenrequestAdmin(ModelAdmin):
         "samples_owner",
         # "sample_types",
         "area",
-        "analysis_timerange",
     ]
     search_fields = ["name"]
     list_filter_submit = True

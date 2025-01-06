@@ -15,7 +15,11 @@ def test_login(page, live_server_url):
     assert page.url == "{}{}".format(live_server_url, "/genrequests/")
 
 
-def test_genrequest(page, live_server_url):
+def get_path(url, prefix):
+    return url.replace(prefix, "")
+
+
+def test_genrequest_flow(page, live_server_url):
     page.goto(live_server_url)
     do_login(page)
     page.get_by_role("link", name="+ Request").click()
@@ -44,10 +48,11 @@ def test_genrequest(page, live_server_url):
     page.get_by_label("Expected total samples:").click()
     page.get_by_label("Expected total samples:").fill("50")
     page.get_by_label("Tags:").fill("test")
-    # page.locator("#id_analysis_timerange_0").fill("2025-01-01")
-    # page.locator("#id_analysis_timerange_1").fill("2025-06-01")
+    page.locator("#id_expected_samples_delivery_date").fill("2025-01-01")
+    page.locator("#id_expected_analysis_delivery_date").fill("2025-06-01")
     page.get_by_role("button", name="Submit").click()
     page.get_by_role("link", name="Orders").wait_for()
+    assert re.match(r"\/genrequests\/\d+\/", get_path(page.url, live_server_url))
     assert page.get_by_role("link", name="Orders").count() == 1
 
     page.get_by_role("link", name="Edit").click()
@@ -55,3 +60,10 @@ def test_genrequest(page, live_server_url):
     page.get_by_role("button", name="Submit").click()
     page.get_by_role("link", name="Orders").wait_for()
     assert page.get_by_role("link", name="Orders").count() == 1
+
+    page.get_by_role("link", name="Delete").click()
+    assert re.match(
+        r"\/genrequests\/\d+\/delete\/", get_path(page.url, live_server_url)
+    )
+    page.get_by_role("button", name="Confirm").click()
+    assert re.match(r"\/genrequests\/", get_path(page.url, live_server_url))

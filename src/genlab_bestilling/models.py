@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields.ranges import DateRangeField
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -130,11 +129,11 @@ class Genrequest(models.Model):
         + "ONLY sample types selected here will be available later",
     )
     markers = models.ManyToManyField("Marker", blank=True)
-    analysis_timerange = DateRangeField(
-        null=True,
-        blank=True,
-        help_text="This helps the Lab estimating the workload, "
-        + "provide the timeframe for the analysis",
+    expected_samples_delivery_date = models.DateField(
+        help_text="When you plan to start delivering the samples"
+    )
+    expected_analysis_delivery_date = models.DateField(
+        help_text="When you need to get the results"
     )
     expected_total_samples = models.IntegerField(
         null=True,
@@ -259,6 +258,7 @@ class ExtractionOrder(Order):
     sample_types = models.ManyToManyField("SampleType", blank=True)
     needs_guid = models.BooleanField(default=False)  # TODO: default?
     return_samples = models.BooleanField()  # TODO: default?
+    pre_isolated = models.BooleanField(verbose_name="Are samples already isolated?")
 
     def __str__(self) -> str:
         return f"#EXT_{self.id}"
@@ -268,7 +268,7 @@ class ExtractionOrder(Order):
 
     def get_absolute_url(self):
         return reverse(
-            "genrequest-analysis-detail",
+            "genrequest-extraction-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 

@@ -29,8 +29,19 @@
     >
     <a
       class="btn bg-primary"
+      href="{% url 'genrequest-extraction-create' genrequest_id=genrequest.id %}"
+      ><i class="fas fa-plus"></i> Extraction order</a
+    >
+    <a
+      class="btn bg-primary"
       href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"
       ><i class="fas fa-plus"></i> Analysis order</a
+    >
+
+    <a
+      class="btn bg-red-500"
+      href="{% url 'genrequest-delete' pk=genrequest.id %}"
+      ><i class="fas fa-trash"></i> Delete</a
     >
   </div>
 </div>

@@ -22,7 +22,6 @@ from formset.views import (
     FormViewMixin,
     IncompleteSelectResponseMixin,
 )
-from neapolitan.views import CRUDView
 
 from .api.serializers import AnalysisSerializer
 from .forms import (
@@ -30,6 +29,7 @@ from .forms import (
     AnalysisOrderForm,
     EquipmentOrderForm,
     EquipmentQuantityCollection,
+    ExtractionOrderForm,
     GenrequestEditForm,
     GenrequestForm,
     SamplesCollection,
@@ -38,6 +38,7 @@ from .models import (
     AnalysisOrder,
     EquimentOrderQuantity,
     EquipmentOrder,
+    ExtractionOrder,
     Genrequest,
     Order,
     Sample,
@@ -73,21 +74,6 @@ class FormsetUpdateView(
     pass
 
 
-class GenrequestsView(LoginRequiredMixin, CRUDView):
-    model = Genrequest
-    fields = (
-        "number",
-        "name",
-        "area",
-        "species",
-        "sample_types",
-        "analysis_types",
-        "expected_total_samples",
-        "analysis_timerange",
-    )
-    filterset_fields = ["name"]
-
-
 class GenrequestListView(LoginRequiredMixin, SingleTableView):
     model = Genrequest
     table_class = GenrequestTable
@@ -120,6 +106,15 @@ class GenrequestUpdateView(FormsetUpdateView):
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.object.id},
+        )
+
+
+class GenrequestDeleteView(DeleteView):
+    model = Genrequest
+
+    def get_success_url(self):
+        return reverse(
+            "genrequest-list",
         )
 
 
@@ -187,12 +182,7 @@ class GenrequestOrderListView(GenrequestNestedMixin, SingleTableView):
     table_class = OrderTable
 
     def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .select_related("genrequest", "polymorphic_ctype")
-            .prefetch_related("species", "sample_types", "genrequest__analysis_types")
-        )
+        return super().get_queryset().select_related("genrequest", "polymorphic_ctype")
 
 
 class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
@@ -201,6 +191,10 @@ class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
 
 class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
+
+
+class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):
+    model = ExtractionOrder
 
 
 class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
@@ -343,6 +337,23 @@ class AnalysisOrderEditView(
         )
 
 
+class ExtractionOrderEditView(
+    GenrequestNestedMixin,
+    FormsetUpdateView,
+):
+    model = ExtractionOrder
+    form_class = ExtractionOrderForm
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter_in_draft()
+
+    def get_success_url(self):
+        return reverse(
+            "genrequest-extraction-detail",
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+        )
+
+
 class AnalysisOrderCreateView(
     GenrequestNestedMixin,
     FormsetCreateView,
@@ -355,6 +366,20 @@ class AnalysisOrderCreateView(
             "genrequest-analysis-samples-edit",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
         )
+
+
+class ExtractionOrderCreateView(
+    GenrequestNestedMixin,
+    FormsetCreateView,
+):
+    form_class = ExtractionOrderForm
+    model = ExtractionOrder
+
+    # def get_success_url(self):
+    #     return reverse(
+    #         "genrequest-analysis-samples-edit",
+    #         kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+    #     )
 
 
 class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollectionView):

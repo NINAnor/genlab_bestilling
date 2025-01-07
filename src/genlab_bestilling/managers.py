@@ -36,3 +36,13 @@ class SampleQuerySet(models.QuerySet):
         return self.select_related("order").filter(
             order__status=self.model.OrderStatus.DRAFT
         )
+
+
+class SampleAnalysisMarkerQuerySet(models.QuerySet):
+    def filter_allowed(self, user):
+        return self.filter(analysis_order__genrequest__project__memberships=user)
+
+    def filter_in_draft(self):
+        return self.select_related("order").filter(
+            analysis_order__status=self.model.OrderStatus.DRAFT
+        )

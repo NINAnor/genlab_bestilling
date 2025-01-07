@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -260,8 +262,8 @@ class ExtractionOrder(Order):
         CHECKED = "checked", _("Checked")
 
     internal_status = models.CharField(default=Status.TO_CHECK, choices=Status)
-    species = models.ManyToManyField("Species", blank=True)
-    sample_types = models.ManyToManyField("SampleType", blank=True)
+    species = models.ManyToManyField("Species")
+    sample_types = models.ManyToManyField("SampleType")
     needs_guid = models.BooleanField(default=False)  # TODO: default?
     return_samples = models.BooleanField()  # TODO: default?
     pre_isolated = models.BooleanField(verbose_name="Are samples already isolated?")
@@ -308,13 +310,28 @@ class ExtractionOrder(Order):
                 super().confirm_order()
 
     def order_manually_checked(self):
-        super().order_manually_checked()
+        self.internal_status = self.Status.CHECKED
+        self.status = self.OrderStatus.PROCESSING
+        self.save()
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
 
 
 class AnalysisOrder(Order):
     samples = models.ManyToManyField(
         "Sample", blank=True, through="SampleMarkerAnalysis"
+    )
+    markers = models.ManyToManyField("Marker", blank=True)
+    customize_markers = models.BooleanField(
+        verbose_name="Choose which markers should be run for each sample",
+        help_text="By default for each species all the applicable markers will be used",
+    )
+    from_order = models.ForeignKey(
+        "ExtractionOrder",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="analysis_orders",
+        verbose_name="Use samples extracted in the following order",
     )
 
     def __str__(self) -> str:
@@ -337,18 +354,48 @@ class AnalysisOrder(Order):
             if persist:
                 super().confirm_order()
 
+    def populate_from_order(self):
+        if not self.from_order_id:
+            return
+
+        with transaction.atomic():
+            transaction_code = uuid.uuid4()
+
+            for marker in self.markers.all():
+                for sample in self.from_order.samples.filter(
+                    species__in=marker.species_set.all()
+                ):
+                    SampleMarkerAnalysis.objects.update_or_create(
+                        sample=sample,
+                        analysis_order=self,
+                        marker=marker,
+                        defaults={"transaction": transaction_code},
+                    )
+
+            # delete samples that are not generated in this transaction
+            self.sample_markers.exclude(transaction=transaction_code).delete()
+
 
 class SampleMarkerAnalysis(models.Model):
     sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
-    analysis = models.ForeignKey("AnalysisOrder", on_delete=models.CASCADE)
-    markers = models.ManyToManyField("Marker", blank=True)
+    analysis_order = models.ForeignKey(
+        "AnalysisOrder", on_delete=models.CASCADE, related_name="sample_markers"
+    )
+    marker = models.ForeignKey("Marker", on_delete=models.PROTECT)
+    transaction = models.UUIDField(blank=True, null=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["sample", "analysis"], name="unique_sample_per_analysis"
+                fields=["sample", "analysis_order", "marker"],
+                name="unique_sample_per_analysis",
             )
         ]
+
+    objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
+
+    def __str__(self):
+        return f"{str(self.sample)} {str(self.marker) @ {str(self.analysis_order)}}"
 
 
 class Sample(models.Model):
@@ -456,7 +503,7 @@ class ExtractionPlate(models.Model):
     # shelf
 
 
-class Analysis(models.Model):
+class AnalysisResult(models.Model):
     name = models.CharField()
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)

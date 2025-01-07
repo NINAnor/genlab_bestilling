@@ -4,6 +4,8 @@ from .views import (
     AnalysisOrderCreateView,
     AnalysisOrderDetailView,
     AnalysisOrderEditView,
+    AnalysisSamplesFrontendView,
+    AnalysisSamplesListView,
     CloneOrderActionView,
     ConfirmOrderActionView,
     EquipmentOrderCreateView,
@@ -108,12 +110,12 @@ urlpatterns = [
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/samples/",
-        SamplesListView.as_view(),
+        AnalysisSamplesListView.as_view(),
         name="genrequest-analysis-samples",
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/analysis/<int:pk>/samples/edit/",
-        SamplesFrontendView.as_view(),
+        AnalysisSamplesFrontendView.as_view(),
         name="genrequest-analysis-samples-edit",
     ),
     path(

@@ -2,6 +2,7 @@ from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.postgres.aggregates import StringAgg
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
 from django.http import HttpResponse, HttpResponseRedirect
@@ -28,6 +29,7 @@ from .api.serializers import ExtractionSerializer
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
+    AnalysisOrderUpdateForm,
     EquipmentOrderForm,
     EquipmentQuantityCollection,
     ExtractionOrderForm,
@@ -42,8 +44,9 @@ from .models import (
     Genrequest,
     Order,
     Sample,
+    SampleMarkerAnalysis,
 )
-from .tables import GenrequestTable, OrderTable, SampleTable
+from .tables import AnalysisSampleTable, GenrequestTable, OrderTable, SampleTable
 
 
 class ActionView(FormView):
@@ -192,6 +195,14 @@ class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
 class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
 
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("genrequest", "from_order", "polymorphic_ctype")
+            .prefetch_related("sample_markers", "markers")
+        )
+
 
 class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):
     model = ExtractionOrder
@@ -324,7 +335,7 @@ class AnalysisOrderEditView(
     FormsetUpdateView,
 ):
     model = AnalysisOrder
-    form_class = AnalysisOrderForm
+    form_class = AnalysisOrderUpdateForm
 
     def get_queryset(self) -> QuerySet[Any]:
         return super().get_queryset().filter_in_draft()
@@ -447,4 +458,63 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["extraction"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        return context
+
+
+class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
+    model = AnalysisOrder
+    template_name = "genlab_bestilling/sample_form_frontend.html"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["frontend_args"] = {
+            "order": self.object.id,
+            "csrf": get_token(self.request),
+            # "analysis_data": ExtractionSerializer(self.object).data,
+        }
+        return context
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return super().get_queryset().filter_in_draft()
+
+
+class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
+    genrequest_accessor = "analysis_order__genrequest"
+    table_pagination = False
+
+    model = SampleMarkerAnalysis
+    table_class = AnalysisSampleTable
+
+    def get_queryset(self) -> QuerySet[Any]:
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "marker",
+                "sample",
+                "sample__species",
+                "sample__type",
+                "sample__location",
+            )
+            .filter(analysis_order=self.kwargs["pk"])
+            .values(
+                "sample__genlab_id",
+                "sample__species__name",
+                "sample__type__name",
+                "sample__location__name",
+                "sample__guid",
+                "sample__year",
+                "sample__pop_id",
+                "sample__name",
+                "analysis_order",
+            )
+            .annotate(
+                markers_names=StringAgg("marker__name", delimiter=", ", distinct=True)
+            )
+            # .order_by("species__name", "year", "location__name", "name")
+        )
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["analysis"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
         return context

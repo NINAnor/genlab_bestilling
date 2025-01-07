@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from django import forms
+from django.db import transaction
 
 # from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
@@ -19,6 +20,7 @@ from .models import (
     ExtractionOrder,
     Genrequest,
     Marker,
+    Order,
 )
 
 
@@ -257,23 +259,9 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
-
-    needs_guid = forms.TypedChoiceField(
-        label="I need to generate GUID",
-        help_text="Choose yes if your samples don't have already a GUID, "
-        + "the system will generate a new GUID",
-        coerce=lambda x: x == "True",
-        choices=YES_NO_CHOICES,
-        widget=forms.RadioSelect,
-    )
-    isolate_samples = forms.TypedChoiceField(
-        label="I want samples to be isolated",
-        coerce=lambda x: x == "True",
-        choices=YES_NO_CHOICES,
-        widget=forms.RadioSelect,
-    )
-    return_samples = forms.TypedChoiceField(
-        label="I want samples to be returned after analysis",
+    customize_markers = forms.TypedChoiceField(
+        label="Choose which markers should be run for each sample",
+        help_text="By default for each species all the applicable markers will be used",
         coerce=lambda x: x == "True",
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
@@ -288,40 +276,66 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             + "for this order to help you find it later"
         )
 
-        self.fields["species"].queryset = genrequest.species.all()
-        self.fields["sample_types"].queryset = genrequest.sample_types.all()
         self.fields["markers"].queryset = Marker.objects.filter(
-            species__genrequests__id=genrequest.id
+            genrequest__id=genrequest.id
         ).distinct()
+        self.fields["markers"].required = True
+        if "from_order" in self.fields:
+            self.fields["from_order"].queryset = ExtractionOrder.objects.filter(
+                genrequest_id=genrequest.id,
+                status=Order.OrderStatus.CONFIRMED,
+            )
+            self.fields["from_order"].help_text = (
+                "All the samples will be included in this analysis,"
+                + " for each sample the appropriate markers"
+                + " among the selected will be applied. "
+                "Samples that don't have an applicable marker will not included"
+            )
+            self.fields["from_order"].required = True
 
     def save(self, commit=True):
-        obj = super().save(commit=False)
-        obj.genrequest = self.genrequest
-        if commit:
+        if not commit:
+            raise NotImplementedError("This form is always committed")
+        with transaction.atomic():
+            obj = super().save(commit=False)
+            obj.genrequest = self.genrequest
             obj.save()
             self.save_m2m()
-        return obj
+            obj.populate_from_order()
+            return obj
 
     class Meta:
         model = AnalysisOrder
         fields = (
             "name",
-            "needs_guid",
-            # "species",
-            # "sample_types",
+            "markers",
+            "customize_markers",
+            "from_order",
             "notes",
             "tags",
-            "isolate_samples",
-            # "markers",
-            "return_samples",
         )
         widgets = {
-            "species": DualSortableSelector(
-                search_lookup="name_icontains",
+            "from_order": Selectize(
+                search_lookup="id", attrs={"df-show": ".customize_markers=='False'"}
             ),
-            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
         }
+
+
+class AnalysisOrderUpdateForm(AnalysisOrderForm):
+    class Meta(AnalysisOrderForm.Meta):
+        fields = (
+            "name",
+            "markers",
+            # "customize_markers",
+            # "from_order",
+            "notes",
+            "tags",
+        )
+
+    def __init__(self, *args, genrequest, **kwargs):
+        super().__init__(*args, genrequest=genrequest, **kwargs)
+        del self.fields["customize_markers"]
 
 
 class ActionForm(forms.Form):

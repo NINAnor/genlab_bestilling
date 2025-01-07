@@ -79,3 +79,27 @@ class SampleTable(tables.Table):
 
     def render_plate_positions(self, value):
         return ", ".join([str(v) for v in value.all()])
+
+
+class AnalysisSampleTable(tables.Table):
+    sample__location__name = tables.Column(verbose_name="Location")
+    sample__type__name = tables.Column(verbose_name="Sample type")
+    sample__species__name = tables.Column(verbose_name="Species")
+    markers_names = tables.Column(verbose_name="Markers")
+
+    class Meta:
+        model = Sample
+        fields = (
+            "sample__genlab_id",
+            "markers_names",
+            "sample__guid",
+            "sample__name",
+            "sample__species__name",
+            "sample__type__name",
+            "sample__year",
+            "sample__pop_id",
+            "sample__location__name",
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+
+        empty_text = "No Samples"

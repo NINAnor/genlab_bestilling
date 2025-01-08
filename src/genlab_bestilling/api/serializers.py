@@ -21,6 +21,11 @@ class EnumSerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
+class KoncivSerializer(EnumSerializer):
+    type = serializers.CharField(source="konciv_type")
+    konciv_id = serializers.CharField()
+
+
 class MarkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marker

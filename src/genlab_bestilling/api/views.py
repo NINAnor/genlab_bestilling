@@ -15,10 +15,19 @@ from ..filters import (
     SampleTypeFilter,
     SpeciesFilter,
 )
-from ..models import ExtractionOrder, Location, Marker, Sample, SampleType, Species
+from ..models import (
+    AnalysisType,
+    ExtractionOrder,
+    Location,
+    Marker,
+    Sample,
+    SampleType,
+    Species,
+)
 from .serializers import (
     EnumSerializer,
     ExtractionSerializer,
+    KoncivSerializer,
     LocationCreateSerializer,
     LocationSerializer,
     MarkerSerializer,
@@ -160,8 +169,13 @@ class ExtractionOrderViewset(
 
 class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):
     queryset = SampleType.objects.all().order_by("name")
-    serializer_class = EnumSerializer
+    serializer_class = KoncivSerializer
     filterset_class = SampleTypeFilter
+
+
+class AnalysisTypeViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = AnalysisType.objects.all().order_by("name")
+    serializer_class = KoncivSerializer
 
 
 class SpeciesViewset(mixins.ListModelMixin, GenericViewSet):

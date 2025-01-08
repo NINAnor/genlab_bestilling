@@ -64,12 +64,28 @@ class SampleType(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def konciv_id(self):
+        return f"ST_{self.id}"
+
+    @property
+    def konciv_type(self):
+        return "SAMPLE_TYPE"
+
 
 class AnalysisType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def konciv_id(self):
+        return f"AT_{self.id}"
+
+    @property
+    def konciv_type(self):
+        return "ANALYSIS_TYPE"
 
 
 class LocationType(models.Model):

@@ -20,6 +20,9 @@ class Organization(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    class Meta:
+        ordering = ["name"]
+
 
 class Area(models.Model):
     name = models.CharField(max_length=255)
@@ -29,6 +32,9 @@ class Area(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    class Meta:
+        ordering = ["name"]
+
 
 class Marker(models.Model):
     name = models.CharField(primary_key=True)
@@ -36,6 +42,9 @@ class Marker(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+    class Meta:
+        ordering = ["name"]
 
 
 class Species(models.Model):
@@ -52,6 +61,7 @@ class Species(models.Model):
 
     class Meta:
         verbose_name_plural = "Species"
+        ordering = ["name"]
         constraints = [
             models.UniqueConstraint(name="unique species code", fields=["code"])
         ]
@@ -72,6 +82,9 @@ class SampleType(models.Model):
     def konciv_type(self):
         return "SAMPLE_TYPE"
 
+    class Meta:
+        ordering = ["name"]
+
 
 class AnalysisType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
@@ -86,6 +99,9 @@ class AnalysisType(models.Model):
     @property
     def konciv_type(self):
         return "ANALYSIS_TYPE"
+
+    class Meta:
+        ordering = ["name"]
 
 
 class LocationType(models.Model):

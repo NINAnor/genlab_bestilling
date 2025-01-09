@@ -565,10 +565,16 @@ class AnalysisOrderCreateView(
         ]
 
     def get_success_url(self):
-        return reverse(
-            "genrequest-analysis-samples-edit",
-            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
-        )
+        if self.object.from_order:
+            return reverse(
+                "genrequest-analysis-samples",
+                kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+            )
+        else:
+            return reverse(
+                "genrequest-analysis-samples-edit",
+                kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+            )
 
 
 class ExtractionOrderCreateView(

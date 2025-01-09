@@ -291,7 +291,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 + " among the selected will be applied. "
                 "Samples that don't have an applicable marker will not included"
             )
-            self.fields["from_order"].required = True
 
     def save(self, commit=True):
         if not commit:
@@ -316,7 +315,11 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         )
         widgets = {
             "from_order": Selectize(
-                search_lookup="id", attrs={"df-show": ".customize_markers=='False'"}
+                search_lookup="id",
+                attrs={
+                    "df-show": ".customize_markers=='False'",
+                    "required": ".customize_markers=='False'",
+                },
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
         }

@@ -13,8 +13,6 @@ def verbose_name(instance):
 def render(field, instance):
     v = getattr(instance, field.name)
 
-    print(field)
-
     if isinstance(field, djfields.related.ManyToManyField):
         return field.verbose_name or field.name, ", ".join([str(e) for e in v.all()])
 

@@ -1,6 +1,13 @@
 import django_tables2 as tables
 
-from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Sample
+from ..models import (
+    AnalysisOrder,
+    EquipmentOrder,
+    ExtractionOrder,
+    ExtractionPlate,
+    Sample,
+    SampleMarkerAnalysis,
+)
 
 
 class OrderTable(tables.Table):
@@ -14,8 +21,6 @@ class OrderTable(tables.Table):
         fields = (
             "name",
             "status",
-            "species",
-            "sample_types",
             "genrequest",
             "genrequest__name",
             "genrequest__project",
@@ -25,13 +30,7 @@ class OrderTable(tables.Table):
             "created_at",
             "last_modified_at",
         )
-        sequence = (
-            "id",
-            "name",
-            "status",
-            "species",
-            "sample_types",
-        )
+        sequence = ("id",)
         empty_text = "No Orders"
 
     def render_id(self, record):
@@ -47,7 +46,26 @@ class AnalysisOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
-        fields = ("return_samples",)
+        fields = OrderTable.Meta.fields + ("return_samples",)
+
+
+class ExtractionOrderTable(OrderTable):
+    id = tables.Column(
+        linkify=("staff:order-extraction-detail", {"pk": tables.A("id")}),
+        orderable=False,
+        empty_values=(),
+    )
+
+    class Meta(OrderTable.Meta):
+        model = ExtractionOrder
+        fields = OrderTable.Meta.fields + (
+            "species",
+            "sample_types",
+            "internal_status",
+            "needs_guid",
+            "return_samples",
+            "pre_isolated",
+        )
 
 
 class EquipmentOrderTable(OrderTable):
@@ -59,9 +77,10 @@ class EquipmentOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = EquipmentOrder
+        fields = OrderTable.Meta.fields + ("needs_guid", "sample_types")
 
 
-class OrderSampleTable(tables.Table):
+class SampleBaseTable(tables.Table):
     plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
@@ -78,7 +97,6 @@ class OrderSampleTable(tables.Table):
             "pop_id",
             "location",
             "notes",
-            "desired_extractions",
             "plate_positions",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
@@ -86,38 +104,44 @@ class OrderSampleTable(tables.Table):
         empty_text = "No Samples"
 
     def render_plate_positions(self, value):
-        return ", ".join([str(v) for v in value.all()])
+        if value:
+            return ", ".join([str(v) for v in value.all()])
+
+        return ""
 
 
-class SampleTable(tables.Table):
-    plate_positions = tables.Column(
+class OrderExtractionSampleTable(SampleBaseTable):
+    class Meta(SampleBaseTable.Meta):
+        fields = SampleBaseTable.Meta.fields + ()
+
+
+class OrderAnalysisSampleTable(tables.Table):
+    sample__plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
 
     class Meta:
-        model = Sample
-        fields = (
-            "genlab_id",
-            "guid",
-            "name",
-            "species",
-            "type",
-            "year",
-            "pop_id",
-            "location",
-            "notes",
-            "desired_extractions",
+        model = SampleMarkerAnalysis
+        fields = ("marker",) + tuple(
+            "sample__" + f for f in SampleBaseTable.Meta.fields
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+        empty_text = "No Samples"
+
+    def render_sample__plate_positions(self, value):
+        if value:
+            return ", ".join([str(v) for v in value.all()])
+
+        return ""
+
+
+class SampleTable(SampleBaseTable):
+    class Meta(SampleBaseTable.Meta):
+        fields = SampleBaseTable.Meta.fields + (
             "order",
             "order__status",
             "order__genrequest__project",
-            "plate_positions",
         )
-        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-
-        empty_text = "No Samples"
-
-    def render_plate_positions(self, value):
-        return ", ".join([str(v) for v in value.all()])
 
 
 class PlateTable(tables.Table):

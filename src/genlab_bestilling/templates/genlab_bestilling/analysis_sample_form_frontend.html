@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load core %}
+{% load django_vite %}
+
+{% block head_javascript %}
+{{ frontend_args|json_script:"initial-data" }}
+{% vite_react_refresh %}
+{% vite_asset 'src/analysis_samples/main.jsx' %}
+{% endblock head_javascript %}
+
+{% block content %}
+    <div id="root"></div>
+    <div id="date-portal"></div>
+{% endblock %}

@@ -1,6 +1,6 @@
 import django_filters as filters
 
-from ..models import AnalysisOrder, ExtractionPlate, Sample
+from ..models import AnalysisOrder, ExtractionPlate, Sample, SampleMarkerAnalysis
 
 
 class AnalysisOrderFilter(filters.FilterSet):
@@ -29,6 +29,23 @@ class OrderSampleFilter(filters.FilterSet):
             "pop_id",
             "type",
             # "desired_extractions",
+        ]
+
+
+class SampleMarkerOrderFilter(filters.FilterSet):
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = [
+            # "order",
+            "marker",
+            "sample__guid",
+            "sample__name",
+            "sample__genlab_id",
+            "sample__species",
+            "sample__type",
+            "sample__year",
+            "sample__location",
+            "sample__pop_id",
         ]
 
 

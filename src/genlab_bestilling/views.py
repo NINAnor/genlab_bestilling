@@ -746,7 +746,7 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
 
 class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
-    template_name = "genlab_bestilling/sample_form_frontend.html"
+    template_name = "genlab_bestilling/analysis_sample_form_frontend.html"
 
     @cached_property
     def gen_crumbs(self):
@@ -787,7 +787,7 @@ class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
 
 
 class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
-    genrequest_accessor = "analysis_order__genrequest"
+    genrequest_accessor = "order__genrequest"
     table_pagination = False
 
     model = SampleMarkerAnalysis
@@ -821,7 +821,7 @@ class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
                 "sample__type",
                 "sample__location",
             )
-            .filter(analysis_order=self.kwargs["pk"])
+            .filter(order=self.kwargs["pk"])
             .values(
                 "sample__genlab_id",
                 "sample__species__name",
@@ -831,7 +831,7 @@ class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
                 "sample__year",
                 "sample__pop_id",
                 "sample__name",
-                "analysis_order",
+                "order",
             )
             .annotate(
                 markers_names=StringAgg("marker__name", delimiter=", ", distinct=True)

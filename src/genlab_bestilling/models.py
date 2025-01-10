@@ -399,7 +399,7 @@ class AnalysisOrder(Order):
                 ):
                     SampleMarkerAnalysis.objects.update_or_create(
                         sample=sample,
-                        analysis_order=self,
+                        order=self,
                         marker=marker,
                         defaults={"transaction": transaction_code},
                     )
@@ -410,7 +410,7 @@ class AnalysisOrder(Order):
 
 class SampleMarkerAnalysis(models.Model):
     sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
-    analysis_order = models.ForeignKey(
+    order = models.ForeignKey(
         "AnalysisOrder", on_delete=models.CASCADE, related_name="sample_markers"
     )
     marker = models.ForeignKey("Marker", on_delete=models.PROTECT)
@@ -419,7 +419,7 @@ class SampleMarkerAnalysis(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["sample", "analysis_order", "marker"],
+                fields=["sample", "order", "marker"],
                 name="unique_sample_per_analysis",
             )
         ]
@@ -427,7 +427,7 @@ class SampleMarkerAnalysis(models.Model):
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     def __str__(self):
-        return f"{str(self.sample)} {str(self.marker) @ {str(self.analysis_order)}}"
+        return f"{str(self.sample)} {str(self.marker) @ {str(self.order)}}"
 
 
 class Sample(models.Model):

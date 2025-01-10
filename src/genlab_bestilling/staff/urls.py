@@ -7,9 +7,12 @@ from .views import (
     AnalysisOrderListView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
+    ExtractionOrderDetailView,
+    ExtractionOrderListView,
     ExtractionPlateListView,
     ManaullyCheckedOrderActionView,
-    OrderSamplesListView,
+    OrderAnalysisSamplesListView,
+    OrderExtractionSamplesListView,
     OrderToDraftActionView,
     SamplesListView,
 )
@@ -25,6 +28,11 @@ urlpatterns = [
         "orders/equipment/",
         EqupimentOrderListView.as_view(),
         name="order-equipment-list",
+    ),
+    path(
+        "orders/extraction/",
+        ExtractionOrderListView.as_view(),
+        name="order-extraction-list",
     ),
     path(
         "orders/analysis/<int:pk>/",
@@ -46,8 +54,13 @@ urlpatterns = [
         name="order-manually-checked",
     ),
     path(
+        "orders/extraction/<int:pk>/samples/",
+        OrderExtractionSamplesListView.as_view(),
+        name="order-extraction-samples",
+    ),
+    path(
         "orders/analysis/<int:pk>/samples/",
-        OrderSamplesListView.as_view(),
+        OrderAnalysisSamplesListView.as_view(),
         name="order-analysis-samples",
     ),
     path(
@@ -59,6 +72,11 @@ urlpatterns = [
         "orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="order-equipment-detail",
+    ),
+    path(
+        "orders/extraction/<int:pk>/",
+        ExtractionOrderDetailView.as_view(),
+        name="order-extraction-detail",
     ),
     path(
         "orders/plates/",

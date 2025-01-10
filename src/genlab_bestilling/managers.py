@@ -40,9 +40,9 @@ class SampleQuerySet(models.QuerySet):
 
 class SampleAnalysisMarkerQuerySet(models.QuerySet):
     def filter_allowed(self, user):
-        return self.filter(analysis_order__genrequest__project__memberships=user)
+        return self.filter(order__genrequest__project__memberships=user)
 
     def filter_in_draft(self):
         return self.select_related("order").filter(
-            analysis_order__status=self.model.OrderStatus.DRAFT
+            order__status=self.model.OrderStatus.DRAFT
         )

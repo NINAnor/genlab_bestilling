@@ -11,18 +11,29 @@ from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from ..models import AnalysisOrder, EquipmentOrder, ExtractionPlate, Order, Sample
+from ..models import (
+    AnalysisOrder,
+    EquipmentOrder,
+    ExtractionOrder,
+    ExtractionPlate,
+    Order,
+    Sample,
+    SampleMarkerAnalysis,
+)
 from ..views import ActionView
 from .filters import (
     AnalysisOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
     SampleFilter,
+    SampleMarkerOrderFilter,
 )
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
-    OrderSampleTable,
+    ExtractionOrderTable,
+    OrderAnalysisSampleTable,
+    OrderExtractionSampleTable,
     PlateTable,
     SampleTable,
 )
@@ -52,7 +63,24 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
-            .prefetch_related("species", "sample_types", "genrequest__analysis_types")
+        )
+
+
+class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
+    model = ExtractionOrder
+    table_class = ExtractionOrderTable
+    filterset_class = AnalysisOrderFilter
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "genrequest",
+                "polymorphic_ctype",
+                "genrequest__project",
+                "genrequest__area",
+            )
         )
 
 
@@ -86,7 +114,6 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
-            .prefetch_related("species", "sample_types", "genrequest__analysis_types")
         )
 
 
@@ -98,11 +125,15 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
-class OrderSamplesListView(StaffMixin, SingleTableMixin, FilterView):
+class ExtractionOrderDetailView(StaffMixin, DetailView):
+    model = ExtractionOrder
+
+
+class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_pagination = False
 
     model = Sample
-    table_class = OrderSampleTable
+    table_class = OrderExtractionSampleTable
     filterset_class = OrderSampleFilter
 
     def get_queryset(self):
@@ -117,7 +148,37 @@ class OrderSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["analysis"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        return context
+
+
+class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
+    table_pagination = False
+
+    model = SampleMarkerAnalysis
+    table_class = OrderAnalysisSampleTable
+    filterset_class = SampleMarkerOrderFilter
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "sample__type", "sample__location", "sample__species", "marker"
+            )
+            .filter(order=self.kwargs["pk"])
+            .prefetch_related("sample__plate_positions")
+            .order_by(
+                "sample__species__name",
+                "sample__year",
+                "sample__location__name",
+                "sample__name",
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["order"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
 
 
@@ -130,7 +191,14 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
         return (
             super()
             .get_queryset()
-            .select_related("type", "location", "species", "order")
+            .select_related(
+                "type",
+                "location",
+                "species",
+                "order",
+                "order__genrequest",
+                "order__genrequest__project",
+            )
             .prefetch_related("plate_positions")
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .order_by("species__name", "year", "location__name", "name")
@@ -154,10 +222,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.SUCCESS,
-                _(
-                    "The order was checked, GenLab IDs and "
-                    + "extraction plates will be generated"
-                ),
+                _("The order was checked, GenLab IDs will be generated"),
             )
         except Exception as e:
             messages.add_message(

@@ -19,17 +19,20 @@
     {% object-detail object=object %}
 
 
-    <h5 class="text-2xl my-5">Samples to analyze</h5>
+    <h5 class="text-2xl my-5">Delivered Samples</h5>
     <div class="bg-white p-4">
-        <p>Selected {{ object.samples.count }} samples</p>
+        <p>{{ object.samples.count }} samples were delivered</p>
     </div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
-        <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
+        <a class="btn bg-yellow-200" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
         {% if object.status == 'confirmed' %}
             <div class="ml-auto"></div>
+            {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
+
+            {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
     </div>

@@ -35,6 +35,11 @@
         {% elif object.status == 'confirmed' %}
         <a class="btn bg-primary" href="{% url 'genrequest-extraction-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}
+
+        {% if object.status != 'draft' %}
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}">Analyze this samples</a>
+        {% endif %}
+
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}
         {% action-button action=clone_order_url class="bg-secondary text-white" submit_text="Clone Order" csrf_token=csrf_token %}
     </div>

@@ -36,13 +36,12 @@ export default function SearchApplyMarker() {
   });
 
   const { handleSubmit, Field, Subscribe } = useForm({
-    onSubmit: async ({ value, formApi }) => {
+    onSubmit: async ({ value }) => {
       try {
-        console.log(value);
         await bulkCreate.mutateAsync(value);
-        // formApi.reset();
       } catch (e) {
-        // console.log(e);
+        console.log(e);
+        toast.error("There was an error!");
       }
     },
     defaultValues: {

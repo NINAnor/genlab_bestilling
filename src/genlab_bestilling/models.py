@@ -50,7 +50,7 @@ class Marker(models.Model):
 class Species(models.Model):
     name = models.CharField(max_length=255)
     area = models.ForeignKey("Area", on_delete=models.CASCADE)
-    markers = models.ManyToManyField("Marker")
+    markers = models.ManyToManyField("Marker", related_name="species")
     location_type = models.ForeignKey(
         "LocationType", null=True, blank=True, on_delete=models.CASCADE
     )
@@ -204,6 +204,13 @@ class Order(PolymorphicModel):
         PROCESSING = "processing", _("Processing")
         COMPLETED = "completed", _("Completed")
 
+    STATUS_ORDER = (
+        OrderStatus.DRAFT,
+        OrderStatus.CONFIRMED,
+        OrderStatus.PROCESSING,
+        OrderStatus.COMPLETED,
+    )
+
     name = models.CharField(null=True, blank=True)
     genrequest = models.ForeignKey(
         "Genrequest", on_delete=models.CASCADE, related_name="orders"
@@ -236,6 +243,18 @@ class Order(PolymorphicModel):
 
     def get_type(self):
         return "order"
+
+    @property
+    def next_status(self):
+        current_index = self.STATUS_ORDER.index(self.status)
+        if current_index + 1 < len(self.STATUS_ORDER):
+            return self.STATUS_ORDER[current_index + 1]
+        return None
+
+    def to_next_status(self):
+        if status := self.next_status:
+            self.status = status
+            self.save()
 
     def __str__(self):
         return f"#ORD_{self.id}"

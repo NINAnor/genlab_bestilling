@@ -27,7 +27,7 @@ from formset.views import (
 from rest_framework.exceptions import ValidationError
 from view_breadcrumbs import BaseBreadcrumbMixin
 
-from .api.serializers import ExtractionSerializer
+from .api.serializers import AnalysisSerializer, ExtractionSerializer
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
@@ -778,7 +778,7 @@ class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
         context["frontend_args"] = {
             "order": self.object.id,
             "csrf": get_token(self.request),
-            # "analysis_data": ExtractionSerializer(self.object).data,
+            "analysis_data": AnalysisSerializer(self.object).data,
         }
         return context
 

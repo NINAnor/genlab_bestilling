@@ -206,10 +206,10 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
-    model = Order
+    model = ExtractionOrder
 
     def get_queryset(self):
-        return super().get_queryset().filter(status=Order.OrderStatus.CONFIRMED)
+        return ExtractionOrder.objects.filter(status=Order.OrderStatus.CONFIRMED)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -261,6 +261,41 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
                 self.request,
                 messages.SUCCESS,
                 _("The order was converted back to a draft"),
+            )
+        except Exception as e:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+            )
+
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse_lazy(f"staff:order-{self.object.get_type()}-list")
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
+    model = Order
+
+    def get_queryset(self):
+        return Order.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        try:
+            # TODO: check state transition
+            self.object.to_next_status()
+            messages.add_message(
+                self.request,
+                messages.SUCCESS,
+                _(f"The order status changed to {self.object.get_status_display()}"),
             )
         except Exception as e:
             messages.add_message(

@@ -9,6 +9,7 @@ from genlab_bestilling.api.views import (
     ExtractionOrderViewset,
     LocationViewset,
     MarkerViewset,
+    SampleMarkerAnalysisViewset,
     SampleTypeViewset,
     SampleViewset,
     SpeciesViewset,
@@ -24,6 +25,11 @@ router.register("sample-types", SampleTypeViewset, basename="sample_types")
 router.register("analysis-types", AnalysisTypeViewset, basename="analysis_types")
 router.register("locations", LocationViewset, basename="locations")
 router.register("extraction-order", ExtractionOrderViewset, basename="extraction-order")
+router.register(
+    "sample-marker-analysis",
+    SampleMarkerAnalysisViewset,
+    basename="sample-marker-analysis",
+)
 
 
 urlpatterns = [

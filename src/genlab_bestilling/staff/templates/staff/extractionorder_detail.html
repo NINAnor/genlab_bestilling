@@ -35,5 +35,12 @@
             {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
+
+        {% if object.next_status %}
+            {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
+            {% with "Set as "|add:object.next_status as btn_name %}
+                {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
+            {% endwith %}
+        {% endif %}
     </div>
 {% endblock %}

@@ -1,11 +1,13 @@
 from rest_framework import exceptions, serializers
 
 from ..models import (
+    AnalysisOrder,
     ExtractionOrder,
     Genrequest,
     Location,
     Marker,
     Sample,
+    SampleMarkerAnalysis,
     SampleType,
     Species,
 )
@@ -98,6 +100,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "volume",
             "type",
             "has_error",
+            "genlab_id",
         )
 
 
@@ -178,3 +181,39 @@ class ExtractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = ExtractionOrder
         fields = ("id", "genrequest", "species", "sample_types", "needs_guid")
+
+
+class AnalysisSerializer(serializers.ModelSerializer):
+    markers = MarkerSerializer(many=True, read_only=True)
+    genrequest = GenrequestSerializer()
+
+    class Meta:
+        model = AnalysisOrder
+        fields = ("id", "genrequest", "markers")
+
+
+class SampleMarkerAnalysisSerializer(serializers.ModelSerializer):
+    sample = SampleSerializer(read_only=True)
+
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = ("id", "order", "sample", "marker")
+
+
+class SampleMarkerAnalysisBulkSerializer(serializers.ModelSerializer):
+    markers = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Marker.objects.all()
+    )
+    samples = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Sample.objects.all()
+    )
+
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = ("order", "samples", "markers")
+
+
+class SampleMarkerAnalysisBulkDeleteSerializer(serializers.Serializer):
+    ids = serializers.ListField(
+        child=serializers.IntegerField(required=True), required=True
+    )

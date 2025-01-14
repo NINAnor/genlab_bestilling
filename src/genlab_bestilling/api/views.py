@@ -12,6 +12,7 @@ from ..filters import (
     LocationFilter,
     MarkerFilter,
     SampleFilter,
+    SampleMarkerOrderFilter,
     SampleTypeFilter,
     SpeciesFilter,
 )
@@ -21,6 +22,7 @@ from ..models import (
     Location,
     Marker,
     Sample,
+    SampleMarkerAnalysis,
     SampleType,
     Species,
 )
@@ -33,6 +35,9 @@ from .serializers import (
     MarkerSerializer,
     OperationStatusSerializer,
     SampleBulkSerializer,
+    SampleMarkerAnalysisBulkDeleteSerializer,
+    SampleMarkerAnalysisBulkSerializer,
+    SampleMarkerAnalysisSerializer,
     SampleSerializer,
     SampleUpdateSerializer,
 )
@@ -61,7 +66,6 @@ class SampleViewset(ModelViewSet):
         return (
             super()
             .get_queryset()
-            .filter_allowed(self.request.user)
             .select_related(
                 "type",
                 "species",
@@ -199,3 +203,66 @@ class LocationViewset(mixins.ListModelMixin, mixins.CreateModelMixin, GenericVie
         if self.action == "create":
             return LocationCreateSerializer
         return super().get_serializer_class()
+
+
+class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = SampleMarkerAnalysis.objects.all()
+    serializer_class = SampleMarkerAnalysisSerializer
+    filterset_class = SampleMarkerOrderFilter
+    pagination_class = IDCursorPagination
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)
+            .select_related(
+                "marker", "order", "sample", "sample__species", "sample__location"
+            )
+        )
+
+    @extend_schema(
+        request=SampleMarkerAnalysisBulkSerializer,
+        responses={200: OperationStatusSerializer},
+    )
+    @action(methods=["POST"], url_path="bulk", detail=False)
+    def bulk_create(self, request):
+        serializer = SampleMarkerAnalysisBulkSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        markers = serializer.validated_data.pop("markers")
+        samples = serializer.validated_data.pop("samples")
+        with transaction.atomic():
+            for marker in markers:
+                for sample in samples:
+                    if (
+                        not serializer.validated_data["order"]
+                        .markers.filter(name=marker)
+                        .exists()
+                    ):
+                        continue
+
+                    if not marker.species.filter(id=sample.species_id).exists():
+                        continue
+
+                    SampleMarkerAnalysis.objects.get_or_create(
+                        marker=marker, sample=sample, **serializer.validated_data
+                    )
+
+        return Response(data=OperationStatusSerializer({"success": True}).data)
+
+    @extend_schema(
+        request=SampleMarkerAnalysisBulkDeleteSerializer,
+        responses={200: OperationStatusSerializer},
+    )
+    @action(methods=["POST"], url_path="bulk-delete", detail=False)
+    def bulk_delete(self, request):
+        serializer = SampleMarkerAnalysisBulkDeleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            self.get_queryset().filter(
+                id__in=serializer.validated_data.pop("ids")
+            ).delete()
+
+        return Response(data=OperationStatusSerializer({"success": True}).data)

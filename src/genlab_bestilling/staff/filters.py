@@ -36,7 +36,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
     class Meta:
         model = SampleMarkerAnalysis
         fields = [
-            # "order",
+            "order",
             "marker",
             "sample__guid",
             "sample__name",

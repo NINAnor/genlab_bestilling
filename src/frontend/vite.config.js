@@ -13,7 +13,8 @@ export default defineConfig({
     outDir: resolve(__dirname, "static/frontend"),
     rollupOptions: {
       input: {
-        samples: resolve(__dirname, 'src/samples/main.jsx')
+        samples: resolve(__dirname, 'src/samples/main.jsx'),
+        analysisSamples: resolve(__dirname, 'src/analysis_samples/main.jsx')
       }
     }
   }

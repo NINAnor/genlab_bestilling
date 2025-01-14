@@ -1,6 +1,6 @@
 from django_filters import rest_framework as filters
 
-from .models import Location, Marker, Sample, SampleType, Species
+from .models import Location, Marker, Sample, SampleMarkerAnalysis, SampleType, Species
 
 
 class SampleFilter(filters.FilterSet):
@@ -29,12 +29,36 @@ class SpeciesFilter(BaseOrderFilter):
 
 
 class MarkerFilter(BaseOrderFilter):
+    analysis_order = filters.NumberFilter(
+        field_name="analysis_order", method="filter_analysis_order"
+    )
+
     class Meta:
         model = Marker
-        fields = {"name": ["icontains"]}
+        fields = {"name": ["icontains", "istartswith"]}
+
+    def filter_analysis_order(self, queryset, name, value):
+        return queryset.filter(analysisorder=value)
 
 
 class LocationFilter(filters.FilterSet):
     class Meta:
         model = Location
         fields = {"name": ["icontains"]}
+
+
+class SampleMarkerOrderFilter(filters.FilterSet):
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = [
+            "order",
+            "marker",
+            "sample__guid",
+            "sample__name",
+            "sample__genlab_id",
+            "sample__species",
+            "sample__type",
+            "sample__year",
+            "sample__location",
+            "sample__pop_id",
+        ]

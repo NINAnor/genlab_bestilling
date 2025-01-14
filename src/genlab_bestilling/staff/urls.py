@@ -1,7 +1,6 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
-from ..models import AnalysisOrder, EquipmentOrder
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
@@ -14,6 +13,7 @@ from .views import (
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderToDraftActionView,
+    OrderToNextStatusActionView,
     SamplesListView,
 )
 
@@ -41,16 +41,17 @@ urlpatterns = [
     ),
     path(
         "orders/<int:pk>/to-draft/",
-        OrderToDraftActionView.as_view(model=AnalysisOrder),
+        OrderToDraftActionView.as_view(),
         name="order-to-draft",
     ),
     path(
-        "orders/<int:pk>/to-draft/",
-        OrderToDraftActionView.as_view(model=EquipmentOrder),
+        "orders/<int:pk>/to-next-status/",
+        OrderToNextStatusActionView.as_view(),
+        name="order-to-next-status",
     ),
     path(
         "orders/<int:pk>/manually-checked/",
-        ManaullyCheckedOrderActionView.as_view(model=AnalysisOrder),
+        ManaullyCheckedOrderActionView.as_view(),
         name="order-manually-checked",
     ),
     path(

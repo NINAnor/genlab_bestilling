@@ -57,7 +57,6 @@ export default function SearchApplyMarker() {
         e.preventDefault();
         handleSubmit();
       }}
-      className=""
       id="add-rows"
     >
       <div className="flex mb-4">
@@ -105,7 +104,7 @@ export default function SearchApplyMarker() {
         >
           {([canSubmit, isSubmitting, samples, markers]) => (
             <Button
-              type="submit"
+              onClick={handleSubmit}
               className="btn bg-primary block disabled:opacity-50"
               disabled={!canSubmit || !Object.values(samples).some(_ => _) || !markers.length}
             >

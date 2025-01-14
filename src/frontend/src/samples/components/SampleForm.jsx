@@ -6,7 +6,7 @@ import AsyncSelect from "react-select/async";
 import AsyncCreatableSelect from "react-select/async-creatable";
 
 import toast from "react-hot-toast";
-import PastableArrayInput from "./PastableArrayInput";
+import PastableArrayInput from "../../helpers/PastableArrayInput";
 
 const speciesOptions = async (input) => {
   let base = `/api/species/?ext_order=${config.order}`;

@@ -15,125 +15,92 @@ import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
 import IndeterminateCheckbox from "./IndeterminateCheckbox";
-// import toast from "react-hot-toast";
-// import { AxiosError } from "axios";
+import Filters from "./Filters";
 
-async function getSamples({ pageParam }) {
-  const url = pageParam || `/api/samples/?order__status=completed`;
+async function getSamples({ pageParam, filters }) {
+  const url =
+    pageParam ||
+    `/api/samples/?${["order__status=completed", filters]
+      .filter((_) => _)
+      .join("&")}`;
   const response = await client.get(url);
   return response.data;
 }
 
 const columnHelper = createColumnHelper();
 
-// const speciesOptions = async (input) => {
-//   return (
-//     await client.get(
-//       `/api/species/?ext_order=${config.order}&name__icontains=${input}`
-//     )
-//   ).data;
-// };
-
-// const sampleTypesOptions = async (input) => {
-//   return (
-//     await client.get(
-//       `/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`
-//     )
-//   ).data;
-// };
-
-// const markersOptions = async (input) => {
-//   return (await client.get(`/api/markers/?order=${config.order}&name__icontains=${input}`)).data;
-// };
-
-// const locationOptions = (species) => async (input) => {
-//   let base = `/api/locations/?order=${config.order}&species=${species?.id}`;
-//   if (input) {
-//     base += `&name__icontains=${input}`;
-//   }
-//   return (await client.get(base)).data;
-// };
-
-// function handleError(e) {
-//   console.error(e);
-
-//   if (e instanceof AxiosError) {
-//     e.response.data.errors.forEach((err) => {
-//       toast.error(err.detail);
-//     });
-//   } else {
-//     toast.error("There was an error");
-//   }
-// }
-
 export default function Table({ rowSelection, setRowSelection }) {
   const tableContainerRef = useRef(null);
-  // const queryClient = useQueryClient();s
+  const [filters, setFilters] = useState("");
+  // const queryClient = useQueryClient();
 
-  const columns = useMemo(() => [
-    {
-      id: 'select',
-      size: 50,
-      header: ({ table }) => (
-        <IndeterminateCheckbox
-          {...{
-            checked: table.getIsAllRowsSelected(),
-            indeterminate: table.getIsSomeRowsSelected(),
-            onChange: table.getToggleAllRowsSelectedHandler(),
-          }}
-        />
-      ),
-      cell: ({ row }) => (
-        <div className="px-1">
+  const columns = useMemo(
+    () => [
+      {
+        id: "select",
+        size: 50,
+        header: ({ table }) => (
           <IndeterminateCheckbox
             {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler(),
+              checked: table.getIsAllRowsSelected(),
+              indeterminate: table.getIsSomeRowsSelected(),
+              onChange: table.getToggleAllRowsSelectedHandler(),
             }}
           />
-        </div>
-      ),
-    },
-    columnHelper.accessor("genlab_id", {
-      header: "Genlab ID",
-    }),
-    columnHelper.accessor("guid", {
-      header: "GUID",
-      size: 350,
-    }),
-    columnHelper.accessor("name", {
-      header: "Sample Name",
-      size: 350,
-    }),
-    columnHelper.accessor("species.name", {
-      header: "Species",
-    }),
-    columnHelper.accessor("year", {
-      header: "Year",
-      size: 100
-    }),
-    columnHelper.accessor("pop_id", {
-      header: "Pop ID",
-    }),
-    columnHelper.accessor("location", {
-      header: "Location",
-    }),
-    columnHelper.accessor("type.name", {
-      header: "Sample Type",
-    }),
-    columnHelper.accessor("order", {
-      header: "Order",
-    }),
-    columnHelper.accessor("notes", {
-      header: "Notes",
-    }),
-  ], [])
+        ),
+        cell: ({ row }) => (
+          <div className="px-1">
+            <IndeterminateCheckbox
+              {...{
+                checked: row.getIsSelected(),
+                disabled: !row.getCanSelect(),
+                indeterminate: row.getIsSomeSelected(),
+                onChange: row.getToggleSelectedHandler(),
+              }}
+            />
+          </div>
+        ),
+      },
+      columnHelper.accessor("genlab_id", {
+        header: "Genlab ID",
+      }),
+      columnHelper.accessor("guid", {
+        header: "GUID",
+        size: 350,
+      }),
+      columnHelper.accessor("name", {
+        header: "Sample Name",
+        size: 350,
+      }),
+      columnHelper.accessor("species.name", {
+        header: "Species",
+      }),
+      columnHelper.accessor("year", {
+        header: "Year",
+        size: 100,
+      }),
+      columnHelper.accessor("pop_id", {
+        header: "Pop ID",
+      }),
+      columnHelper.accessor("location", {
+        header: "Location",
+      }),
+      columnHelper.accessor("type.name", {
+        header: "Sample Type",
+      }),
+      columnHelper.accessor("order", {
+        header: "Order",
+      }),
+      columnHelper.accessor("notes", {
+        header: "Notes",
+      }),
+    ],
+    []
+  );
 
   const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
-    queryKey: ["samples"],
-    queryFn: getSamples,
+    queryKey: ["samples", filters],
+    queryFn: ({ pageParam }) => getSamples({ filters, pageParam }),
     getNextPageParam: (lastGroup) => lastGroup.next,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
@@ -185,11 +152,8 @@ export default function Table({ rowSelection, setRowSelection }) {
     state: {
       rowSelection,
     },
-    getRowId: row => row.id,
+    getRowId: (row) => row.id,
     enableRowSelection: true,
-    meta: {
-      // updateData: updateCell.mutateAsync,
-    },
   });
 
   const { rows } = table.getRowModel();
@@ -209,6 +173,17 @@ export default function Table({ rowSelection, setRowSelection }) {
 
   return (
     <>
+      <div className="p-4 bg-white mb-2 rounded">
+        <Filters
+          onSearch={(newFilters) => {
+            if (newFilters != filters) {
+              setFilters(newFilters);
+              setRowSelection({});
+            }
+          }}
+        />
+      </div>
+
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div
           className="overflow-auto"
@@ -260,7 +235,9 @@ export default function Table({ rowSelection, setRowSelection }) {
                     data-index={virtualRow.index} //needed for dynamic row height measurement
                     ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                     key={row.id}
-                    className={`flex absolute w-full ${row.getIsSelected() ? 'bg-yellow-200' : ''}`}
+                    className={`flex absolute w-full ${
+                      row.getIsSelected() ? "bg-yellow-200" : ""
+                    }`}
                     style={{
                       transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
                     }}

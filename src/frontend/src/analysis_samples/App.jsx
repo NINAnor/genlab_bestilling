@@ -20,8 +20,7 @@ function App() {
         </div>
       </div>
       <Toaster />
-      <div className="p-4 bg-white mb-2 rounded">{/* <SampleForm /> */}</div>
-      <SearchApplyMarker />
+    <SearchApplyMarker />
       <h3 className="text-4xl font-bold pt-4 mb-4">Selected Samples</h3>
       <OrderMarker />
     </QueryClientProvider>

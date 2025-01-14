@@ -6,7 +6,17 @@ from .models import Location, Marker, Sample, SampleMarkerAnalysis, SampleType, 
 class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
-        fields = ["order", "species", "order__status"]
+        fields = {
+            "order": ["exact"],
+            "species": ["exact"],
+            "order__status": ["exact"],
+            "year": ["exact"],
+            "type": ["exact"],
+            "location": ["exact"],
+            "name": ["istartswith"],
+            "genlab_id": ["istartswith"],
+            "guid": ["in"],
+        }
 
 
 class BaseOrderFilter(filters.FilterSet):

@@ -414,7 +414,7 @@ class AnalysisOrder(Order):
 
             for marker in self.markers.all():
                 for sample in self.from_order.samples.filter(
-                    species__in=marker.species_set.all()
+                    species__in=marker.species.all()
                 ):
                     SampleMarkerAnalysis.objects.update_or_create(
                         sample=sample,

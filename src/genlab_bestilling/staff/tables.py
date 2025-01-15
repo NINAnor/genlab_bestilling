@@ -145,10 +145,17 @@ class SampleTable(SampleBaseTable):
 
 
 class PlateTable(tables.Table):
+    id = tables.Column(
+        linkify=("staff:plates-detail", {"pk": tables.A("id")}),
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta:
         model = ExtractionPlate
         fields = (
             "id",
+            "name",
             "created_at",
             "last_updated_at",
             "samples_count",

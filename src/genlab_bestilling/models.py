@@ -563,3 +563,6 @@ class AnalysisResult(models.Model):
     result_file = models.FileField(null=True, blank=True)
     samples = models.ManyToManyField("Sample", blank=True)
     extra = models.JSONField(null=True, blank=True)
+    order = models.ForeignKey(
+        "AnalysisOrder", null=True, blank=True, on_delete=models.SET_NULL
+    )

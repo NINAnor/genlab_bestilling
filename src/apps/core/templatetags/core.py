@@ -11,15 +11,20 @@ def verbose_name(instance):
 
 
 def render(field, instance):
-    v = getattr(instance, field.name)
+    try:
+        v = getattr(instance, field.name)
 
-    if isinstance(field, djfields.related.ManyToManyField):
-        return field.verbose_name or field.name, ", ".join([str(e) for e in v.all()])
+        if isinstance(field, djfields.related.ManyToManyField):
+            return field.verbose_name or field.name, ", ".join(
+                [str(e) for e in v.all()]
+            )
 
-    if isinstance(field, djfields.related.ManyToOneRel):
+        if isinstance(field, djfields.related.ManyToOneRel):
+            return None, None
+
+        return field.verbose_name or field.name, str(v)
+    except AttributeError:
         return None, None
-
-    return field.verbose_name or field.name, str(v)
 
 
 IGNORED_FIELDS = ["tagged_items"]

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags core %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
+    <div class="flex gap-5 mb-5">
+        {% if object.id %}
+        <a class="btn bg-primary" href=".._/"><i class="fas fa-arrow-left"></i> back</a>
+        {% else %}
+        <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
+        {% endif %}
+    </div>
+    <form method="post">
+        {{ form|crispy }}
+        {% csrf_token %}
+        <button class="btn bg-primary">
+            Send
+        </button>
+    </form>
+{% endblock %}

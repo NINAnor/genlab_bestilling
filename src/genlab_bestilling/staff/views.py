@@ -6,7 +6,7 @@ from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView
+from django.views.generic import CreateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -28,6 +28,7 @@ from .filters import (
     SampleFilter,
     SampleMarkerOrderFilter,
 )
+from .forms import ExtractionPlateForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
@@ -311,3 +312,15 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form):
         return HttpResponseRedirect(self.get_success_url())
+
+
+class ExtractionPlateCreateView(StaffMixin, CreateView):
+    model = ExtractionPlate
+    form_class = ExtractionPlateForm
+
+    def get_success_url(self):
+        return reverse_lazy("staff:plates-list")
+
+
+class ExtractionPlateDetailView(StaffMixin, DetailView):
+    model = ExtractionPlate

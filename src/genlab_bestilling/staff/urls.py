@@ -8,6 +8,8 @@ from .views import (
     EqupimentOrderListView,
     ExtractionOrderDetailView,
     ExtractionOrderListView,
+    ExtractionPlateCreateView,
+    ExtractionPlateDetailView,
     ExtractionPlateListView,
     ManaullyCheckedOrderActionView,
     OrderAnalysisSamplesListView,
@@ -83,5 +85,15 @@ urlpatterns = [
         "orders/plates/",
         ExtractionPlateListView.as_view(),
         name="plates-list",
+    ),
+    path(
+        "orders/plates/create/",
+        ExtractionPlateCreateView.as_view(),
+        name="plates-create",
+    ),
+    path(
+        "orders/plates/<int:pk>/",
+        ExtractionPlateDetailView.as_view(),
+        name="plates-detail",
     ),
 ]

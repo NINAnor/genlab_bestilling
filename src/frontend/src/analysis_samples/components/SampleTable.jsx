@@ -20,7 +20,7 @@ import Filters from "./Filters";
 async function getSamples({ pageParam, filters }) {
   const url =
     pageParam ||
-    `/api/samples/?${["order__status=confirmed", filters]
+    `/api/samples/?${["order__status__not=draft", filters]
       .filter((_) => _)
       .join("&")}`;
   const response = await client.get(url);

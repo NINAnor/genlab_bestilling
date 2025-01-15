@@ -1,9 +1,22 @@
 from django_filters import rest_framework as filters
 
-from .models import Location, Marker, Sample, SampleMarkerAnalysis, SampleType, Species
+from .models import (
+    AnalysisOrder,
+    EquipmentOrder,
+    ExtractionOrder,
+    Location,
+    Marker,
+    Order,
+    Sample,
+    SampleMarkerAnalysis,
+    SampleType,
+    Species,
+)
 
 
 class SampleFilter(filters.FilterSet):
+    order__status__not = filters.CharFilter(method="filter_order_status_not")
+
     class Meta:
         model = Sample
         fields = {
@@ -17,6 +30,9 @@ class SampleFilter(filters.FilterSet):
             "genlab_id": ["istartswith"],
             "guid": ["in"],
         }
+
+    def filter_order_status_not(self, queryset, name, value):
+        return queryset.exclude(order__status=value)
 
 
 class BaseOrderFilter(filters.FilterSet):
@@ -72,3 +88,35 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             "sample__location",
             "sample__pop_id",
         ]
+
+
+class OrderFilter(filters.FilterSet):
+    class Meta:
+        model = Order
+        fields = ("status", "name")
+
+
+class OrderEquipmentFilter(OrderFilter):
+    class Meta:
+        model = EquipmentOrder
+        fields = ("status", "name", "needs_guid")
+
+
+class OrderExtractionFilter(OrderFilter):
+    class Meta:
+        model = ExtractionOrder
+        fields = (
+            "status",
+            "name",
+            "species",
+            "sample_types",
+            "needs_guid",
+            "pre_isolated",
+            "return_samples",
+        )
+
+
+class OrderAnalysisFilter(OrderFilter):
+    class Meta:
+        model = AnalysisOrder
+        fields = ("status", "name")

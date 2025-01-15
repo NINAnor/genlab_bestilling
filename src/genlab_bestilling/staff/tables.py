@@ -136,6 +136,12 @@ class OrderAnalysisSampleTable(tables.Table):
 
 
 class SampleTable(SampleBaseTable):
+    genlab_id = tables.Column(
+        linkify=("staff:samples-detail", {"pk": tables.A("id")}),
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta(SampleBaseTable.Meta):
         fields = SampleBaseTable.Meta.fields + (
             "order",

@@ -206,6 +206,10 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
 
+class SampleDetailView(StaffMixin, DetailView):
+    model = Sample
+
+
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
     model = ExtractionOrder
 

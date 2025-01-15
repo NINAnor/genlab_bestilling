@@ -451,7 +451,11 @@ class SampleMarkerAnalysis(models.Model):
 
 class Sample(models.Model):
     order = models.ForeignKey(
-        "ExtractionOrder", on_delete=models.CASCADE, related_name="samples"
+        "ExtractionOrder",
+        on_delete=models.CASCADE,
+        related_name="samples",
+        null=True,
+        blank=True,
     )
     guid = models.CharField(max_length=200, null=True, blank=True)
     name = models.CharField(null=True, blank=True)
@@ -552,6 +556,9 @@ class ExtractionPlate(models.Model):
     last_modified_at = models.DateTimeField(auto_now=True)
     # freezer
     # shelf
+
+    def __str__(self):
+        return f"#P{self.id}" + f" - {self.name}" if self.name else ""
 
 
 class AnalysisResult(models.Model):

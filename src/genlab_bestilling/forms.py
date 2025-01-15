@@ -80,6 +80,8 @@ class GenrequestForm(FormMixin, forms.ModelForm):
                 search_lookup="name_icontains",
                 filter_by={"species": "species__id"},
             ),
+            "expected_analysis_delivery_date": DateInput(),
+            "expected_samples_delivery_date": DateInput(),
         }
 
 

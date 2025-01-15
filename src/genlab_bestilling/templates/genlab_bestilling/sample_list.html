@@ -14,7 +14,7 @@
         {% endif %}
 
         {% if object.status != 'draft' %}
-        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}">Analyze this samples</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}">Analyze this samples</a>
         {% endif %}
     </div>
 {% endblock %}

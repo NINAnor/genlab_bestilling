@@ -1,0 +1,11 @@
+{% extends "genlab_bestilling/base_filter.html" %}
+{% load neapolitan %}
+{% load render_table from django_tables2 %}
+
+{% block page-title %}Equipment Orders relative to {{ genrequest }}{% endblock page-title %}
+{% block page-inner %}
+<div class="flex gap-5 mb-5">
+    <a class="btn bg-primary" href="{% url 'genrequest-detail' pk=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
+    <a class="btn bg-primary" href="{% url 'genrequest-equipment-create' genrequest_id=genrequest.id %}"><i class="fas fa-plus"></i> Equipment order</a>
+</div>
+{% endblock page-inner %}

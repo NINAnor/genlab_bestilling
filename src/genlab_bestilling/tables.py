@@ -1,11 +1,39 @@
 import django_tables2 as tables
 
-from .models import Genrequest, Order, Sample
+from .models import (
+    AnalysisOrder,
+    EquipmentOrder,
+    ExtractionOrder,
+    Genrequest,
+    Order,
+    Sample,
+)
 
 
-class OrderTable(tables.Table):
-    polymorphic_ctype = tables.Column(verbose_name="Type")
+class BaseOrderTable(tables.Table):
     id = tables.Column(linkify=True, orderable=False, empty_values=())
+
+    class Meta:
+        model = Order
+        fields = (
+            "name",
+            "status",
+            "created_at",
+            "last_modified_at",
+        )
+        sequence = (
+            "id",
+            "name",
+            "status",
+        )
+        empty_text = "No Orders"
+
+    def render_id(self, record):
+        return str(record)
+
+
+class OrderTable(BaseOrderTable):
+    polymorphic_ctype = tables.Column(verbose_name="Type")
 
     class Meta:
         model = Order
@@ -103,3 +131,46 @@ class AnalysisSampleTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
+
+
+class AnalysisOrderTable(BaseOrderTable):
+    id = tables.Column(
+        linkify=True,
+        orderable=False,
+        empty_values=(),
+    )
+
+    class Meta(BaseOrderTable.Meta):
+        model = AnalysisOrder
+        fields = BaseOrderTable.Meta.fields + ("return_samples",)
+
+
+class ExtractionOrderTable(BaseOrderTable):
+    id = tables.Column(
+        linkify=True,
+        orderable=False,
+        empty_values=(),
+    )
+
+    class Meta(BaseOrderTable.Meta):
+        model = ExtractionOrder
+        fields = BaseOrderTable.Meta.fields + (
+            "species",
+            "sample_types",
+            "internal_status",
+            "needs_guid",
+            "return_samples",
+            "pre_isolated",
+        )
+
+
+class EquipmentOrderTable(BaseOrderTable):
+    id = tables.Column(
+        linkify=True,
+        orderable=False,
+        empty_values=(),
+    )
+
+    class Meta(BaseOrderTable.Meta):
+        model = EquipmentOrder
+        fields = BaseOrderTable.Meta.fields + ("needs_guid", "sample_types")

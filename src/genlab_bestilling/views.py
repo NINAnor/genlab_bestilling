@@ -18,7 +18,8 @@ from django.views.generic import (
     UpdateView,
 )
 from django.views.generic.detail import SingleObjectMixin
-from django_tables2.views import SingleTableView
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin, SingleTableView
 from formset.views import (
     BulkEditCollectionView,
     FormViewMixin,
@@ -28,6 +29,7 @@ from rest_framework.exceptions import ValidationError
 from view_breadcrumbs import BaseBreadcrumbMixin
 
 from .api.serializers import AnalysisSerializer, ExtractionSerializer
+from .filters import OrderAnalysisFilter, OrderEquipmentFilter
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
@@ -48,7 +50,15 @@ from .models import (
     Sample,
     SampleMarkerAnalysis,
 )
-from .tables import AnalysisSampleTable, GenrequestTable, OrderTable, SampleTable
+from .tables import (
+    AnalysisOrderTable,
+    AnalysisSampleTable,
+    EquipmentOrderTable,
+    ExtractionOrderTable,
+    GenrequestTable,
+    OrderTable,
+    SampleTable,
+)
 
 
 class ActionView(FormView):
@@ -251,6 +261,87 @@ class GenrequestOrderListView(GenrequestNestedMixin, SingleTableView):
         return super().get_queryset().select_related("genrequest", "polymorphic_ctype")
 
 
+class GenrequestEquipmentOrderListView(
+    GenrequestNestedMixin, SingleTableMixin, FilterView
+):
+    model = EquipmentOrder
+    table_class = EquipmentOrderTable
+    filterset_class = OrderEquipmentFilter
+
+    @cached_property
+    def gen_crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "genrequest-order-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("genrequest")
+
+
+class GenrequestExtractionOrderListView(
+    GenrequestNestedMixin, SingleTableMixin, FilterView
+):
+    model = ExtractionOrder
+    table_class = ExtractionOrderTable
+    filterset_class = OrderEquipmentFilter
+
+    @cached_property
+    def gen_crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "genrequest-order-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("genrequest")
+
+
+class GenrequestAnalysisOrderListView(
+    GenrequestNestedMixin, SingleTableMixin, FilterView
+):
+    model = AnalysisOrder
+    table_class = AnalysisOrderTable
+    filterset_class = OrderAnalysisFilter
+
+    @cached_property
+    def gen_crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "genrequest-order-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        return super().get_queryset().select_related("genrequest")
+
+
 class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
     model = EquipmentOrder
 
@@ -264,7 +355,13 @@ class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
                     kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
                 ),
             ),
-            (self.model._meta.verbose_name_plural, ""),
+            (
+                self.model._meta.verbose_name_plural,
+                reverse(
+                    "genrequest-equipment-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
             (str(self.object), ""),
         ]
 
@@ -282,7 +379,13 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
                     kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
                 ),
             ),
-            (self.model._meta.verbose_name_plural, ""),
+            (
+                self.model._meta.verbose_name_plural,
+                reverse(
+                    "genrequest-analysis-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
             (str(self.object), ""),
         ]
 
@@ -308,7 +411,13 @@ class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):
                     kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
                 ),
             ),
-            (self.model._meta.verbose_name_plural, ""),
+            (
+                self.model._meta.verbose_name_plural,
+                reverse(
+                    "genrequest-extraction-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
             (str(self.object), ""),
         ]
 
@@ -327,7 +436,13 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
                     kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
                 ),
             ),
-            (self.model._meta.verbose_name_plural, ""),
+            (
+                self.model._meta.verbose_name_plural,
+                reverse(
+                    f"genrequest-{self.object.get_type()}-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
             (str(self.object), self.object.get_absolute_url()),
             ("Delete", ""),
         ]
@@ -436,7 +551,13 @@ class EquipmentOrderEditView(
                     kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
                 ),
             ),
-            (self.model._meta.verbose_name_plural, ""),
+            (
+                self.model._meta.verbose_name_plural,
+                reverse(
+                    f"genrequest-{self.object.get_type()}-list",
+                    kwargs={"genrequest_id": self.kwargs["genrequest_id"]},
+                ),
+            ),
             (str(self.object), self.object.get_absolute_url()),
             ("Update", ""),
         ]

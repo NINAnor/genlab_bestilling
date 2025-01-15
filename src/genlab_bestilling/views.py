@@ -29,7 +29,12 @@ from rest_framework.exceptions import ValidationError
 from view_breadcrumbs import BaseBreadcrumbMixin
 
 from .api.serializers import AnalysisSerializer, ExtractionSerializer
-from .filters import OrderAnalysisFilter, OrderEquipmentFilter
+from .filters import (
+    OrderAnalysisFilter,
+    OrderEquipmentFilter,
+    OrderExtractionFilter,
+    OrderFilter,
+)
 from .forms import (
     ActionForm,
     AnalysisOrderForm,
@@ -252,9 +257,10 @@ class GenrequestNestedMixin(BaseBreadcrumbMixin, LoginRequiredMixin):
         return kwargs
 
 
-class GenrequestOrderListView(GenrequestNestedMixin, SingleTableView):
+class GenrequestOrderListView(GenrequestNestedMixin, SingleTableMixin, FilterView):
     model = Order
     table_class = OrderTable
+    filterset_class = OrderFilter
     gen_crumbs = [("Orders", "")]
 
     def get_queryset(self):
@@ -293,7 +299,7 @@ class GenrequestExtractionOrderListView(
 ):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
-    filterset_class = OrderEquipmentFilter
+    filterset_class = OrderExtractionFilter
 
     @cached_property
     def gen_crumbs(self):

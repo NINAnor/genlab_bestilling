@@ -14,6 +14,10 @@ from sqlglot.expressions import (
 from ..models import Sample, Species
 
 
+def get_replica_for_sample():
+    pass
+
+
 def get_current_sequences(order_id):
     samples = (
         Sample.objects.select_related("species")

@@ -328,3 +328,43 @@ class ExtractionPlateCreateView(StaffMixin, CreateView):
 
 class ExtractionPlateDetailView(StaffMixin, DetailView):
     model = ExtractionPlate
+
+
+class SampleReplicaActionView(SingleObjectMixin, ActionView):
+    model = Sample
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("order")
+            .filter(order__status=Order.OrderStatus.CONFIRMED)
+        )
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        try:
+            # TODO: check state transition
+            self.object = self.object.create_replica()
+            messages.add_message(
+                self.request,
+                messages.SUCCESS,
+                _("The sample was replicated"),
+            )
+        except Exception as e:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+            )
+
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse_lazy("staff:samples-detail", kwargs={"id": self.object.pk})
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect(self.get_success_url())

@@ -485,6 +485,13 @@ class Sample(models.Model):
             models.UniqueConstraint(fields=["genlab_id"], name="unique_genlab_id")
         ]
 
+    def create_replica(self):
+        pk = self.id
+        self.id = None
+        self.genlab_id = None
+        self.parent_id = pk
+        self.save()
+
     @property
     def has_error(self):
         if not all(

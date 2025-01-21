@@ -191,7 +191,7 @@ class Genrequest(models.Model):
         )
 
     class Meta:
-        verbose_name = "Genetic Request"
+        verbose_name = "Genetic Project"
 
 
 class Order(PolymorphicModel):
@@ -213,7 +213,10 @@ class Order(PolymorphicModel):
 
     name = models.CharField(null=True, blank=True)
     genrequest = models.ForeignKey(
-        "Genrequest", on_delete=models.CASCADE, related_name="orders"
+        "Genrequest",
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Genetic Project",
     )
     notes = models.TextField(blank=True, null=True)
     status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)

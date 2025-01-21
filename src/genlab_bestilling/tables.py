@@ -41,6 +41,8 @@ class OrderTable(BaseOrderTable):
             "name",
             "status",
             "polymorphic_ctype",
+            "genrequest",
+            "genrequest__project",
             "created_at",
             "last_modified_at",
         )
@@ -76,7 +78,7 @@ class GenrequestTable(tables.Table):
             "tags",
         )
 
-        empty_text = "No requests"
+        empty_text = "No projects"
 
     def render_tags(self, record):
         return ",".join(map(str, record.tags.all()))
@@ -142,7 +144,11 @@ class AnalysisOrderTable(BaseOrderTable):
 
     class Meta(BaseOrderTable.Meta):
         model = AnalysisOrder
-        fields = BaseOrderTable.Meta.fields + ("return_samples",)
+        fields = BaseOrderTable.Meta.fields + (
+            "genrequest",
+            "genrequest__project",
+            "return_samples",
+        )
 
 
 class ExtractionOrderTable(BaseOrderTable):
@@ -161,6 +167,8 @@ class ExtractionOrderTable(BaseOrderTable):
             "needs_guid",
             "return_samples",
             "pre_isolated",
+            "genrequest",
+            "genrequest__project",
         )
 
 

@@ -2,10 +2,12 @@
 {% load neapolitan %}
 {% load render_table from django_tables2 %}
 
-{% block page-title %}Extraction Orders relative to {{ genrequest }}{% endblock page-title %}
+{% block page-title %}Extraction Orders{% if genrequest %} relative to {{ genrequest }}{% endif %}{% endblock page-title %}
 {% block page-inner %}
 <div class="flex gap-5 mb-5">
+    {% if genrequest %}
     <a class="btn bg-primary" href="{% url 'genrequest-detail' pk=genrequest.id %}"><i class="fas fa-arrow-left"></i> back</a>
     <a class="btn bg-primary" href="{% url 'genrequest-extraction-create' genrequest_id=genrequest.id %}"><i class="fas fa-plus"></i> Equipment order</a>
+    {% endif %}
 </div>
 {% endblock page-inner %}

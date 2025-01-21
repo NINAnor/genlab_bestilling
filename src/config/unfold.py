@@ -58,7 +58,7 @@ ORGS_LINK = {
 #     "link": reverse_lazy("admin:genlab_bestilling_equipmentorder_changelist"),
 # }
 GENREQUEST_LINK = {
-    "title": _("Requests"),
+    "title": _("Genetic projects"),
     "icon": "inbox",
     "link": reverse_lazy("admin:genlab_bestilling_genrequest_changelist"),
 }

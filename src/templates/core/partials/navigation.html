@@ -16,9 +16,11 @@
       {% if user.is_authenticated %}
         {% if user.is_genlab_staff %}
           <div class="">
+            <i class="fas fa-wrench"></i>
             <a href="{% url 'staff:dashboard' %}">Staff</a>
           </div>
         {% endif %}
+        {% include 'core/partials/app-dropdown.html' %}
         {% include 'core/partials/user-dropdown.html' %}
       {% else %}
         <a href="{% url 'account_login' %}">Login</a>

@@ -267,6 +267,20 @@ class GenrequestOrderListView(GenrequestNestedMixin, SingleTableMixin, FilterVie
         return super().get_queryset().select_related("genrequest", "polymorphic_ctype")
 
 
+class OrderListView(SingleTableMixin, FilterView):
+    model = Order
+    table_class = OrderTable
+    filterset_class = OrderFilter
+    crumbs = [("Orders", "")]
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("genrequest", "polymorphic_ctype", "genrequest__project")
+        )
+
+
 class GenrequestEquipmentOrderListView(
     GenrequestNestedMixin, SingleTableMixin, FilterView
 ):
@@ -292,6 +306,30 @@ class GenrequestEquipmentOrderListView(
 
     def get_queryset(self):
         return super().get_queryset().select_related("genrequest")
+
+
+class EquipmentOrderListView(SingleTableMixin, FilterView):
+    model = EquipmentOrder
+    table_class = EquipmentOrderTable
+    filterset_class = OrderEquipmentFilter
+
+    @cached_property
+    def crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "order-list",
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        super().get_queryset().select_related("genrequest", "genrequest__project")
 
 
 class GenrequestExtractionOrderListView(
@@ -321,6 +359,32 @@ class GenrequestExtractionOrderListView(
         return super().get_queryset().select_related("genrequest")
 
 
+class ExtractionOrderListView(SingleTableMixin, FilterView):
+    model = ExtractionOrder
+    table_class = ExtractionOrderTable
+    filterset_class = OrderExtractionFilter
+
+    @cached_property
+    def crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "order-list",
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        return (
+            super().get_queryset().select_related("genrequest", "genrequest__project")
+        )
+
+
 class GenrequestAnalysisOrderListView(
     GenrequestNestedMixin, SingleTableMixin, FilterView
 ):
@@ -345,7 +409,35 @@ class GenrequestAnalysisOrderListView(
         ]
 
     def get_queryset(self):
-        return super().get_queryset().select_related("genrequest")
+        return (
+            super().get_queryset().select_related("genrequest", "genrequest__project")
+        )
+
+
+class AnalysisOrderListView(SingleTableMixin, FilterView):
+    model = AnalysisOrder
+    table_class = AnalysisOrderTable
+    filterset_class = OrderAnalysisFilter
+
+    @cached_property
+    def crumbs(self):
+        return [
+            (
+                "Orders",
+                reverse(
+                    "order-list",
+                ),
+            ),
+            (
+                self.model._meta.verbose_name_plural,
+                "",
+            ),
+        ]
+
+    def get_queryset(self):
+        return (
+            super().get_queryset().select_related("genrequest", "genrequest__project")
+        )
 
 
 class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):

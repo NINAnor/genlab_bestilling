@@ -13,7 +13,7 @@
         <a class="ml-auto btn bg-blue-300" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">edit samples</a>
         {% endif %}
 
-        {% if object.status != 'draft' %}
+        {% if extraction.status != 'draft' %}
         <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}">Analyze this samples</a>
         {% endif %}
     </div>

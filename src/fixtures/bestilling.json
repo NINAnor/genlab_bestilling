@@ -45,7 +45,7 @@
         "model": "genlab_bestilling.equipmenttype",
         "pk": 1,
         "fields": {
-            "name": "Enkeltrør 1.5mL",
+            "name": "Enkeltrør (all volumes)",
             "unit": ""
         }
     },
@@ -53,79 +53,39 @@
         "model": "genlab_bestilling.equipmenttype",
         "pk": 2,
         "fields": {
-            "name": "Enkeltrør 2.0mL",
-            "unit": ""
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 3,
-        "fields": {
-            "name": "Enkeltrør 5.0mL",
-            "unit": ""
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 4,
-        "fields": {
-            "name": "Enkeltrør 15mL",
-            "unit": ""
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 5,
-        "fields": {
-            "name": "Enkeltrør 50mL",
-            "unit": ""
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 6,
-        "fields": {
             "name": "Plate 96 rør",
             "unit": ""
         }
     },
     {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 7,
+        "model": "genlab_bestilling.equipmentbuffer",
+        "pk": 1,
         "fields": {
             "name": "Tørt",
             "unit": "uL"
         }
     },
     {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 8,
+        "model": "genlab_bestilling.equipmentbuffer",
+        "pk": 2,
         "fields": {
             "name": "Etanol",
             "unit": "uL"
         }
     },
     {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 9,
+        "model": "genlab_bestilling.equipmentbuffer",
+        "pk": 3,
         "fields": {
             "name": "ATL-buffer",
             "unit": "uL"
         }
     },
     {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 10,
+        "model": "genlab_bestilling.equipmentbuffer",
+        "pk": 4,
         "fields": {
             "name": "TE-buffer",
-            "unit": "uL"
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 11,
-        "fields": {
-            "name": "Annet",
             "unit": "uL"
         }
     }

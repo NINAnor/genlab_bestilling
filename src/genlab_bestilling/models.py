@@ -271,14 +271,41 @@ class EquipmentType(models.Model):
         return f"{self.name} ({self.unit})" if self.unit else self.name
 
 
+class EquipmentBuffer(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    unit = models.CharField(max_length=50)
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.unit or 'uL'})"
+
+
 class EquimentOrderQuantity(models.Model):
     equipment = models.ForeignKey(
-        "EquipmentType", on_delete=models.CASCADE, related_name="orders"
+        "EquipmentType",
+        on_delete=models.CASCADE,
+        related_name="orders",
+        null=True,
+        blank=True,
     )
     order = models.ForeignKey(
         "EquipmentOrder", on_delete=models.CASCADE, related_name="equipments"
     )
-    quantity = models.DecimalField(decimal_places=4, max_digits=14)
+    buffer = models.ForeignKey(
+        "EquipmentBuffer",
+        on_delete=models.CASCADE,
+        related_name="order_quantities",
+        null=True,
+        blank=True,
+    )
+    buffer_quantity = models.DecimalField(
+        decimal_places=4,
+        max_digits=14,
+        null=True,
+        blank=True,
+        help_text="How much buffer do you need? the value should be in uL",
+        verbose_name="Buffer volume",
+    )
+    quantity = models.DecimalField(decimal_places=4, max_digits=14, default=1)
 
     objects = managers.EquipmentOrderQuantityQuerySet.as_manager()
 

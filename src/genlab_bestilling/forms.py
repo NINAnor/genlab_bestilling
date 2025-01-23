@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db import transaction
 
 # from django.core.exceptions import ValidationError
@@ -9,7 +10,7 @@ from django.forms.renderers import BaseRenderer
 from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DualSortableSelector, Selectize
+from formset.widgets import DualSortableSelector, Selectize, TextInput
 from nina.models import Project
 
 from .libs.formset import ContextFormCollection
@@ -137,9 +138,9 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "tags",
         )
         widgets = {
-            "species": DualSortableSelector(
-                search_lookup="name_icontains",
-            ),
+            # "species": DualSortableSelector(
+            #     search_lookup="name_icontains",
+            # ),
             "sample_types": DualSortableSelector(search_lookup="name_icontains"),
         }
 
@@ -158,11 +159,24 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
             self.save_m2m()
         return obj
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not cleaned_data["equipment"] and not cleaned_data["buffer"]:
+            raise ValidationError("Equipment and/or Buffer should be filled")
+
     class Meta:
         model = EquimentOrderQuantity
-        fields = ("id", "equipment", "quantity")
+        fields = ("id", "equipment", "buffer", "buffer_quantity", "quantity")
         widgets = {
             "equipment": Selectize(search_lookup="name_icontains"),
+            "buffer": Selectize(search_lookup="name_icontains"),
+            "buffer_quantity": TextInput(
+                attrs={
+                    "df-show": ".buffer!=''",
+                    "required": ".buffer!=''",
+                }
+            ),
         }
 
 
@@ -179,6 +193,8 @@ class EquipmentQuantityCollection(ContextFormCollection):
             except (AttributeError, EquimentOrderQuantity.DoesNotExist, ValueError):
                 return EquimentOrderQuantity(
                     equipment_id=data.get("equipment"),
+                    buffer_id=data.get("buffer"),
+                    buffer_quantity=data.get("buffer_quantity"),
                     quantity=data.get("quantity"),
                 )
 

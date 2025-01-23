@@ -45,14 +45,6 @@
         "model": "genlab_bestilling.equipmenttype",
         "pk": 1,
         "fields": {
-            "name": "Enkeltrør (all volumes)",
-            "unit": ""
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmenttype",
-        "pk": 2,
-        "fields": {
             "name": "Plate 96 rør",
             "unit": ""
         }

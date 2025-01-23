@@ -396,17 +396,6 @@ export default function Table() {
         <a href="../../" className="btn bg-yellow-200">
           Back
         </a>
-        <a href="../" className="btn bg-yellow-200">
-          Summary
-        </a>
-        <button
-          className="btn bg-secondary disabled:opacity-70 text-white"
-          onClick={mutateConfirm.mutate}
-          disabled={pendingState}
-        >
-          Validate samples{" "}
-          {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
-        </button>
         <button
           className="btn bg-red-500 disabled:opacity-70 text-white"
           onClick={askConfirm(mutateDeleteAllRows.mutate)}
@@ -415,6 +404,17 @@ export default function Table() {
           Delete all samples{" "}
           {mutateDeleteAllRows.isPending && <i className="fas fa-spinner fa-spin" />}
         </button>
+        <button
+          className="btn bg-secondary disabled:opacity-70 text-white"
+          onClick={mutateConfirm.mutate}
+          disabled={pendingState}
+        >
+          Validate samples{" "}
+          {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
+        </button>
+        <a href="../" className="btn bg-yellow-200">
+          Continue to summary
+        </a>
       </div>
     </>
   );

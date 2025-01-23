@@ -15,7 +15,7 @@ function App() {
             Back
           </a>
           <a href="../" className="btn bg-yellow-200">
-            Summary
+            Continue to summary
           </a>
         </div>
       </div>

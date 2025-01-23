@@ -316,6 +316,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         with transaction.atomic():
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
+            if obj.from_order and not obj.name and obj.from_order.name:
+                obj.name = obj.from_order.name + " - Analysis"
             obj.save()
             self.save_m2m()
             obj.populate_from_order()

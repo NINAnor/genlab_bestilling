@@ -4,8 +4,6 @@ from typing import Any
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import transaction
-
-# from django.core.exceptions import ValidationError
 from django.forms.renderers import BaseRenderer
 from django.forms.utils import ErrorList
 from formset.renderers.tailwind import FormRenderer
@@ -301,8 +299,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         if "from_order" in self.fields:
             self.fields["from_order"].queryset = ExtractionOrder.objects.filter(
                 genrequest_id=genrequest.id,
-                status=Order.OrderStatus.CONFIRMED,
-            )
+            ).exclude(status=Order.OrderStatus.DRAFT)
             self.fields["from_order"].help_text = (
                 "All the samples will be included in this analysis,"
                 + " for each sample the appropriate markers"

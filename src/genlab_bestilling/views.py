@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models.base import Model as Model
 from django.db.models.query import QuerySet
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -768,6 +768,29 @@ class AnalysisOrderCreateView(
 ):
     form_class = AnalysisOrderForm
     model = AnalysisOrder
+
+    def get_initial(self):
+        initial = super().get_initial()
+
+        if "from_order" in self.request.GET:
+            try:
+                order = (
+                    ExtractionOrder.objects.filter(
+                        genrequest_id=self.kwargs["genrequest_id"],
+                        id=self.request.GET["from_order"],
+                    )
+                    .exclude(status=Order.OrderStatus.DRAFT)
+                    .get()
+                )
+                initial["from_order"] = order
+                initial["customize_markers"] = False
+                initial["name"] = order.name + " - Analysis" if order.name else ""
+            except ExtractionOrder.DoesNotExist as err:
+                raise Http404(
+                    f"Order {self.request.GET['from_order']} not found"
+                ) from err
+
+        return initial
 
     @cached_property
     def gen_crumbs(self):

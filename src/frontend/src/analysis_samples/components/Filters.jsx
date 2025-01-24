@@ -34,7 +34,14 @@ export default function Filters({ onSearch }) {
   const { handleSubmit, Field, Subscribe } = useForm({
     onSubmit: ({ value, formApi }) => {
       let o = Object.fromEntries(
-        Object.entries(value).filter(([_, v]) => v != null)
+        Object.entries(value)
+          .filter(([_, v]) => v != null && typeof v !== "undefined" && (Array.isArray(v) ? v.length : true))
+          .map(([k,v]) => {
+          if (typeof v === 'object') {
+            return [k, v.id]
+          }
+          return [k,v]
+        })
       );
       if (Object.keys(o)) {
         onSearch(new URLSearchParams(o).toString());

@@ -82,7 +82,7 @@ export default function Table({ rowSelection, setRowSelection }) {
       columnHelper.accessor("pop_id", {
         header: "Pop ID",
       }),
-      columnHelper.accessor("location", {
+      columnHelper.accessor("location.name", {
         header: "Location",
       }),
       columnHelper.accessor("type.name", {

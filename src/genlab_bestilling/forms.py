@@ -320,6 +320,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             obj.populate_from_order()
             return obj
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if not cleaned_data["customize_markers"] and not cleaned_data["from_order"]:
+            raise ValidationError("An extraction order must be selected")
+
     class Meta:
         model = AnalysisOrder
         fields = (
@@ -338,7 +344,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 search_lookup="id",
                 attrs={
                     "df-show": ".customize_markers=='False'",
-                    "required": ".customize_markers=='False'",
                 },
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),

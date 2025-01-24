@@ -6,7 +6,7 @@
 {% block content %}
     {% fragment as table_header %}
     {% #table-cell header=True %}Equipment{% /table-cell %}
-    {% #table-cell header=True %}Unit{% /table-cell %}
+    {% #table-cell header=True %}Buffer{% /table-cell %}
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
@@ -22,8 +22,8 @@
     {% #table headers=table_header %}
         {% for oq in object.equipments.all %}
             <tr>
-                {% #table-cell %}{{ oq.equipment.name }}{% /table-cell %}
-                {% #table-cell %}{{ oq.equipment.unit }}{% /table-cell %}
+                {% #table-cell %}{{ oq.equipment.name }} ({{ oq.equipment.unit }}){% /table-cell %}
+                {% #table-cell %}{{ oq.buffer.name }} {{ oq.buffer_quantity}} {{ oq.buffer.unit }}{% /table-cell %}
                 {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
             </tr>
         {% empty %}

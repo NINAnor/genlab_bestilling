@@ -331,6 +331,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "tags",
         )
         widgets = {
+            "name": TextInput(
+                attrs={"df-show": ".from_order==''||.customize_markers=='True'"}
+            ),
             "from_order": Selectize(
                 search_lookup="id",
                 attrs={

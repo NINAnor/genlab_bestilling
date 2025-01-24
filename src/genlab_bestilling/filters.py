@@ -99,30 +99,44 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 class OrderFilter(filters.FilterSet):
     class Meta:
         model = Order
-        fields = ("status", "name")
+        fields = {
+            "status": ["exact"],
+            "name": ["istartswith"],
+            "genrequest__project__number": ["exact"],
+        }
 
 
 class OrderEquipmentFilter(OrderFilter):
     class Meta:
         model = EquipmentOrder
-        fields = ("status", "name", "needs_guid")
+        fields = {
+            "status": ["exact"],
+            "name": ["istartswith"],
+            "genrequest__project__number": ["exact"],
+            "needs_guid": ["exact"],
+        }
 
 
 class OrderExtractionFilter(OrderFilter):
     class Meta:
         model = ExtractionOrder
-        fields = (
-            "status",
-            "name",
-            "species",
-            "sample_types",
-            "needs_guid",
-            "pre_isolated",
-            "return_samples",
-        )
+        fields = {
+            "status": ["exact"],
+            "name": ["istartswith"],
+            "genrequest__project__number": ["exact"],
+            "species": ["exact"],
+            "sample_types": ["exact"],
+            "needs_guid": ["exact"],
+            "pre_isolated": ["exact"],
+            "return_samples": ["exact"],
+        }
 
 
 class OrderAnalysisFilter(OrderFilter):
     class Meta:
         model = AnalysisOrder
-        fields = ("status", "name")
+        fields = {
+            "status": ["exact"],
+            "name": ["istartswith"],
+            "genrequest__project__number": ["exact"],
+        }

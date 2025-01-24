@@ -17,10 +17,12 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import IndeterminateCheckbox from "./IndeterminateCheckbox";
 import Filters from "./Filters";
 
-async function getSamples({ pageParam, filters }) {
+async function getSamples({ pageParam, filters, markers }) {
+  const joinMarkers = markers.map(m => 'markers=' + m.name);
+
   const url =
     pageParam ||
-    `/api/samples/?${["order__status__not=draft", filters]
+    `/api/samples/?${["order__status__not=draft", filters, ...joinMarkers]
       .filter((_) => _)
       .join("&")}`;
   const response = await client.get(url);
@@ -29,10 +31,12 @@ async function getSamples({ pageParam, filters }) {
 
 const columnHelper = createColumnHelper();
 
-export default function Table({ rowSelection, setRowSelection }) {
+export default function Table({ rowSelection, setRowSelection, markers }) {
   const tableContainerRef = useRef(null);
   const [filters, setFilters] = useState("");
   // const queryClient = useQueryClient();
+
+  console.log(markers)
 
   const columns = useMemo(
     () => [
@@ -99,8 +103,8 @@ export default function Table({ rowSelection, setRowSelection }) {
   );
 
   const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
-    queryKey: ["samples", filters],
-    queryFn: ({ pageParam }) => getSamples({ filters, pageParam }),
+    queryKey: ["samples", filters, markers],
+    queryFn: ({ pageParam }) => getSamples({ filters, pageParam, markers }),
     getNextPageParam: (lastGroup) => lastGroup.next,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,

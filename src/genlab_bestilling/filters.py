@@ -16,6 +16,9 @@ from .models import (
 
 class SampleFilter(filters.FilterSet):
     order__status__not = filters.CharFilter(method="filter_order_status_not")
+    markers = filters.ModelMultipleChoiceFilter(
+        method="filter_markers_in_list", queryset=Marker.objects.all()
+    )
 
     class Meta:
         model = Sample
@@ -30,6 +33,9 @@ class SampleFilter(filters.FilterSet):
             "genlab_id": ["istartswith"],
             "guid": ["in"],
         }
+
+    def filter_markers_in_list(self, queryset, name, value):
+        return queryset.filter(species__markers__in=value)
 
     def filter_order_status_not(self, queryset, name, value):
         return queryset.exclude(order__status=value)

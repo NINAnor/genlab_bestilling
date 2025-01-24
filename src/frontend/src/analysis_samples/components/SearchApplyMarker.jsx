@@ -58,19 +58,7 @@ export default function SearchApplyMarker() {
       }}
       id="add-rows"
     >
-      <div className="flex mb-4">
-        <Field name="selectedSamples">
-          {({ state, handleChange }) => (
-            <HUIField>
-              <Label className="block">
-                Selected Samples - total: {Object.values(state.value).filter(_ => _).length}
-              </Label>
-              <Table rowSelection={state.value} setRowSelection={handleChange} />
-            </HUIField>
-          )}
-        </Field>
-      </div>
-      <div className="flex gap-8 mb-4">
+      <div className="flex gap-8 items-end">
         <Field name="markers">
           {({ state, handleChange, handleBlur }) => (
             <HUIField>
@@ -91,8 +79,6 @@ export default function SearchApplyMarker() {
             </HUIField>
           )}
         </Field>
-      </div>
-      <div className="flex gap-8 mb-4 items-start">
         <Subscribe
           selector={(state) => [
             state.canSubmit,
@@ -114,6 +100,26 @@ export default function SearchApplyMarker() {
               )}
             </Button>
           )}
+        </Subscribe>
+      </div>
+      <div className="flex my-4">
+        <Subscribe
+            selector={(state) => [
+              state.values.markers,
+            ]}
+          >
+            {([markers]) => (
+          <Field name="selectedSamples">
+            {({ state, handleChange }) => (
+              <HUIField>
+                <Label className="block">
+                  Selected Samples - total: {Object.values(state.value).filter(_ => _).length}
+                </Label>
+                <Table rowSelection={state.value} setRowSelection={handleChange} markers={markers} />
+              </HUIField>
+            )}
+          </Field>
+            )}
         </Subscribe>
       </div>
     </form>

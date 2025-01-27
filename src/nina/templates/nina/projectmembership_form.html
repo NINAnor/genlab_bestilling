@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load core static %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">{{ object }}</h3>
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="{% url 'nina:project-detail' pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back</a>
+    </div>
+    {% formset endpoint=request.path csrf_token=csrf_token form_collection=form_collection %}
+{% endblock %}
+
+{% block body_javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{{ filter.form.media }}
+{% endblock body_javascript %}

@@ -1,3 +1,4 @@
+from apps.users.autocomplete import UserAutocomplete
 from django.urls import path
 from genlab_bestilling.autocomplete import (
     MarkerAutocomplete,
@@ -12,4 +13,5 @@ urlpatterns = [
     path("sample-type/", SampleTypeAutocomplete.as_view(), name="sample-type"),
     path("project/", ProjectAutocomplete.as_view(), name="project"),
     path("marker/", MarkerAutocomplete.as_view(), name="marker"),
+    path("user/", UserAutocomplete.as_view(), name="user"),
 ]

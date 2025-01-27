@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class ProjectMembership(models.Model):
@@ -7,7 +8,9 @@ class ProjectMembership(models.Model):
         MANAGER = "manager", "Manager"
         MEMBER = "member", "Member"
 
-    project = models.ForeignKey("Project", on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        "Project", on_delete=models.CASCADE, related_name="members"
+    )
     user = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="memberships"
     )
@@ -40,3 +43,6 @@ class Project(models.Model):
             return f"{self.number} {self.name}"
 
         return self.number
+
+    def get_absolute_url(self):
+        return reverse("nina:project-detail", kwargs={"pk": self.pk})

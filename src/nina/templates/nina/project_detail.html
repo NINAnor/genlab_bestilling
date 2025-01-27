@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load core %}
+{% load i18n %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<div class="flex items-center mb-5 gap-2">
+  <h3 id="genrequest" class="text-4xl">{{ object }}</h3>
+</div>
+
+<div>
+  {% object-detail object=object %}
+
+  <div class="mt-5">
+    <h4 class="text-3xl">Members</h4>
+
+    {% render_table table %}
+  </div>
+
+  <div class="flex gap-5 my-5">
+    <a class="btn bg-primary" href="{% url 'nina:project-list' %}"
+      ><i class="fas fa-arrow-left"></i> back</a
+    >
+    <a class="btn bg-primary" href="{% url 'nina:project-members-edit' pk=object.pk %}"
+      ><i class="fas fa-edit"></i> Members</a
+    >
+  </div>
+</div>
+{% endblock %}

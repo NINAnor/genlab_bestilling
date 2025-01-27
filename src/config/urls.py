@@ -21,6 +21,7 @@ urlpatterns = [
     path("autocomplete/", include("config.autocomplete", namespace="autocomplete")),
     path("accounts/", include("allauth.urls")),
     path("", include("genlab_bestilling.urls")),
+    path("", include("nina.urls", namespace="nina")),
     path("staff/", include("genlab_bestilling.staff.urls", namespace="staff")),
 ]
 

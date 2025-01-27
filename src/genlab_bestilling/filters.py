@@ -1,3 +1,4 @@
+from dal import autocomplete
 from django_filters import rest_framework as filters
 
 from .models import (
@@ -97,12 +98,18 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
 
 class OrderFilter(filters.FilterSet):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["genrequest__project"].extra["widget"] = (
+            autocomplete.ModelSelect2Multiple(url="autocomplete:project")
+        )
+
     class Meta:
         model = Order
         fields = {
             "status": ["exact"],
             "name": ["istartswith"],
-            "genrequest__project__number": ["exact"],
+            "genrequest__project": ["exact"],
         }
 
 
@@ -112,18 +119,27 @@ class OrderEquipmentFilter(OrderFilter):
         fields = {
             "status": ["exact"],
             "name": ["istartswith"],
-            "genrequest__project__number": ["exact"],
+            "genrequest__project": ["exact"],
             "needs_guid": ["exact"],
         }
 
 
 class OrderExtractionFilter(OrderFilter):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["species"].extra["widget"] = autocomplete.ModelSelect2Multiple(
+            url="autocomplete:species"
+        )
+        self.filters["sample_types"].extra["widget"] = (
+            autocomplete.ModelSelect2Multiple(url="autocomplete:sample-type")
+        )
+
     class Meta:
         model = ExtractionOrder
         fields = {
             "status": ["exact"],
             "name": ["istartswith"],
-            "genrequest__project__number": ["exact"],
+            "genrequest__project": ["exact"],
             "species": ["exact"],
             "sample_types": ["exact"],
             "needs_guid": ["exact"],
@@ -133,10 +149,17 @@ class OrderExtractionFilter(OrderFilter):
 
 
 class OrderAnalysisFilter(OrderFilter):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["markers"].extra["widget"] = autocomplete.ModelSelect2Multiple(
+            url="autocomplete:marker"
+        )
+
     class Meta:
         model = AnalysisOrder
         fields = {
             "status": ["exact"],
             "name": ["istartswith"],
-            "genrequest__project__number": ["exact"],
+            "markers": ["exact"],
+            "genrequest__project": ["exact"],
         }

@@ -117,6 +117,8 @@ THIRD_PARTY_APPS = [
     "drf_standardized_errors",
     "procrastinate.contrib.django",
     "view_breadcrumbs",
+    "dal",
+    "dal_select2",
 ]
 
 LOCAL_APPS = [

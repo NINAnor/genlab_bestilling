@@ -50,7 +50,8 @@ dependencies = [
   "django-formset",
   "django-vite",
   "sqlglot[rs]",
-  "django-view-breadcrumbs"
+  "django-view-breadcrumbs",
+  "django-autocomplete-light"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

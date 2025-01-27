@@ -45,6 +45,46 @@
         "model": "genlab_bestilling.equipmenttype",
         "pk": 1,
         "fields": {
+            "name": "Enkeltrør 1.5mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
+        "pk": 2,
+        "fields": {
+            "name": "Enkeltrør 2.0mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
+        "pk": 3,
+        "fields": {
+            "name": "Enkeltrør 5.0mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
+        "pk": 4,
+        "fields": {
+            "name": "Enkeltrør 15mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
+        "pk": 5,
+        "fields": {
+            "name": "Enkeltrør 50mL",
+            "unit": ""
+        }
+    },
+    {
+        "model": "genlab_bestilling.equipmenttype",
+        "pk": 6,
+        "fields": {
             "name": "Plate 96 rør",
             "unit": ""
         }

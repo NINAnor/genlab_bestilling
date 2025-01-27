@@ -61,6 +61,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
             .select_related(
                 "genrequest",
                 "polymorphic_ctype",
+                "genrequest__samples_owner",
                 "genrequest__project",
                 "genrequest__area",
             )
@@ -78,10 +79,12 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
             .get_queryset()
             .select_related(
                 "genrequest",
+                "genrequest__samples_owner",
                 "polymorphic_ctype",
                 "genrequest__project",
                 "genrequest__area",
             )
+            .prefetch_related("species", "sample_types")
         )
 
 
@@ -112,9 +115,11 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
             .select_related(
                 "genrequest",
                 "polymorphic_ctype",
+                "genrequest__samples_owner",
                 "genrequest__project",
                 "genrequest__area",
             )
+            .prefetch_related("sample_types")
         )
 
 

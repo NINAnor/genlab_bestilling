@@ -230,3 +230,7 @@ ol.breadcrumb > li + ::before {
   border-right: 1px solid;
   background-color: transparent;
 }
+
+.select2-container .select2-selection--single {
+  height: 3.2rem !important;
+}

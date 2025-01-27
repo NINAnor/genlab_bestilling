@@ -100,8 +100,8 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 class OrderFilter(filters.FilterSet):
     def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
         super().__init__(data, queryset, request=request, prefix=prefix)
-        self.filters["genrequest__project"].extra["widget"] = (
-            autocomplete.ModelSelect2Multiple(url="autocomplete:project")
+        self.filters["genrequest__project"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:project"
         )
 
     class Meta:

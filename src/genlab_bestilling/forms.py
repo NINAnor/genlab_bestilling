@@ -323,8 +323,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        if not cleaned_data["customize_markers"] and not cleaned_data["from_order"]:
-            raise ValidationError("An extraction order must be selected")
+        if "customize_markers" in cleaned_data and "from_order" in cleaned_data:
+            if not cleaned_data["customize_markers"] and not cleaned_data["from_order"]:
+                raise ValidationError("An extraction order must be selected")
 
     class Meta:
         model = AnalysisOrder
@@ -363,7 +364,8 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
-        del self.fields["customize_markers"]
+        if "customize_markers" in self.fields:
+            del self.fields["customize_markers"]
 
 
 class ActionForm(forms.Form):

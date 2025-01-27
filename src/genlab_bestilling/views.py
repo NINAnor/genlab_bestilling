@@ -626,6 +626,23 @@ class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView)
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
+        order_type = self.object.get_type()
+        if order_type == "extraction":
+            return reverse(
+                "genrequest-extraction-samples-edit",
+                kwargs={
+                    "pk": self.object.id,
+                    "genrequest_id": self.object.genrequest_id,
+                },
+            )
+        elif order_type == "equipment":
+            return reverse(
+                "genrequest-equipment-quantity-update",
+                kwargs={
+                    "pk": self.object.id,
+                    "genrequest_id": self.object.genrequest_id,
+                },
+            )
         return self.object.get_absolute_url()
 
     def form_invalid(self, form):

@@ -313,6 +313,10 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         with transaction.atomic():
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
+
+            if obj.customize_markers:
+                obj.from_order = None
+
             if obj.from_order and not obj.name and obj.from_order.name:
                 obj.name = obj.from_order.name + " - Analysis"
             obj.save()

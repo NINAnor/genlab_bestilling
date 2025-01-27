@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import include, path, reverse_lazy
 from django.views import defaults as default_views
 from django.views import generic
+from django.views.i18n import JavaScriptCatalog
 
 
 class HomeView(LoginRequiredMixin, generic.RedirectView):
@@ -23,6 +24,11 @@ urlpatterns = [
     path("", include("genlab_bestilling.urls")),
     path("", include("nina.urls", namespace="nina")),
     path("staff/", include("genlab_bestilling.staff.urls", namespace="staff")),
+    path(
+        "jsi18n/",
+        (JavaScriptCatalog.as_view(packages=["formset"])),
+        name="javascript-catalog",
+    ),
 ]
 
 

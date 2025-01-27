@@ -13,11 +13,11 @@ COPY src/manage.py src/
 RUN pip install -e .
 
 FROM base AS base-node
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x -o nodesource_setup.sh
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
 RUN bash nodesource_setup.sh
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   --mount=target=/var/cache/apt,type=cache,sharing=locked \
-  apt-get install -y nodejs npm
+  apt-get update && apt-get install -y --fix-missing nodejs
 
 
 FROM scratch AS source

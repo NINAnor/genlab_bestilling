@@ -30,7 +30,7 @@ function prevent(e) {
   e.stopPropagation();
 }
 
-export default function Filters({ onSearch }) {
+export default function Filters({ onSearch, submitBtn }) {
   const { handleSubmit, Field, Subscribe } = useForm({
     onSubmit: ({ value, formApi }) => {
       let o = Object.fromEntries(
@@ -238,6 +238,10 @@ export default function Filters({ onSearch }) {
             </Button>
           )}
         </Subscribe>
+        {submitBtn}
+        <a href="../" className="btn bg-yellow-200">
+          Continue to summary
+        </a>
       </div>
     </div>
   );

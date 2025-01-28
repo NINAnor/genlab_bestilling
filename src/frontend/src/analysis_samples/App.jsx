@@ -14,13 +14,10 @@ function App() {
           <a href="../../" className="btn bg-yellow-200">
             Back
           </a>
-          <a href="../" className="btn bg-yellow-200">
-            Continue to summary
-          </a>
         </div>
       </div>
       <Toaster />
-    <SearchApplyMarker />
+      <SearchApplyMarker />
       <h3 className="text-4xl font-bold pt-4 mb-4">Selected Samples</h3>
       <OrderMarker />
     </QueryClientProvider>

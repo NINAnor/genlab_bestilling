@@ -31,7 +31,7 @@ async function getSamples({ pageParam, filters, markers }) {
 
 const columnHelper = createColumnHelper();
 
-export default function Table({ rowSelection, setRowSelection, markers }) {
+export default function Table({ rowSelection, setRowSelection, markers, submitBtn }) {
   const tableContainerRef = useRef(null);
   const [filters, setFilters] = useState("");
   // const queryClient = useQueryClient();
@@ -179,6 +179,7 @@ export default function Table({ rowSelection, setRowSelection, markers }) {
     <>
       <div className="p-4 bg-white mb-2 rounded">
         <Filters
+          submitBtn={submitBtn}
           onSearch={(newFilters) => {
             if (newFilters != filters) {
               setFilters(newFilters);

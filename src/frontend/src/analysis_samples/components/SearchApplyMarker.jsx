@@ -6,6 +6,7 @@ import { client, config } from "../config";
 import AsyncSelect from "react-select/async";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useMemo } from "react";
 
 const markersOptions = async (input) => {
   return (
@@ -50,6 +51,31 @@ export default function SearchApplyMarker() {
     },
   });
 
+  const SubmitButton = useMemo(() => (
+    <Subscribe
+      selector={(state) => [
+        state.canSubmit,
+        state.isSubmitting,
+        state.values.selectedSamples,
+        state.values.markers,
+      ]}
+    >
+      {([canSubmit, isSubmitting, samples, markers]) => (
+        <Button
+          onClick={handleSubmit}
+          className="btn bg-primary block disabled:opacity-50"
+          disabled={!canSubmit || !Object.values(samples).some(_ => _) || !markers.length}
+        >
+          {isSubmitting ? (
+            <i className="fas fa-spin fa-spinner"></i>
+          ) : (
+            `Add selected samples`
+          )}
+        </Button>
+      )}
+    </Subscribe>
+  ), [Subscribe, handleSubmit]);
+
   return (
     <form
       onSubmit={(e) => {
@@ -79,28 +105,6 @@ export default function SearchApplyMarker() {
             </HUIField>
           )}
         </Field>
-        <Subscribe
-          selector={(state) => [
-            state.canSubmit,
-            state.isSubmitting,
-            state.values.selectedSamples,
-            state.values.markers,
-          ]}
-        >
-          {([canSubmit, isSubmitting, samples, markers]) => (
-            <Button
-              onClick={handleSubmit}
-              className="btn bg-primary block disabled:opacity-50"
-              disabled={!canSubmit || !Object.values(samples).some(_ => _) || !markers.length}
-            >
-              {isSubmitting ? (
-                <i className="fas fa-spin fa-spinner"></i>
-              ) : (
-                `Add`
-              )}
-            </Button>
-          )}
-        </Subscribe>
       </div>
       <div className="flex my-4">
         <Subscribe
@@ -115,7 +119,7 @@ export default function SearchApplyMarker() {
                 <Label className="block">
                   Selected Samples - total: {Object.values(state.value).filter(_ => _).length}
                 </Label>
-                <Table rowSelection={state.value} setRowSelection={handleChange} markers={markers} />
+                <Table rowSelection={state.value} setRowSelection={handleChange} markers={markers} submitBtn={SubmitButton} />
               </HUIField>
             )}
           </Field>

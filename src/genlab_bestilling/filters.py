@@ -36,17 +36,23 @@ class SampleFilter(filters.FilterSet):
         }
 
     def filter_markers_in_list(self, queryset, name, value):
-        return queryset.filter(species__markers__in=value)
+        if value:
+            return queryset.filter(species__markers__in=value)
+        return queryset
 
     def filter_order_status_not(self, queryset, name, value):
-        return queryset.exclude(order__status=value)
+        if value:
+            return queryset.exclude(order__status=value)
+        return queryset
 
 
 class BaseOrderFilter(filters.FilterSet):
     ext_order = filters.NumberFilter(field_name="ext_order", method="filter_ext_order")
 
     def filter_ext_order(self, queryset, name, value):
-        return queryset.filter(extractionorder=value)
+        if value:
+            return queryset.filter(extractionorder=value)
+        return queryset
 
 
 class SampleTypeFilter(BaseOrderFilter):
@@ -71,7 +77,9 @@ class MarkerFilter(BaseOrderFilter):
         fields = {"name": ["icontains", "istartswith"]}
 
     def filter_analysis_order(self, queryset, name, value):
-        return queryset.filter(analysisorder=value)
+        if value:
+            return queryset.filter(analysisorder=value)
+        return queryset
 
 
 class LocationFilter(filters.FilterSet):

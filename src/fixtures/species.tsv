@@ -1,31 +1,31 @@
 Area	Species	Marker	Analysis method	Code
 Akvatisk	Elvemusling	Elvemusling A	STR	E
 Akvatisk	Elvemusling	Elvemusling B	STR	E
-MiljøDNA	miljøDNA - enkeltart	Elvemusling	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Havnespy	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Vasspest	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Edelkreps	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Signalkreps	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Buttsnutefrosk	qPCR	ME
+MiljøDNA	MiljøDNA	Elvemusling	qPCR	ME
+MiljøDNA	MiljøDNA	Havnespy	qPCR	ME
+MiljøDNA	MiljøDNA	Vasspest	qPCR	ME
+MiljøDNA	MiljøDNA	Edelkreps	qPCR	ME
+MiljøDNA	MiljøDNA	Signalkreps	qPCR	ME
+MiljøDNA	MiljøDNA	Buttsnutefrosk	qPCR	ME
 Akvatisk	Spissnutefrosk	Spissnutefrosk A	STR	SFR
-MiljøDNA	miljøDNA - enkeltart	Spissnutefrosk	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Damfrosk	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Padde	qPCR	ME
+MiljøDNA	MiljøDNA	Spissnutefrosk	qPCR	ME
+MiljøDNA	MiljøDNA	Damfrosk	qPCR	ME
+MiljøDNA	MiljøDNA	Padde	qPCR	ME
 Akvatisk	Småsalamander	Salamander 1	STR	SSM
 Akvatisk	Småsalamander	Salamander 2	STR	SSM
 Akvatisk	Småsalamander	Salamander 3	STR	SSM
-MiljøDNA	miljøDNA - enkeltart	Småsalamander	ddPCR	ME
+MiljøDNA	MiljøDNA	Småsalamander	ddPCR	ME
 Akvatisk	Storsalamander	Salamander 1	STR	SST
 Akvatisk	Storsalamander	Salamander 2	STR	SST
 Akvatisk	Storsalamander	Salamander 3	STR	SST
-MiljøDNA	miljøDNA - enkeltart	Storsalamander	ddPCR	ME
-MiljøDNA	miljøDNA - enkeltart	BD (Batrachochytrium dendrobatidis)	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	B.sal (Batrachochytrium salamandrivorans)	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Gyro (Gyrodactylus salaris)	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Gyro (Gyrodactylus derjavinoides)	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Lakselus	ddPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Nematoder	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Skottelus	ddPCR	ME
+MiljøDNA	MiljøDNA	Storsalamander	ddPCR	ME
+MiljøDNA	MiljøDNA	BD (Batrachochytrium dendrobatidis)	qPCR	ME
+MiljøDNA	MiljøDNA	B.sal (Batrachochytrium salamandrivorans)	qPCR	ME
+MiljøDNA	MiljøDNA	Gyro (Gyrodactylus salaris)	qPCR	ME
+MiljøDNA	MiljøDNA	Gyro (Gyrodactylus derjavinoides)	qPCR	ME
+MiljøDNA	MiljøDNA	Lakselus	ddPCR	ME
+MiljøDNA	MiljøDNA	Nematoder	qPCR	ME
+MiljøDNA	MiljøDNA	Skottelus	ddPCR	ME
 Fugl	Alke	Kjønnstest	STR	AKE
 Fugl	Alkekonge	Kjønnstest	STR	AKK
 Fugl	Antarktispetrell	Kjønnstest	STR	APT
@@ -76,7 +76,7 @@ Fugl	Tyvjo	Kjønnstest	STR	TYV
 Fugl	Ærfugl	Kjønnstest	STR	AER
 Terrestrisk	Elg	Elg assay	SNP	EL
 Terrestrisk	Hjort	Hjort assay	SNP	HJR
-MiljøDNA	miljøDNA - enkeltart	Rein	ddPCR	ME
+MiljøDNA	MiljøDNA	Rein	ddPCR	ME
 Terrestrisk	Dragehode	Dragehode assay	SNP	DHG
 Terrestrisk	Moser (Sphagnum)	Torvmose 1	STR	MSR
 Terrestrisk	Moser (Sphagnum)	Torvmose 2	STR	MSR
@@ -104,7 +104,7 @@ Terrestrisk	Jerv	Jerv C (inkl. kjønn)	STR	J
 Terrestrisk	Jerv	Rovdyr art/kjønn	STR	J
 Terrestrisk	Jerv	Jerv assay 1	SNP	J
 Terrestrisk	Jerv	Jerv assay 2	SNP	J
-MiljøDNA	miljøDNA - enkeltart	Mink	qPCR	ME
+MiljøDNA	MiljøDNA	Mink	qPCR	ME
 Terrestrisk	Oter	Oter A	STR	OTE
 Terrestrisk	Oter	Oter B	STR	OTE
 Terrestrisk	Oter	Art, kjønn	qPCR	OTE
@@ -115,56 +115,56 @@ Terrestrisk	Ulv	Ulv A	STR	U
 Terrestrisk	Ulv	Ulv B	STR	U
 Terrestrisk	Ulv	Rovdyr art/kjønn	STR	U
 Terrestrisk	Mårhund	Mårhund sekvensering	Sanger	MHD
-MiljøDNA	miljøDNA - enkeltart	Sau	ddPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Geit	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Villsvin	qPCR	ME
-MiljøDNA	miljøDNA - biodiveristet	Planter ITS-S2/ITS-4	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Planter ITS-u3/ITS-u4	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Sopp ITS-7/ITS-4	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Invertebrater BF3/BR2	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Invertebrater BF3-mod/BR2-mod	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Invertebrater Leray	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Insekter fwhF2/EPTDr2n	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Vertebrater MiFish	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Vertebrater12S-V5	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Vertebrater COI Metazoa	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Alger TAReuk	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Alger Cha3/ITS-u4	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Nematoder NC1/NC2	Metabarcoding	MB
-MiljøDNA	miljøDNA - biodiveristet	Bakterier 16S	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Sau	ddPCR	ME
+MiljøDNA	MiljøDNA	Geit	qPCR	ME
+MiljøDNA	MiljøDNA	Villsvin	qPCR	ME
+MiljøDNA	MiljøDNA	Planter ITS-S2/ITS-4	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Planter ITS-u3/ITS-u4	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Sopp ITS-7/ITS-4	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Invertebrater BF3/BR2	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Invertebrater BF3-mod/BR2-mod	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Invertebrater Leray	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Insekter fwhF2/EPTDr2n	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Vertebrater MiFish	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Vertebrater12S-V5	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Vertebrater COI Metazoa	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Alger TAReuk	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Alger Cha3/ITS-u4	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Nematoder NC1/NC2	Metabarcoding	MB
+MiljøDNA	MiljøDNA	Bakterier 16S	Metabarcoding	MB
 Akvatisk	Laks	Laks 12plex	STR	L
 Akvatisk	Laks	Artstest Laks/ørret	STR	L
 Akvatisk	Laks	Laks Oppdrett/vill	SNP	L
 Akvatisk	Laks	Laks Nøytral	SNP	L
 Akvatisk	Ørret	Artstest Laks/ørret	STR	O
 Akvatisk	Ørret	Ørret assay	SNP	O
-MiljøDNA	miljøDNA - enkeltart	Abbor	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Karpe	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Regnbueørret	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Sørv	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Lake	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Harr	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Dvergmalle	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Bekkerøye	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Canadarøye	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Solabbor	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Regnbueørret	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Gullfisk	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Karpe	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Karuss	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Havniøye	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Bekkeniøye&Elveniøye	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Svartmunnet kutling	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Svartkutling	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Torsk	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Suter	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Hvitfinnet steinulke	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Ørekyt	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Ål	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Gjedde	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Ørekyt	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Laks	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Pukkellaks	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Mort	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Ørret	qPCR	ME
-MiljøDNA	miljøDNA - enkeltart	Røye	qPCR	ME
+MiljøDNA	MiljøDNA	Abbor	qPCR	ME
+MiljøDNA	MiljøDNA	Karpe	qPCR	ME
+MiljøDNA	MiljøDNA	Regnbueørret	qPCR	ME
+MiljøDNA	MiljøDNA	Sørv	qPCR	ME
+MiljøDNA	MiljøDNA	Lake	qPCR	ME
+MiljøDNA	MiljøDNA	Harr	qPCR	ME
+MiljøDNA	MiljøDNA	Dvergmalle	qPCR	ME
+MiljøDNA	MiljøDNA	Bekkerøye	qPCR	ME
+MiljøDNA	MiljøDNA	Canadarøye	qPCR	ME
+MiljøDNA	MiljøDNA	Solabbor	qPCR	ME
+MiljøDNA	MiljøDNA	Regnbueørret	qPCR	ME
+MiljøDNA	MiljøDNA	Gullfisk	qPCR	ME
+MiljøDNA	MiljøDNA	Karpe	qPCR	ME
+MiljøDNA	MiljøDNA	Karuss	qPCR	ME
+MiljøDNA	MiljøDNA	Havniøye	qPCR	ME
+MiljøDNA	MiljøDNA	Bekkeniøye&Elveniøye	qPCR	ME
+MiljøDNA	MiljøDNA	Svartmunnet kutling	qPCR	ME
+MiljøDNA	MiljøDNA	Svartkutling	qPCR	ME
+MiljøDNA	MiljøDNA	Torsk	qPCR	ME
+MiljøDNA	MiljøDNA	Suter	qPCR	ME
+MiljøDNA	MiljøDNA	Hvitfinnet steinulke	qPCR	ME
+MiljøDNA	MiljøDNA	Ørekyt	qPCR	ME
+MiljøDNA	MiljøDNA	Ål	qPCR	ME
+MiljøDNA	MiljøDNA	Gjedde	qPCR	ME
+MiljøDNA	MiljøDNA	Ørekyt	qPCR	ME
+MiljøDNA	MiljøDNA	Laks	qPCR	ME
+MiljøDNA	MiljøDNA	Pukkellaks	qPCR	ME
+MiljøDNA	MiljøDNA	Mort	qPCR	ME
+MiljøDNA	MiljøDNA	Ørret	qPCR	ME
+MiljøDNA	MiljøDNA	Røye	qPCR	ME

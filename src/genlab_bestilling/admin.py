@@ -7,6 +7,7 @@ from unfold.contrib.filters.admin import (
 from .models import (
     AnalysisType,
     Area,
+    EquipmentBuffer,
     EquipmentType,
     Genrequest,
     Location,
@@ -56,6 +57,13 @@ class AnalysisTypeAdmin(ModelAdmin):
 
 @admin.register(EquipmentType)
 class EquipmentTypeAdmin(ModelAdmin):
+    list_display = ["name", "unit"]
+    list_filter = ["unit"]
+    search_fields = ["name"]
+
+
+@admin.register(EquipmentBuffer)
+class EquipmentBufferAdmin(ModelAdmin):
     list_display = ["name", "unit"]
     list_filter = ["unit"]
     search_fields = ["name"]

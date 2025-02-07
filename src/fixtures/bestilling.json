@@ -91,14 +91,6 @@
     },
     {
         "model": "genlab_bestilling.equipmentbuffer",
-        "pk": 1,
-        "fields": {
-            "name": "Tørt",
-            "unit": "uL"
-        }
-    },
-    {
-        "model": "genlab_bestilling.equipmentbuffer",
         "pk": 2,
         "fields": {
             "name": "Etanol",

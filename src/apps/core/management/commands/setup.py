@@ -8,6 +8,7 @@ from genlab_bestilling.libs.load_csv_fixture import (
     sample_types_from_tsv,
     species_from_tsv,
 )
+from genlab_bestilling.models import Area
 
 
 class Command(BaseCommand):
@@ -15,12 +16,13 @@ class Command(BaseCommand):
         if User.objects.all().first() is None:
             call_command("loaddata", "users.json")
 
-        call_command("loaddata", "bestilling.json")
-        call_command("loaddata", "locations.json")
-        call_command("loaddata", "groups.json")
-        call_command("loaddata", "nina.json")
+        if not Area.objects.all().exists():
+            call_command("loaddata", "bestilling.json")
+            call_command("loaddata", "locations.json")
+            call_command("loaddata", "groups.json")
+            # call_command("loaddata", "nina.json")
 
-        species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")
-        sample_types_from_tsv(settings.SRC_DIR / "fixtures" / "sample_types.tsv")
+            species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")
+            sample_types_from_tsv(settings.SRC_DIR / "fixtures" / "sample_types.tsv")
 
-        call_command("loaddata", "test.json")
+            call_command("loaddata", "test.json")

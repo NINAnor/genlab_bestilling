@@ -37,7 +37,7 @@
         {% endif %}
 
         {% if object.status != 'draft' %}
-        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}?from_order={{ view.kwargs.pk }}">Analyze this samples</a>
+        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
         {% endif %}
 
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}

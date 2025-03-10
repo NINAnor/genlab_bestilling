@@ -94,7 +94,7 @@ export default function SampleForm() {
           });
 
         return result === -1
-          ? `list fields must have the same items`
+          ? `Pasted list fields must have the same number of items`
           : undefined;
       },
     },

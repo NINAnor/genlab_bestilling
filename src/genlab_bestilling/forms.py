@@ -217,7 +217,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
     )
     pre_isolated = forms.TypedChoiceField(
         label="The samples I'm delivering are already isolated"
-        + " and don't require to be stored",
+        + " (but not stored in the new database)",
         coerce=lambda x: x == "True",
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,

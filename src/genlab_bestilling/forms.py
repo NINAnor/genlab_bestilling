@@ -39,6 +39,10 @@ class GenrequestForm(FormMixin, forms.ModelForm):
                 memberships=user,
             )
 
+        self.fields[
+            "markers"
+        ].help_text = "If you do not know which markers to use, add all"
+
     def save(self, commit=True):
         obj = super().save(commit=False)
         if self.user:

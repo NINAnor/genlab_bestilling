@@ -275,13 +275,17 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         }
 
 
+INVERTED_YES_NO_CHOICES = ((False, "Yes"), (True, "No"))
+
+
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
     customize_markers = forms.TypedChoiceField(
-        label="Choose which markers should be run for each sample",
-        help_text="By default for each species all the applicable markers will be used",
+        label="Analyze all samples in an extraction order",
+        help_text="Select <<No>> if you want to select markers individually"  # noqa: S608
+        + " for each sample, or search for DNA-extracts from the Biobank",
         coerce=lambda x: x == "True",
-        choices=YES_NO_CHOICES,
+        choices=INVERTED_YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
 
@@ -303,10 +307,10 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 genrequest_id=genrequest.id,
             ).exclude(status=Order.OrderStatus.DRAFT)
             self.fields["from_order"].help_text = (
-                "All the samples will be included in this analysis,"
-                + " for each sample the appropriate markers"
-                + " among the selected will be applied. "
-                "Samples that don't have an applicable marker will not included"
+                "If Yes: all samples will be included in the analysis, "
+                + " choose the markers below."
+                + " If No: choose markers below and continue"
+                + " with the sample selection by pressing Submit"
             )
 
     def save(self, commit=True):
@@ -337,9 +341,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         model = AnalysisOrder
         fields = (
             "name",
-            "markers",
             "customize_markers",
             "from_order",
+            "markers",
             "notes",
             "tags",
         )

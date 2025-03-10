@@ -75,7 +75,6 @@ class GenrequestTable(tables.Table):
             "expected_total_samples",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
-            "tags",
         )
 
         empty_text = "No projects"

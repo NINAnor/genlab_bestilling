@@ -24,7 +24,7 @@ import NumberCellInput from "./Cell/NumberCellInput";
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
 function askConfirm(fn) {
-  return () => confirm('Are you really sure?') && fn()
+  return () => confirm("Are you really sure?") && fn();
 }
 
 async function getSamples({ pageParam }) {
@@ -79,6 +79,7 @@ const COLUMNS = [
   columnHelper.accessor("name", {
     header: "Sample Name",
     cell: SimpleCellInput,
+    size: 350,
   }),
   columnHelper.accessor("species", {
     header: "Species",
@@ -89,6 +90,7 @@ const COLUMNS = [
         queryKey={"species"}
       />
     ),
+    size: 200,
   }),
   columnHelper.accessor("year", {
     header: "Year",
@@ -97,6 +99,7 @@ const COLUMNS = [
   columnHelper.accessor("pop_id", {
     header: "Pop ID",
     cell: SimpleCellInput,
+    size: 200,
   }),
   columnHelper.accessor("location", {
     header: "Location",
@@ -108,6 +111,7 @@ const COLUMNS = [
         onCreate={locationCreate}
       />
     ),
+    size: 300,
   }),
   columnHelper.accessor("type", {
     header: "Sample Type",
@@ -118,6 +122,7 @@ const COLUMNS = [
         queryKey={"sampleTypes"}
       />
     ),
+    size: 200,
   }),
   // columnHelper.accessor("markers", {
   //   header: "Markers",
@@ -126,10 +131,12 @@ const COLUMNS = [
   columnHelper.accessor("notes", {
     header: "Notes",
     cell: SimpleCellInput,
+    size: 300,
   }),
   columnHelper.display({
     header: "Actions",
     cell: ActionsCell,
+    size: 80,
   }),
   columnHelper.accessor("has_error", {
     header: "Completed",
@@ -154,7 +161,7 @@ const COLUMNS = [
 ].filter((_) => _);
 
 function handleError(e) {
-  console.error(e)
+  console.error(e);
 
   if (e instanceof AxiosError) {
     e.response.data.errors.forEach((err) => {
@@ -248,24 +255,27 @@ export default function Table() {
 
   const mutateDeleteAllRows = useMutation({
     mutationFn: () => {
-      return client.post(`/api/extraction-order/${config.order}/delete-samples/`);
+      return client.post(
+        `/api/extraction-order/${config.order}/delete-samples/`
+      );
     },
     onSuccess: () => {
       toast.success("Samples deleted!");
       queryClient.invalidateQueries({ queryKey: ["samples"] });
     },
     onError: (e) => {
-      console.error(e)
+      console.error(e);
       toast.error("There was an error!");
     },
   });
 
-  const pendingState = isLoading ||
+  const pendingState =
+    isLoading ||
     isFetching ||
     mutateDeleteAllRows.isPending ||
     mutateConfirm.isPending ||
     deleteRow.isPending ||
-    updateCell.isPending
+    updateCell.isPending;
 
   const table = useReactTable({
     data: flatData,
@@ -373,9 +383,7 @@ export default function Table() {
           </table>
         </div>
         <div className="flex justify-center py-5">
-          {(isLoading ||
-            isFetching ||
-            pendingState) && (
+          {(isLoading || isFetching || pendingState) && (
             <i className="fas fa-spinner fa-spin text-lg" />
           )}
         </div>
@@ -402,7 +410,9 @@ export default function Table() {
           disabled={pendingState}
         >
           Delete all samples{" "}
-          {mutateDeleteAllRows.isPending && <i className="fas fa-spinner fa-spin" />}
+          {mutateDeleteAllRows.isPending && (
+            <i className="fas fa-spinner fa-spin" />
+          )}
         </button>
         <button
           className="btn bg-secondary disabled:opacity-70 text-white"

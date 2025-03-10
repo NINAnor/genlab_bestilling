@@ -59,7 +59,6 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "sample_types",
             "markers",
             "expected_total_samples",
-            "tags",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
         )
@@ -103,7 +102,6 @@ class GenrequestEditForm(GenrequestForm):
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
             "expected_total_samples",
-            "tags",
         )
 
 

@@ -350,6 +350,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "from_order",
             "markers",
             "notes",
+            "expected_delivery_date",
             "tags",
         )
         widgets = {
@@ -363,6 +364,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 },
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
+            "expected_delivery_date": DateInput(),
         }
 
 
@@ -373,6 +375,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "markers",
             # "from_order",
             "notes",
+            "expected_delivery_date",
             "tags",
         )
 

@@ -410,6 +410,10 @@ class AnalysisOrder(Order):
         related_name="analysis_orders",
         verbose_name="Use samples extracted in the following order",
     )
+    expected_delivery_date = models.DateField(
+        null=True,
+        blank=True,
+    )
 
     def __str__(self) -> str:
         return f"#ANL_{self.id}"

@@ -25,6 +25,7 @@ from formset.views import (
     FormViewMixin,
     IncompleteSelectResponseMixin,
 )
+from nina.models import Project
 from rest_framework.exceptions import ValidationError
 from view_breadcrumbs import BaseBreadcrumbMixin
 
@@ -199,6 +200,10 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
+        if self.request.GET.get("project"):
+            kwargs["project"] = Project.objects.filter(
+                pk=self.request.GET.get("project")
+            ).first()
         return kwargs
 
     def get_success_url(self):

@@ -30,7 +30,7 @@ class DateInput(forms.DateInput):
 class GenrequestForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, user=None, **kwargs):
+    def __init__(self, *args, user=None, project=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
@@ -38,6 +38,8 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             self.fields["project"].queryset = Project.objects.filter(
                 memberships=user,
             )
+
+            self.fields["project"].initial = project
 
         self.fields[
             "markers"

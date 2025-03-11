@@ -2,6 +2,7 @@ from dal import autocomplete
 
 from .models import (
     AnalysisOrder,
+    Area,
     EquipmentOrder,
     ExtractionOrder,
     Genrequest,
@@ -11,6 +12,10 @@ from .models import (
     SampleType,
     Species,
 )
+
+
+class AreaAutocomplete(autocomplete.Select2QuerySetView):
+    model = Area
 
 
 class SpeciesAutocomplete(autocomplete.Select2QuerySetView):

@@ -30,6 +30,7 @@ from view_breadcrumbs import BaseBreadcrumbMixin
 
 from .api.serializers import AnalysisSerializer, ExtractionSerializer
 from .filters import (
+    GenrequestFilter,
     OrderAnalysisFilter,
     OrderEquipmentFilter,
     OrderExtractionFilter,
@@ -94,10 +95,13 @@ class FormsetUpdateView(
     pass
 
 
-class GenrequestListView(BaseBreadcrumbMixin, LoginRequiredMixin, SingleTableView):
+class GenrequestListView(
+    BaseBreadcrumbMixin, LoginRequiredMixin, SingleTableMixin, FilterView
+):
     model = Genrequest
     table_class = GenrequestTable
     add_home = False
+    filterset_class = GenrequestFilter
 
     @cached_property
     def crumbs(self):

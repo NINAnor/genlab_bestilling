@@ -5,6 +5,7 @@ from .models import (
     AnalysisOrder,
     EquipmentOrder,
     ExtractionOrder,
+    Genrequest,
     Location,
     Marker,
     Order,
@@ -170,4 +171,31 @@ class OrderAnalysisFilter(OrderFilter):
             "name": ["istartswith"],
             "markers": ["exact"],
             "genrequest__project": ["exact"],
+        }
+
+
+class GenrequestFilter(filters.FilterSet):
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["project"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:project"
+        )
+        self.filters["area"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:area"
+        )
+        self.filters["species"].extra["widget"] = autocomplete.ModelSelect2Multiple(
+            url="autocomplete:species"
+        )
+        self.filters["sample_types"].extra["widget"] = (
+            autocomplete.ModelSelect2Multiple(url="autocomplete:sample-type")
+        )
+
+    class Meta:
+        model = Genrequest
+        fields = {
+            "project": ["exact"],
+            "name": ["istartswith"],
+            "area": ["exact"],
+            "species": ["exact"],
+            "sample_types": ["exact"],
         }

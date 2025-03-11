@@ -24,6 +24,9 @@
     <a class="btn bg-primary" href="{% url 'nina:project-members-edit' pk=object.pk %}"
       ><i class="fas fa-edit"></i> Members</a
     >
+    <a class="btn bg-primary" href="{% url 'genrequest-list' %}?project={{object.pk}}"
+      ><i class="fas fa-folder"></i> Genetic projects</a
+    >
   </div>
 </div>
 {% endblock %}

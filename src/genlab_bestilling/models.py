@@ -402,10 +402,6 @@ class AnalysisOrder(Order):
         "Sample", blank=True, through="SampleMarkerAnalysis"
     )
     markers = models.ManyToManyField("Marker", blank=True)
-    customize_markers = models.BooleanField(
-        verbose_name="Choose which markers should be run for each sample",
-        help_text="By default for each species all the applicable markers will be used",
-    )
     from_order = models.ForeignKey(
         "ExtractionOrder",
         on_delete=models.CASCADE,

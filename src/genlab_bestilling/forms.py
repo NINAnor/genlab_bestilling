@@ -275,17 +275,14 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         }
 
 
-INVERTED_YES_NO_CHOICES = ((False, "Yes"), (True, "No"))
-
-
 class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
-    customize_markers = forms.TypedChoiceField(
+    use_all_samples = forms.TypedChoiceField(
         label="Analyze all samples in an extraction order",
         help_text="Select <<No>> if you want to select markers individually"  # noqa: S608
         + " for each sample, or search for DNA-extracts from the Biobank",
         coerce=lambda x: x == "True",
-        choices=INVERTED_YES_NO_CHOICES,
+        choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
 
@@ -320,7 +317,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
 
-            if obj.customize_markers:
+            if not self.cleaned_data["use_all_samples"]:
                 obj.from_order = None
 
             if obj.from_order and not obj.name and obj.from_order.name:
@@ -333,15 +330,23 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        if "customize_markers" in cleaned_data and "from_order" in cleaned_data:
-            if not cleaned_data["customize_markers"] and not cleaned_data["from_order"]:
+        if "use_all_samples" in cleaned_data and "from_order" in cleaned_data:
+            if cleaned_data["use_all_samples"] and not cleaned_data["from_order"]:
                 raise ValidationError("An extraction order must be selected")
+
+    field_order = [
+        "name",
+        "use_all_samples",
+        "from_order",
+        "markers",
+        "notes",
+        "tags",
+    ]
 
     class Meta:
         model = AnalysisOrder
         fields = (
             "name",
-            "customize_markers",
             "from_order",
             "markers",
             "notes",
@@ -349,12 +354,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         )
         widgets = {
             "name": TextInput(
-                attrs={"df-show": ".from_order==''||.customize_markers=='True'"}
+                attrs={"df-show": ".from_order==''||.use_all_samples=='False'"}
             ),
             "from_order": Selectize(
                 search_lookup="id",
                 attrs={
-                    "df-show": ".customize_markers=='False'",
+                    "df-show": ".use_all_samples=='True'",
                 },
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
@@ -366,7 +371,6 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
         fields = (
             "name",
             "markers",
-            # "customize_markers",
             # "from_order",
             "notes",
             "tags",
@@ -374,8 +378,8 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
-        if "customize_markers" in self.fields:
-            del self.fields["customize_markers"]
+        if "use_all_samples" in self.fields:
+            del self.fields["use_all_samples"]
 
 
 class ActionForm(forms.Form):

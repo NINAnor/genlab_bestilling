@@ -800,7 +800,7 @@ class AnalysisOrderCreateView(
                     .get()
                 )
                 initial["from_order"] = order
-                initial["customize_markers"] = False
+                initial["use_all_samples"] = True
                 initial["name"] = order.name + " - Analysis" if order.name else ""
             except ExtractionOrder.DoesNotExist as err:
                 raise Http404(

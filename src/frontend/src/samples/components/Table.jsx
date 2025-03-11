@@ -79,7 +79,6 @@ const COLUMNS = [
   columnHelper.accessor("name", {
     header: "Sample Name",
     cell: SimpleCellInput,
-    size: 350,
   }),
   columnHelper.accessor("species", {
     header: "Species",
@@ -95,11 +94,11 @@ const COLUMNS = [
   columnHelper.accessor("year", {
     header: "Year",
     cell: NumberCellInput,
+    size: 100,
   }),
   columnHelper.accessor("pop_id", {
     header: "Pop ID",
     cell: SimpleCellInput,
-    size: 200,
   }),
   columnHelper.accessor("location", {
     header: "Location",
@@ -131,15 +130,15 @@ const COLUMNS = [
   columnHelper.accessor("notes", {
     header: "Notes",
     cell: SimpleCellInput,
-    size: 300,
   }),
   columnHelper.display({
     header: "Actions",
     cell: ActionsCell,
-    size: 80,
+    size: 50,
   }),
   columnHelper.accessor("has_error", {
     header: "Completed",
+    size: 50,
     cell: ({ getValue }) => (
       <span className="text-2xl text-center flex items-center w-full justify-center">
         {getValue() ? (
@@ -281,6 +280,11 @@ export default function Table() {
     data: flatData,
     columns: COLUMNS,
     getCoreRowModel: getCoreRowModel(),
+    defaultColumn: {
+      minSize: 150,
+      size: Number.MAX_SAFE_INTEGER,
+      maxSize: 450,
+    },
     meta: {
       updateData: updateCell.mutateAsync,
       deleteRow: deleteRow.mutateAsync,

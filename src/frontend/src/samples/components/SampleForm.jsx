@@ -7,6 +7,7 @@ import AsyncCreatableSelect from "react-select/async-creatable";
 
 import toast from "react-hot-toast";
 import PastableArrayInput from "../../helpers/PastableArrayInput";
+import { SELECT_STYLES } from "../../helpers/libs";
 
 const speciesOptions = async (input) => {
   let base = `/api/species/?ext_order=${config.order}`;
@@ -182,8 +183,12 @@ export default function SampleForm() {
           <Field name="name">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
-                <Label className="block">
-                  Sample Name - total: {state.value.length}
+                <Label
+                  className="block"
+                  title="physical identification marked on the sample"
+                >
+                  Sample Name - total: {state.value.length}{" "}
+                  <i className="fas fa-circle-question"></i>
                 </Label>
                 <PastableArrayInput
                   state={state}
@@ -224,6 +229,7 @@ export default function SampleForm() {
                   value={state.value}
                   onChange={handleChange}
                   required
+                  styles={SELECT_STYLES}
                 />
               </HUIField>
             )}
@@ -243,6 +249,7 @@ export default function SampleForm() {
                   value={state.value}
                   onChange={handleChange}
                   required
+                  styles={SELECT_STYLES}
                 />
               </HUIField>
             )}
@@ -288,6 +295,7 @@ export default function SampleForm() {
                       value={state.value}
                       onChange={handleChange}
                       onCreateOption={createLocation.mutate}
+                      styles={SELECT_STYLES}
                     />
                   </HUIField>
                 )}

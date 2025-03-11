@@ -77,7 +77,11 @@ const COLUMNS = [
       })
     : null,
   columnHelper.accessor("name", {
-    header: "Sample Name",
+    header: (
+      <span title="physical identification marked on the sample">
+        Sample Name <i className="fas fa-circle-question"></i>
+      </span>
+    ),
     cell: SimpleCellInput,
   }),
   columnHelper.accessor("species", {

@@ -18,7 +18,7 @@ import IndeterminateCheckbox from "./IndeterminateCheckbox";
 import Filters from "./Filters";
 
 async function getSamples({ pageParam, filters, markers }) {
-  const joinMarkers = markers.map(m => 'markers=' + m.name);
+  const joinMarkers = markers.map((m) => "markers=" + m.name);
 
   const url =
     pageParam ||
@@ -31,12 +31,17 @@ async function getSamples({ pageParam, filters, markers }) {
 
 const columnHelper = createColumnHelper();
 
-export default function Table({ rowSelection, setRowSelection, markers, submitBtn }) {
+export default function Table({
+  rowSelection,
+  setRowSelection,
+  markers,
+  submitBtn,
+}) {
   const tableContainerRef = useRef(null);
   const [filters, setFilters] = useState("");
   // const queryClient = useQueryClient();
 
-  console.log(markers)
+  console.log(markers);
 
   const columns = useMemo(
     () => [
@@ -73,7 +78,11 @@ export default function Table({ rowSelection, setRowSelection, markers, submitBt
         size: 350,
       }),
       columnHelper.accessor("name", {
-        header: "Sample Name",
+        header: (
+          <span title="physical identification marked on the sample">
+            Sample Name <i className="fas fa-circle-question"></i>
+          </span>
+        ),
         size: 350,
       }),
       columnHelper.accessor("species.name", {
@@ -158,6 +167,9 @@ export default function Table({ rowSelection, setRowSelection, markers, submitBt
     },
     getRowId: (row) => row.id,
     enableRowSelection: true,
+    defaultColumn: {
+      size: 300,
+    },
   });
 
   const { rows } = table.getRowModel();

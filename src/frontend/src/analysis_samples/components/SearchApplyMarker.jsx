@@ -7,6 +7,7 @@ import AsyncSelect from "react-select/async";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useMemo } from "react";
+import { SELECT_STYLES } from "../../helpers/libs";
 
 const markersOptions = async (input) => {
   return (
@@ -17,13 +18,14 @@ const markersOptions = async (input) => {
 };
 
 export default function SearchApplyMarker() {
-  const queryClient = useQueryClient()
-;
+  const queryClient = useQueryClient();
   const bulkCreate = useMutation({
     mutationFn: (value) => {
       return client.post("/api/sample-marker-analysis/bulk/", {
-        samples: Object.entries(value.selectedSamples).filter(([_k, value]) => value).map(([key, _v]) => key),
-        markers: value.markers.map(m => m.name),
+        samples: Object.entries(value.selectedSamples)
+          .filter(([_k, value]) => value)
+          .map(([key, _v]) => key),
+        markers: value.markers.map((m) => m.name),
         order: config.order,
       });
     },
@@ -51,30 +53,37 @@ export default function SearchApplyMarker() {
     },
   });
 
-  const SubmitButton = useMemo(() => (
-    <Subscribe
-      selector={(state) => [
-        state.canSubmit,
-        state.isSubmitting,
-        state.values.selectedSamples,
-        state.values.markers,
-      ]}
-    >
-      {([canSubmit, isSubmitting, samples, markers]) => (
-        <Button
-          onClick={handleSubmit}
-          className="btn bg-primary block disabled:opacity-50"
-          disabled={!canSubmit || !Object.values(samples).some(_ => _) || !markers.length}
-        >
-          {isSubmitting ? (
-            <i className="fas fa-spin fa-spinner"></i>
-          ) : (
-            `Add selected samples`
-          )}
-        </Button>
-      )}
-    </Subscribe>
-  ), [Subscribe, handleSubmit]);
+  const SubmitButton = useMemo(
+    () => (
+      <Subscribe
+        selector={(state) => [
+          state.canSubmit,
+          state.isSubmitting,
+          state.values.selectedSamples,
+          state.values.markers,
+        ]}
+      >
+        {([canSubmit, isSubmitting, samples, markers]) => (
+          <Button
+            onClick={handleSubmit}
+            className="btn bg-primary block disabled:opacity-50"
+            disabled={
+              !canSubmit ||
+              !Object.values(samples).some((_) => _) ||
+              !markers.length
+            }
+          >
+            {isSubmitting ? (
+              <i className="fas fa-spin fa-spinner"></i>
+            ) : (
+              `Add selected samples`
+            )}
+          </Button>
+        )}
+      </Subscribe>
+    ),
+    [Subscribe, handleSubmit]
+  );
 
   return (
     <form
@@ -84,11 +93,13 @@ export default function SearchApplyMarker() {
       }}
       id="add-rows"
     >
-      <div className="flex gap-8 items-end">
+      <div className="">
         <Field name="markers">
           {({ state, handleChange, handleBlur }) => (
             <HUIField>
-              <Label id="markers-label" className="block">Markers</Label>
+              <Label id="markers-label" className="block">
+                Markers
+              </Label>
               <AsyncSelect
                 isMulti
                 defaultOptions
@@ -101,29 +112,32 @@ export default function SearchApplyMarker() {
                 value={state.value}
                 onChange={handleChange}
                 required
+                styles={SELECT_STYLES}
               />
             </HUIField>
           )}
         </Field>
       </div>
-      <div className="flex my-4">
-        <Subscribe
-            selector={(state) => [
-              state.values.markers,
-            ]}
-          >
-            {([markers]) => (
-          <Field name="selectedSamples">
-            {({ state, handleChange }) => (
-              <HUIField>
-                <Label className="block">
-                  Selected Samples - total: {Object.values(state.value).filter(_ => _).length}
-                </Label>
-                <Table rowSelection={state.value} setRowSelection={handleChange} markers={markers} submitBtn={SubmitButton} />
-              </HUIField>
-            )}
-          </Field>
-            )}
+      <div className="my-4">
+        <Subscribe selector={(state) => [state.values.markers]}>
+          {([markers]) => (
+            <Field name="selectedSamples">
+              {({ state, handleChange }) => (
+                <div>
+                  <Label className="block">
+                    Selected Samples - total:{" "}
+                    {Object.values(state.value).filter((_) => _).length}
+                  </Label>
+                  <Table
+                    rowSelection={state.value}
+                    setRowSelection={handleChange}
+                    markers={markers}
+                    submitBtn={SubmitButton}
+                  />
+                </div>
+              )}
+            </Field>
+          )}
         </Subscribe>
       </div>
     </form>

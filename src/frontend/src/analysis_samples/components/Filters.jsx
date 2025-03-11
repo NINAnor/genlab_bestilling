@@ -4,6 +4,7 @@ import AsyncSelect from "react-select/async";
 import { Button } from "@headlessui/react";
 import { client } from "../config";
 import PastableArrayInput from "../../helpers/PastableArrayInput";
+import { SELECT_STYLES } from "../../helpers/libs";
 
 const speciesOptions = async (input) => {
   let base = `/api/species/?`;
@@ -35,13 +36,18 @@ export default function Filters({ onSearch, submitBtn }) {
     onSubmit: ({ value, formApi }) => {
       let o = Object.fromEntries(
         Object.entries(value)
-          .filter(([_, v]) => v != null && typeof v !== "undefined" && (Array.isArray(v) ? v.length : true))
-          .map(([k,v]) => {
-          if (typeof v === 'object') {
-            return [k, v.id]
-          }
-          return [k,v]
-        })
+          .filter(
+            ([_, v]) =>
+              v != null &&
+              typeof v !== "undefined" &&
+              (Array.isArray(v) ? v.length : true)
+          )
+          .map(([k, v]) => {
+            if (typeof v === "object") {
+              return [k, v.id];
+            }
+            return [k, v];
+          })
       );
       if (Object.keys(o)) {
         onSearch(new URLSearchParams(o).toString());
@@ -54,13 +60,13 @@ export default function Filters({ onSearch, submitBtn }) {
       type: null,
       name__startswith: null,
       genlab_id__startswith: null,
-      guid__in: []
+      guid__in: [],
     },
   });
 
   const emulateEnter = (e) => {
     if (e.key === "Enter" || e.keyCode === 13) {
-      prevent(e)
+      prevent(e);
       handleSubmit();
     }
   };
@@ -119,6 +125,7 @@ export default function Filters({ onSearch, submitBtn }) {
                   className=""
                   value={state.value}
                   onChange={handleChange}
+                  styles={SELECT_STYLES}
                 />
               </HUIField>
             )}
@@ -139,6 +146,7 @@ export default function Filters({ onSearch, submitBtn }) {
                   className=""
                   value={state.value}
                   onChange={handleChange}
+                  styles={SELECT_STYLES}
                 />
               </HUIField>
             )}
@@ -215,6 +223,7 @@ export default function Filters({ onSearch, submitBtn }) {
                   className=""
                   value={state.value}
                   onChange={handleChange}
+                  styles={SELECT_STYLES}
                 />
               </HUIField>
             )}

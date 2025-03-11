@@ -34,71 +34,80 @@ export default function Table({ rowSelection, setRowSelection }) {
   const tableContainerRef = useRef(null);
   const queryClient = useQueryClient();
 
-  const columns = useMemo(() => [
-    {
-      id: 'select',
-      size: 50,
-      header: ({ table }) => (
-        <IndeterminateCheckbox
-          {...{
-            checked: table.getIsAllRowsSelected(),
-            indeterminate: table.getIsSomeRowsSelected(),
-            onChange: table.getToggleAllRowsSelectedHandler(),
-          }}
-        />
-      ),
-      cell: ({ row }) => (
-        <div className="px-1">
+  const columns = useMemo(
+    () => [
+      {
+        id: "select",
+        size: 50,
+        header: ({ table }) => (
           <IndeterminateCheckbox
             {...{
-              checked: row.getIsSelected(),
-              disabled: !row.getCanSelect(),
-              indeterminate: row.getIsSomeSelected(),
-              onChange: row.getToggleSelectedHandler(),
+              checked: table.getIsAllRowsSelected(),
+              indeterminate: table.getIsSomeRowsSelected(),
+              onChange: table.getToggleAllRowsSelectedHandler(),
             }}
           />
-        </div>
-      ),
-    },
-    columnHelper.accessor("sample.genlab_id", {
-      header: "Genlab ID",
-    }),
-    columnHelper.accessor("marker", {
-      header: "Marker",
-    }),
-    columnHelper.accessor("sample.guid", {
-      header: "GUID",
-      size: 350,
-    }),
-    columnHelper.accessor("sample.name", {
-      header: "Sample Name",
-      size: 350,
-    }),
-    columnHelper.accessor("sample.species.name", {
-      header: "Species",
-    }),
-    columnHelper.accessor("sample.year", {
-      header: "Year",
-      size: 100
-    }),
-    columnHelper.accessor("sample.pop_id", {
-      header: "Pop ID",
-    }),
-    columnHelper.accessor("sample.location.name", {
-      header: "Location",
-    }),
-    columnHelper.accessor("sample.type.name", {
-      header: "Sample Type",
-    }),
-    columnHelper.accessor("sample.notes", {
-      header: "Notes",
-    }),
-  ], [])
+        ),
+        cell: ({ row }) => (
+          <div className="px-1">
+            <IndeterminateCheckbox
+              {...{
+                checked: row.getIsSelected(),
+                disabled: !row.getCanSelect(),
+                indeterminate: row.getIsSomeSelected(),
+                onChange: row.getToggleSelectedHandler(),
+              }}
+            />
+          </div>
+        ),
+      },
+      columnHelper.accessor("sample.genlab_id", {
+        header: "Genlab ID",
+      }),
+      columnHelper.accessor("marker", {
+        header: "Marker",
+      }),
+      columnHelper.accessor("sample.guid", {
+        header: "GUID",
+        size: 350,
+      }),
+      columnHelper.accessor("sample.name", {
+        header: (
+          <span title="physical identification marked on the sample">
+            Sample Name <i className="fas fa-circle-question"></i>
+          </span>
+        ),
+        size: 350,
+      }),
+      columnHelper.accessor("sample.species.name", {
+        header: "Species",
+      }),
+      columnHelper.accessor("sample.year", {
+        header: "Year",
+        size: 100,
+      }),
+      columnHelper.accessor("sample.pop_id", {
+        header: "Pop ID",
+      }),
+      columnHelper.accessor("sample.location.name", {
+        header: "Location",
+      }),
+      columnHelper.accessor("sample.type.name", {
+        header: "Sample Type",
+      }),
+      columnHelper.accessor("sample.notes", {
+        header: "Notes",
+      }),
+    ],
+    []
+  );
 
   const bulkDelete = useMutation({
     mutationFn: (value) => {
       return client.post("/api/sample-marker-analysis/bulk-delete/", {
-        ids: Object.entries(value).filter(([_k, value]) => value).map(([key, _v]) => key),
+        ids: Object.entries(value)
+          .filter(([_k, value]) => value)
+          .map(([key, _v]) => key),
       });
     },
     onSuccess: () => {
@@ -164,8 +173,11 @@ export default function Table({ rowSelection, setRowSelection }) {
     state: {
       rowSelection,
     },
-    getRowId: row => row.id,
+    getRowId: (row) => row.id,
     enableRowSelection: true,
+    defaultColumn: {
+      size: 300,
+    },
   });
 
   const { rows } = table.getRowModel();
@@ -236,7 +248,9 @@ export default function Table({ rowSelection, setRowSelection }) {
                     data-index={virtualRow.index} //needed for dynamic row height measurement
                     ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                     key={row.id}
-                    className={`flex absolute w-full ${row.getIsSelected() ? 'bg-yellow-200' : ''}`}
+                    className={`flex absolute w-full ${
+                      row.getIsSelected() ? "bg-yellow-200" : ""
+                    }`}
                     style={{
                       transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
                     }}
@@ -270,7 +284,16 @@ export default function Table({ rowSelection, setRowSelection }) {
           )}
         </div>
         <div className="flex my-2 justify-center">
-          <Button className="btn bg-red-500 text-white disabled:opacity-50" onClick={() => bulkDelete.mutate(rowSelection)} disabled={!table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()}>Delete selected</Button>
+          <Button
+            className="btn bg-red-500 text-white disabled:opacity-50"
+            onClick={() => bulkDelete.mutate(rowSelection)}
+            disabled={
+              !table.getIsSomePageRowsSelected() &&
+              !table.getIsAllPageRowsSelected()
+            }
+          >
+            Delete selected
+          </Button>
         </div>
       </div>
     </>

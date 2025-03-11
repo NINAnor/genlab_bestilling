@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 
 from django.db import models, transaction
 from django.urls import reverse
@@ -189,6 +190,12 @@ class Genrequest(models.Model):
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
+
+    @property
+    def short_timeframe(self):
+        return (
+            self.expected_analysis_delivery_date - self.expected_samples_delivery_date
+        ) < timedelta(days=30)
 
     class Meta:
         verbose_name = "Genetic Project"

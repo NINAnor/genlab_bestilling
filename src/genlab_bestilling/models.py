@@ -544,17 +544,25 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if (
-            self.species.location_type
-            and self.species.location_type_id == self.location.type_id
-        ):
-            # Check if the selected species has a specific location type
-            raise ValidationError("Location is required")
-        elif self.order.genrequest.area.location_mandatory:
-            # Check if the genrequest area requires a location
-            raise ValidationError("Location is required")
-        else:
-            return False
+        if self.order.genrequest.area.location_mandatory:
+            if not self.location_id:
+                raise ValidationError("Location is required")
+            else:
+                # ensure that location is correct for the selected species
+                if (
+                    self.species.location_type
+                    and self.species.location_type_id != self.location.type_id
+                ):
+                    raise ValidationError("Invalid location for the selected species")
+        elif self.location_id and self.species.location_type_id:
+            # if the location is optional, but it's provided,
+            # check it is compatible with the species
+            if self.species.location_type_id != self.location.type_id:
+                raise ValidationError(
+                    "Selected location not compatible with the selected species"
+                )
+
+        return False
 
 
 # class Analysis(models.Model):

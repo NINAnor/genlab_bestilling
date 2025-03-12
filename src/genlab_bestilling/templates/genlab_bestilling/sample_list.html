@@ -16,5 +16,6 @@
         {% if extraction.status != 'draft' %}
         <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
         {% endif %}
+        <a class="btn bg-yellow-500" href="{% url 'samples-csv' %}?order={{ view.kwargs.pk }}"><i class="fas fa-download"></i> Download CSV</a>
     </div>
 {% endblock %}

@@ -1,7 +1,5 @@
 [project]
-authors = [
-  {name = "Niccolò Cantù", email = "niccolo.cantu@nina.no"}
-]
+authors = [{name = "Niccolò Cantù", email = "niccolo.cantu@nina.no"}]
 # PEP 621 project metadata
 # See https://www.python.org/dev/peps/pep-0621/
 dependencies = [
@@ -51,7 +49,8 @@ dependencies = [
   "django-vite",
   "sqlglot[rs]",
   "django-view-breadcrumbs",
-  "django-autocomplete-light"
+  "django-autocomplete-light",
+  "djangorestframework-csv"
 ]
 description = ""
 license = {text = "GPL-3.0+"}
@@ -77,15 +76,8 @@ dev = [
   "playwright",
   "pytest-playwright"
 ]
-prod = [
-  "gunicorn",
-  "sentry-sdk>=1.40.5"
-]
-tools = [
-  "pre-commit",
-  "pyyaml",
-  "GitPython"
-]
+prod = ["gunicorn", "sentry-sdk>=1.40.5"]
+tools = ["pre-commit", "pyyaml", "GitPython"]
 
 [project.scripts]
 "manage.py" = "genlab_bestilling:django_manage"
@@ -102,10 +94,7 @@ plugins = ["django_coverage_plugin"]
 [tool.pytest.ini_options]
 addopts = "--ds=config.settings.test --reuse-db"
 minversion = "6.0"
-python_files = [
-  "tests.py",
-  "test_*.py"
-]
+python_files = ["tests.py", "test_*.py"]
 
 [tool.ruff]
 fix = true

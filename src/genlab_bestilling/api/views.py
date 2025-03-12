@@ -7,6 +7,7 @@ from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet, mixins
+from rest_framework_csv.renderers import CSVRenderer
 
 from ..filters import (
     LocationFilter,
@@ -35,6 +36,7 @@ from .serializers import (
     MarkerSerializer,
     OperationStatusSerializer,
     SampleBulkSerializer,
+    SampleCSVSerializer,
     SampleMarkerAnalysisBulkDeleteSerializer,
     SampleMarkerAnalysisBulkSerializer,
     SampleMarkerAnalysisSerializer,
@@ -80,7 +82,20 @@ class SampleViewset(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["update", "partial_update"]:
             return SampleUpdateSerializer
+        if self.action in ["csv"]:
+            return SampleCSVSerializer
         return super().get_serializer_class()
+
+    @action(
+        methods=["GET"], url_path="csv", detail=False, renderer_classes=[CSVRenderer]
+    )
+    def csv(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(
+            serializer.data,
+            headers={"Content-Disposition": "attachment; filename=samples.csv"},
+        )
 
     @extend_schema(
         request=SampleBulkSerializer, responses={200: OperationStatusSerializer}

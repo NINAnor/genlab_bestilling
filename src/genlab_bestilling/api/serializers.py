@@ -104,6 +104,27 @@ class SampleSerializer(serializers.ModelSerializer):
         )
 
 
+class SampleCSVSerializer(serializers.ModelSerializer):
+    type = SampleTypeSerializer()
+    species = SpeciesSerializer()
+    location = LocationSerializer(allow_null=True, required=False)
+
+    class Meta:
+        model = Sample
+        fields = (
+            "order",
+            "guid",
+            "name",
+            "species",
+            "type",
+            "year",
+            "pop_id",
+            "location",
+            "notes",
+            "genlab_id",
+        )
+
+
 class SampleUpdateSerializer(serializers.ModelSerializer):
     has_error = serializers.SerializerMethodField()
 

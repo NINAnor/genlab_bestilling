@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { client, config } from "../config";
 import AsyncSelect from "react-select/async";
 import AsyncCreatableSelect from "react-select/async-creatable";
+import { useStore } from "@tanstack/react-store";
 
 import toast from "react-hot-toast";
 import PastableArrayInput from "../../helpers/PastableArrayInput";
@@ -72,7 +73,7 @@ export default function SampleForm() {
     },
   });
 
-  const { handleSubmit, Field, Subscribe, setFieldValue, useStore } = useForm({
+  const { handleSubmit, Field, Subscribe, setFieldValue, store } = useForm({
     validators: {
       onChange({ value }) {
         const checks = {
@@ -129,7 +130,7 @@ export default function SampleForm() {
     return (await client.get(base)).data;
   };
 
-  const formErrorMap = useStore((state) => state.errorMap);
+  const formErrorMap = useStore(store, (state) => state.errorMap);
 
   return (
     <>

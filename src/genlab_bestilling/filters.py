@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from .models import (
@@ -84,6 +85,21 @@ class MarkerFilter(BaseOrderFilter):
 
 
 class LocationFilter(filters.FilterSet):
+    ext_order = filters.NumberFilter(field_name="ext_order", method="filter_ext_order")
+    species = filters.NumberFilter(field_name="species", method="filter_species")
+
+    def filter_ext_order(self, queryset, name, value):
+        if value:
+            order = ExtractionOrder.objects.get(pk=value)
+            if order.genrequest.area.location_mandatory:
+                return queryset.exclude(type=None)
+        return queryset
+
+    def filter_species(self, queryset, name, value):
+        if value:
+            return queryset.filter(Q(type__species=value) | Q(type__isnull=True))
+        return queryset
+
     class Meta:
         model = Location
         fields = {"name": ["icontains"]}

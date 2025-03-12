@@ -53,7 +53,11 @@ class Species(models.Model):
     area = models.ForeignKey("Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField("Marker", related_name="species")
     location_type = models.ForeignKey(
-        "LocationType", null=True, blank=True, on_delete=models.CASCADE
+        "LocationType",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="species",
     )
     code = models.CharField(null=True, blank=True)
 

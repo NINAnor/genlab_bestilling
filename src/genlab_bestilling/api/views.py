@@ -97,7 +97,7 @@ class SampleViewset(ModelViewSet):
             "guid",
         ]
         lists_data = {
-            li: serializer.validated_data.pop(li)
+            li: list(reversed(serializer.validated_data.pop(li)))
             for li in lists
             if li in serializer.validated_data
         }

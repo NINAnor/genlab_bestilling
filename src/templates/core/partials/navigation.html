@@ -21,8 +21,7 @@
           </div>
         {% endif %}
         {% include 'core/partials/app-dropdown.html' %}
-        <a href="{% url 'nina:project-list' %}">
-          <i class="fas fa-folder"></i> NINA Projects</a>
+        {% include 'core/partials/project-dropdown.html' %}
         {% include 'core/partials/user-dropdown.html' %}
       {% else %}
         <a href="{% url 'account_login' %}">Login</a>

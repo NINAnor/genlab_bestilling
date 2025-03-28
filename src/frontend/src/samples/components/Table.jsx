@@ -58,7 +58,7 @@ const sampleTypesOptions = async (input) => {
 const locationOptions = (species) => async (input) => {
   let base = `/api/locations/?ext_order=${config.order}&species=${species?.id}`;
   if (input) {
-    base += `&name__icontains=${input}`;
+    base += `&search=${input}`;
   }
   return (await client.get(base)).data;
 };

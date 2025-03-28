@@ -87,6 +87,14 @@ class MarkerFilter(BaseOrderFilter):
 class LocationFilter(filters.FilterSet):
     ext_order = filters.NumberFilter(field_name="ext_order", method="filter_ext_order")
     species = filters.NumberFilter(field_name="species", method="filter_species")
+    search = filters.CharFilter(method="filter_search")
+
+    def filter_search(self, queryset, name, value):
+        if value:
+            return queryset.filter(
+                Q(name__startswith=value) | Q(river_id__startswith=value)
+            )
+        return queryset
 
     def filter_ext_order(self, queryset, name, value):
         if value:

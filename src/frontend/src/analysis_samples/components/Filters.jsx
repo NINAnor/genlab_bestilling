@@ -21,7 +21,7 @@ const sampleTypesOptions = async (input) => {
 const locationOptions = async (input) => {
   let base = `/api/locations/`;
   if (input) {
-    base += `?name__icontains=${input}`;
+    base += `?search=${input}`;
   }
   return (await client.get(base)).data;
 };

@@ -57,11 +57,12 @@ export default function SampleForm() {
         type: value.type?.id,
         location: value.location?.id,
         order: config.order,
-        quantity:
-          value.quantity ||
-          value.guid.length ||
-          value.name.length ||
-          value.pop_id.length,
+        quantity: Math.max(
+          value.quantity,
+          value.guid.length,
+          value.name.length,
+          value.pop_id.length
+        ),
       });
     },
     onSuccess: () => {
@@ -347,7 +348,7 @@ export default function SampleForm() {
             {([canSubmit, isSubmitting, ...rows]) => (
               <Button
                 type="submit"
-                className="btn bg-primary block"
+                className="btn bg-primary block disabled:opacity-50"
                 disabled={!canSubmit}
               >
                 {isSubmitting ? (

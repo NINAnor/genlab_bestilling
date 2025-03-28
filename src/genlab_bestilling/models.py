@@ -426,6 +426,12 @@ class AnalysisOrder(Order):
         blank=True,
     )
 
+    @property
+    def short_timeframe(self):
+        return (self.expected_delivery_date - self.created_at.date()) < timedelta(
+            days=30
+        )
+
     def __str__(self) -> str:
         return f"#ANL_{self.id}"
 

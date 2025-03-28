@@ -4,6 +4,13 @@
 
 
 {% block content %}
+    {% if object.short_timeframe %}
+    <div class="px-4 alert alert-warning">
+    <p>
+        Contact <a class="underline" href="mailto:ninagen@nina.no">ninagen@nina.no</a> due to the short timeframe for this project
+    </p>
+    </div>
+    {% endif %}
     {% fragment as table_header %}
     {% #table-cell header=True %}GUID{% /table-cell %}
     {% #table-cell header=True %}Type{% /table-cell %}

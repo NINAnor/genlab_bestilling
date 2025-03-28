@@ -3,6 +3,13 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
+    {% if analysis.short_timeframe %}
+    <div class="px-4 alert alert-warning">
+    <p>
+        Contact <a class="underline" href="mailto:ninagen@nina.no">ninagen@nina.no</a> due to the short timeframe for this project
+    </p>
+    </div>
+    {% endif %}
     <h3 class="text-4xl mb-5">{{ analysis }} - Samples</h3>
     {% render_table table %}
     <div class="flex gap-5 mt-5">

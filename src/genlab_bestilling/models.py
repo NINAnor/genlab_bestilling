@@ -428,6 +428,8 @@ class AnalysisOrder(Order):
 
     @property
     def short_timeframe(self):
+        if not self.expected_delivery_date:
+            return False
         return (self.expected_delivery_date - self.created_at.date()) < timedelta(
             days=30
         )

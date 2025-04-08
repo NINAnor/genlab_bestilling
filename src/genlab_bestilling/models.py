@@ -118,8 +118,9 @@ class LocationType(models.Model):
 
 class Location(models.Model):
     name = models.CharField(max_length=250)
-    type = models.ForeignKey(
-        "LocationType", null=True, blank=True, on_delete=models.CASCADE
+    types = models.ManyToManyField(
+        "LocationType",
+        blank=True,
     )
     river_id = models.CharField(max_length=250, null=True, blank=True)
     code = models.CharField(max_length=20, null=True, blank=True)
@@ -563,13 +564,16 @@ class Sample(models.Model):
                 # ensure that location is correct for the selected species
                 if (
                     self.species.location_type
-                    and self.species.location_type_id != self.location.type_id
+                    and self.species.location_type_id
+                    not in self.location.types.values_list("id", flat=True)
                 ):
                     raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:
             # if the location is optional, but it's provided,
             # check it is compatible with the species
-            if self.species.location_type_id != self.location.type_id:
+            if self.species.location_type_id not in self.location.types.values_list(
+                "id", flat=True
+            ):
                 raise ValidationError(
                     "Selected location not compatible with the selected species"
                 )

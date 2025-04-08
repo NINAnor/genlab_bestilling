@@ -100,13 +100,13 @@ class LocationFilter(filters.FilterSet):
         if value:
             order = ExtractionOrder.objects.get(pk=value)
             if order.genrequest.area.location_mandatory:
-                return queryset.exclude(type=None)
+                return queryset.exclude(types=None)
         return queryset
 
     def filter_species(self, queryset, name, value):
         if value:
-            return queryset.filter(Q(type__species=value) | Q(type__isnull=True))
-        return queryset
+            return queryset.filter(Q(types__species=value))
+        return queryset.filter(types=True)
 
     class Meta:
         model = Location

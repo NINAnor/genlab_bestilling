@@ -12,7 +12,6 @@ x-django-env: &django-env
   OIDC_PROVIDER_URL: "${OIDC_PROVIDER_URL}"
   OIDC_PROVIDER_NAME: NINA
 
-
 x-django-prod-env: &django-prod-env
   <<: *django-env
   DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY}"
@@ -34,7 +33,6 @@ x-django: &django
     - postgres
   environment:
     <<: *django-env
-
 
 x-django-prod: &django-prod
   <<: *django
@@ -104,7 +102,7 @@ services:
       DJANGO_TAILWIND: 1
 
   postgres:
-    image: postgres:16
+    image: postgres:17
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:

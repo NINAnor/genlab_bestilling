@@ -7,8 +7,8 @@
     class="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11"
   >
     <div>
-      <a class="navbar-brand fw-bolder" href="/">
-        <img src="{% static 'images/logo.png' %}" style="max-width: 100px" />
+      <a class="navbar-brand fw-bolder flex items-center" href="/">
+        <img src="{% static 'images/logo.png' %}" style="max-width: 100px" /> {%if DEPLOYMENT_ENV != 'production' %}<span class="ml-4 font-bold text-xl uppercase text-red-600">{{ DEPLOYMENT_ENV }}</span>{% endif %}
       </a>
     </div>
 

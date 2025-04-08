@@ -406,3 +406,5 @@ DJANGO_VITE = {
         "dev_mode": DEBUG,
     }
 }
+
+DEPLOYMENT_ENV = env("DEPLOYMENT_ENV", default="production")

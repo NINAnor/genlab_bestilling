@@ -14,34 +14,6 @@
         }
     },
     {
-        "model": "genlab_bestilling.locationtype",
-        "pk": 1,
-        "fields": {
-            "name": "Laks locations"
-        }
-    },
-    {
-        "model": "genlab_bestilling.locationtype",
-        "pk": 2,
-        "fields": {
-            "name": "Ørret locations"
-        }
-    },
-    {
-        "model": "genlab_bestilling.locationtype",
-        "pk": 3,
-        "fields": {
-            "name": "Elvemusling location"
-        }
-    },
-    {
-        "model": "genlab_bestilling.locationtype",
-        "pk": 4,
-        "fields": {
-            "name": "Salamander locations"
-        }
-    },
-    {
         "model": "genlab_bestilling.equipmenttype",
         "pk": 1,
         "fields": {

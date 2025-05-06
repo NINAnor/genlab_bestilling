@@ -17,7 +17,7 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(BASE_DIR / ".env"))
 
-PROJECT_NAME = "GenLab Bestilling System"
+PROJECT_NAME = "NINAGEN Bestilling System"
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -386,7 +386,7 @@ REST_AUTH = {
 # DRF Spectacular
 SPECTACULAR_SETTINGS = {
     "TITLE": "GenLab Bestilling System API",
-    "DESCRIPTION": "APIs for GenLab Bestilling System project",
+    "DESCRIPTION": "APIs for NINAGEN Bestilling System project",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }

@@ -1,0 +1,17 @@
+{% extends "staff/base.html" %}
+{% load i18n %}
+
+
+{% block content %}
+    <h3 class="text-4xl mb-5">Project {{ object }}</h3>
+    <div class="flex gap-5 mb-5">
+    </div>
+
+    {% object-detail object=object %}
+
+    <div class="flex gap-5 my-5">
+        <a class="btn bg-yellow-200" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        {% url 'staff:projects-verify' pk=object.pk as verify_url %}
+        {% action-button action=verify_url class="btn-secondary text-white" submit_text="Mark as verified" csrf_token=csrf_token %}
+    </div>
+{% endblock %}

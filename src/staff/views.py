@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
+from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
@@ -19,7 +20,8 @@ from genlab_bestilling.models import (
     Sample,
     SampleMarkerAnalysis,
 )
-from genlab_bestilling.views import ActionView
+from nina.models import Project
+from shared.views import ActionView
 
 from .filters import (
     AnalysisOrderFilter,
@@ -36,6 +38,7 @@ from .tables import (
     OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
     PlateTable,
+    ProjectTable,
     SampleTable,
 )
 
@@ -43,7 +46,10 @@ from .tables import (
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
         names = super().get_template_names()
-        return [name.replace("genlab_bestilling", "staff") for name in names]
+        return [
+            name.replace("genlab_bestilling", "staff").replace("nina", "staff")
+            for name in names
+        ]
 
     def test_func(self):
         return self.request.user.is_genlab_staff()
@@ -370,6 +376,49 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
 
     def get_success_url(self) -> str:
         return reverse_lazy("staff:samples-detail", kwargs={"id": self.object.pk})
+
+    def form_invalid(self, form):
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
+    model = Project
+    table_class = ProjectTable
+    filterset_fields = {
+        "number": ["startswith"],
+        "name": ["startswith"],
+        "verified_at": ["isnull"],
+        "active": ["exact"],
+    }
+
+
+class ProjectDetailView(StaffMixin, DetailView):
+    model = Project
+
+
+class ProjectValidateActionView(SingleObjectMixin, ActionView):
+    model = Project
+
+    def get_queryset(self):
+        return super().get_queryset().filter(verified_at=None)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Any) -> HttpResponse:
+        self.object.verified_at = now()
+        self.object.save()
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            _("The project is verified"),
+        )
+
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse_lazy("staff:projects-detail", kwargs={"pk": self.object.pk})
 
     def form_invalid(self, form):
         return HttpResponseRedirect(self.get_success_url())

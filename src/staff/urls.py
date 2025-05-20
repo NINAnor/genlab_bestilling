@@ -16,6 +16,9 @@ from .views import (
     OrderExtractionSamplesListView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
+    ProjectDetailView,
+    ProjectListView,
+    ProjectValidateActionView,
     SampleDetailView,
     SampleReplicaActionView,
     SamplesListView,
@@ -25,6 +28,13 @@ app_name = "staff"
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="staff/base.html"), name="dashboard"),
+    path("projects/", ProjectListView.as_view(), name="projects-list"),
+    path("projects/<str:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
+    path(
+        "projects/<str:pk>/verify/",
+        ProjectValidateActionView.as_view(),
+        name="projects-verify",
+    ),
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"
     ),

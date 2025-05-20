@@ -7,6 +7,20 @@ from genlab_bestilling.models import (
     Sample,
     SampleMarkerAnalysis,
 )
+from nina.models import Project
+
+
+class ProjectTable(tables.Table):
+    number = tables.Column(
+        linkify=("staff:projects-detail", {"pk": tables.A("number")}),
+        orderable=True,
+        empty_values=(),
+    )
+    verified_at = tables.BooleanColumn()
+
+    class Meta:
+        model = Project
+        fields = ("number", "name", "active", "verified_at")
 
 
 class OrderTable(tables.Table):

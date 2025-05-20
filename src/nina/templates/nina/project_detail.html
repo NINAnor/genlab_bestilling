@@ -8,6 +8,12 @@
   <h3 id="genrequest" class="text-4xl">{{ object }}</h3>
 </div>
 
+{% if not object.verified_at %}
+<div class="alert alert-warning">
+  The project number needs to be verified by the NINAGEN staff before you can start creating orders for this project.
+</div>
+{% endif %}
+
 <div>
   {% object-detail object=object %}
 

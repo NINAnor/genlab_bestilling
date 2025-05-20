@@ -1,8 +1,9 @@
 from django import forms
+from django.db import transaction
 from formset.renderers.tailwind import FormRenderer
 from genlab_bestilling.libs.formset import ContextFormCollection
 
-from .models import ProjectMembership
+from .models import Project, ProjectMembership
 
 
 class ProjectMembershipForm(forms.ModelForm):
@@ -44,3 +45,31 @@ class ProjectMembershipCollection(ContextFormCollection):
     def update_holder_instances(self, name, holder):
         if name == "members":
             holder.reinit(self.context)
+
+
+class ProjectCreateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        with transaction.atomic():
+            obj = super().save(commit=True)
+            ProjectMembership.objects.create(
+                user=self.user, project=obj, role=ProjectMembership.Role.OWNER
+            )
+        return obj
+
+    class Meta:
+        model = Project
+        fields = ("number", "name")
+
+
+class ProjectUpdateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = Project
+        fields = ("name",)

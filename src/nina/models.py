@@ -30,6 +30,14 @@ class ProjectMembership(models.Model):
         return f"{self.project_id} {self.user} - {self.get_role_display()}"
 
 
+class ProjectManager(models.Manager):
+    def filter_selectable(self):
+        """
+        Obtain only active and verified projects
+        """
+        return self.filter(active=True).exclude(verified_at=None)
+
+
 class Project(models.Model):
     number = models.CharField(primary_key=True)
     name = models.CharField(null=True, blank=True)
@@ -37,6 +45,9 @@ class Project(models.Model):
         "users.User", through=ProjectMembership, blank=True
     )
     active = models.BooleanField(default=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+
+    objects = ProjectManager()
 
     def __str__(self) -> str:
         if self.name:

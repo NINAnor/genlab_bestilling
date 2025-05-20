@@ -5,8 +5,9 @@ from django_tables2.views import SingleTableView
 from formset.views import (
     BulkEditCollectionView,
 )
+from shared.views import FormsetCreateView, FormsetUpdateView
 
-from .forms import ProjectMembershipCollection
+from .forms import ProjectCreateForm, ProjectMembershipCollection, ProjectUpdateForm
 from .models import Project, ProjectMembership
 from .tables import MembersTable, MyProjectsTable
 
@@ -74,3 +75,30 @@ class ProjectMembershipUpdateView(
             context={"project": self.kwargs["pk"]}
         ).models_to_list(queryset)
         return initial
+
+
+class ProjectCreateView(FormsetCreateView):
+    model = Project
+    form_class = ProjectCreateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def get_success_url(self):
+        return reverse(
+            "nina:project-detail",
+            kwargs={"pk": self.object.pk},
+        )
+
+
+class ProjectEditView(FormsetUpdateView):
+    model = Project
+    form_class = ProjectUpdateForm
+
+    def get_success_url(self):
+        return reverse(
+            "nina:project-detail",
+            kwargs={"pk": self.object.pk},
+        )

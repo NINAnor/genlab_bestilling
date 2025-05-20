@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load core static %}
+{% load formsetify %}
+
+{% block content %}
+    <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
+    <div class="flex gap-5 mb-5">
+    </div>
+
+    <django-formset endpoint="{{ request.path }}" csrf-token="{{ csrf_token }}">
+        {% render_form form "tailwind"  %}
+        <button type="button" class="btn bg-secondary mt-5" df-click="submit -> proceed">Submit</button>
+    </django-formset>
+{% endblock %}

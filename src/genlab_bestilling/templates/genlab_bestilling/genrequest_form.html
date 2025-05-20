@@ -8,6 +8,7 @@
         <a class="btn bg-primary" href="{% url 'genrequest-detail' pk=object.id %}"><i class="fas fa-arrow-left"></i> back</a>
         {% else %}
         <a class="btn bg-primary" href="{% url 'genrequest-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn btn-secondary" href="{% url 'nina:project-create' %}"><i class="fas fa-plus"></i> Register UBW project</a>
         {% endif %}
     </div>
     {% formset endpoint=request.path csrf_token=csrf_token form=form %}

@@ -1,5 +1,6 @@
 from django import forms
-from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from formset.renderers.tailwind import FormRenderer
 from genlab_bestilling.libs.formset import ContextFormCollection
 
@@ -61,6 +62,27 @@ class ProjectCreateForm(forms.ModelForm):
                 user=self.user, project=obj, role=ProjectMembership.Role.OWNER
             )
         return obj
+
+    def clean_number(self):
+        number = self.cleaned_data["number"]
+        try:
+            p = Project.objects.prefetch_related("members").get(pk=number)
+            contacts = ", ".join(
+                [
+                    c.user.email
+                    for c in p.members.filter(
+                        models.Q(role=ProjectMembership.Role.MANAGER)
+                        | models.Q(role=ProjectMembership.Role.OWNER)
+                    )
+                ]
+            )
+
+            raise ValidationError(
+                f"Project already exists, please contact {contacts} to be added to the project"  # noqa: E501
+            )
+        except Project.DoesNotExist:
+            pass
+        return number
 
     class Meta:
         model = Project

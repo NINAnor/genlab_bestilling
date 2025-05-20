@@ -72,7 +72,9 @@
       <script src="{% url 'javascript-catalog' %}"></script>
       <script src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js" defer></script>
 
-      <script src="{% static 'js/app.js' %}"></script>
+      {% if form %}
+      <script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>
+      {% endif %}
     {% endblock body_javascript %}
   </body>
 </html>

@@ -45,7 +45,7 @@ dependencies = [
   "django-widget-tweaks",
   "django-taggit",
   "django-tables2",
-  "django-formset",
+  "django-formset==1.7.6",
   "django-vite",
   "sqlglot[rs]",
   "django-view-breadcrumbs",

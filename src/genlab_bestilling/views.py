@@ -11,22 +11,18 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext as _
 from django.views.generic import (
-    CreateView,
     DeleteView,
     DetailView,
-    FormView,
-    UpdateView,
 )
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
 from formset.views import (
     BulkEditCollectionView,
-    FormViewMixin,
-    IncompleteSelectResponseMixin,
 )
 from nina.models import Project
 from rest_framework.exceptions import ValidationError
+from shared.views import ActionView, FormsetCreateView, FormsetUpdateView
 from view_breadcrumbs import BaseBreadcrumbMixin
 
 from .api.serializers import AnalysisSerializer, ExtractionSerializer
@@ -38,7 +34,6 @@ from .filters import (
     OrderFilter,
 )
 from .forms import (
-    ActionForm,
     AnalysisOrderForm,
     AnalysisOrderUpdateForm,
     EquipmentOrderForm,
@@ -66,34 +61,6 @@ from .tables import (
     OrderTable,
     SampleTable,
 )
-
-
-class ActionView(FormView):
-    form_class = ActionForm
-
-    def get(self, request, *args, **kwargs):
-        """
-        Action forms should be used just to modify the system
-        """
-        self.http_method_not_allowed(self, request, *args, **kwargs)
-
-    def get_success_url(self) -> str:
-        return self.request.path_info
-
-
-class FormsetCreateView(
-    IncompleteSelectResponseMixin,
-    FormViewMixin,
-    LoginRequiredMixin,
-    CreateView,
-):
-    pass
-
-
-class FormsetUpdateView(
-    IncompleteSelectResponseMixin, FormViewMixin, LoginRequiredMixin, UpdateView
-):
-    pass
 
 
 class GenrequestListView(

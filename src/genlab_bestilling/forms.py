@@ -30,7 +30,9 @@ class GenrequestForm(FormMixin, forms.ModelForm):
         self.user = user
 
         if "project" in self.fields:
-            self.fields["project"].queryset = Project.objects.filter(
+            self.fields[
+                "project"
+            ].queryset = Project.objects.filter_selectable().filter(
                 memberships=user,
             )
 

@@ -27,12 +27,16 @@
     <a class="btn btn-secondary" href="{% url 'nina:project-members-edit' pk=object.pk %}"
       ><i class="fas fa-edit"></i> Members</a
     >
+    {% if object.verified_at %}
     <a class="btn bg-primary" href="{% url 'genrequest-list' %}?project={{object.pk}}"
       ><i class="fas fa-folder"></i> Genetic projects</a
     >
+    {% if object.active %}
     <a class="btn bg-primary" href="{% url 'genrequest-create' %}?project={{object.pk}}"
       ><i class="fas fa-plus"></i> new Genetic project</a
     >
+    {% endif %}
+    {% endif %}
   </div>
 </div>
 {% endblock %}

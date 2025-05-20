@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AppConfig(DjangoAppConfig):
-    name = "genlab_bestilling.staff"
+    name = "staff"
     verbose_name = _("GenLab staff")
 
     def ready(self: Self) -> None:

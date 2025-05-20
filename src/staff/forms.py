@@ -1,6 +1,5 @@
 from django.forms import ModelForm
-
-from ..models import ExtractionPlate
+from genlab_bestilling.models import ExtractionPlate
 
 
 class ExtractionPlateForm(ModelForm):

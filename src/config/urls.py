@@ -23,7 +23,7 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("", include("genlab_bestilling.urls")),
     path("", include("nina.urls", namespace="nina")),
-    path("staff/", include("genlab_bestilling.staff.urls", namespace="staff")),
+    path("staff/", include("staff.urls", namespace="staff")),
     path(
         "jsi18n/",
         (JavaScriptCatalog.as_view(packages=["formset"])),

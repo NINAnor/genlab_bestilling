@@ -21,7 +21,7 @@ from .views import (
     SamplesListView,
 )
 
-app_name = "genlab.staff"
+app_name = "staff"
 
 urlpatterns = [
     path("", TemplateView.as_view(template_name="staff/base.html"), name="dashboard"),

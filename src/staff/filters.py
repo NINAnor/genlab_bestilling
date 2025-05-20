@@ -1,7 +1,11 @@
 import django_filters as filters
 from dal import autocomplete
-
-from ..models import AnalysisOrder, ExtractionPlate, Sample, SampleMarkerAnalysis
+from genlab_bestilling.models import (
+    AnalysisOrder,
+    ExtractionPlate,
+    Sample,
+    SampleMarkerAnalysis,
+)
 
 
 class AnalysisOrderFilter(filters.FilterSet):

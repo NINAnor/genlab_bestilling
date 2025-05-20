@@ -10,8 +10,7 @@ from django.views.generic import CreateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
-
-from ..models import (
+from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
     ExtractionOrder,
@@ -20,7 +19,8 @@ from ..models import (
     Sample,
     SampleMarkerAnalysis,
 )
-from ..views import ActionView
+from genlab_bestilling.views import ActionView
+
 from .filters import (
     AnalysisOrderFilter,
     ExtractionPlateFilter,

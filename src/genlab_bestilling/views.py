@@ -555,6 +555,11 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
         self.object = (self.get_object()).get_real_instance()
         return super().post(request, *args, **kwargs)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.pop("genrequest")
+        return kwargs
+
     def form_valid(self, form: Any) -> HttpResponse:
         try:
             # TODO: check state transition

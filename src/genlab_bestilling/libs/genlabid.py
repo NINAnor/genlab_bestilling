@@ -15,10 +15,16 @@ from ..models import Sample, Species
 
 
 def get_replica_for_sample():
+    '''
+    TODO: implement
+    '''
     pass
 
 
 def get_current_sequences(order_id):
+    '''
+    Invoke a Postgres function to get the current sequence number for a specific combination of year and species
+    '''
     samples = (
         Sample.objects.select_related("species")
         .filter(order=order_id)
@@ -50,6 +56,9 @@ def get_current_sequences(order_id):
 
 
 def generate(order_id):
+    '''
+    wrapper to handle errors and reset the sequence to the current sequence value
+    '''
     sequences = get_current_sequences(order_id)
     print(sequences)
 
@@ -70,6 +79,11 @@ def generate(order_id):
 
 
 def update_genlab_id_query(order_id):
+    '''
+    Safe generation of a SQL raw query using sqlglot
+    The query runs an update on all the rows with a specific order_id
+    and set genlab_id = generate_genlab_id(code, year)
+    '''
     samples_table = Sample._meta.db_table
     species_table = Species._meta.db_table
 

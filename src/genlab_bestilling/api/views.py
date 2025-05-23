@@ -51,6 +51,9 @@ class IDCursorPagination(CursorPagination):
 
 
 class AllowSampleDraft(BasePermission):
+    '''
+    Prevent any UNSAFE method (POST, PUT, DELETE) on orders that are not draft
+    '''
     def has_object_permission(self, request, view, obj):
         if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:
             return request.method in SAFE_METHODS
@@ -102,6 +105,9 @@ class SampleViewset(ModelViewSet):
     )
     @action(methods=["POST"], url_path="bulk", detail=False)
     def bulk_create(self, request):
+        '''
+        Creata a multiple samples in bulk
+        '''
         serializer = SampleBulkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -255,9 +261,11 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
                         .markers.filter(name=marker)
                         .exists()
                     ):
+                        # skip if the marker of the sample is not in the analysis
                         continue
 
                     if not marker.species.filter(id=sample.species_id).exists():
+                        # skip if the marker is not allowed for this species
                         continue
 
                     SampleMarkerAnalysis.objects.get_or_create(

@@ -7,6 +7,9 @@ from ..models import AnalysisType, Area, Marker, SampleType, Species
 
 
 def species_from_tsv(path: pathlib.Path):
+    '''
+    read a TSV file and create Area, Species, Analysis Type and Markers dynamically
+    '''
     with path.open(mode="r") as csv_file:
         reader = csv.DictReader(csv_file, dialect="excel-tab")
         with transaction.atomic():
@@ -32,6 +35,9 @@ def species_from_tsv(path: pathlib.Path):
 
 
 def sample_types_from_tsv(path: pathlib.Path):
+    '''
+    read a TSV file and create Area, SampleType dynamically
+    '''
     with path.open(mode="r") as csv_file:
         reader = csv.DictReader(csv_file, dialect="excel-tab")
         with transaction.atomic():

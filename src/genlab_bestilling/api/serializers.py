@@ -69,16 +69,6 @@ class SampleSerializer(serializers.ModelSerializer):
     location = LocationSerializer(allow_null=True, required=False)
     has_error = serializers.SerializerMethodField()
 
-    # TODO: validate location
-    ## species in (Laks, Ørret, Elvemusling and  Salamander)
-    #   - should have location with river_id
-    ## order.genrequest.area in (
-    #   Akvatisk, Amfibier, Biodiversitet, Fisk, Parasitt og sykdomspåvisning
-    # )
-    #   - should have a location
-    ## other
-    # - location is optional
-
     def get_has_error(self, obj):
         try:
             return obj.has_error

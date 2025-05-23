@@ -4,9 +4,9 @@ from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 class GenrequestQuerySet(models.QuerySet):
     def filter_allowed(self, user):
-    '''
-    Get only requests of projects that the user is part of
-    '''
+        '''
+        Get only requests of projects that the user is part of
+        '''
         return self.filter(project__memberships=user)
 
 

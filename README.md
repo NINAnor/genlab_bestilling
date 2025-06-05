@@ -26,10 +26,14 @@ docker compose --profile dev up -d --build
 ```
 This will build the docker images for local development and startup everything.
 **NOTE**: the `docker-compose.yml` uses bind-mounts, so editing your local django files will trigger a server reload without needing to rebuild the whole image.
-In case you want to install new libraries (via `apt-get` or `pip`) ou will need to rebuild.
+In case you want to install new libraries (via `apt-get` or `pip`) you will need to rebuild.
 
 The development setup will by default create a administrator user (admin@nina.no) with password: admin.
 At every container start it will apply new migrations.
+
+#### Local dependencies
+If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code.
+Install `uv` and run `uv sync`.
 
 #### Django commands
 Django provides useful command line tools that can be executed with `manage.py`, to see a list of all the available commands run inside the django container `src/manage.py help`.
@@ -40,7 +44,7 @@ djcli_dev makemigrations # it will detect changes in your model files and will c
 ```
 This is actually an alias for
 ```
-docker compose --profile dev exec -it django-dev src/manage.py makemigrations
+docker compose --profile dev exec -it django-dev ./src/manage.py makemigrations
 ```
 
 You can then review the migration script created and apply it with:

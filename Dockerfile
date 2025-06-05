@@ -1,23 +1,25 @@
 FROM debian:12.5 AS base
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
-    apt-get update && apt-get install --no-install-recommends -yq python3 python3-pip git python3-venv python3-dev gettext curl
+    apt-get update && apt-get install --no-install-recommends -yq python3 python3-pip git python3-dev gettext curl
 
+# https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /app
-RUN python3 -m venv .venv
 ENV PYTHONPATH=/app/.venv/lib
 ENV PATH=/app/.venv/bin:$PATH
-COPY ./pyproject.toml .
+COPY ./pyproject.toml uv.lock ./
 COPY src/manage.py src/
-RUN pip install -e .
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --locked --no-dev
 
 FROM base AS base-node
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh
-RUN bash nodesource_setup.sh
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
-  --mount=target=/var/cache/apt,type=cache,sharing=locked \
-  apt-get update && apt-get install -y --fix-missing nodejs
+    --mount=target=/var/cache/apt,type=cache,sharing=locked \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get update && \
+    apt-get install -y --fix-missing nodejs
 
 
 FROM scratch AS source
@@ -40,24 +42,22 @@ RUN npm run build
 
 
 FROM base AS production
-RUN pip install -e .[prod]
-
 
 # Compile the translations for multilanguage
 FROM base AS translation
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
-  manage.py compilemessages -l no
+  ./src/manage.py compilemessages -l no
 
 FROM base-node AS tailwind
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
-  manage.py tailwind install
+  ./src/manage.py tailwind install
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
-  manage.py tailwind build
+  ./src/manage.py tailwind build
 
 
 FROM base AS django
@@ -71,9 +71,10 @@ COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 
 FROM base-node AS dev
-RUN pip install -e .[dev]
-RUN python -m playwright install
-RUN python -m playwright install-deps
+RUN --mount=type=cache,target=/root/.cache/uv \
+  --mount=type=cache,target=/root/.cache/ms-playwright \
+  uv sync --locked && \
+  uv run playwright install && uv run playwright install-deps
 
 COPY --from=django /app/src src
 COPY --from=translation /app/src/locale /app/src/locale

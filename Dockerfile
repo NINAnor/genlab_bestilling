@@ -27,13 +27,13 @@ COPY src src
 
 FROM node:20 AS frontend-base
 WORKDIR /app
-COPY src/frontend/package.json src/frontend/package-lock.json .
+COPY src/frontend/package.json src/frontend/package-lock.json ./
 RUN npm install
 
 
 FROM frontend-base AS frontend
 COPY src/frontend/src src
-COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs .
+COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs ./
 
 FROM frontend AS frontend-prod
 RUN npm run build

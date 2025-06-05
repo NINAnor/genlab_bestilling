@@ -54,8 +54,8 @@ x-django-dev: &django-dev
     - ./src:/app/src
     - ./media:/app/media
     - /tmp/.X11-unix:/tmp/.X11-unix:ro
-  command: manage.py runserver 0.0.0.0:8000
-  #command: python -m pdb -c continue manage.py runserver 0.0.0.0:8000 --nothreading --noreload
+  command: ./src/manage.py runserver 0.0.0.0:8000
+  #command: python -m pdb -c continue ./src/manage.py runserver 0.0.0.0:8000 --nothreading --noreload
 
 services:
   django:
@@ -76,27 +76,26 @@ services:
       <<: *django-dev-env
       DJANGO_MIGRATE: 1
       LIVE_SERVER_URL: http://django:8000
-      DISPLAY: ${DISPLAY}
 
   queue:
     <<: *django-prod
     environment:
       <<: *django-prod-env
       WAIT_FOR_HTTP: http://django:8000/ht/
-    command: manage.py procrastinate worker
+    command: ./src/manage.py procrastinate worker
 
   queue-dev:
     <<: *django-dev
     environment:
       <<: *django-dev-env
       WAIT_FOR_HTTP: http://django:8000/ht/
-    command: manage.py procrastinate worker
+    command: ./src/manage.py procrastinate worker
 
   tailwind:
     <<: *django-dev
     tty: true
     stdin_open: true
-    command: manage.py tailwind start
+    command: ./src/manage.py tailwind start
     environment:
       <<: *django-dev-env
       DJANGO_TAILWIND: 1

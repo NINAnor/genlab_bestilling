@@ -5,36 +5,36 @@ set -o pipefail
 
 # Run commands to setup
 
-manage.py wait_for_database
+./src/manage.py wait_for_database
 
 if [[ -z "${WAIT_FOR_HTTP}" ]]
 then
   echo "No HTTP service to wait for"
 else
-  manage.py wait_for_http "$WAIT_FOR_HTTP"
+  ./src/manage.py wait_for_http "$WAIT_FOR_HTTP"
 fi
 
 if [[ -z "${DJANGO_MIGRATE}" ]]
 then
   echo "Skip migration and setup"
 else
-  manage.py makemigrations
-  manage.py migrate
-  manage.py setup
+  ./src/manage.py makemigrations
+  ./src/manage.py migrate
+  ./src/manage.py setup
 fi
 
 if [[ -z "${DJANGO_TAILWIND}" ]]
 then
   echo "Skip tailwind"
 else
-  manage.py tailwind install --no-input
+  ./src/manage.py tailwind install --no-input
 fi
 
 if [[ -z "${DJANGO_COLLECTSTATIC}" ]]
 then
   echo "Skip collectstatic"
 else
-  manage.py collectstatic --noinput
+  ./src/manage.py collectstatic --noinput
 fi
 
 

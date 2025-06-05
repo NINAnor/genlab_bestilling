@@ -11,7 +11,7 @@ dependencies = [
   "psycopg[binary]",
   "backoff",
   "requests",
-  "django>=5.0.0",
+  "django>=5.2.0",
   "django-model-utils",
   "django-allauth==65.4",
   "django-crispy-forms",
@@ -50,7 +50,7 @@ dependencies = [
   "sqlglot[rs]",
   "django-view-breadcrumbs",
   "django-autocomplete-light",
-  "djangorestframework-csv"
+  "djangorestframework-csv",
 ]
 description = ""
 license = {text = "GPL-3.0+"}
@@ -59,7 +59,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 version = "0.1.0"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
   "Werkzeug[watchdog]",
   "ipdb",
@@ -74,13 +74,11 @@ dev = [
   "pytest-django",
   "django-models2puml>=0.2",
   "playwright",
-  "pytest-playwright"
+  "pytest-playwright",
+  "django-stubs>=5.2.0",
 ]
 prod = ["gunicorn", "sentry-sdk>=1.40.5"]
 tools = ["pre-commit", "pyyaml", "GitPython"]
-
-[project.scripts]
-"manage.py" = "genlab_bestilling:django_manage"
 
 # ==== Coverage ====
 [tool.coverage]

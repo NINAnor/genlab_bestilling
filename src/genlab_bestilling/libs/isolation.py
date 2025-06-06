@@ -4,6 +4,7 @@ from ..models import ExtractionPlate, ExtractPlatePosition, Sample
 
 PLATE_SIZE = 96
 
+
 # NOTE: this is probably a naive implementation
 # we might need full user control on how to fill a certain plate
 def isolate(order_id):

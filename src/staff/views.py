@@ -11,6 +11,7 @@ from django.views.generic import CreateView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+
 from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
@@ -244,7 +245,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
             )
 
         return super().form_valid(form)
@@ -282,7 +283,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
             )
 
         return super().form_valid(form)
@@ -317,7 +318,7 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
             )
 
         return super().form_valid(form)
@@ -369,7 +370,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f'Error: {",".join(map(lambda error: str(error), e.detail))}',
+                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
             )
 
         return super().form_valid(form)

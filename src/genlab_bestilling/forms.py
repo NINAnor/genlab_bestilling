@@ -4,6 +4,7 @@ from django.db import transaction
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DualSortableSelector, Selectize, TextInput
+
 from nina.models import Project
 
 from .libs.formset import ContextFormCollection

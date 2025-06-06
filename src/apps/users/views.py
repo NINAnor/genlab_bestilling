@@ -1,12 +1,13 @@
 from typing import Self
 
-from apps.ui.views import UIDetailView, UIListView, UIUpdateView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView
+
+from apps.ui.views import UIDetailView, UIListView, UIUpdateView
 
 from .filters import UserFilterSet
 from .tables import UserTable

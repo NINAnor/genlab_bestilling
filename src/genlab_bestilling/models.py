@@ -374,9 +374,9 @@ class ExtractionOrder(Order):
         )
 
     def clone(self):
-        '''
+        """
         Generates a clone of the model, with a different ID
-        '''
+        """
         species = self.species.all()
         sample_types = self.sample_types.all()
 
@@ -406,9 +406,9 @@ class ExtractionOrder(Order):
                 super().confirm_order()
 
     def order_manually_checked(self):
-        '''
+        """
         Set the order as checked by the lab staff, generate a genlab id
-        '''
+        """
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
         self.save()
@@ -462,9 +462,10 @@ class AnalysisOrder(Order):
                 super().confirm_order()
 
     def populate_from_order(self):
-        '''
-        Create the list of markers per sample to analyze based on a previous extraction order 
-        '''
+        """
+        Create the list of markers per sample to analyze
+        based on a previous extraction order
+        """
         if not self.from_order_id:
             return
 
@@ -553,11 +554,13 @@ class Sample(models.Model):
 
     @property
     def has_error(self):
-        '''
+        """
         Check if all the fields are filled correctly depending on several factors.
-        NOTE: this cannot be done inside a clean_ method because each sample is always a valid
-              row in the database, but in certain contexts it might be invalid.
-        '''
+
+        NOTE:
+        This cannot be done inside a clean_ method because each sample is always
+        a valid row in the database, but in certain contexts it might be invalid.
+        """
         if not all(
             [
                 self.name,

@@ -4,6 +4,8 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from rest_framework.routers import DefaultRouter
+
 from genlab_bestilling.api.views import (
     AnalysisTypeViewset,
     ExtractionOrderViewset,
@@ -14,7 +16,6 @@ from genlab_bestilling.api.views import (
     SampleViewset,
     SpeciesViewset,
 )
-from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 

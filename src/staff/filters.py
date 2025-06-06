@@ -1,5 +1,6 @@
 import django_filters as filters
 from dal import autocomplete
+
 from genlab_bestilling.models import (
     AnalysisOrder,
     ExtractionPlate,

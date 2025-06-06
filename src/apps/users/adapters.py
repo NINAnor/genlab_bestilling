@@ -9,15 +9,15 @@ from django.http import HttpRequest
 
 
 def report(e, error):
-    logging.error(str(e))
-    logging.error(str(error))
+    logging.error(str(e))  # noqa: LOG015
+    logging.error(str(error))  # noqa: LOG015
     try:
         from sentry_sdk import capture_exception, set_context
 
         set_context("oauth error", {"error": str(error)})
         capture_exception(e)
     except Exception:
-        logging.error(traceback.format_exc())
+        logging.error(traceback.format_exc())  # noqa: LOG015
 
 
 class AccountAdapter(DefaultAccountAdapter):

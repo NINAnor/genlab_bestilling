@@ -1,3 +1,24 @@
+[dependency-groups]
+dev = [
+  "Werkzeug[watchdog]",
+  "ipdb",
+  "pytest",
+  "pytest-sugar",
+  "coverage",
+  "pre-commit",
+  "factory-boy",
+  "django-debug-toolbar",
+  "django-extensions",
+  "django-coverage-plugin",
+  "pytest-django",
+  "django-models2puml>=0.2",
+  "playwright",
+  "pytest-playwright",
+  "django-stubs>=5.2.0"
+]
+prod = ["gunicorn", "sentry-sdk>=1.40.5"]
+tools = ["pre-commit", "pyyaml", "GitPython"]
+
 [project]
 authors = [{name = "Niccolò Cantù", email = "niccolo.cantu@nina.no"}]
 # PEP 621 project metadata
@@ -50,7 +71,7 @@ dependencies = [
   "sqlglot[rs]",
   "django-view-breadcrumbs",
   "django-autocomplete-light",
-  "djangorestframework-csv",
+  "djangorestframework-csv"
 ]
 description = ""
 license = {text = "GPL-3.0+"}
@@ -58,27 +79,6 @@ name = "genlab_bestilling"
 readme = "README.md"
 requires-python = ">=3.10"
 version = "0.1.0"
-
-[dependency-groups]
-dev = [
-  "Werkzeug[watchdog]",
-  "ipdb",
-  "pytest",
-  "pytest-sugar",
-  "coverage",
-  "pre-commit",
-  "factory-boy",
-  "django-debug-toolbar",
-  "django-extensions",
-  "django-coverage-plugin",
-  "pytest-django",
-  "django-models2puml>=0.2",
-  "playwright",
-  "pytest-playwright",
-  "django-stubs>=5.2.0",
-]
-prod = ["gunicorn", "sentry-sdk>=1.40.5"]
-tools = ["pre-commit", "pyyaml", "GitPython"]
 
 # ==== Coverage ====
 [tool.coverage]

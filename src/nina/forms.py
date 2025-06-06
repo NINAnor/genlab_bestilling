@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from formset.renderers.tailwind import FormRenderer
+
 from genlab_bestilling.libs.formset import ContextFormCollection
 
 from .models import Project, ProjectMembership

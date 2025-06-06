@@ -49,4 +49,3 @@ Most of the files follow the conventions of django (admin, views, urls, apps), m
 - autocomplete, autocomplete of `dal2`
 - tables, tables of `django-tables2`
 - tasks, tasks of `procrastinate`
-

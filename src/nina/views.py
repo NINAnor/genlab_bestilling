@@ -5,6 +5,7 @@ from django_tables2.views import SingleTableView
 from formset.views import (
     BulkEditCollectionView,
 )
+
 from shared.views import FormsetCreateView, FormsetUpdateView
 
 from .forms import ProjectCreateForm, ProjectMembershipCollection, ProjectUpdateForm

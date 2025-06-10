@@ -32,7 +32,7 @@ class OrderTable(tables.Table):
     )
 
     class Meta:
-        fields = (
+        fields = [
             "name",
             "status",
             "genrequest",
@@ -43,7 +43,7 @@ class OrderTable(tables.Table):
             "genrequest__samples_owner",
             "created_at",
             "last_modified_at",
-        )
+        ]
         sequence = ("id",)
         empty_text = "No Orders"
 
@@ -60,7 +60,7 @@ class AnalysisOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
-        fields = OrderTable.Meta.fields + ("return_samples",)
+        fields = OrderTable.Meta.fields + ["return_samples"]
 
 
 class ExtractionOrderTable(OrderTable):
@@ -72,14 +72,14 @@ class ExtractionOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
-        fields = OrderTable.Meta.fields + (
+        fields = OrderTable.Meta.fields + [
             "species",
             "sample_types",
             "internal_status",
             "needs_guid",
             "return_samples",
             "pre_isolated",
-        )
+        ]
 
 
 class EquipmentOrderTable(OrderTable):
@@ -91,7 +91,7 @@ class EquipmentOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = EquipmentOrder
-        fields = OrderTable.Meta.fields + ("needs_guid", "sample_types")
+        fields = OrderTable.Meta.fields + ["needs_guid", "sample_types"]
 
 
 class SampleBaseTable(tables.Table):
@@ -101,7 +101,7 @@ class SampleBaseTable(tables.Table):
 
     class Meta:
         model = Sample
-        fields = (
+        fields = [
             "genlab_id",
             "guid",
             "name",
@@ -112,7 +112,7 @@ class SampleBaseTable(tables.Table):
             "location",
             "notes",
             "plate_positions",
-        )
+        ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
@@ -126,7 +126,7 @@ class SampleBaseTable(tables.Table):
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields + ()
+        fields = SampleBaseTable.Meta.fields
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -157,11 +157,11 @@ class SampleTable(SampleBaseTable):
     )
 
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields + (
+        fields = SampleBaseTable.Meta.fields + [
             "order",
             "order__status",
             "order__genrequest__project",
-        )
+        ]
 
 
 class PlateTable(tables.Table):

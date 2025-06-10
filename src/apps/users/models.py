@@ -19,7 +19,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager()
+    objects = UserManager()  # type: ignore[assignment,misc] # Override the default manager.
 
     def __str__(self) -> str:
         if self.first_name and self.last_name:

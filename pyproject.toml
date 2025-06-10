@@ -13,7 +13,9 @@ dev = [
   "django-models2puml>=0.2",
   "playwright",
   "pytest-playwright",
-  "django-stubs>=5.2.0"
+  "django-stubs[compatible-mypy]",
+  "mypy",
+  "djangorestframework-stubs[compatible-mypy]"
 ]
 prod = ["gunicorn", "sentry-sdk>=1.40.5"]
 tools = ["pre-commit", "pyyaml", "GitPython"]
@@ -80,12 +82,28 @@ requires-python = ">=3.10"
 version = "0.1.0"
 
 # ==== Coverage ====
-[tool.coverage]
-
 [tool.coverage.run]
 include = ["app/**"]
 omit = ["*/migrations/*", "*/tests/*"]
 plugins = ["django_coverage_plugin"]
+
+[tool.django-stubs]
+django_settings_module = "config.settings.local"
+
+[tool.mypy]
+explicit_package_bases = true  # Use mypy_path only (ignores path passed when calling mypy).
+follow_imports = "normal"
+ignore_missing_imports = true  # Ignore missing imports, e.g. third-party packages without stubs. # Also covered by ruff.
+local_partial_types = true
+mypy_path = ["src"]  # Starting point when calling mypy. # https://mypy.readthedocs.io/en/stable/running_mypy.html#how-imports-are-found
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+warn_return_any = false
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+disable_error_code = ["var-annotated"]
+module = "*.models"
 
 # ==== pytest ====
 [tool.pytest.ini_options]

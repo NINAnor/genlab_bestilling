@@ -6,7 +6,11 @@ from rest_framework.decorators import action
 from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet, ModelViewSet, mixins
+from rest_framework.viewsets import (  # type: ignore[attr-defined]
+    GenericViewSet,
+    ModelViewSet,
+    mixins,
+)
 from rest_framework_csv.renderers import CSVRenderer
 
 from ..filters import (

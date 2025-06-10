@@ -35,6 +35,7 @@ jobs:
 
   pytest:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout Code Repository
@@ -45,6 +46,9 @@ jobs:
 
       - name: Build the Stack
         run: docker compose --profile dev build
+
+      - name: Check if migrations are up to date
+        run: docker compose --profile dev run --rm django-dev ./src/manage.py makemigrations --check
 
       - name: Run DB Migrations
         run: docker compose --profile dev run --rm django-dev ./src/manage.py migrate

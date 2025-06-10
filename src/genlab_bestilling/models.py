@@ -1,6 +1,7 @@
 import uuid
 from datetime import timedelta
 
+from django.conf import settings
 from django.db import models, transaction
 from django.urls import reverse
 from django.utils import timezone
@@ -12,6 +13,8 @@ from taggit.managers import TaggableManager
 
 from . import managers
 from .libs.helpers import position_to_coordinates
+
+an = "genlab_bestilling"  # Short alias for app name.
 
 
 class Organization(models.Model):
@@ -39,7 +42,7 @@ class Area(models.Model):
 
 class Marker(models.Model):
     name = models.CharField(primary_key=True)
-    analysis_type = models.ForeignKey("AnalysisType", on_delete=models.DO_NOTHING)
+    analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
 
     def __str__(self) -> str:
         return self.name
@@ -50,10 +53,10 @@ class Marker(models.Model):
 
 class Species(models.Model):
     name = models.CharField(max_length=255)
-    area = models.ForeignKey("Area", on_delete=models.CASCADE)
-    markers = models.ManyToManyField("Marker", related_name="species")
+    area = models.ForeignKey(f"{an}.Area", on_delete=models.CASCADE)
+    markers = models.ManyToManyField(f"{an}.Marker", related_name="species")
     location_type = models.ForeignKey(
-        "LocationType",
+        f"{an}.LocationType",
         null=True,
         blank=True,
         on_delete=models.CASCADE,
@@ -74,10 +77,10 @@ class Species(models.Model):
 
 class SampleType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
-    areas = models.ManyToManyField("Area", blank=True)
+    areas = models.ManyToManyField(f"{an}.Area", blank=True)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name or ""
 
     @property
     def konciv_id(self):
@@ -95,7 +98,7 @@ class AnalysisType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self) -> str:
-        return self.name
+        return self.name or ""
 
     @property
     def konciv_id(self):
@@ -119,7 +122,7 @@ class LocationType(models.Model):
 class Location(models.Model):
     name = models.CharField(max_length=250)
     types = models.ManyToManyField(
-        "LocationType",
+        f"{an}.LocationType",
         blank=True,
     )
     river_id = models.CharField(max_length=250, null=True, blank=True)
@@ -133,7 +136,7 @@ class Location(models.Model):
         return self.name
 
 
-class Genrequest(models.Model):
+class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     """
     A GenLab genrequest, multiple GenLab requests can have the same NINA project number
     """
@@ -148,27 +151,29 @@ class Genrequest(models.Model):
         help_text="Choose the UBW NINA Project for billing",
     )
     samples_owner = models.ForeignKey(
-        "Organization",
+        f"{an}.Organization",
         on_delete=models.PROTECT,
         blank=True,
         null=True,
     )
     creator = models.ForeignKey(
-        "users.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="genrequests_created",
     )
-    area = models.ForeignKey("Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField("Species", blank=True, related_name="genrequests")
+    area = models.ForeignKey(f"{an}.Area", on_delete=models.PROTECT)
+    species = models.ManyToManyField(
+        f"{an}.Species", blank=True, related_name="genrequests"
+    )
     sample_types = models.ManyToManyField(
-        "SampleType",
+        f"{an}.SampleType",
         blank=True,
         help_text="samples you plan to deliver, you can choose more than one. "
         + "ONLY sample types selected here will be available later",
     )
-    markers = models.ManyToManyField("Marker", blank=True)
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     expected_samples_delivery_date = models.DateField(
         help_text="When you plan to start delivering the samples"
     )
@@ -225,7 +230,7 @@ class Order(PolymorphicModel):
 
     name = models.CharField(null=True, blank=True)
     genrequest = models.ForeignKey(
-        "Genrequest",
+        f"{an}.Genrequest",
         on_delete=models.CASCADE,
         related_name="orders",
         verbose_name="Genetic Project",
@@ -280,7 +285,7 @@ class EquipmentType(models.Model):
     unit = models.CharField(max_length=50)
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.unit})" if self.unit else self.name
+        return f"{self.name} ({self.unit})" if self.unit else f"{self.name}"
 
 
 class EquipmentBuffer(models.Model):
@@ -293,17 +298,19 @@ class EquipmentBuffer(models.Model):
 
 class EquimentOrderQuantity(models.Model):
     equipment = models.ForeignKey(
-        "EquipmentType",
+        f"{an}.EquipmentType",
         on_delete=models.CASCADE,
         related_name="orders",
         null=True,
         blank=True,
     )
     order = models.ForeignKey(
-        "EquipmentOrder", on_delete=models.CASCADE, related_name="equipments"
+        f"{an}.EquipmentOrder",
+        on_delete=models.CASCADE,
+        related_name="equipments",
     )
     buffer = models.ForeignKey(
-        "EquipmentBuffer",
+        f"{an}.EquipmentBuffer",
         on_delete=models.CASCADE,
         related_name="order_quantities",
         null=True,
@@ -324,7 +331,7 @@ class EquimentOrderQuantity(models.Model):
 
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?
-    sample_types = models.ManyToManyField("SampleType", blank=True)
+    sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
 
     def __str__(self) -> str:
         return f"#EQP_{self.id}"
@@ -355,8 +362,8 @@ class ExtractionOrder(Order):
         CHECKED = "checked", _("Checked")
 
     internal_status = models.CharField(default=Status.TO_CHECK, choices=Status)
-    species = models.ManyToManyField("Species")
-    sample_types = models.ManyToManyField("SampleType")
+    species = models.ManyToManyField(f"{an}.Species")
+    sample_types = models.ManyToManyField(f"{an}.SampleType")
     needs_guid = models.BooleanField(default=False)  # TODO: default?
     return_samples = models.BooleanField()  # TODO: default?
     pre_isolated = models.BooleanField(verbose_name="Are samples already isolated?")
@@ -417,11 +424,11 @@ class ExtractionOrder(Order):
 
 class AnalysisOrder(Order):
     samples = models.ManyToManyField(
-        "Sample", blank=True, through="SampleMarkerAnalysis"
+        f"{an}.Sample", blank=True, through="SampleMarkerAnalysis"
     )
-    markers = models.ManyToManyField("Marker", blank=True)
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     from_order = models.ForeignKey(
-        "ExtractionOrder",
+        f"{an}.ExtractionOrder",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -488,11 +495,13 @@ class AnalysisOrder(Order):
 
 
 class SampleMarkerAnalysis(models.Model):
-    sample = models.ForeignKey("Sample", on_delete=models.CASCADE)
+    sample = models.ForeignKey(f"{an}.Sample", on_delete=models.CASCADE)
     order = models.ForeignKey(
-        "AnalysisOrder", on_delete=models.CASCADE, related_name="sample_markers"
+        f"{an}.AnalysisOrder",
+        on_delete=models.CASCADE,
+        related_name="sample_markers",
     )
-    marker = models.ForeignKey("Marker", on_delete=models.PROTECT)
+    marker = models.ForeignKey(f"{an}.Marker", on_delete=models.PROTECT)
     transaction = models.UUIDField(blank=True, null=True)
 
     class Meta:
@@ -511,7 +520,7 @@ class SampleMarkerAnalysis(models.Model):
 
 class Sample(models.Model):
     order = models.ForeignKey(
-        "ExtractionOrder",
+        f"{an}.ExtractionOrder",
         on_delete=models.CASCADE,
         related_name="samples",
         null=True,
@@ -520,19 +529,19 @@ class Sample(models.Model):
     guid = models.CharField(max_length=200, null=True, blank=True)
     name = models.CharField(null=True, blank=True)
     type = models.ForeignKey(
-        "SampleType", on_delete=models.PROTECT, null=True, blank=True
+        f"{an}.SampleType", on_delete=models.PROTECT, null=True, blank=True
     )
-    species = models.ForeignKey("Species", on_delete=models.PROTECT)
+    species = models.ForeignKey(f"{an}.Species", on_delete=models.PROTECT)
     year = models.IntegerField()
     notes = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
     location = models.ForeignKey(
-        "Location", on_delete=models.PROTECT, null=True, blank=True
+        f"{an}.Location", on_delete=models.PROTECT, null=True, blank=True
     )
     volume = models.FloatField(null=True, blank=True)
     genlab_id = models.CharField(null=True, blank=True)
 
-    extractions = models.ManyToManyField("ExtractionPlate", blank=True)
+    extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
     objects = managers.SampleQuerySet.as_manager()
@@ -611,10 +620,12 @@ class Sample(models.Model):
 # Some extracts can be placed in multiple wells
 class ExtractPlatePosition(models.Model):
     plate = models.ForeignKey(
-        "ExtractionPlate", on_delete=models.DO_NOTHING, related_name="sample_positions"
+        f"{an}.ExtractionPlate",
+        on_delete=models.DO_NOTHING,
+        related_name="sample_positions",
     )
     sample = models.ForeignKey(
-        "Sample",
+        f"{an}.Sample",
         on_delete=models.PROTECT,
         related_name="plate_positions",
         null=True,
@@ -651,10 +662,13 @@ class AnalysisResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
     analysis_date = models.DateTimeField(null=True, blank=True)
-    marker = models.ForeignKey("Marker", on_delete=models.DO_NOTHING)
+    marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
     result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField("Sample", blank=True)
+    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
     extra = models.JSONField(null=True, blank=True)
     order = models.ForeignKey(
-        "AnalysisOrder", null=True, blank=True, on_delete=models.SET_NULL
+        f"{an}.AnalysisOrder",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )

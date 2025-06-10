@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM base AS base-node
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get update && \
     apt-get install -y --fix-missing nodejs
 
@@ -27,7 +27,7 @@ WORKDIR /app
 COPY src src
 
 
-FROM node:20 AS frontend-base
+FROM node:22-slim AS frontend-base
 WORKDIR /app
 COPY src/frontend/package.json src/frontend/package-lock.json ./
 RUN npm install

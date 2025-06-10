@@ -6,7 +6,6 @@ dev = [
   "pytest-sugar",
   "coverage",
   "pre-commit",
-  "factory-boy",
   "django-debug-toolbar",
   "django-extensions",
   "django-coverage-plugin",

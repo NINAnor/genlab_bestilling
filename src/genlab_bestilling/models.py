@@ -577,14 +577,13 @@ class Sample(models.Model):
         if self.order.genrequest.area.location_mandatory:
             if not self.location_id:
                 raise ValidationError("Location is required")
-            else:
-                # ensure that location is correct for the selected species
-                if (
-                    self.species.location_type
-                    and self.species.location_type_id
-                    not in self.location.types.values_list("id", flat=True)
-                ):
-                    raise ValidationError("Invalid location for the selected species")
+            # ensure that location is correct for the selected species
+            elif (
+                self.species.location_type
+                and self.species.location_type_id
+                not in self.location.types.values_list("id", flat=True)
+            ):
+                raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:
             # if the location is optional, but it's provided,
             # check it is compatible with the species

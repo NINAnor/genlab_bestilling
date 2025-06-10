@@ -98,9 +98,12 @@ fix = true
 
 [tool.ruff.lint]
 ignore = ["COM812"]
-select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q"]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/migrations/*.py" = ["E501", "ANN", "I"]
-"**/tests/*.py" = ["S101"]
+"**/tests/*.py" = [
+  "S101",
+  "PLR2004"
+]
 "nina-python-init.py" = ["S603", "S607"]

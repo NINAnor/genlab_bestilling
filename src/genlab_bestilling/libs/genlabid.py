@@ -69,9 +69,9 @@ def generate(order_id):
                 cursor.execute(update_genlab_id_query(order_id))
         except Exception:
             # if there is an error, reset the sequence
-            # NOTE: this is unsafe unless this function is execute in a queue
+            # NOTE: this is unsafe unless this function is executed in a queue
             # by just one worker to prevent concurrency
-            with connection.cursor() as cursor:
+            with connection.cursor() as cursor:  # noqa: PLW2901 # Was this intentional?
                 for k, v in sequences.items():
                     cursor.execute("SELECT setval(%s, %s)", [k, v])
 

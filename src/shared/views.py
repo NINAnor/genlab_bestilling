@@ -1,5 +1,4 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models.base import Model as Model
 from django.views.generic import (
     CreateView,
     FormView,

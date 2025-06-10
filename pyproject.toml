@@ -16,7 +16,6 @@ dev = [
   "django-stubs>=5.2.0"
 ]
 prod = ["gunicorn", "sentry-sdk>=1.40.5"]
-tools = ["pre-commit", "pyyaml", "GitPython"]
 
 [project]
 authors = [{name = "Niccolò Cantù", email = "niccolo.cantu@nina.no"}]

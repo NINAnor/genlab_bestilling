@@ -4,6 +4,9 @@ from django.db import connection, transaction
 from sqlglot.expressions import (
     EQ,
     Alias,
+    Cast,
+    DataType,
+    Extract,
     From,
     Literal,
     Subquery,
@@ -11,7 +14,7 @@ from sqlglot.expressions import (
     column,
 )
 
-from ..models import Sample, Species
+from ..models import ExtractionOrder, Order, Sample, Species
 
 
 def get_replica_for_sample():
@@ -27,9 +30,9 @@ def get_current_sequences(order_id):
     for a specific combination of year and species.
     """
     samples = (
-        Sample.objects.select_related("species")
+        Sample.objects.select_related("order", "species")
         .filter(order=order_id)
-        .values("year", "species__code")
+        .values("order__created_at", "species__code")
         .distinct()
     )
 
@@ -40,7 +43,9 @@ def get_current_sequences(order_id):
                 sqlglot.expressions.func(
                     "get_genlab_sequence_name",
                     sqlglot.expressions.Literal.string(sample["species__code"]),
-                    sqlglot.expressions.Literal.number(sample["year"]),
+                    sqlglot.expressions.Literal.number(
+                        sample["order__created_at"].year
+                    ),
                     dialect="postgres",
                 )
             ).sql(dialect="postgres")
@@ -86,6 +91,8 @@ def update_genlab_id_query(order_id):
     and set genlab_id = generate_genlab_id(code, year)
     """
     samples_table = Sample._meta.db_table
+    extraction_order_table = ExtractionOrder._meta.db_table
+    order_table = Order._meta.db_table
     species_table = Species._meta.db_table
 
     return sqlglot.expressions.update(
@@ -112,13 +119,47 @@ def update_genlab_id_query(order_id):
                             Alias(
                                 this=sqlglot.expressions.func(
                                     "generate_genlab_id",
-                                    column("code", table=Species._meta.db_table),
-                                    column(
-                                        "year",
-                                        table=samples_table,
+                                    column("code", table=species_table),
+                                    Cast(
+                                        this=Extract(
+                                            this="YEAR",
+                                            expression=column(
+                                                "confirmed_at",
+                                                table=order_table,
+                                            ),
+                                        ),
+                                        to=DataType(
+                                            this=DataType.Type.INT, nested=False
+                                        ),
                                     ),
                                 ),
                                 alias="genlab_id",
+                            ),
+                        )
+                        .join(
+                            extraction_order_table,
+                            on=EQ(
+                                this=column(
+                                    "order_id",
+                                    table=samples_table,
+                                ),
+                                expression=column(
+                                    "order_ptr_id",
+                                    table=extraction_order_table,
+                                ),
+                            ),
+                        )
+                        .join(
+                            order_table,
+                            on=EQ(
+                                this=column(
+                                    "order_ptr_id",
+                                    table=extraction_order_table,
+                                ),
+                                expression=column(
+                                    "id",
+                                    table=order_table,
+                                ),
                             ),
                         )
                         .from_(samples_table)

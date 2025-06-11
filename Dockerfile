@@ -42,6 +42,8 @@ RUN npm run build
 
 
 FROM base AS production
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv sync --locked --group prod
 
 # Compile the translations for multilanguage
 FROM base AS translation
@@ -73,7 +75,7 @@ ENTRYPOINT ["./entrypoint.sh"]
 FROM base-node AS dev
 RUN --mount=type=cache,target=/root/.cache/uv \
   --mount=type=cache,target=/root/.cache/ms-playwright \
-  uv sync --locked && \
+  uv sync --locked --group dev && \
   uv run playwright install && uv run playwright install-deps
 
 COPY --from=django /app/src src

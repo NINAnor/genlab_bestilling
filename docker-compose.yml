@@ -40,7 +40,7 @@ x-django-prod: &django-prod
     - postgres
   profiles:
     - prod
-  command: gunicorn config.wsgi --bind 0.0.0.0:8000 --chdir=/app
+  command: gunicorn config.wsgi --bind 0.0.0.0:8000 --chdir=/app/src
 
 x-django-dev: &django-dev
   <<: *django

@@ -121,8 +121,8 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "apps.users",
-    "apps.core",
+    "capps.users",
+    "capps.core",
     "genlab_bestilling",
     "staff",
     "theme",
@@ -135,7 +135,7 @@ INSTALLED_APPS = DJANGO_APPS + ADMIN_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "apps.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "capps.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -231,8 +231,8 @@ TEMPLATES = [
                 "django.template.context_processors.static",
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "apps.users.context_processors.allauth_settings",
-                "apps.core.context_processors.context_settings",
+                "capps.users.context_processors.allauth_settings",
+                "capps.core.context_processors.context_settings",
             ],
             "builtins": ["slippers.templatetags.slippers"],
         },
@@ -327,12 +327,12 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = "apps.users.adapters.AccountAdapter"
+ACCOUNT_ADAPTER = "capps.users.adapters.AccountAdapter"
 if env("SOCIALACCOUNT_ADAPTER", default=None):
     SOCIALACCOUNT_ADAPTER = env("SOCIALACCOUNT_ADAPTER")
 
 # https://django-allauth.readthedocs.io/en/latest/forms.html
-ACCOUNT_FORMS = {"signup": "apps.users.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "capps.users.forms.UserSignupForm"}
 
 if env("SOCIALACCOUNT_ADAPTER", default=None):
     SOCIALACCOUNT_ADAPTER = env("SOCIALACCOUNT_ADAPTER")

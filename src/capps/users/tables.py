@@ -1,4 +1,4 @@
-from apps.ui.tables import UITable
+from capps.ui.tables import UITable
 
 from .models import User
 

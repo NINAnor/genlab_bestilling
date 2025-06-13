@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.users.views import (  # type: ignore[attr-defined] # rename apps later
+from capps.users.views import (
     UserDetail,
     UserRedirectView,
     UsersList,

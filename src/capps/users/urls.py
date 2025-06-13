@@ -2,17 +2,17 @@ from django.urls import path
 
 from capps.users.views import (
     UserDetail,
+    UserRedirectView,
     UsersList,
     UserUpdate,
-    user_redirect_view,
-    user_update_view,
+    UserUpdateView,
 )
 
 app_name = "users"
 urlpatterns = [
     path("", view=UsersList.as_view(), name="list"),
-    path("~redirect/", view=user_redirect_view, name="redirect"),
-    path("~update/", view=user_update_view, name="update"),
+    path("~redirect/", view=UserRedirectView.as_view(), name="redirect"),
+    path("~update/", view=UserUpdateView.as_view(), name="update"),
     path("<int:pk>/", view=UserDetail.as_view(), name="detail"),
     path("<int:pk>/edit/", view=UserUpdate.as_view(), name="edit"),
 ]

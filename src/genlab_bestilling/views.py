@@ -96,7 +96,7 @@ class GenrequestDetailView(BaseBreadcrumbMixin, LoginRequiredMixin, DetailView):
             (str(self.object), ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_allowed(self.request.user)
 
 
@@ -116,7 +116,7 @@ class GenrequestUpdateView(BaseBreadcrumbMixin, FormsetUpdateView):
             ("Update", ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_allowed(self.request.user)
 
     def get_success_url(self):
@@ -161,7 +161,7 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
             ("Create", ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_allowed(self.request.user)
 
     def get_form_kwargs(self):
@@ -192,7 +192,7 @@ class GenrequestNestedMixin(BaseBreadcrumbMixin, LoginRequiredMixin):
     genrequest_accessor = "genrequest"
 
     add_home = False
-    gen_crumbs = []
+    gen_crumbs: list[tuple] = []
 
     @cached_property
     def crumbs(self):
@@ -218,17 +218,17 @@ class GenrequestNestedMixin(BaseBreadcrumbMixin, LoginRequiredMixin):
         return super().get(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Any]:
-        qs = super().get_queryset().filter_allowed(self.request.user)
+        qs: QuerySet = super().get_queryset().filter_allowed(self.request.user)
         kwargs = {f"{self.genrequest_accessor}_id": self.genrequest.id}
         return qs.filter(**kwargs)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        ctx = super().get_context_data(**kwargs)
+        ctx: dict = super().get_context_data(**kwargs)
         ctx["genrequest"] = self.genrequest
         return ctx
 
     def get_form_kwargs(self) -> dict[str, Any]:
-        kwargs = super().get_form_kwargs()
+        kwargs: dict = super().get_form_kwargs()
         kwargs["genrequest"] = self.genrequest
         return kwargs
 
@@ -658,7 +658,7 @@ class EquipmentOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_in_draft()
 
     def get_success_url(self):
@@ -718,7 +718,7 @@ class AnalysisOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_in_draft()
 
     def get_success_url(self):
@@ -750,7 +750,7 @@ class ExtractionOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_in_draft()
 
     def get_success_url(self):
@@ -940,7 +940,7 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
         }
         return context
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_in_draft()
 
 
@@ -1022,7 +1022,7 @@ class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
         }
         return context
 
-    def get_queryset(self) -> QuerySet[Any]:
+    def get_queryset(self):
         return super().get_queryset().filter_in_draft()
 
 

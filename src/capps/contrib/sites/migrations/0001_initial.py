@@ -1,5 +1,5 @@
 import django.contrib.sites.models
-from django.contrib.sites.models import _simple_domain_name_validator
+from django.contrib.sites.models import _simple_domain_name_validator  # type: ignore[attr-defined]
 from django.db import migrations, models
 
 

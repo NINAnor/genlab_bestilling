@@ -34,11 +34,8 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
             raise Exception("User is not authenticated")
         return self.request.user.get_absolute_url()
 
-    def get_object(self: Self) -> User:
+    def get_object(self: Self, _queryset=None):
         return self.request.user
-
-
-user_update_view = UserUpdateView.as_view()
 
 
 class UserRedirectView(LoginRequiredMixin, RedirectView):
@@ -46,9 +43,6 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self: Self) -> str:
         return reverse("users:detail", kwargs={"pk": self.request.user.pk})
-
-
-user_redirect_view = UserRedirectView.as_view()
 
 
 class UsersList(UIListView):

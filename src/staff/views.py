@@ -46,7 +46,7 @@ from .tables import (
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
-        names = super().get_template_names()
+        names = super().get_template_names()  # type: ignore[misc] # TODO: This doesn't look right, fix later.
         return [
             name.replace("genlab_bestilling", "staff").replace("nina", "staff")
             for name in names
@@ -245,7 +245,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {str(e)}",
             )
 
         return super().form_valid(form)
@@ -283,7 +283,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {str(e)}",
             )
 
         return super().form_valid(form)
@@ -318,7 +318,7 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {str(e)}",
             )
 
         return super().form_valid(form)
@@ -370,7 +370,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {str(e)}",
             )
 
         return super().form_valid(form)

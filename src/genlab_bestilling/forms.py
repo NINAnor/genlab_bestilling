@@ -54,7 +54,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = Genrequest
-        fields = (
+        fields = [
             "project",
             "name",
             "area",
@@ -65,7 +65,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "expected_total_samples",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
-        )
+        ]
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
             "samples_owner": Selectize(search_lookup="name_icontains"),
@@ -97,7 +97,7 @@ class GenrequestEditForm(GenrequestForm):
         )
 
     class Meta(GenrequestForm.Meta):
-        fields = (
+        fields = [
             "area",
             "name",
             "species",
@@ -106,7 +106,7 @@ class GenrequestEditForm(GenrequestForm):
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
             "expected_total_samples",
-        )
+        ]
 
 
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
@@ -345,14 +345,14 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = AnalysisOrder
-        fields = (
+        fields = [
             "name",
             "from_order",
             "markers",
             "notes",
             "expected_delivery_date",
             "tags",
-        )
+        ]
         widgets = {
             "name": TextInput(
                 attrs={"df-show": ".from_order==''||.use_all_samples=='False'"}
@@ -370,14 +370,14 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
 class AnalysisOrderUpdateForm(AnalysisOrderForm):
     class Meta(AnalysisOrderForm.Meta):
-        fields = (
+        fields = [
             "name",
             "markers",
             # "from_order",
             "notes",
             "expected_delivery_date",
             "tags",
-        )
+        ]
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)

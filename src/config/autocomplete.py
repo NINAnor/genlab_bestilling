@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.users.autocomplete import UserAutocomplete
+from capps.users.autocomplete import UserAutocomplete
 from genlab_bestilling.autocomplete import (
     AnalysisOrderAutocomplete,
     AreaAutocomplete,

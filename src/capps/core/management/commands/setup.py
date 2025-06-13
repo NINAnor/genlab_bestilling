@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
-from apps.users.models import User
+from capps.users.models import User
 from genlab_bestilling.libs.load_csv_fixture import (
     sample_types_from_tsv,
     species_from_tsv,

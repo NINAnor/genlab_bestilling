@@ -13,9 +13,9 @@
 
 ### Source Code
 
-- apps, wrapper module for `core` and `users` django apps
-- apps.users, module that extends the default django auth user module
-- apps.core, module that contains some shared functionalities (base templates, management commands, templatetags)
+- capps, wrapper module for `core` and `users` django apps
+- capps.users, module that extends the default django auth user module
+- capps.core, module that contains some shared functionalities (base templates, management commands, templatetags)
 - config, module that contains all the configuration logic of the django project (`urls.py`, `settings`)
 - frontend, implements the frontend (more on this later)
 - genlab_bestilling, the module that holds all the business logic

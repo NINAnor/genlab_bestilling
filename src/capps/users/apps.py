@@ -5,11 +5,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class UsersConfig(AppConfig):
-    name = "apps.users"
+    name = "capps.users"
     verbose_name = _("Users")
 
     def ready(self: Self) -> None:
         try:
-            import apps.users.signals  # noqa: F401
+            import capps.users.signals  # noqa: F401
         except ImportError:
             pass

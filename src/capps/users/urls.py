@@ -1,6 +1,6 @@
 from django.urls import path
 
-from apps.users.views import (
+from capps.users.views import (
     UserDetail,
     UsersList,
     UserUpdate,

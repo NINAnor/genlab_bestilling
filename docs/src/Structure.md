@@ -4,7 +4,7 @@
 
 - pyproject.toml, dependencies of the project
 - pre-commit-config.yml, configuration for precommit
-- helpers.sh, development shortcuts (aliases)
+- aliases.sh, development shortcuts (aliases)
 - entrypoint.sh, docker entrypoint script
 - src, the directory contains all the source code
 - nginx, the directory contains the proxy configurations

@@ -114,8 +114,8 @@ python_files = ["tests.py", "test_*.py"]
 fix = true
 
 [tool.ruff.lint]
-ignore = ["COM812"]
-select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL"]
+ignore = ["COM812", "RUF012", "RUF005", "RUF010"]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/migrations/*.py" = ["E501", "ANN", "I"]
@@ -123,4 +123,6 @@ select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL
   "S101",
   "PLR2004"
 ]
-"nina-python-init.py" = ["S603", "S607"]
+
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true

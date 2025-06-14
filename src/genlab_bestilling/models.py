@@ -515,7 +515,7 @@ class SampleMarkerAnalysis(models.Model):
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     def __str__(self):
-        return f"{str(self.sample)} {str(self.marker) @ {str(self.order)}}"  # FIXME What is this syntax?
+        return f"{str(self.sample)} {str(self.marker)} @ {str(self.order)}"
 
 
 class Sample(models.Model):

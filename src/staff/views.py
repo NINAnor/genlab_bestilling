@@ -3,7 +3,8 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.http import HttpResponse, HttpResponseRedirect
+from django.forms import Form
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -52,7 +53,7 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
             for name in names
         ]
 
-    def test_func(self):
+    def test_func(self) -> bool:
         return self.request.user.is_genlab_staff()
 
 
@@ -61,7 +62,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = AnalysisOrderTable
     filterset_class = AnalysisOrderFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[AnalysisOrder]:
         return (
             super()
             .get_queryset()
@@ -80,7 +81,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = ExtractionOrderTable
     filterset_class = AnalysisOrderFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
         return (
             super()
             .get_queryset()
@@ -100,7 +101,7 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = PlateTable
     filterset_class = ExtractionPlateFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[ExtractionPlate]:
         return (
             super()
             .get_queryset()
@@ -115,7 +116,7 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = EquipmentOrderTable
     filterset_class = AnalysisOrderFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[EquipmentOrder]:
         return (
             super()
             .get_queryset()
@@ -149,7 +150,7 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = OrderExtractionSampleTable
     filterset_class = OrderSampleFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Sample]:
         return (
             super()
             .get_queryset()
@@ -159,7 +160,7 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .order_by("species__name", "year", "location__name", "name")
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
@@ -172,7 +173,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = OrderAnalysisSampleTable
     filterset_class = SampleMarkerOrderFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[SampleMarkerAnalysis]:
         return (
             super()
             .get_queryset()
@@ -189,7 +190,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             )
         )
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["order"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
@@ -200,7 +201,7 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = SampleTable
     filterset_class = SampleFilter
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Sample]:
         return (
             super()
             .get_queryset()
@@ -225,14 +226,14 @@ class SampleDetailView(StaffMixin, DetailView):
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
     model = ExtractionOrder
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
         return ExtractionOrder.objects.filter(status=Order.OrderStatus.CONFIRMED)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form: Form) -> HttpResponse:
         try:
             # TODO: check state transition
             self.object.order_manually_checked()
@@ -256,21 +257,21 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
             kwargs={"pk": self.object.id},
         )
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
 class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Order]:
         return super().get_queryset().filter(status=Order.OrderStatus.CONFIRMED)
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object: Order = self.get_object()
         return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form: Form) -> HttpResponse:
         try:
             # TODO: check state transition
             self.object.to_draft()
@@ -291,21 +292,21 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
     def get_success_url(self) -> str:
         return reverse_lazy(f"staff:order-{self.object.get_type()}-list")
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
 class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
     model = Order
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Order]:
         return Order.objects.all()
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form: Form) -> HttpResponse:
         try:
             # TODO: check state transition
             self.object.to_next_status()
@@ -326,7 +327,7 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
     def get_success_url(self) -> str:
         return reverse_lazy(f"staff:order-{self.object.get_type()}-list")
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -334,7 +335,7 @@ class ExtractionPlateCreateView(StaffMixin, CreateView):
     model = ExtractionPlate
     form_class = ExtractionPlateForm
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse_lazy("staff:plates-list")
 
 
@@ -345,7 +346,7 @@ class ExtractionPlateDetailView(StaffMixin, DetailView):
 class SampleReplicaActionView(SingleObjectMixin, ActionView):
     model = Sample
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Sample]:
         return (
             super()
             .get_queryset()
@@ -353,11 +354,11 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
             .filter(order__status=Order.OrderStatus.CONFIRMED)
         )
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form: Form) -> HttpResponse:
         try:
             # TODO: check state transition
             self.object = self.object.create_replica()
@@ -378,7 +379,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
     def get_success_url(self) -> str:
         return reverse_lazy("staff:samples-detail", kwargs={"id": self.object.pk})
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -400,14 +401,14 @@ class ProjectDetailView(StaffMixin, DetailView):
 class ProjectValidateActionView(SingleObjectMixin, ActionView):
     model = Project
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Project]:
         return super().get_queryset().filter(verified_at=None)
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         return super().post(request, *args, **kwargs)
 
-    def form_valid(self, form: Any) -> HttpResponse:
+    def form_valid(self, form: Form) -> HttpResponse:
         self.object.verified_at = now()
         self.object.save()
         messages.add_message(
@@ -421,5 +422,5 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
     def get_success_url(self) -> str:
         return reverse_lazy("staff:projects-detail", kwargs={"pk": self.object.pk})
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())

@@ -21,7 +21,7 @@ def run_request(url: str) -> None:
     response.raise_for_status()
 
 
-def wait_for_http(**opts) -> None:  # noqa: ANN003
+def wait_for_http(**opts) -> None:
     """The main loop waiting for the http connection to come up."""
     url = opts["url"]
     run_request(url=url)
@@ -79,7 +79,7 @@ class Command(BaseCommand):
             help="delay between checks when http service is up (seconds), default: 1",
         )
 
-    def handle(self: Self, **options) -> None:  # noqa: ANN003
+    def handle(self: Self, **options) -> None:
         """Wait for a http connection to come up. Exit with error
         status when a timeout threshold is surpassed.
         """

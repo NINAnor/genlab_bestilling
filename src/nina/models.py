@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import QuerySet
 from django.urls import reverse
 
 
@@ -31,7 +32,7 @@ class ProjectMembership(models.Model):
 
 
 class ProjectManager(models.Manager):
-    def filter_selectable(self):
+    def filter_selectable(self) -> QuerySet:
         """
         Obtain only active and verified projects
         """
@@ -55,5 +56,5 @@ class Project(models.Model):
 
         return self.number
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse("nina:project-detail", kwargs={"pk": self.pk})

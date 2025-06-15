@@ -17,7 +17,7 @@ class UserManager(DjangoUserManager):
         email: str,
         password: str | None,
         **extra_fields,
-    ):
+    ) -> User:
         """Create and save a user with the given email and password."""
         if not email:
             raise ValueError("The given email must be set")

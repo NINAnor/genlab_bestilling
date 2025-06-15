@@ -6,6 +6,6 @@ from .libs.genlabid import generate as generate_genlab_id
 
 
 @app.task(name="generate-genlab-ids")
-def generate_ids(order_id):
+def generate_ids(order_id: str | int) -> None:
     generate_genlab_id(order_id=order_id)
     # isolate(order_id=order_id)

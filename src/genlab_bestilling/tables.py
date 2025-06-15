@@ -1,3 +1,5 @@
+from typing import Any
+
 import django_tables2 as tables
 
 from .models import (
@@ -28,7 +30,7 @@ class BaseOrderTable(tables.Table):
         ]
         empty_text = "No Orders"
 
-    def render_id(self, record):
+    def render_id(self, record: Any) -> str:
         return str(record)
 
 
@@ -54,10 +56,10 @@ class OrderTable(BaseOrderTable):
         ]
         empty_text = "No Orders"
 
-    def render_polymorphic_ctype(self, value):
+    def render_polymorphic_ctype(self, value: Any) -> str:
         return value.name
 
-    def render_id(self, record):
+    def render_id(self, record: Any) -> str:
         return str(record)
 
 
@@ -79,7 +81,7 @@ class GenrequestTable(tables.Table):
 
         empty_text = "No projects"
 
-    def render_tags(self, record):
+    def render_tags(self, record: Any) -> str:
         return ",".join(map(str, record.tags.all()))
 
 
@@ -106,7 +108,7 @@ class SampleTable(tables.Table):
 
         empty_text = "No Samples"
 
-    def render_plate_positions(self, value):
+    def render_plate_positions(self, value: Any) -> str:
         return ", ".join([str(v) for v in value.all()])
 
 

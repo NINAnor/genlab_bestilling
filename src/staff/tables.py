@@ -1,3 +1,5 @@
+from typing import Any
+
 import django_tables2 as tables
 
 from genlab_bestilling.models import (
@@ -47,7 +49,7 @@ class OrderTable(tables.Table):
         sequence = ("id",)
         empty_text = "No Orders"
 
-    def render_id(self, record):
+    def render_id(self, record: Any) -> str:
         return str(record)
 
 
@@ -117,7 +119,7 @@ class SampleBaseTable(tables.Table):
 
         empty_text = "No Samples"
 
-    def render_plate_positions(self, value):
+    def render_plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])
 
@@ -142,7 +144,7 @@ class OrderAnalysisSampleTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
-    def render_sample__plate_positions(self, value):
+    def render_sample__plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])
 

@@ -1,5 +1,8 @@
+from typing import Any
+
 from dal import autocomplete
-from django.db.models import Q
+from django.db.models import Q, QuerySet
+from django.http import HttpRequest
 from django_filters import rest_framework as filters
 
 from .models import (
@@ -37,12 +40,22 @@ class SampleFilter(filters.FilterSet):
             "guid": ["in"],
         }
 
-    def filter_markers_in_list(self, queryset, name, value):
+    def filter_markers_in_list(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
         if value:
             return queryset.filter(species__markers__in=value)
         return queryset
 
-    def filter_order_status_not(self, queryset, name, value):
+    def filter_order_status_not(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
         if value:
             return queryset.exclude(order__status=value)
         return queryset
@@ -51,7 +64,7 @@ class SampleFilter(filters.FilterSet):
 class BaseOrderFilter(filters.FilterSet):
     ext_order = filters.NumberFilter(field_name="ext_order", method="filter_ext_order")
 
-    def filter_ext_order(self, queryset, name, value):
+    def filter_ext_order(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
             return queryset.filter(extractionorder=value)
         return queryset
@@ -78,7 +91,12 @@ class MarkerFilter(BaseOrderFilter):
         model = Marker
         fields = {"name": ["icontains", "istartswith"]}
 
-    def filter_analysis_order(self, queryset, name, value):
+    def filter_analysis_order(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
         if value:
             return queryset.filter(analysisorder=value)
         return queryset
@@ -89,21 +107,21 @@ class LocationFilter(filters.FilterSet):
     species = filters.NumberFilter(field_name="species", method="filter_species")
     search = filters.CharFilter(method="filter_search")
 
-    def filter_search(self, queryset, name, value):
+    def filter_search(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
             return queryset.filter(
                 Q(name__startswith=value) | Q(river_id__startswith=value)
             )
         return queryset
 
-    def filter_ext_order(self, queryset, name, value):
+    def filter_ext_order(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
             order = ExtractionOrder.objects.get(pk=value)
             if order.genrequest.area.location_mandatory:
                 return queryset.exclude(types=None)
         return queryset
 
-    def filter_species(self, queryset, name, value):
+    def filter_species(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
             return queryset.filter(Q(types__species=value))
         return queryset.filter(types=True)
@@ -131,7 +149,14 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
 
 class OrderFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ):
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["genrequest__project"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:project"
@@ -158,7 +183,14 @@ class OrderEquipmentFilter(OrderFilter):
 
 
 class OrderExtractionFilter(OrderFilter):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ):
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["species"].extra["widget"] = autocomplete.ModelSelect2Multiple(
             url="autocomplete:species"
@@ -182,7 +214,14 @@ class OrderExtractionFilter(OrderFilter):
 
 
 class OrderAnalysisFilter(OrderFilter):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ):
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["markers"].extra["widget"] = autocomplete.ModelSelect2Multiple(
             url="autocomplete:marker"
@@ -199,7 +238,14 @@ class OrderAnalysisFilter(OrderFilter):
 
 
 class GenrequestFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ):
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["project"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:project"

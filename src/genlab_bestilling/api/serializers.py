@@ -53,7 +53,7 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ("id", "name")
 
-    def get_name(self, obj):
+    def get_name(self, obj: Location) -> str:
         return str(obj)
 
 
@@ -69,7 +69,7 @@ class SampleSerializer(serializers.ModelSerializer):
     location = LocationSerializer(allow_null=True, required=False)
     has_error = serializers.SerializerMethodField()
 
-    def get_has_error(self, obj):
+    def get_has_error(self, obj: Sample) -> bool:
         try:
             return obj.has_error
         except exceptions.ValidationError as e:
@@ -118,7 +118,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 class SampleUpdateSerializer(serializers.ModelSerializer):
     has_error = serializers.SerializerMethodField()
 
-    def get_has_error(self, obj):
+    def get_has_error(self, obj: Sample) -> bool:
         try:
             return obj.has_error
         except exceptions.ValidationError as e:

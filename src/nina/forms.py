@@ -1,6 +1,9 @@
+from typing import Any
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models import Model
 from formset.renderers.tailwind import FormRenderer
 
 from genlab_bestilling.libs.formset import ContextFormCollection
@@ -11,10 +14,10 @@ from .models import Project, ProjectMembership
 class ProjectMembershipForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
-    def reinit(self, context):
+    def reinit(self, context: dict[str, Any]) -> None:
         self.project_id = context["project"]
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Model:
         obj = super().save(commit=False)
         obj.project_id = self.project_id
         if commit:
@@ -33,18 +36,19 @@ class ProjectMembershipCollection(ContextFormCollection):
     members = ProjectMembershipForm()
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def retrieve_instance(self, data):
-        if data := data.get("members"):
+    def retrieve_instance(self, data: dict[str, Any]) -> ProjectMembership | None:
+        if members := data.get("members"):
             try:
-                return ProjectMembership.objects.get(id=data.get("id") or -1)
+                return ProjectMembership.objects.get(id=members.get("id") or -1)
             except (AttributeError, ProjectMembership.DoesNotExist, ValueError):
                 return ProjectMembership(
-                    user_id=data.get("user"),
-                    role=data.get("role"),
-                    project_id=data.get("project_id"),
+                    user_id=members.get("user"),
+                    role=members.get("role"),
+                    project_id=members.get("project_id"),
                 )
+        return None
 
-    def update_holder_instances(self, name, holder):
+    def update_holder_instances(self, name: str, holder: Any) -> None:
         if name == "members":
             holder.reinit(self.context)
 
@@ -52,11 +56,11 @@ class ProjectMembershipCollection(ContextFormCollection):
 class ProjectCreateForm(forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         self.user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Model:
         with transaction.atomic():
             obj = super().save(commit=True)
             ProjectMembership.objects.create(
@@ -64,7 +68,7 @@ class ProjectCreateForm(forms.ModelForm):
             )
         return obj
 
-    def clean_number(self):
+    def clean_number(self) -> int:
         number = self.cleaned_data["number"]
         try:
             p = Project.objects.prefetch_related("members").get(pk=number)

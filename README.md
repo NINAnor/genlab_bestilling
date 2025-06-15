@@ -15,7 +15,7 @@ Features:
 ## How to use
 First, if you are lazy execute
 ```
-source helpers.sh # or . helpers.sh
+source aliases.sh # or . aliases.sh
 ```
 This will create some shortcuts to run docker commands.
 

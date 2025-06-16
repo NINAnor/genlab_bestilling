@@ -31,6 +31,13 @@ In case you want to install new libraries (via `apt-get` or `pip`) you will need
 The development setup will by default create a administrator user (admin@nina.no) with password: admin.
 At every container start it will apply new migrations.
 
+#### VSCode
+If you use VSCode, copy the default project settings.
+```
+cp .vscode/settings.default.json .vscode/settings.json
+```
+> The project ignores `vscode/settings.json` to not hijack personal workspace settings.
+
 #### Local dependencies
 If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code.
 Install `uv` and run `uv sync`.

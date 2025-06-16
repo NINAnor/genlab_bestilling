@@ -5,21 +5,35 @@ Features:
 - Docker
 - REST APIs
 
-
-
+<br>
 
 ## Requirements
 - docker
+- uv
 
+<br>
 
 ## How to use
 First, if you are lazy execute
 ```
 source aliases.sh # or . aliases.sh
 ```
-This will create some shortcuts to run docker commands.
+This will create some shortcuts to run useful commands.
+
+> Private aliases is also possible (this file is gitignored).
+> To set up, run this. These must also be sourced manually.
+> ```
+> cp aliases-private.example.sh aliases-private.sh
+> ```
+> Some startup alias is recommended, for example (in your shell config):
+> ```
+> alias nina="cd <path/to/project> && . aliases.sh && . aliases-private.sh"
+> ```
+
+<br>
 
 ### Development setup
+
 ```
 docker compose --profile dev up -d --build
 # or dpcli_dev up -d --build
@@ -39,8 +53,10 @@ cp .vscode/settings.default.json .vscode/settings.json
 > The project ignores `vscode/settings.json` to not hijack personal workspace settings.
 
 #### Local dependencies
-If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code.
-Install `uv` and run `uv sync`.
+If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code within editors.
+```
+uv sync
+```
 
 #### Django commands
 Django provides useful command line tools that can be executed with `manage.py`, to see a list of all the available commands run inside the django container `src/manage.py help`.
@@ -69,12 +85,16 @@ loaddata # load data from a json file to a table
 models2puml #
 ```
 
+<br>
+
 ### Production setup
 This setup will create docker images optimized for production, without devtools installed
 ```
 docker compose --profile prod up -d --build
 # or dpcli_prod up -d --build
 ```
+
+<br>
 
 ## How to update
 ```

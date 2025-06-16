@@ -53,7 +53,7 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
         ]
 
     def test_func(self):
-        return self.request.user.is_genlab_staff()
+        return self.request.user.is_superuser or self.request.user.is_genlab_staff()
 
 
 class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):

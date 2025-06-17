@@ -21,13 +21,10 @@ source aliases.sh # or . aliases.sh
 This will create some shortcuts to run useful commands.
 
 > Private aliases is also possible (this file is gitignored).
-> To set up, run this. These must also be sourced manually.
+> To set up, make a file named `aliases-private.sh`. It will be sourced whenever `aliases.sh` is sourced. <br>
+> (optional) A startup alias could be useful. Simply put this in your shell config:
 > ```
-> cp aliases-private.example.sh aliases-private.sh
-> ```
-> Some startup alias is recommended, for example (in your shell config):
-> ```
-> alias nina="cd <path/to/project> && . aliases.sh && . aliases-private.sh"
+> alias nina="cd <path/to/project> && . aliases.sh"
 > ```
 
 <br>

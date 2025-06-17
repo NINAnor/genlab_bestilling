@@ -20,7 +20,7 @@ source aliases.sh # or . aliases.sh
 ```
 This will create some shortcuts to run useful commands.
 
-> Private aliases is also possible (this file is gitignored).
+> Private aliases are also possible (this file is gitignored).
 > To set up, make a file named `aliases-private.sh`. It will be sourced whenever `aliases.sh` is sourced. <br>
 > (optional) A startup alias could be useful. Simply put this in your shell config:
 > ```
@@ -76,7 +76,7 @@ Other useful commands:
 ```
 createsuperuser # creates a new administrator account
 shell_plus # open an interactive python shell
-showmigrations # shows a list of migrations, useful to know which ones are applyied
+showmigrations # shows a list of migrations, useful to know which ones are applied
 dumpdata # dump data from a table into a json file
 loaddata # load data from a json file to a table
 models2puml #

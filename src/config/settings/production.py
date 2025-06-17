@@ -3,19 +3,27 @@ import logging
 from .base import *  # noqa
 from .base import env
 
-# GENERAL
-# ------------------------------------------------------------------------------
+###########################################
+#                GENERAL
+###########################################
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[""])
 
-# DATABASES
-# ------------------------------------------------------------------------------
+
+###########################################
+#               DATABASES
+###########################################
+
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa: F405
 
-# CACHES
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 CACHES
+###########################################
+
 # CACHES = {
 #     "default": {
 #         "BACKEND": "django_redis.cache.RedisCache",
@@ -29,8 +37,10 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # no
 #     }
 # }
 
-# SECURITY
-# ------------------------------------------------------------------------------
+
+###########################################
+#                SECURITY
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-ssl-redirect
@@ -56,8 +66,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     default=True,
 )
 
-# STATIC
-# ------------------------
+###########################################
+#                STATIC
+###########################################
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -67,11 +78,16 @@ STORAGES = {
     },
 }
 
-# MEDIA
-# ------------------------------------------------------------------------------
 
-# EMAIL
-# ------------------------------------------------------------------------------
+###########################################
+#                 MEDIA
+###########################################
+
+
+###########################################
+#                 EMAIL
+###########################################
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
     "DJANGO_DEFAULT_FROM_EMAIL",
@@ -85,16 +101,21 @@ EMAIL_SUBJECT_PREFIX = env(
     default="[NINA] ",
 )
 
-# ADMIN
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 ADMIN
+###########################################
+
 # Django Admin URL regex.
 ADMIN_URL = env("DJANGO_ADMIN_URL")
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 
-# LOGGING
-# ------------------------------------------------------------------------------
+###########################################
+#                 LOGGING
+###########################################
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#logging
 # See https://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
@@ -174,5 +195,7 @@ if SENTRY_DSN:
         },
     }
 
-# Your stuff...
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 Your stuff...
+###########################################

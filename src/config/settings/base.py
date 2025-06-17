@@ -18,8 +18,10 @@ if DJANGO_READ_DOT_ENV_FILE:
 
 PROJECT_NAME = "NINAGEN Bestilling System"
 
-# GENERAL
-# ------------------------------------------------------------------------------
+
+###########################################
+#                GENERAL
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = env.bool("DJANGO_DEBUG", False)
 # Local time zone. Choices are
@@ -44,8 +46,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(SRC_DIR / "locale")]
 
-# DATABASES
-# ------------------------------------------------------------------------------
+
+###########################################
+#               DATABASES
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ENGINE"] = "psqlextra.backend"
@@ -55,15 +59,19 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)  # noqa F405
 
-# URLS
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 URLS
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
 ROOT_URLCONF = "config.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = "config.wsgi.application"
 
-# APPS
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 APPS
+###########################################
 DJANGO_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -132,13 +140,17 @@ LOCAL_APPS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + ADMIN_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-# MIGRATIONS
-# ------------------------------------------------------------------------------
+
+###########################################
+#               MIGRATIONS
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
 MIGRATION_MODULES = {"sites": "capps.contrib.sites.migrations"}
 
-# AUTHENTICATION
-# ------------------------------------------------------------------------------
+
+###########################################
+#             AUTHENTICATION
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -151,8 +163,10 @@ LOGIN_REDIRECT_URL = "genrequest-list"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "account_login"
 
-# PASSWORDS
-# ------------------------------------------------------------------------------
+
+###########################################
+#               PASSWORDS
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#password-hashers
 PASSWORD_HASHERS = [
     # https://docs.djangoproject.com/en/dev/topics/auth/passwords/#using-argon2-with-django
@@ -171,9 +185,14 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# MIDDLEWARE
-# ------------------------------------------------------------------------------
+
+###########################################
+#              MIDDLEWARE
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
+# IMPORTANT:
+# This list is order dependent. Do not change uncritically.
+# Requests traverse downwards, and Responses traverse upwards.
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -188,8 +207,10 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
 ]
 
-# STATIC
-# ------------------------------------------------------------------------------
+
+###########################################
+#                STATIC
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(BASE_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
@@ -202,15 +223,19 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-# MEDIA
-# ------------------------------------------------------------------------------
+
+###########################################
+#                MEDIA
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = str(BASE_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "/media/"
 
-# TEMPLATES
-# ------------------------------------------------------------------------------
+
+###########################################
+#              TEMPLATES
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES = [
     {
@@ -246,13 +271,17 @@ FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 CRISPY_TEMPLATE_PACK = "tailwind"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 
-# FIXTURES
-# ------------------------------------------------------------------------------
+
+###########################################
+#               FIXTURES
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#fixture-dirs
 FIXTURE_DIRS = (str(SRC_DIR / "fixtures"),)
 
-# SECURITY
-# ------------------------------------------------------------------------------
+
+###########################################
+#               SECURITY
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-httponly
 SESSION_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-httponly
@@ -260,8 +289,10 @@ CSRF_COOKIE_HTTPONLY = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = "DENY"
 
-# EMAIL
-# ------------------------------------------------------------------------------
+
+###########################################
+#                 EMAIL
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env(
     "DJANGO_EMAIL_BACKEND",
@@ -270,10 +301,11 @@ EMAIL_BACKEND = env(
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
 
-# ADMIN
-# ------------------------------------------------------------------------------
-# Django Admin URL.
-ADMIN_URL = "admin/"
+
+###########################################
+#                 ADMIN
+###########################################
+ADMIN_URL = "admin/"  # Django Admin URL.
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [("""Niccolò Cantù""", "niccolo.cantu@nina.no")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
@@ -282,8 +314,10 @@ MANAGERS = ADMINS
 # Force the `admin` sign in process to go through the `django-allauth` workflow
 DJANGO_ADMIN_FORCE_ALLAUTH = env.bool("DJANGO_ADMIN_FORCE_ALLAUTH", default=False)
 
-# LOGGING
-# ------------------------------------------------------------------------------
+
+###########################################
+#                LOGGING
+###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#logging
 # See https://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
@@ -313,8 +347,9 @@ LOGGING = {
 }
 
 
-# django-allauth
-# ------------------------------------------------------------------------------
+###########################################
+#            django-allauth
+###########################################
 # https://django-allauth.readthedocs.io/en/stable/account/configuration.html
 # https://django-allauth.readthedocs.io/en/stable/account/advanced.html
 ACCOUNT_ALLOW_REGISTRATION = True
@@ -358,7 +393,10 @@ if OIDC_CLIENT_ID := env("OIDC_CLIENT_ID", default=None):
         },
     }
 
-# Django REST-Framework
+
+###########################################
+#         Django REST-Framework
+###########################################
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
@@ -372,14 +410,20 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
-# DJ Rest Auth
+
+###########################################
+#             DJ Rest Auth
+###########################################
 REST_AUTH = {
     "USE_JWT": True,
     "JWT_AUTH_COOKIE": "token",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
 }
 
-# DRF Spectacular
+
+###########################################
+#            DRF Spectacular
+###########################################
 SPECTACULAR_SETTINGS = {
     "TITLE": "GenLab Bestilling System API",
     "DESCRIPTION": "APIs for NINAGEN Bestilling System project",
@@ -387,11 +431,18 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# CORS Headers
+
+###########################################
+#             CORS Headers
+###########################################
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CORS_URLS_REGEX = r"^/api/.*$"
 CORS_ALLOW_CREDENTIALS = True
 
+
+###########################################
+#             Uncategorized
+###########################################
 TAILWIND_APP_NAME = "theme"
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/tailwind.html"

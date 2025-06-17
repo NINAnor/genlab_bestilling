@@ -8030,20 +8030,6 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 573,
-        "fields": {
-            "name": "Istra",
-            "river_id": "103.Z",
-            "code": null,
-            "fylke": "Møre og Romsdal",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 574,
         "fields": {
             "name": "Raumavassdraget",
@@ -8142,25 +8128,11 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 581,
-        "fields": {
-            "name": "Eikesdalsvatnet",
-            "river_id": "104.Z",
-            "code": "Eike",
-            "fylke": "Møre og Romsdal",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 582,
         "fields": {
             "name": "Eira",
             "river_id": "104.Z",
-            "code": null,
+            "code": "Eira",
             "fylke": "Møre og Romsdal",
             "types": [
                 2,
@@ -12077,20 +12049,6 @@
     {
         "model": "genlab_bestilling.location",
         "pk": 862,
-        "fields": {
-            "name": "Kongsmoelva (hele vassdraget)",
-            "river_id": "142.3Z",
-            "code": null,
-            "fylke": "Trøndelag",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 863,
         "fields": {
             "name": "Kongsmoelva (hele vassdraget)",
             "river_id": "142.3Z",
@@ -16514,20 +16472,6 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 1179,
-        "fields": {
-            "name": "Meelva",
-            "river_id": "190.3Z",
-            "code": null,
-            "fylke": "Troms",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 1180,
         "fields": {
             "name": "Storelva (Gratangsbotn) i Gratangen",
@@ -17340,20 +17284,6 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 1238,
-        "fields": {
-            "name": "Røyleelva",
-            "river_id": "208.Z",
-            "code": null,
-            "fylke": "Troms",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 1239,
         "fields": {
             "name": "Badderelva",
@@ -17610,63 +17540,7 @@
         "fields": {
             "name": "Altaelva (hele vassdraget)",
             "river_id": "212.Z",
-            "code": null,
-            "fylke": "Finnmark",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 1258,
-        "fields": {
-            "name": "Eibyelva",
-            "river_id": "212.Z",
-            "code": null,
-            "fylke": "Finnmark",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 1259,
-        "fields": {
-            "name": "Eibyelva",
-            "river_id": "212.Z",
-            "code": null,
-            "fylke": "Finnmark",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 1260,
-        "fields": {
-            "name": "Eibyelva",
-            "river_id": "212.Z",
-            "code": null,
-            "fylke": "Finnmark",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 1261,
-        "fields": {
-            "name": "Eibyelva",
-            "river_id": "212.Z",
-            "code": null,
+            "code": "Alta",
             "fylke": "Finnmark",
             "types": [
                 2,
@@ -18264,25 +18138,11 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 1304,
-        "fields": {
-            "name": "Máskejohka",
-            "river_id": "234.Z",
-            "code": "Mask",
-            "fylke": "Finnmark",
-            "types": [
-                2,
-                3
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 1305,
         "fields": {
             "name": "Tanaelva",
             "river_id": "234.Z",
-            "code": null,
+            "code": "Tana",
             "fylke": "Finnmark",
             "types": [
                 2,
@@ -21950,19 +21810,6 @@
     },
     {
         "model": "genlab_bestilling.location",
-        "pk": 1585,
-        "fields": {
-            "name": "Norddalselva",
-            "river_id": "16300003.0",
-            "code": null,
-            "fylke": "TRØNDELAG",
-            "types": [
-                1
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
         "pk": 1586,
         "fields": {
             "name": "Nordelva (Gåssanelva, Oselva) ",
@@ -23046,19 +22893,6 @@
         "fields": {
             "name": "Sokna (Sokno, Bakkaåna)",
             "river_id": "11110001.0",
-            "code": null,
-            "fylke": "ROGALAND",
-            "types": [
-                1
-            ]
-        }
-    },
-    {
-        "model": "genlab_bestilling.location",
-        "pk": 1670,
-        "fields": {
-            "name": "Soksåna",
-            "river_id": "11010001.0",
             "code": null,
             "fylke": "ROGALAND",
             "types": [

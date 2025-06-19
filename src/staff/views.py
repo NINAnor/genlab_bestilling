@@ -226,7 +226,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
     model = ExtractionOrder
 
     def get_queryset(self):
-        return ExtractionOrder.objects.filter(status=Order.OrderStatus.CONFIRMED)
+        return ExtractionOrder.objects.filter(status=Order.OrderStatus.DELIVERED)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -264,7 +264,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
     def get_queryset(self):
-        return super().get_queryset().filter(status=Order.OrderStatus.CONFIRMED)
+        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -350,7 +350,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
             super()
             .get_queryset()
             .select_related("order")
-            .filter(order__status=Order.OrderStatus.CONFIRMED)
+            .filter(order__status=Order.OrderStatus.DELIVERED)
         )
 
     def post(self, request, *args, **kwargs):

@@ -5,21 +5,32 @@ Features:
 - Docker
 - REST APIs
 
-
-
+<br>
 
 ## Requirements
 - docker
+- uv
 
+<br>
 
 ## How to use
 First, if you are lazy execute
 ```
 source aliases.sh # or . aliases.sh
 ```
-This will create some shortcuts to run docker commands.
+This will create some shortcuts to run useful commands.
+
+> Private aliases are also possible (this file is gitignored).
+> To set up, make a file named `aliases-private.sh`. It will be sourced whenever `aliases.sh` is sourced. <br>
+> (optional) A startup alias could be useful. Simply put this in your shell config:
+> ```
+> alias nina="cd <path/to/project> && . aliases.sh"
+> ```
+
+<br>
 
 ### Development setup
+
 ```
 docker compose --profile dev up -d --build
 # or dpcli_dev up -d --build
@@ -39,8 +50,10 @@ cp .vscode/settings.default.json .vscode/settings.json
 > The project ignores `vscode/settings.json` to not hijack personal workspace settings.
 
 #### Local dependencies
-If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code.
-Install `uv` and run `uv sync`.
+If you want better DX, install depencencies locally. This will enable autocompletion and inspection of 3rd party code within editors.
+```
+uv sync
+```
 
 #### Django commands
 Django provides useful command line tools that can be executed with `manage.py`, to see a list of all the available commands run inside the django container `src/manage.py help`.
@@ -63,11 +76,13 @@ Other useful commands:
 ```
 createsuperuser # creates a new administrator account
 shell_plus # open an interactive python shell
-showmigrations # shows a list of migrations, useful to know which ones are applyied
+showmigrations # shows a list of migrations, useful to know which ones are applied
 dumpdata # dump data from a table into a json file
 loaddata # load data from a json file to a table
 models2puml #
 ```
+
+<br>
 
 ### Production setup
 This setup will create docker images optimized for production, without devtools installed
@@ -75,6 +90,8 @@ This setup will create docker images optimized for production, without devtools 
 docker compose --profile prod up -d --build
 # or dpcli_prod up -d --build
 ```
+
+<br>
 
 ## How to update
 ```

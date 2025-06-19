@@ -17,3 +17,5 @@ alias lint="uv run pre-commit run --all-files"
 alias django="uv run ./src/manage.py"
 
 echo "Aliases loaded successfully."
+
+[ -f aliases-private.sh ] && . aliases-private.sh

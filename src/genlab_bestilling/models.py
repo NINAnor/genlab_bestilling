@@ -125,9 +125,21 @@ class Location(models.Model):
         f"{an}.LocationType",
         blank=True,
     )
-    river_id = models.CharField(max_length=250, null=True, blank=True, unique=True)
+    river_id = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="Unique river ID. If the id is taken, a dotted suffix can be utilised. This could be useful for sub locations within the main river. For example, if the main river ID is '1234', a sub location can be '1234.2'.",  # noqa: E501
+    )
     code = models.CharField(max_length=20, null=True, blank=True)
     fylke = models.CharField(null=True, blank=True)
+    comment = models.TextField(
+        null=False,
+        blank=True,
+        default="",
+        help_text="This field can be used to store additional information about the location, such as the species in focus or other relevant details.",  # noqa: E501
+    )
 
     def __str__(self):
         if self.river_id:
@@ -515,7 +527,7 @@ class SampleMarkerAnalysis(models.Model):
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     def __str__(self):
-        return f"{str(self.sample)} {str(self.marker) @ {str(self.order)}}"
+        return f"{str(self.sample)} {str(self.marker)} @ {str(self.order)}"
 
 
 class Sample(models.Model):

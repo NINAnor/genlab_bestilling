@@ -53,7 +53,7 @@ DATABASES["default"]["ENGINE"] = "psqlextra.backend"
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)  # noqa F405
+DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)
 
 # URLS
 # ------------------------------------------------------------------------------
@@ -315,23 +315,20 @@ LOGGING = {
 
 # django-allauth
 # ------------------------------------------------------------------------------
+# https://django-allauth.readthedocs.io/en/stable/account/configuration.html
+# https://django-allauth.readthedocs.io/en/stable/account/advanced.html
 ACCOUNT_ALLOW_REGISTRATION = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "email"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_USERNAME_REQUIRED = False
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "none"
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "capps.users.adapters.AccountAdapter"
+
 if env("SOCIALACCOUNT_ADAPTER", default=None):
     SOCIALACCOUNT_ADAPTER = env("SOCIALACCOUNT_ADAPTER")
 
-# https://django-allauth.readthedocs.io/en/latest/forms.html
+# https://django-allauth.readthedocs.io/en/stable/account/forms.html
 ACCOUNT_FORMS = {"signup": "capps.users.forms.UserSignupForm"}
 
 if env("SOCIALACCOUNT_ADAPTER", default=None):

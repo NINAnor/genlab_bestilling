@@ -253,6 +253,8 @@ web_modules/
 # Output of 'npm pack'
 *.tgz
 
+aliases-private.sh
+
 # Yarn Integrity file
 .yarn-integrity
 

@@ -116,6 +116,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
+        self.fields["is_urgent"].label = "Check this box if the order is urgent"
         # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
 
@@ -136,6 +137,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "sample_types",
             "notes",
             "tags",
+            "is_urgent",
         )
         widgets = {
             # "species": DualSortableSelector(
@@ -239,6 +241,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
+        self.fields["is_urgent"].label = "Check this box if the order is urgent"
 
         self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
@@ -265,6 +268,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "tags",
             "pre_isolated",
             "return_samples",
+            "is_urgent",
         )
         widgets = {
             "species": DualSortableSelector(
@@ -294,6 +298,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
+        self.fields["is_urgent"].label = "Check this box if the order is urgent"
 
         self.fields["markers"].queryset = Marker.objects.filter(
             genrequest__id=genrequest.id
@@ -352,6 +357,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "notes",
             "expected_delivery_date",
             "tags",
+            "is_urgent",
         ]
         widgets = {
             "name": TextInput(
@@ -377,9 +383,11 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "notes",
             "expected_delivery_date",
             "tags",
+            "is_urgent",
         ]
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
+        self.fields["is_urgent"].label = "Check this box if the order is urgent"
         if "use_all_samples" in self.fields:
             del self.fields["use_all_samples"]

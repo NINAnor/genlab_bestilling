@@ -252,6 +252,7 @@ class Order(PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
+    is_urgent = models.BooleanField(default=False)
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()

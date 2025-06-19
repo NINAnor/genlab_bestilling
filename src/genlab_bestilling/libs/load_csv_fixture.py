@@ -31,7 +31,7 @@ def species_from_tsv(path: pathlib.Path):
                 created += int(c)
                 species.markers.add(marker)
 
-        print(f"Installed {created} objects from {str(path)}")
+        print(f"Installed {created} objects from {path}")
 
 
 def sample_types_from_tsv(path: pathlib.Path):
@@ -51,4 +51,4 @@ def sample_types_from_tsv(path: pathlib.Path):
                 sample_type.areas.add(area)
                 created += int(c)
 
-        print(f"Installed {created} objects from {str(path)}")
+        print(f"Installed {created} objects from {path}")

@@ -5,18 +5,33 @@ from unfold.contrib.filters.admin import (
 )
 
 from .models import (
+    AnalysisOrder,
+    AnalysisResult,
     AnalysisType,
     Area,
+    EquimentOrderQuantity,
     EquipmentBuffer,
+    EquipmentOrder,
     EquipmentType,
+    ExtractionOrder,
+    ExtractionPlate,
+    ExtractPlatePosition,
     Genrequest,
     Location,
     LocationType,
     Marker,
     Organization,
+    Sample,
+    SampleMarkerAnalysis,
     SampleType,
     Species,
 )
+
+
+@admin.register(Organization)
+class OrganizationAdmin(ModelAdmin):
+    list_display = ["name"]
+    search_fields = ["name"]
 
 
 @admin.register(Area)
@@ -27,6 +42,46 @@ class AreaAdmin(ModelAdmin):
 @admin.register(LocationType)
 class LocationTypeAdmin(ModelAdmin):
     search_fields = ["name"]
+
+
+@admin.register(Location)
+class LocationAdmin(ModelAdmin):
+    list_display = ["name", "river_id", "code"]
+    search_fields = ["name", "river_id", "code"]
+    list_filter = [("types", RelatedDropdownFilter)]
+    list_filter_submit = True
+
+
+@admin.register(Genrequest)
+class GenrequestAdmin(ModelAdmin):
+    list_display = [
+        "project",
+        "name",
+        "samples_owner",
+        # "sample_types",
+        "area",
+    ]
+    search_fields = ["name"]
+    list_filter_submit = True
+
+    list_filter = [
+        ("project", RelatedDropdownFilter),
+        ("area", RelatedDropdownFilter),
+        ("sample_types", RelatedDropdownFilter),
+        ("markers", RelatedDropdownFilter),
+        ("species", RelatedDropdownFilter),
+        ("samples_owner", RelatedDropdownFilter),
+        ("creator", RelatedDropdownFilter),
+    ]
+
+    autocomplete_fields = [
+        "samples_owner",
+        "area",
+        "project",
+        "species",
+        "sample_types",
+        "markers",
+    ]
 
 
 @admin.register(Marker)
@@ -69,47 +124,37 @@ class EquipmentBufferAdmin(ModelAdmin):
     search_fields = ["name"]
 
 
-@admin.register(Organization)
-class OrganizationAdmin(ModelAdmin):
-    list_display = ["name"]
-    search_fields = ["name"]
+@admin.register(EquimentOrderQuantity)
+class EquimentOrderQuantityAdmin(ModelAdmin): ...
 
 
-@admin.register(Location)
-class LocationAdmin(ModelAdmin):
-    list_display = ["name", "river_id", "code"]
-    search_fields = ["name", "river_id", "code"]
-    list_filter = [("types", RelatedDropdownFilter)]
-    list_filter_submit = True
+@admin.register(EquipmentOrder)
+class EquipmentOrderAdmin(ModelAdmin): ...
 
 
-@admin.register(Genrequest)
-class GenrequestAdmin(ModelAdmin):
-    list_display = [
-        "project",
-        "name",
-        "samples_owner",
-        # "sample_types",
-        "area",
-    ]
-    search_fields = ["name"]
-    list_filter_submit = True
+@admin.register(ExtractionOrder)
+class ExtractionOrderAdmin(ModelAdmin): ...
 
-    list_filter = [
-        ("project", RelatedDropdownFilter),
-        ("area", RelatedDropdownFilter),
-        ("sample_types", RelatedDropdownFilter),
-        ("markers", RelatedDropdownFilter),
-        ("species", RelatedDropdownFilter),
-        ("samples_owner", RelatedDropdownFilter),
-        ("creator", RelatedDropdownFilter),
-    ]
 
-    autocomplete_fields = [
-        "samples_owner",
-        "area",
-        "project",
-        "species",
-        "sample_types",
-        "markers",
-    ]
+@admin.register(AnalysisOrder)
+class AnalysisOrderAdmin(ModelAdmin): ...
+
+
+@admin.register(SampleMarkerAnalysis)
+class SampleMarkerAnalysisAdmin(ModelAdmin): ...
+
+
+@admin.register(Sample)
+class SampleAdmin(ModelAdmin): ...
+
+
+@admin.register(ExtractPlatePosition)
+class ExtractPlatePositionAdmin(ModelAdmin): ...
+
+
+@admin.register(ExtractionPlate)
+class ExtractionPlateAdmin(ModelAdmin): ...
+
+
+@admin.register(AnalysisResult)
+class AnalysisResultAdmin(ModelAdmin): ...

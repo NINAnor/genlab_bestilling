@@ -1,0 +1,27 @@
+{% extends "staff/base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="flex items-center mb-5 gap-2">
+    <h3 class="text-4xl">Dashboard</h3>
+</div>
+
+{% if urgent_genrequests|length > 0 %}
+<div class="rounded-md border bg-white p-4">
+  <h4 class="text-2xl mb-4">Urgent GenRequests</h4>
+
+  {% for genrequest in urgent_genrequests %}
+    <a class="hover:underline" href="{% url 'genrequest-detail' genrequest.pk %}">
+      <p>
+        {{ genrequest }} - {{ genrequest.project.name|default:"N/A" }}
+      </p>
+    </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="rounded-md border bg-white p-4">
+  <h4 class="text-2xl mb-4">Urgent GenRequests</h4>
+  <p>No urgent GenRequests found.</p>
+</div>
+{% endif %}
+{% endblock %}

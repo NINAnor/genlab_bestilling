@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -17,6 +17,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -54,6 +55,30 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_genlab_staff()
+
+
+class DashboardView(StaffMixin, TemplateView):
+    template_name = "staff/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        urgent_genrequest_ids = (
+            Order.objects.filter(is_urgent=True)
+            .values_list("genrequest_id", flat=True)
+            .distinct()
+        )
+
+        urgent_genrequests = Genrequest.objects.filter(
+            id__in=urgent_genrequest_ids
+        ).select_related(
+            "samples_owner",
+            "project",
+            "area",
+        )
+
+        context["urgent_genrequests"] = urgent_genrequests
+        return context
 
 
 class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):

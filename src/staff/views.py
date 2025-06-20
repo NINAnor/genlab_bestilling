@@ -47,7 +47,8 @@ from .tables import (
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
-        names = super().get_template_names()  # type: ignore[misc] # TODO: This doesn't look right, fix later.
+        # type: ignore[misc] # TODO: This doesn't look right, fix later.
+        names = super().get_template_names()
         return [
             name.replace("genlab_bestilling", "staff").replace("nina", "staff")
             for name in names
@@ -78,6 +79,11 @@ class DashboardView(StaffMixin, TemplateView):
         )
 
         context["urgent_genrequests"] = urgent_genrequests
+        confirmed_orders = Order.objects.filter(
+            status=Order.OrderStatus.CONFIRMED)
+
+        context["confirmed_orders"] = confirmed_orders
+
         return context
 
 
@@ -186,7 +192,8 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(
+            pk=self.kwargs.get("pk"))
         return context
 
 

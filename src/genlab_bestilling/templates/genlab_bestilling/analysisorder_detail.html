@@ -45,7 +45,7 @@
         {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
         {% action-button action=clone_order_url class="bg-secondary text-white" submit_text="Clone Order" csrf_token=csrf_token %}
         <a class="btn bg-red-500 text-white" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
-        {% elif object.status == 'confirmed' %}
+        {% elif object.status == object.OrderStatus.DELIVERED %}
         <a class="btn bg-primary" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}
     </div>

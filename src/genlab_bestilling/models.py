@@ -228,14 +228,19 @@ class Order(PolymorphicModel):
         pass
 
     class OrderStatus(models.TextChoices):
+        # DRAFT: External researcher has created the order, and is currently working on it before having it delivered for processing.  # noqa: E501
         DRAFT = "draft", _("Draft")
-        CONFIRMED = "confirmed", _("Confirmed")
+        # DELIVERED: Order has been delivered from researcher to the NINA staff.
+        # NOTE: # The old value `confirmed` was preserved during a name change to avoid migration issues. The primary goal is to have a more descriptive name for staff users in the GUI.  # noqa: E501
+        DELIVERED = "confirmed", _("Delivered")
+        # PROCESSING: NINA staff has begun processing the order.
         PROCESSING = "processing", _("Processing")
+        # COMPLETED: Order has been completed, and results are available.
         COMPLETED = "completed", _("Completed")
 
     STATUS_ORDER = (
         OrderStatus.DRAFT,
-        OrderStatus.CONFIRMED,
+        OrderStatus.DELIVERED,
         OrderStatus.PROCESSING,
         OrderStatus.COMPLETED,
     )
@@ -252,12 +257,13 @@ class Order(PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
+    is_urgent = models.BooleanField(default=False)
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
 
     def confirm_order(self):
-        self.status = Order.OrderStatus.CONFIRMED
+        self.status = Order.OrderStatus.DELIVERED
         self.confirmed_at = timezone.now()
         self.save()
 

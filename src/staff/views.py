@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -17,6 +17,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -46,7 +47,8 @@ from .tables import (
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
-        names = super().get_template_names()  # type: ignore[misc] # TODO: This doesn't look right, fix later.
+        # type: ignore[misc] # TODO: This doesn't look right, fix later.
+        names = super().get_template_names()
         return [
             name.replace("genlab_bestilling", "staff").replace("nina", "staff")
             for name in names
@@ -54,6 +56,35 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         return self.request.user.is_superuser or self.request.user.is_genlab_staff()
+
+
+class DashboardView(StaffMixin, TemplateView):
+    template_name = "staff/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        urgent_genrequest_ids = (
+            Order.objects.filter(is_urgent=True)
+            .values_list("genrequest_id", flat=True)
+            .distinct()
+        )
+
+        urgent_genrequests = Genrequest.objects.filter(
+            id__in=urgent_genrequest_ids
+        ).select_related(
+            "samples_owner",
+            "project",
+            "area",
+        )
+
+        context["urgent_genrequests"] = urgent_genrequests
+        confirmed_orders = Order.objects.filter(
+            status=Order.OrderStatus.CONFIRMED)
+
+        context["confirmed_orders"] = confirmed_orders
+
+        return context
 
 
 class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
@@ -161,7 +192,8 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(
+            pk=self.kwargs.get("pk"))
         return context
 
 
@@ -226,7 +258,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
     model = ExtractionOrder
 
     def get_queryset(self):
-        return ExtractionOrder.objects.filter(status=Order.OrderStatus.CONFIRMED)
+        return ExtractionOrder.objects.filter(status=Order.OrderStatus.DELIVERED)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -264,7 +296,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
     def get_queryset(self):
-        return super().get_queryset().filter(status=Order.OrderStatus.CONFIRMED)
+        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -350,7 +382,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
             super()
             .get_queryset()
             .select_related("order")
-            .filter(order__status=Order.OrderStatus.CONFIRMED)
+            .filter(order__status=Order.OrderStatus.DELIVERED)
         )
 
     def post(self, request, *args, **kwargs):

@@ -1,5 +1,3 @@
-import { capitalize } from "../utils.js";
-
 const date = new Date();
 
 const formattedDate = date.toLocaleDateString("en-US", {
@@ -16,5 +14,4 @@ const weekNumber = Math.ceil(
 );
 
 document.getElementById("dashboard__week").textContent = `Week ${weekNumber}`;
-document.getElementById("dashboard__date").textContent =
-  capitalize(formattedDate);
+document.getElementById("dashboard__date").textContent = formattedDate;

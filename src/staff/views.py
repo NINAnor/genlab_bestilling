@@ -82,6 +82,7 @@ class DashboardView(StaffMixin, TemplateView):
         confirmed_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
 
         context["confirmed_orders"] = confirmed_orders
+        context["now"] = now()
 
         return context
 

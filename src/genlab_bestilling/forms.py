@@ -116,7 +116,6 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
         # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
 

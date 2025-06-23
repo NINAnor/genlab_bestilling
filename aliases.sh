@@ -18,4 +18,4 @@ alias django="uv run ./src/manage.py"
 
 echo "Aliases loaded successfully."
 
-[ -f aliases-private.sh ] && . aliases-private.sh
+[ -f aliases-private.sh ] && source aliases-private.sh

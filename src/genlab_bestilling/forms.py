@@ -240,7 +240,6 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
 
         self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
@@ -297,7 +296,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
 
         self.fields["markers"].queryset = Marker.objects.filter(
             genrequest__id=genrequest.id
@@ -387,6 +385,5 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
         if "use_all_samples" in self.fields:
             del self.fields["use_all_samples"]

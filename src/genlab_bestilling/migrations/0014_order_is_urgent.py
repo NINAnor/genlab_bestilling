@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('genlab_bestilling', '0013_location_comment_alter_location_river_id'),
+        ("genlab_bestilling", "0013_location_comment_alter_location_river_id"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='is_urgent',
+            model_name="order",
+            name="is_urgent",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -11,9 +11,11 @@
                 <thead {{ table.attrs.thead.as_html }}>
                     <tr>
 
-                    {% if "is_urgent" in table.columns %}
-                        <th {{ column.attrs.th.as_html }}><a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"></a></th>
-                    {% endif %}
+                    {% for column in table.columns %}
+                        {% if column.name == "is_urgent" %}
+                            <th {{ column.attrs.th.as_html }}><a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"></a></th>
+                        {% endif %}
+                    {% endfor %}
 
                     {% for column in table.columns %}
                         {% if column.name != "is_urgent" %}
@@ -46,20 +48,11 @@
 
                             {% if cell == True %}
                                 <i class="fa-solid fa-exclamation text-red-500 fa-2x" title="Urgent"></i>
-                            {% else %}
-                                <i class="fas fa-check-circle text-green-500" title="Not urgent"></i>
                             {% endif %}
                         </td>
                         {% endif %}
                     {% endfor %}
 
-
-                    {% comment %} {% if column.name == "is_urgent" %}
-                        {% if cell %}
-                            <i class="fa-solid fa-exclamation text-red-500 fa-2x" title="Urgent"></i>
-                        {% else %}
-                            <i class="fas fa-check-circle text-green-500" title="Not urgent"></i>
-                    {% endif %}  {% endcomment %}
 
                         {% for column, cell in row.items %}
                             {% if column.name != "is_urgent" %}

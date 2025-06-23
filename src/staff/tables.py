@@ -30,8 +30,9 @@ class OrderTable(tables.Table):
         orderable=False,
         empty_values=(),
     )
-    # Override as `tables.Column` to be able to use if-statement
-    is_urgent = tables.Column()
+
+    # Override as `tables.Column` to send a True/False value to the template
+    is_urgent = tables.Column(orderable=True)
 
     class Meta:
         fields = [
@@ -49,6 +50,7 @@ class OrderTable(tables.Table):
         ]
         sequence = ("id",)
         empty_text = "No Orders"
+        order_by = ("-is_urgent",)
 
     def render_id(self, record):
         return str(record)

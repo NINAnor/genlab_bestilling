@@ -30,6 +30,8 @@ class OrderTable(tables.Table):
         orderable=False,
         empty_values=(),
     )
+    # Override as `tables.Column` to be able to use if-statement
+    is_urgent = tables.Column()
 
     class Meta:
         fields = [

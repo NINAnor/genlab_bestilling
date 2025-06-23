@@ -79,7 +79,7 @@ class DashboardView(StaffMixin, TemplateView):
         )
 
         context["urgent_genrequests"] = urgent_genrequests
-        confirmed_orders = Order.objects.filter(status=Order.OrderStatus.CONFIRMED)
+        confirmed_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
 
         context["confirmed_orders"] = confirmed_orders
 

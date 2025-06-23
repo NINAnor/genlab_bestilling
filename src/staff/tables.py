@@ -43,6 +43,7 @@ class OrderTable(tables.Table):
             "genrequest__samples_owner",
             "created_at",
             "last_modified_at",
+            "is_urgent",
         ]
         sequence = ("id",)
         empty_text = "No Orders"

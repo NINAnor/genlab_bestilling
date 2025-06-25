@@ -4,25 +4,38 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('genlab_bestilling', '0015_merge_0014_alter_order_status_0014_order_is_urgent'),
+        (
+            "genlab_bestilling",
+            "0015_merge_0014_alter_order_status_0014_order_is_urgent",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='contact_email',
-            field=models.EmailField(blank=True, help_text='Email to contact with questions about this order', max_length=254, null=True),
+            model_name="order",
+            name="contact_email",
+            field=models.EmailField(
+                blank=True,
+                help_text="Email to contact with questions about this order",
+                max_length=254,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='order',
-            name='contact_person',
-            field=models.CharField(blank=True, help_text='Person to contact with questions about this order', null=True),
+            model_name="order",
+            name="contact_person",
+            field=models.CharField(
+                blank=True,
+                help_text="Person to contact with questions about this order",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='is_urgent',
-            field=models.BooleanField(default=False, help_text='Check this box if the order is urgent'),
+            model_name="order",
+            name="is_urgent",
+            field=models.BooleanField(
+                default=False, help_text="Check this box if the order is urgent"
+            ),
         ),
     ]

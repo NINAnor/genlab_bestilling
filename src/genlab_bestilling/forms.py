@@ -3,7 +3,12 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DualSortableSelector, Selectize, TextInput
+from formset.widgets import (
+    DualSortableSelector,
+    Selectize,
+    TextInput,
+    UploadedFileInput,
+)
 
 from nina.models import Project
 
@@ -233,6 +238,13 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
+    samples_file = forms.FileField(
+        label="Samples file",
+        help_text="Upload a file with the samples to be extracted. "
+        + "The file should contain a list of sample names, one per line.",
+        required=False,
+        widget=UploadedFileInput(attrs={"auto-upload": False}),
+    )
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, **kwargs)
@@ -271,6 +283,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
+            "samples_file",
         )
         widgets = {
             "species": DualSortableSelector(

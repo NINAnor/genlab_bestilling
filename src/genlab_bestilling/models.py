@@ -397,6 +397,12 @@ class ExtractionOrder(Order):
     needs_guid = models.BooleanField(default=False)  # TODO: default?
     return_samples = models.BooleanField()  # TODO: default?
     pre_isolated = models.BooleanField(verbose_name="Are samples already isolated?")
+    samples_file = models.FileField(
+        blank=True,
+        null=True,
+        help_text="Upload a CSV file with the samples to extract.",
+        upload_to="samples_files/",
+    )
 
     def __str__(self) -> str:
         return f"#EXT_{self.id}"

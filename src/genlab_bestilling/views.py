@@ -16,6 +16,7 @@ from django.views.generic import (
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin, SingleTableView
+from formset.upload import FileUploadMixin
 from formset.views import (
     BulkEditCollectionView,
 )
@@ -817,9 +818,13 @@ class AnalysisOrderCreateView(
             )
 
 
+# checkpoint
+
+
 class ExtractionOrderCreateView(
     GenrequestNestedMixin,
     FormsetCreateView,
+    FileUploadMixin,
 ):
     form_class = ExtractionOrderForm
     model = ExtractionOrder

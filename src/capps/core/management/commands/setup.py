@@ -26,6 +26,7 @@ class Command(BaseCommand):
             call_command("loaddata", "nina.json")
 
             species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")
-            sample_types_from_tsv(settings.SRC_DIR / "fixtures" / "sample_types.tsv")
+            sample_types_from_tsv(
+                settings.SRC_DIR / "fixtures" / "sample_types.tsv")
 
             call_command("loaddata", "test.json")

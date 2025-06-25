@@ -1,8 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from unfold.contrib.filters.admin import (
-    RelatedDropdownFilter,
-)
+from unfold.contrib.filters import admin as unfold_filters
 
 from .models import (
     AnalysisOrder,
@@ -48,7 +46,7 @@ class LocationTypeAdmin(ModelAdmin):
 class LocationAdmin(ModelAdmin):
     list_display = ["name", "river_id", "code"]
     search_fields = ["name", "river_id", "code"]
-    list_filter = [("types", RelatedDropdownFilter)]
+    list_filter = [("types", unfold_filters.RelatedDropdownFilter)]
     list_filter_submit = True
 
 
@@ -65,13 +63,13 @@ class GenrequestAdmin(ModelAdmin):
     list_filter_submit = True
 
     list_filter = [
-        ("project", RelatedDropdownFilter),
-        ("area", RelatedDropdownFilter),
-        ("sample_types", RelatedDropdownFilter),
-        ("markers", RelatedDropdownFilter),
-        ("species", RelatedDropdownFilter),
-        ("samples_owner", RelatedDropdownFilter),
-        ("creator", RelatedDropdownFilter),
+        ("project", unfold_filters.RelatedDropdownFilter),
+        ("area", unfold_filters.RelatedDropdownFilter),
+        ("sample_types", unfold_filters.RelatedDropdownFilter),
+        ("markers", unfold_filters.RelatedDropdownFilter),
+        ("species", unfold_filters.RelatedDropdownFilter),
+        ("samples_owner", unfold_filters.RelatedDropdownFilter),
+        ("creator", unfold_filters.RelatedDropdownFilter),
     ]
 
     autocomplete_fields = [
@@ -92,7 +90,7 @@ class MarkerAdmin(ModelAdmin):
 @admin.register(Species)
 class SpeciesAdmin(ModelAdmin):
     list_display = ["name", "area"]
-    list_filter = [("area", RelatedDropdownFilter)]
+    list_filter = [("area", unfold_filters.RelatedDropdownFilter)]
     list_filter_submit = True
 
     search_fields = ["name"]
@@ -145,7 +143,36 @@ class SampleMarkerAnalysisAdmin(ModelAdmin): ...
 
 
 @admin.register(Sample)
-class SampleAdmin(ModelAdmin): ...
+class SampleAdmin(ModelAdmin):
+    list_display = [
+        Sample.order.field.name,
+        Sample.guid.field.name,
+        Sample.name.field.name,
+        Sample.type.field.name,
+        Sample.species.field.name,
+        Sample.year.field.name,
+        Sample.notes.field.name,
+        Sample.pop_id.field.name,
+        Sample.location.field.name,
+        Sample.volume.field.name,
+        Sample.genlab_id.field.name,
+        Sample.parent.field.name,
+    ]
+    search_fields = [
+        Sample.name.field.name,
+        Sample.guid.field.name,
+        Sample.genlab_id.field.name,
+    ]
+    list_filter = [
+        (Sample.name.field.name, unfold_filters.FieldTextFilter),
+        (Sample.guid.field.name, unfold_filters.FieldTextFilter),
+        (Sample.genlab_id.field.name, unfold_filters.FieldTextFilter),
+        (Sample.year.field.name, unfold_filters.SingleNumericFilter),
+        (Sample.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (Sample.type.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(ExtractPlatePosition)

@@ -137,6 +137,8 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "notes",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         )
         widgets = {
             # "species": DualSortableSelector(
@@ -241,6 +243,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             + "for this order to help you find it later"
         )
         self.fields["is_urgent"].label = "Check this box if the order is urgent"
+        self.fields["contact_person"].label = "Person to contact about the order"
+        self.fields["contact_email"].label = "Email to use for contact about the order"
 
         self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
@@ -268,6 +272,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "pre_isolated",
             "return_samples",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         )
         widgets = {
             "species": DualSortableSelector(
@@ -298,6 +304,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             + "for this order to help you find it later"
         )
         self.fields["is_urgent"].label = "Check this box if the order is urgent"
+        self.fields["contact_person"].label = "Person to contact about the order"
+        self.fields["contact_email"].label = "Email to use for contact about the order"
 
         self.fields["markers"].queryset = Marker.objects.filter(
             genrequest__id=genrequest.id
@@ -357,6 +365,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "expected_delivery_date",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         ]
         widgets = {
             "name": TextInput(
@@ -383,6 +393,8 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "expected_delivery_date",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         ]
 
     def __init__(self, *args, genrequest, **kwargs):

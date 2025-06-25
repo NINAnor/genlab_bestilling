@@ -40,11 +40,11 @@
 
       {% for order in urgent_orders %}
         {% if order.polymorphic_ctype.model == 'analysisorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:"-"}} - Status: {{ order.status|default:"-" }}</p></a>
         {% elif order.polymorphic_ctype.model == 'equipmentorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:"-" }} - Status: {{ order.status|default:"-" }}</p></a>
         {% elif order.polymorphic_ctype.model == 'extractionorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:"-" }} - Status: {{ order.status|default:"-" }}</p></a>
         {% else %}
           <p>{{ order }} - {{ order.name }}</p>
     {% endif %}

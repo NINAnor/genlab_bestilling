@@ -64,10 +64,9 @@ class DashboardView(StaffMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         urgent_orders = Order.objects.filter(is_urgent=True)
-
         context["urgent_orders"] = urgent_orders
+        
         confirmed_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
-
         context["confirmed_orders"] = confirmed_orders
         context["now"] = now()
 

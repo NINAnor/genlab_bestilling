@@ -242,6 +242,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
+
         self.fields["is_urgent"].label = "Check this box if the order is urgent"
         self.fields["contact_person"].label = "Person to contact about the order"
         self.fields["contact_email"].label = "Email to use for contact about the order"
@@ -303,6 +304,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
+
         self.fields["is_urgent"].label = "Check this box if the order is urgent"
         self.fields["contact_person"].label = "Person to contact about the order"
         self.fields["contact_email"].label = "Email to use for contact about the order"
@@ -399,6 +401,5 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
 
     def __init__(self, *args, genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
         if "use_all_samples" in self.fields:
             del self.fields["use_all_samples"]

@@ -17,7 +17,6 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
-    Genrequest,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -64,21 +63,10 @@ class DashboardView(StaffMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        urgent_genrequest_ids = (
-            Order.objects.filter(is_urgent=True)
-            .values_list("genrequest_id", flat=True)
-            .distinct()
-        )
+        urgent_orders = Order.objects.filter(is_urgent=True)
 
-        urgent_genrequests = Genrequest.objects.filter(
-            id__in=urgent_genrequest_ids
-        ).select_related(
-            "samples_owner",
-            "project",
-            "area",
-        )
+        context["urgent_orders"] = urgent_orders
 
-        context["urgent_genrequests"] = urgent_genrequests
         confirmed_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
 
         context["confirmed_orders"] = confirmed_orders

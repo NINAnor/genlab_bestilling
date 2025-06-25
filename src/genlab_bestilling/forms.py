@@ -243,10 +243,6 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             + "for this order to help you find it later"
         )
 
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
-        self.fields["contact_person"].label = "Person to contact about the order"
-        self.fields["contact_email"].label = "Email to use for contact about the order"
-
         self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
         # self.fields["markers"].queryset = Marker.objects.filter(
@@ -304,10 +300,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "You can provide a descriptive name "
             + "for this order to help you find it later"
         )
-
-        self.fields["is_urgent"].label = "Check this box if the order is urgent"
-        self.fields["contact_person"].label = "Person to contact about the order"
-        self.fields["contact_email"].label = "Email to use for contact about the order"
 
         self.fields["markers"].queryset = Marker.objects.filter(
             genrequest__id=genrequest.id

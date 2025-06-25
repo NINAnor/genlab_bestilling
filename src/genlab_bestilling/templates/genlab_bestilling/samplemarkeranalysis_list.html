@@ -16,7 +16,7 @@
         <a class="btn bg-yellow-200" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back to order</a>
         {% if analysis.status == 'draft' %}
         {% url 'genrequest-order-confirm' genrequest_id=view.kwargs.genrequest_id pk=view.kwargs.pk as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Deliver order" csrf_token=csrf_token %}
         {% if not analysis.from_order %}
         <a class="ml-auto btn bg-blue-300" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">edit samples</a>
         {% endif %}

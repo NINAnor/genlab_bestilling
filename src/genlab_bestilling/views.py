@@ -565,7 +565,7 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
             # TODO: check state transition
             self.object.confirm_order()
             messages.add_message(
-                self.request, messages.SUCCESS, _("Your order is confirmed")
+                self.request, messages.SUCCESS, _("Your order is delivered")
             )
         except (Order.CannotConfirm, ValidationError) as e:
             messages.add_message(

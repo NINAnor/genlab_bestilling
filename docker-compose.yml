@@ -64,6 +64,7 @@ services:
       <<: *django-prod-env
       DJANGO_COLLECTSTATIC: 1
       DJANGO_MIGRATE: 1
+      DJANGO_WAIT_FOR_DATABASE: 1
     volumes:
       - statics:/app/staticfiles
 
@@ -75,6 +76,7 @@ services:
     environment:
       <<: *django-dev-env
       DJANGO_MIGRATE: 1
+      DJANGO_WAIT_FOR_DATABASE: 1
       LIVE_SERVER_URL: http://django:8000
 
   queue:

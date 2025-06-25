@@ -50,7 +50,7 @@ class OrderTable(tables.Table):
         ]
         sequence = ("id",)
         empty_text = "No Orders"
-        order_by = ("-is_urgent",)
+        order_by = ("-is_urgent", "status", "created_at")
 
     def render_id(self, record):
         return str(record)

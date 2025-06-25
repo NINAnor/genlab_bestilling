@@ -29,7 +29,11 @@
                         {% if column.name != "is_urgent" %}
                         <th {{ column.attrs.th.as_html }}>
                             {% if column.orderable %}
-                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}" 
+                                style="display: inline-flex; align-items: center; gap: 0.5em;">
+                                    {{ column.header }} 
+                                    <i class="fa-solid fa-sort text-gray-500 hover:text-black">
+                                </i></a>
                             {% else %}
                                 {{ column.header }}
                             {% endif %}

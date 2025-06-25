@@ -137,6 +137,8 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "notes",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         )
         widgets = {
             # "species": DualSortableSelector(
@@ -267,6 +269,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "pre_isolated",
             "return_samples",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         )
         widgets = {
             "species": DualSortableSelector(
@@ -355,6 +359,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "expected_delivery_date",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         ]
         widgets = {
             "name": TextInput(
@@ -381,6 +387,8 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "expected_delivery_date",
             "tags",
             "is_urgent",
+            "contact_person",
+            "contact_email",
         ]
 
     def __init__(self, *args, genrequest, **kwargs):

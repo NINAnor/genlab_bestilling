@@ -260,6 +260,16 @@ class Order(PolymorphicModel):
     is_urgent = models.BooleanField(
         default=False, help_text="Check this box if the order is urgent"
     )
+    contact_person = models.CharField(
+        null=True,
+        blank=True,
+        help_text="Person to contact with questions about this order",
+    )
+    contact_email = models.EmailField(
+        null=True,
+        blank=True,
+        help_text="Email to contact with questions about this order",
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()

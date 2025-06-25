@@ -1,1 +1,19 @@
-[{"model": "nina.projectmembership", "pk": 1, "fields": {"project": "000000", "user": 1, "role": "member"}}, {"model": "nina.project", "pk": "000000", "fields": {"name": "Test project", "active": true}}]
+[
+  {
+    "model": "nina.projectmembership",
+    "pk": 1,
+    "fields": {
+      "project": "000000",
+      "user": 1,
+      "role": "member"
+    }
+  },
+  {
+    "model": "nina.project",
+    "pk": "000000",
+    "fields": {
+      "name": "Test project",
+      "active": true
+    }
+  }
+]

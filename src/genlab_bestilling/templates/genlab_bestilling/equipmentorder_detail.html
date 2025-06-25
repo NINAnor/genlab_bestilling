@@ -38,7 +38,7 @@
         <a class="btn bg-primary" href="{% url 'genrequest-equipment-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
         <a class="btn bg-secondary text-white" href="{% url 'genrequest-equipment-quantity-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit requested equipment</a>
         {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Confirm Order" csrf_token=csrf_token %}
+        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Deliver order" csrf_token=csrf_token %}
         <a class="btn bg-red-500 text-white" href="{% url 'genrequest-equipment-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
         {% endif %}
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}

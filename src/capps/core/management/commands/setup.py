@@ -14,13 +14,15 @@ from genlab_bestilling.models import Area
 
 class Command(BaseCommand):
     def handle(self: Self, **options) -> None:
-        if User.objects.all().first() is None:
-            call_command("loaddata", "users.json")
-
         if not Area.objects.all().exists():
             call_command("loaddata", "bestilling.json")
             call_command("loaddata", "locations.json")
             call_command("loaddata", "groups.json")
+
+        if User.objects.all().first() is None:
+            call_command("loaddata", "users.json")
+
+        if not Area.objects.all().exists():
             call_command("loaddata", "nina.json")
 
             species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")

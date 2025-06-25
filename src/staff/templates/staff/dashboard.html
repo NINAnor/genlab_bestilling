@@ -1,6 +1,7 @@
 {% extends 'staff/base.html' %}
 {% load i18n %}
 {% load static %}
+{% load tz %}
 
 {% block head_javascript %}
   <script type="module" src="{% static 'js/staff/dashboard.js' %}"></script>
@@ -8,11 +9,11 @@
 
 {% block content %}
   <div class="flex items-center mb-5 gap-2">
-    <div class="flex items-center gap-2 ml-auto">
-      <p id="dashboard__date" class="capitalize"></p>
-      <p>|</p>
-      <p id="dashboard__week"></p>
-    </div>
+    <p class="flex items-center gap-2 ml-auto">
+      <span>{{ now|date:'F j, Y' }}</span>
+      <span>|</span>
+      <span>Week {{ now|date:'W' }}</span>
+    </p>
   </div>
 
   {% if confirmed_orders|length > 0 %}

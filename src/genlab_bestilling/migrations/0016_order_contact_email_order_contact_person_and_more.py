@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('genlab_bestilling', '0015_merge_0014_alter_order_status_0014_order_is_urgent'),
     ]

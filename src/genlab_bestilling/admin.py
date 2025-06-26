@@ -59,7 +59,7 @@ class GenrequestAdmin(ModelAdmin):
         # "sample_types",
         "area",
     ]
-    search_fields = ["name"]
+    search_fields = ["name", "project__name"]
     list_filter_submit = True
 
     list_filter = [
@@ -131,7 +131,44 @@ class EquipmentOrderAdmin(ModelAdmin): ...
 
 
 @admin.register(ExtractionOrder)
-class ExtractionOrderAdmin(ModelAdmin): ...
+class ExtractionOrderAdmin(ModelAdmin):
+    EO = ExtractionOrder
+    list_filter_submit = True
+
+    list_display = [
+        EO.name.field.name,
+        EO.genrequest.field.name,
+        EO.status.field.name,
+        EO.internal_status.field.name,
+        EO.needs_guid.field.name,
+        EO.return_samples.field.name,
+        EO.pre_isolated.field.name,
+        EO.confirmed_at.field.name,
+        EO.last_modified_at.field.name,
+        EO.created_at.field.name,
+    ]
+    filter_horizontal = [
+        EO.species.field.name,
+        EO.sample_types.field.name,
+    ]
+
+    search_help_text = "Search for extraction name"
+    search_fields = [
+        EO.name.field.name,
+    ]
+    list_filter = [
+        (EO.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (EO.sample_types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (EO.genrequest.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        EO.status.field.name,
+        EO.internal_status.field.name,
+        EO.needs_guid.field.name,
+        EO.return_samples.field.name,
+        EO.pre_isolated.field.name,
+        EO.confirmed_at.field.name,
+        EO.last_modified_at.field.name,
+        EO.created_at.field.name,
+    ]
 
 
 @admin.register(AnalysisOrder)

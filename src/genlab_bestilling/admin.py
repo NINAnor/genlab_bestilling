@@ -152,9 +152,10 @@ class ExtractionOrderAdmin(ModelAdmin):
         EO.sample_types.field.name,
     ]
 
-    search_help_text = "Search for extraction name"
+    search_help_text = "Search for extraction name or id"
     search_fields = [
         EO.name.field.name,
+        EO.id.field.name,
     ]
     list_filter = [
         (EO.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
@@ -172,7 +173,71 @@ class ExtractionOrderAdmin(ModelAdmin):
 
 
 @admin.register(AnalysisOrder)
-class AnalysisOrderAdmin(ModelAdmin): ...
+class AnalysisOrderAdmin(ModelAdmin):
+    """
+
+
+    name = models.CharField(null=True, blank=True)
+    genrequest = models.ForeignKey(
+    notes = models.TextField(blank=True, null=True)
+    status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+
+    samples = models.ManyToManyField(
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
+    from_order = models.ForeignKey(
+    expected_delivery_date = models.DateField(
+
+    AO.name.field.name
+    AO.genrequest.field.name
+    AO.notes.field.name
+    AO.status.field.name
+    AO.created_at.field.name
+    AO.last_modified_at.field.name
+    AO.confirmed_at.field.name
+
+    AO.samples.field.name
+    AO.markers.field.name
+    AO.from_order.field.name
+    AO.expected_delivery_date.field.name
+
+
+    """
+
+    AO = AnalysisOrder
+    list_filter_submit = True
+
+    list_display = [
+        AO.name.field.name,
+        AO.genrequest.field.name,
+        AO.status.field.name,
+        AO.from_order.field.name,
+        AO.expected_delivery_date.field.name,
+        AO.confirmed_at.field.name,
+        AO.last_modified_at.field.name,
+        AO.created_at.field.name,
+    ]
+    filter_horizontal = [
+        AO.markers.field.name,
+    ]
+
+    search_help_text = "Search for analysis name"
+    search_fields = [
+        AO.name.field.name,
+    ]
+    list_filter = [
+        (AO.samples.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (AO.markers.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (AO.genrequest.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (AO.from_order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        AO.status.field.name,
+        AO.expected_delivery_date.field.name,
+        AO.confirmed_at.field.name,
+        AO.last_modified_at.field.name,
+        AO.created_at.field.name,
+    ]
 
 
 @admin.register(SampleMarkerAnalysis)
@@ -195,10 +260,12 @@ class SampleAdmin(ModelAdmin):
         Sample.genlab_id.field.name,
         Sample.parent.field.name,
     ]
+    search_help_text = "Search for sample name, genlab ID, GUID or id"
     search_fields = [
         Sample.name.field.name,
         Sample.guid.field.name,
         Sample.genlab_id.field.name,
+        Sample.id.field.name,
     ]
     list_filter = [
         (Sample.name.field.name, unfold_filters.FieldTextFilter),

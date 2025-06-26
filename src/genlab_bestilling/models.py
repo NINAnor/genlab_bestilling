@@ -206,7 +206,7 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     tags = TaggableManager(blank=True)
 
     def __str__(self):
-        return f"#GEN_{self.id}"
+        return f"#GEN_{self.id} ({self.project})"
 
     def get_absolute_url(self) -> str:
         return reverse(

@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
@@ -83,11 +84,11 @@ class SampleType(models.Model):
         return self.name or ""
 
     @property
-    def konciv_id(self):
+    def konciv_id(self) -> str:
         return f"ST_{self.id}"
 
     @property
-    def konciv_type(self):
+    def konciv_type(self) -> str:
         return "SAMPLE_TYPE"
 
     class Meta:
@@ -101,11 +102,11 @@ class AnalysisType(models.Model):
         return self.name or ""
 
     @property
-    def konciv_id(self):
+    def konciv_id(self) -> str:
         return f"AT_{self.id}"
 
     @property
-    def konciv_type(self):
+    def konciv_type(self) -> str:
         return "ANALYSIS_TYPE"
 
     class Meta:
@@ -207,14 +208,14 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     def __str__(self):
         return f"#GEN_{self.id}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
 
     @property
-    def short_timeframe(self):
+    def short_timeframe(self) -> bool:
         return (
             self.expected_analysis_delivery_date - self.expected_samples_delivery_date
         ) < timedelta(days=30)
@@ -274,34 +275,34 @@ class Order(PolymorphicModel):
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
 
-    def confirm_order(self):
+    def confirm_order(self) -> None:
         self.status = Order.OrderStatus.DELIVERED
         self.confirmed_at = timezone.now()
         self.save()
 
-    def clone(self):
+    def clone(self) -> None:
         self.id = None
         self.pk = None
         self.status = self.OrderStatus.DRAFT
         self.confirmed_at = None
         self.save()
 
-    def to_draft(self):
+    def to_draft(self) -> None:
         self.status = Order.OrderStatus.DRAFT
         self.confirmed_at = None
         self.save()
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "order"
 
     @property
-    def next_status(self):
+    def next_status(self) -> OrderStatus | None:
         current_index = self.STATUS_ORDER.index(self.status)
         if current_index + 1 < len(self.STATUS_ORDER):
             return self.STATUS_ORDER[current_index + 1]
         return None
 
-    def to_next_status(self):
+    def to_next_status(self) -> None:
         if status := self.next_status:
             self.status = status
             self.save()
@@ -366,21 +367,21 @@ class EquipmentOrder(Order):
     def __str__(self) -> str:
         return f"#EQP_{self.id}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-equipment-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def confirm_order(self):
+    def confirm_order(self) -> Any:
         if not EquimentOrderQuantity.objects.filter(order=self).exists():
             raise Order.CannotConfirm(_("No equipments found"))
         return super().confirm_order()
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "equipment"
 
-    def clone(self):
+    def clone(self) -> None:
         sample_types = self.sample_types.all()
         super().clone()
         self.sample_types.add(*sample_types)
@@ -401,16 +402,16 @@ class ExtractionOrder(Order):
     def __str__(self) -> str:
         return f"#EXT_{self.id}"
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "extraction"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-extraction-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def clone(self):
+    def clone(self) -> None:
         """
         Generates a clone of the model, with a different ID
         """
@@ -422,7 +423,7 @@ class ExtractionOrder(Order):
         self.species.add(*species)
         self.sample_types.add(*sample_types)
 
-    def confirm_order(self, persist=True):
+    def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
             if not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
@@ -442,7 +443,7 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def order_manually_checked(self):
+    def order_manually_checked(self) -> None:
         """
         Set the order as checked by the lab staff, generate a genlab id
         """
@@ -487,7 +488,7 @@ class AnalysisOrder(Order):
     )
 
     @property
-    def short_timeframe(self):
+    def short_timeframe(self) -> bool:
         if not self.expected_delivery_date:
             return False
         return (self.expected_delivery_date - self.created_at.date()) < timedelta(
@@ -497,16 +498,16 @@ class AnalysisOrder(Order):
     def __str__(self) -> str:
         return f"#ANL_{self.id}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "analysis"
 
-    def confirm_order(self, persist=True):
+    def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
             if not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
@@ -514,7 +515,7 @@ class AnalysisOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def populate_from_order(self):
+    def populate_from_order(self) -> None:
         """
         Create the list of markers per sample to analyze
         based on a previous extraction order
@@ -600,7 +601,7 @@ class Sample(models.Model):
             models.UniqueConstraint(fields=["genlab_id"], name="unique_genlab_id")
         ]
 
-    def create_replica(self):
+    def create_replica(self) -> None:
         pk = self.id
         self.id = None
         self.genlab_id = None
@@ -608,7 +609,7 @@ class Sample(models.Model):
         self.save()
 
     @property
-    def has_error(self):
+    def has_error(self) -> bool:
         """
         Check if all the fields are filled correctly depending on several factors.
 
@@ -629,14 +630,14 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if self.order.genrequest.area.location_mandatory:
+        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
             if not self.location_id:
                 raise ValidationError("Location is required")
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)
+                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
             ):
                 raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:

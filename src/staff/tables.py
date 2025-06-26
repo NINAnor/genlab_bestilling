@@ -1,3 +1,5 @@
+from typing import Any
+
 import django_tables2 as tables
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
@@ -55,7 +57,7 @@ class OrderTable(tables.Table):
         empty_text = "No Orders"
         order_by = ("-is_urgent",)
 
-    def render_id(self, record):
+    def render_id(self, record: Any) -> str:
         return str(record)
 
 
@@ -172,7 +174,7 @@ class OrderAnalysisSampleTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
-    def render_sample__plate_positions(self, value):
+    def render_sample__plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])
 

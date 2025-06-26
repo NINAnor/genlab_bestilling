@@ -1,8 +1,9 @@
-from typing import Self
+from typing import Any, Self
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView
@@ -34,7 +35,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
             raise Exception("User is not authenticated")
         return self.request.user.get_absolute_url()
 
-    def get_object(self: Self, _queryset=None):
+    def get_object(self, queryset: QuerySet | None = None) -> Any:
         return self.request.user
 
 

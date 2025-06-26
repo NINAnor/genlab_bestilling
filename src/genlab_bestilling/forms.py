@@ -1,6 +1,10 @@
+from typing import Any
+
 from django import forms
+from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Model
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DualSortableSelector, Selectize, TextInput
@@ -26,7 +30,7 @@ class DateInput(forms.DateInput):
 class GenrequestForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, user=None, project=None, **kwargs):
+    def __init__(self, *args, user: User | None = None, project: Any = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
 
@@ -43,7 +47,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "markers"
         ].help_text = "If you do not know which markers to use, add all"
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Genrequest:
         obj = super().save(commit=False)
         if self.user:
             obj.creator = self.user
@@ -112,14 +116,14 @@ class GenrequestEditForm(GenrequestForm):
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def __init__(self, *args, genrequest, **kwargs):
+    def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
         # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> EquipmentOrder:
         obj = super().save(commit=False)
         obj.genrequest = self.genrequest
         if commit:
@@ -151,10 +155,10 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 class EquipmentOrderQuantityForm(forms.ModelForm):
     id = forms.IntegerField(required=False, widget=forms.widgets.HiddenInput)
 
-    def reinit(self, context):
+    def reinit(self, context: dict[str, Any]) -> None:
         self.order_id = context["order_id"]
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> EquipmentOrder:
         obj = super().save(commit=False)
         obj.order_id = self.order_id
         if commit:
@@ -162,7 +166,7 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
             self.save_m2m()
         return obj
 
-    def clean(self):
+    def clean(self) -> None:
         cleaned_data = super().clean()
 
         if not cleaned_data["equipment"] and not cleaned_data["buffer"]:
@@ -189,19 +193,19 @@ class EquipmentQuantityCollection(ContextFormCollection):
     equipments = EquipmentOrderQuantityForm()
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
-    def retrieve_instance(self, data):
-        if data := data.get("equipments"):
+    def retrieve_instance(self, data: dict[str, Any]) -> EquimentOrderQuantity | None:
+        if equipments := data.get("equipments"):
             try:
-                return EquimentOrderQuantity.objects.get(id=data.get("id") or -1)
+                return EquimentOrderQuantity.objects.get(id=equipments.get("id") or -1)
             except (AttributeError, EquimentOrderQuantity.DoesNotExist, ValueError):
                 return EquimentOrderQuantity(
-                    equipment_id=data.get("equipment"),
-                    buffer_id=data.get("buffer"),
-                    buffer_quantity=data.get("buffer_quantity"),
-                    quantity=data.get("quantity"),
+                    equipment_id=equipments.get("equipment"),
+                    buffer_id=equipments.get("buffer"),
+                    buffer_quantity=equipments.get("buffer_quantity"),
+                    quantity=equipments.get("quantity"),
                 )
 
-    def update_holder_instances(self, name, holder):
+    def update_holder_instances(self, name: str, holder: Any) -> None:
         if name == "equipments":
             holder.reinit(self.context)
 
@@ -234,7 +238,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         widget=forms.RadioSelect,
     )
 
-    def __init__(self, *args, genrequest, **kwargs):
+    def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
@@ -249,7 +253,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         #     species__genrequests__id=genrequest.id
         # ).distinct()
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)
         obj.genrequest = self.genrequest
         if commit:
@@ -292,7 +296,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         widget=forms.RadioSelect,
     )
 
-    def __init__(self, *args, genrequest, **kwargs):
+    def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, **kwargs)
         self.genrequest = genrequest
 
@@ -316,7 +320,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 + " with the sample selection by pressing Submit"
             )
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Model:
         if not commit:
             raise NotImplementedError("This form is always committed")
         with transaction.atomic():
@@ -333,7 +337,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             obj.populate_from_order()
             return obj
 
-    def clean(self):
+    def clean(self) -> None:
         cleaned_data = super().clean()
 
         if "use_all_samples" in cleaned_data and "from_order" in cleaned_data:
@@ -391,7 +395,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "contact_email",
         ]
 
-    def __init__(self, *args, genrequest, **kwargs):
+    def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
         if "use_all_samples" in self.fields:
             del self.fields["use_all_samples"]

@@ -1,3 +1,5 @@
+from typing import Any
+
 import sqlglot
 import sqlglot.expressions
 from django.db import connection, transaction
@@ -17,14 +19,14 @@ from sqlglot.expressions import (
 from ..models import ExtractionOrder, Order, Sample, Species
 
 
-def get_replica_for_sample():
+def get_replica_for_sample() -> None:
     """
     TODO: implement
     """
     pass
 
 
-def get_current_sequences(order_id):
+def get_current_sequences(order_id: int | str) -> Any:
     """
     Invoke a Postgres function to get the current sequence number
     for a specific combination of year and species.

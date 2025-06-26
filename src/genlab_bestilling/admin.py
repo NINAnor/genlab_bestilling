@@ -260,12 +260,12 @@ class SampleAdmin(ModelAdmin):
         Sample.genlab_id.field.name,
         Sample.parent.field.name,
     ]
-    search_help_text = "Search for sample name, genlab ID, GUID or pk"
+    search_help_text = "Search for sample name, genlab ID, GUID or id"
     search_fields = [
         Sample.name.field.name,
         Sample.guid.field.name,
         Sample.genlab_id.field.name,
-        Sample.pk.field.name,
+        Sample.id.field.name,
     ]
     list_filter = [
         (Sample.name.field.name, unfold_filters.FieldTextFilter),

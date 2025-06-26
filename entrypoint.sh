@@ -5,7 +5,12 @@ set -o pipefail
 
 # Run commands to setup
 
-./src/manage.py wait_for_database
+if [[ -z "${DJANGO_WAIT_FOR_DATABASE}" ]]
+then
+  echo "Skipping database wait"
+else
+  ./src/manage.py wait_for_database
+fi
 
 if [[ -z "${WAIT_FOR_HTTP}" ]]
 then

@@ -98,10 +98,12 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     type = SampleTypeSerializer()
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
+    fish_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        fields = (
+        # Make fields as a list to enable the removal of fish_id dynamically
+        fields = [
             "order",
             "guid",
             "name",
@@ -112,7 +114,22 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "location",
             "notes",
             "genlab_id",
-        )
+            "fish_id",
+        ]
+
+    def get_field_names(self, declared_fields, info):
+        field_names = super().get_field_names(declared_fields, info)
+        if not self.context.get("include_fish_id", False):
+            # Remove fish_id if the area is not aquatic (only relevant for aquatic area)
+            field_names.remove("fish_id")
+        return field_names
+
+    def get_fish_id(self, obj: Sample):
+        if obj.location and obj.location.code:
+            format_year = str(obj.year)[-2:]
+            format_name = str(obj.name).zfill(4)
+            return f"{obj.location.code}_{format_year}_{format_name}"
+        return "-"
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

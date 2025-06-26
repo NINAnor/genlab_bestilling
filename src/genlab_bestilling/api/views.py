@@ -94,6 +94,13 @@ class SampleViewset(ModelViewSet):
             return SampleCSVSerializer
         return super().get_serializer_class()
 
+    def get_serializer_context(self, *args, **kwargs):
+        context = super().get_serializer_context(*args, **kwargs)
+        queryset = self.filter_queryset(self.get_queryset())
+        is_aquatic = queryset.filter(order__genrequest__area__name="Akvatisk").exists()
+        context["include_fish_id"] = is_aquatic
+        return context
+
     @action(
         methods=["GET"], url_path="csv", detail=False, renderer_classes=[CSVRenderer]
     )

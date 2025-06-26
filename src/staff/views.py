@@ -61,7 +61,7 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 class DashboardView(StaffMixin, TemplateView):
     template_name = "staff/dashboard.html"
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
         urgent_orders = Order.objects.filter(

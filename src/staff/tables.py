@@ -1,4 +1,7 @@
+import datetime
+
 import django_tables2 as tables
+from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -33,6 +36,7 @@ class OrderTable(tables.Table):
 
     # Override as `tables.Column` to send a True/False value to the template
     is_urgent = tables.Column(orderable=True)
+    recent = tables.Column(verbose_name="", orderable=True, empty_values=())
 
     class Meta:
         fields = [
@@ -48,12 +52,22 @@ class OrderTable(tables.Table):
             "last_modified_at",
             "is_urgent",
         ]
-        sequence = ("id",)
+        sequence = ("recent", "id")
         empty_text = "No Orders"
         order_by = ("-is_urgent",)
 
     def render_id(self, record):
         return str(record)
+
+    def render_recent(self, record):
+        created = record.created_at  # This should be a datetime.datetime object
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        if created >= now - datetime.timedelta(hours=24):
+            return mark_safe(
+                '<i class="fa-solid fa-bell text-yellow-500" title="New within 24h"></i>'
+            )
+        return ""
 
 
 class AnalysisOrderTable(OrderTable):

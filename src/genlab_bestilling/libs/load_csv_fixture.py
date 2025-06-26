@@ -6,7 +6,7 @@ from django.db import transaction
 from ..models import AnalysisType, Area, Marker, SampleType, Species
 
 
-def species_from_tsv(path: pathlib.Path):
+def species_from_tsv(path: pathlib.Path) -> None:
     """
     read a TSV file and create Area, Species, Analysis Type and Markers dynamically
     """
@@ -34,7 +34,7 @@ def species_from_tsv(path: pathlib.Path):
         print(f"Installed {created} objects from {path}")
 
 
-def sample_types_from_tsv(path: pathlib.Path):
+def sample_types_from_tsv(path: pathlib.Path) -> None:
     """
     read a TSV file and create Area, SampleType dynamically
     """

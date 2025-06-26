@@ -1,11 +1,15 @@
 import uuid
 
 from django.db import transaction
+from django.db.models import QuerySet
+from django.views import View
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.pagination import CursorPagination
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.viewsets import (  # type: ignore[attr-defined]
     GenericViewSet,
     ModelViewSet,
@@ -59,8 +63,8 @@ class AllowSampleDraft(BasePermission):
     Prevent any UNSAFE method (POST, PUT, DELETE) on orders that are not draft
     """
 
-    def has_object_permission(self, request, view, obj):
-        if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:
+    def has_object_permission(self, request: Request, view: View, obj: Sample) -> bool:
+        if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:  # type: ignore[union-attr] # FIXME: order could be None.
             return request.method in SAFE_METHODS
         return True
 
@@ -72,7 +76,7 @@ class SampleViewset(ModelViewSet):
     pagination_class = IDCursorPagination
     permission_classes = [AllowSampleDraft, IsAuthenticated]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super()
             .get_queryset()
@@ -87,7 +91,7 @@ class SampleViewset(ModelViewSet):
             .order_by("id")
         )
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BaseSerializer]:
         if self.action in ["update", "partial_update"]:
             return SampleUpdateSerializer
         if self.action in ["csv"]:
@@ -97,7 +101,7 @@ class SampleViewset(ModelViewSet):
     @action(
         methods=["GET"], url_path="csv", detail=False, renderer_classes=[CSVRenderer]
     )
-    def csv(self, request):
+    def csv(self, request: Request) -> Response:
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(
@@ -109,7 +113,7 @@ class SampleViewset(ModelViewSet):
         request=SampleBulkSerializer, responses={200: OperationStatusSerializer}
     )
     @action(methods=["POST"], url_path="bulk", detail=False)
-    def bulk_create(self, request):
+    def bulk_create(self, request: Request) -> Response:
         """
         Creata a multiple samples in bulk
         """
@@ -153,7 +157,12 @@ class SampleViewset(ModelViewSet):
 
 
 class AllowOrderDraft(BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(
+        self,
+        request: Request,
+        view: View,
+        obj: ExtractionOrder,
+    ) -> bool:
         if obj.status != ExtractionOrder.OrderStatus.DRAFT:
             return request.method in SAFE_METHODS
         return True
@@ -165,8 +174,8 @@ class ExtractionOrderViewset(
     queryset = ExtractionOrder.objects.all()
     serializer_class = ExtractionSerializer
 
-    def get_queryset(self):
-        qs = super().get_queryset().filter_allowed(self.request.user)
+    def get_queryset(self) -> QuerySet:
+        qs = super().get_queryset().filter_allowed(self.request.user)  # type: ignore[attr-defined]
         if self.request.method not in SAFE_METHODS:
             qs = qs.filter_in_draft()
         return qs
@@ -177,7 +186,7 @@ class ExtractionOrderViewset(
         detail=True,
         permission_classes=[AllowOrderDraft],
     )
-    def confirm_order(self, request, pk):
+    def confirm_order(self, request: Request, pk: int | str) -> Response:
         obj = self.get_object()
         obj.confirm_order(persist=False)
         return Response(self.get_serializer(obj).data)
@@ -189,7 +198,7 @@ class ExtractionOrderViewset(
         detail=True,
         permission_classes=[AllowOrderDraft],
     )
-    def bulk_delete(self, request, pk):
+    def bulk_delete(self, request: Request, pk: int | str) -> Response:
         obj = self.get_object()
         with transaction.atomic():
             obj.samples.all().delete()
@@ -225,7 +234,7 @@ class LocationViewset(mixins.ListModelMixin, mixins.CreateModelMixin, GenericVie
     serializer_class = LocationSerializer
     filterset_class = LocationFilter
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BaseSerializer]:
         if self.action == "create":
             return LocationCreateSerializer
         return super().get_serializer_class()
@@ -237,11 +246,11 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
     filterset_class = SampleMarkerOrderFilter
     pagination_class = IDCursorPagination
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super()
             .get_queryset()
-            .filter_allowed(self.request.user)
+            .filter_allowed(self.request.user)  # type: ignore[attr-defined]
             .select_related(
                 "marker", "order", "sample", "sample__species", "sample__location"
             )
@@ -252,7 +261,7 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
         responses={200: OperationStatusSerializer},
     )
     @action(methods=["POST"], url_path="bulk", detail=False)
-    def bulk_create(self, request):
+    def bulk_create(self, request: Request) -> Response:
         serializer = SampleMarkerAnalysisBulkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -284,7 +293,7 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
         responses={200: OperationStatusSerializer},
     )
     @action(methods=["POST"], url_path="bulk-delete", detail=False)
-    def bulk_delete(self, request):
+    def bulk_delete(self, request: Request) -> Response:
         serializer = SampleMarkerAnalysisBulkDeleteSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

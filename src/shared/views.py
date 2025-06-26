@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpRequest, HttpResponse
 from django.views.generic import (
     CreateView,
     FormView,
@@ -30,11 +31,11 @@ class FormsetUpdateView(
 class ActionView(FormView):
     form_class = ActionForm
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         """
         Action forms should be used just to modify the system
         """
-        self.http_method_not_allowed(self, request, *args, **kwargs)
+        return self.http_method_not_allowed(request, *args, **kwargs)
 
     def get_success_url(self) -> str:
         return self.request.path_info

@@ -90,6 +90,9 @@ plugins = ["django_coverage_plugin"]
 django_settings_module = "config.settings.local"
 
 [tool.mypy]
+disable_error_code = [
+  "override"  # Python is a dynamic language, subclasses will get overwritten.
+]
 explicit_package_bases = true  # Use mypy_path only (ignores path passed when calling mypy).
 follow_imports = "normal"
 ignore_missing_imports = true  # Ignore missing imports, e.g. third-party packages without stubs. # Also covered by ruff.

@@ -2,7 +2,7 @@ ROWS = "ABCDEFGH"
 COLUMNS = 12
 
 
-def position_to_coordinates(index):
+def position_to_coordinates(index: int) -> str:
     """
     return the plate coordinate of a certain index
     """

@@ -137,7 +137,7 @@ def test_equipment_flow(page, live_server_url):
     page.get_by_role("button", name="Submit").click()
     page.wait_for_load_state()
 
-    page.get_by_role("button", name="Confirm Order").click()
+    page.get_by_role("button", name="Deliver order").click()
     page.wait_for_load_state()
 
 
@@ -180,6 +180,6 @@ def test_extraction_flow(page, live_server_url):
     page.wait_for_load_state()
     page.get_by_role("link", name=" back to order").click()
     page.wait_for_load_state()
-    page.get_by_role("button", name="Confirm Order").click()
+    page.get_by_role("button", name="Deliver order").click()
     page.wait_for_load_state()
     expect(page.locator("tbody")).to_contain_text("confirmed")

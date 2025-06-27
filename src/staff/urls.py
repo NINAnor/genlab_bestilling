@@ -1,9 +1,9 @@
 from django.urls import path
-from django.views.generic import TemplateView
 
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
+    DashboardView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
     ExtractionOrderDetailView,
@@ -27,7 +27,7 @@ from .views import (
 app_name = "staff"
 
 urlpatterns = [
-    path("", TemplateView.as_view(template_name="staff/base.html"), name="dashboard"),
+    path("", DashboardView.as_view(), name="dashboard"),
     path("projects/", ProjectListView.as_view(), name="projects-list"),
     path("projects/<str:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
     path(

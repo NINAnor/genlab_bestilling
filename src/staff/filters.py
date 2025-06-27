@@ -1,5 +1,9 @@
+from typing import Any
+
 import django_filters as filters
 from dal import autocomplete
+from django.db.models import QuerySet
+from django.http import HttpRequest
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -10,7 +14,14 @@ from genlab_bestilling.models import (
 
 
 class AnalysisOrderFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["genrequest__project"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:project"
@@ -30,7 +41,14 @@ class AnalysisOrderFilter(filters.FilterSet):
 
 
 class OrderSampleFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["species"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:species"
@@ -60,7 +78,14 @@ class OrderSampleFilter(filters.FilterSet):
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["sample__species"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:species"
@@ -95,7 +120,14 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
 
 class SampleFilter(filters.FilterSet):
-    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["species"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:species"

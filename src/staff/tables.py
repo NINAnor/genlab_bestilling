@@ -149,6 +149,45 @@ class SampleBaseTable(tables.Table):
         return ""
 
 
+def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Table]:
+    class CustomSampleTable(tables.Table):
+        """
+        This shows a checkbox in the header.
+        To display text in the header alongside the checkbox
+        override the header-property in the CheckBoxColumn class.
+        """
+
+        checked = tables.CheckBoxColumn(
+            accessor="pk",
+            orderable=True,
+            attrs={
+                "th__input": {
+                    "id": "select-all-checkbox",
+                },
+                "td__input": {
+                    "name": "checked",
+                },
+            },
+            empty_values=(),
+            verbose_name="Mark",
+        )
+
+        for field in base_fields:
+            locals()[field] = tables.BooleanColumn(
+                verbose_name=field.capitalize(),
+                orderable=True,
+                yesno="✔,-",
+                default=False,
+            )
+
+        class Meta:
+            model = Sample
+            fields = ["checked", "genlab_id"] + base_fields
+            sequence = ["checked", "genlab_id"] + base_fields
+
+    return CustomSampleTable
+
+
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
         fields = SampleBaseTable.Meta.fields

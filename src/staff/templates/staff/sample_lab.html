@@ -1,0 +1,43 @@
+{% extends "staff/base.html" %}
+{% load crispy_forms_tags static %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h3 class="text-4xl mb-5">{% block page-title %}{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}{% endblock page-title %}</h3>
+{% block page-inner %}
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
+    </div>
+    <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
+        {% csrf_token %}
+        {% for status in statuses %}
+            <button class="btn bg-blue-500 text-white mt-4 mr-2" type="submit" name="status" value="{{ status.name }}">
+                <i class="fa-solid fa-id-badge"></i> {{ status.name }}
+            </button>
+        {% endfor %}
+
+    {% render_table table %}
+    </form>
+{% endblock page-inner %}
+
+{% endblock %}
+
+{% block body_javascript %}
+{{ block.super }}
+<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+{{ filter.form.media }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('select-all-checkbox');
+        if(selectAll) {
+            selectAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                    cb.checked = selectAll.checked;
+                })
+            });
+        }
+    });
+</script>
+
+{% endblock body_javascript %}

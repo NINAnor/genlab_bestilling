@@ -586,6 +586,12 @@ class Sample(models.Model):
 
     extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
+    assigned_statuses = models.ManyToManyField(
+        f"{an}.SampleStatus",
+        through=f"{an}.SampleStatusAssignment",
+        related_name="samples",
+        blank=True,
+    )
 
     objects = managers.SampleQuerySet.as_manager()
 
@@ -676,6 +682,51 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
+
+
+class SampleStatus(models.Model):
+    name = models.CharField(max_length=255)
+    weight = models.IntegerField(
+        default=0,
+    )
+    area = models.ForeignKey(
+        f"{an}.Area",
+        on_delete=models.CASCADE,
+        related_name="area_statuses",
+        help_text="The area this status is related to.",
+    )
+
+
+class SampleStatusAssignment(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+    )
+    status = models.ForeignKey(
+        f"{an}.SampleStatus",
+        on_delete=models.CASCADE,
+        related_name="status_assignments",
+    )
+    order = models.ForeignKey(
+        f"{an}.Order",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+        null=True,
+        blank=True,
+    )
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("sample", "status", "order")
+
+
+class IsolationMethod(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 # Some extracts can be placed in multiple wells

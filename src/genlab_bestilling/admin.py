@@ -1,14 +1,13 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from unfold.contrib.filters.admin import (
-    RelatedDropdownFilter,
-)
+from unfold.contrib.filters.admin import RelatedDropdownFilter
 
 from .models import (
     AnalysisOrder,
     AnalysisResult,
     AnalysisType,
     Area,
+    AreaSampleStatus,
     EquimentOrderQuantity,
     EquipmentBuffer,
     EquipmentOrder,
@@ -23,6 +22,8 @@ from .models import (
     Organization,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatus,
+    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -158,3 +159,15 @@ class ExtractionPlateAdmin(ModelAdmin): ...
 
 @admin.register(AnalysisResult)
 class AnalysisResultAdmin(ModelAdmin): ...
+
+
+@admin.register(AreaSampleStatus)
+class AreaSampleStatusAdmin(ModelAdmin): ...
+
+
+@admin.register(SampleStatus)
+class SampleStatusAdmin(ModelAdmin): ...
+
+
+@admin.register(SampleStatusAssignment)
+class SampleStatusAssignmentAdmin(ModelAdmin): ...

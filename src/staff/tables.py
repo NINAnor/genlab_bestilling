@@ -129,6 +129,27 @@ class SampleBaseTable(tables.Table):
         return ""
 
 
+class CheckBoxColumnWithName(tables.CheckBoxColumn):
+    @property
+    def header(self):
+        return self.verbose_name
+
+def create_sample_table(base_fields=None):
+    class CustomSampleTable(tables.Table):
+        for field in base_fields:
+            locals()[field] = CheckBoxColumnWithName(
+                accessor=field,
+                orderable=False,
+                empty_values=(),
+            )
+
+        class Meta:
+            model = Sample
+            fields = ["genlab_id"] + base_fields
+
+    return CustomSampleTable
+
+
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
         fields = SampleBaseTable.Meta.fields

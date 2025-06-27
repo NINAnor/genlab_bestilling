@@ -3,6 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
+from django.db.models import Prefetch
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.timezone import now
@@ -20,6 +21,8 @@ from genlab_bestilling.models import (
     Order,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatus,
+    SampleStatusAssignment,
 )
 from nina.models import Project
 from shared.views import ActionView
@@ -41,6 +44,7 @@ from .tables import (
     PlateTable,
     ProjectTable,
     SampleTable,
+    create_sample_table,
 )
 
 
@@ -240,6 +244,35 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 class SampleDetailView(StaffMixin, DetailView):
     model = Sample
+
+
+class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
+    disable_pagination = True
+    model = Sample
+    template_name = "staff/sample_lab.html"
+
+    def get_queryset(self):
+        return (
+            Sample.objects.select_related("type", "location", "species")
+            .prefetch_related(
+                Prefetch(
+                    "sample_status_assignments",
+                    queryset=SampleStatusAssignment.objects.select_related("status"),
+                    to_attr="cached_assignments",
+                )
+            )
+            .filter(order=self.kwargs["pk"])
+            .order_by("species__name", "year", "location__name", "name")
+        )
+
+    def get_table_class(self):
+        statuses = SampleStatus.objects.all()
+        return create_sample_table(base_fields=[status.name for status in statuses])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+        return context
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):

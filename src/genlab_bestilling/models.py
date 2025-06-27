@@ -31,6 +31,11 @@ class Organization(models.Model):
 class Area(models.Model):
     name = models.CharField(max_length=255)
     location_mandatory = models.BooleanField(default=False)
+    statuses = models.ManyToManyField(
+        f"{an}.SampleStatus",
+        blank=True,
+        related_name="areas",
+    )
 
     # TODO: unique name
     def __str__(self) -> str:
@@ -269,6 +274,12 @@ class Order(PolymorphicModel):
         null=True,
         blank=True,
         help_text="Email to contact with questions about this order",
+    )
+
+    sample_statuses = models.ManyToManyField(
+        f"{an}.SampleStatus",
+        blank=True,
+        related_name="orders",
     )
 
     tags = TaggableManager(blank=True)
@@ -574,6 +585,12 @@ class Sample(models.Model):
     extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
+    statuses = models.ManyToManyField(
+        f"{an}.SampleStatus",
+        blank=True,
+        related_name="samples",
+    )
+
     objects = managers.SampleQuerySet.as_manager()
 
     def __str__(self) -> str:
@@ -644,6 +661,54 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
+
+
+class SampleStatus(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    ordering = models.IntegerField(
+        default=0,
+    )
+
+
+class SampleStatusAssignment(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+    )
+    status = models.ForeignKey(
+        f"{an}.SampleStatus",
+        on_delete=models.CASCADE,
+        related_name="status_assignments",
+    )
+    order = models.ForeignKey(
+        f"{an}.Order",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+        null=True,
+        blank=True,
+    )
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("sample", "status", "order")
+
+
+class AreaSampleStatus(models.Model):
+    area = models.ForeignKey(
+        f"{an}.Area",
+        on_delete=models.CASCADE,
+        related_name="area_sample_statuses",
+    )
+    status = models.ForeignKey(
+        f"{an}.SampleStatus",
+        on_delete=models.CASCADE,
+        related_name="area_assignments",
+    )
+
+    class Meta:
+        unique_together = ("area", "status")
 
 
 # Some extracts can be placed in multiple wells

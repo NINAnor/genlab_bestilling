@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from django.db import transaction
 from drf_spectacular.utils import extend_schema
@@ -94,7 +95,7 @@ class SampleViewset(ModelViewSet):
             return SampleCSVSerializer
         return super().get_serializer_class()
 
-    def get_serializer_context(self, *args, **kwargs):
+    def get_serializer_context(self, *args, **kwargs) -> dict[str, Any]:
         context = super().get_serializer_context(*args, **kwargs)
         queryset = self.filter_queryset(self.get_queryset())
         is_aquatic = queryset.filter(order__genrequest__area__name="Akvatisk").exists()

@@ -117,14 +117,14 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "fish_id",
         ]
 
-    def get_field_names(self, declared_fields, info):
+    def get_field_names(self, declared_fields, info) -> list[str]:
         field_names = super().get_field_names(declared_fields, info)
         if not self.context.get("include_fish_id", False):
             # Remove fish_id if the area is not aquatic (only relevant for aquatic area)
             field_names.remove("fish_id")
         return field_names
 
-    def get_fish_id(self, obj: Sample):
+    def get_fish_id(self, obj: Sample) -> str:
         if obj.location and obj.location.code:
             format_year = str(obj.year)[-2:]
             format_name = str(obj.name).zfill(4)

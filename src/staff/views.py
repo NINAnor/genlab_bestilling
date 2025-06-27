@@ -315,6 +315,14 @@ class SampleLabView(StaffMixin, TemplateView):
             messages.error(request, "No samples or status selected.")
             return HttpResponseRedirect(redirect_url)
 
+        # Fetch order and area
+        try:
+            order = ExtractionOrder.objects.select_related("genrequest__area").get(
+                pk=self.kwargs["pk"]
+            )
+        except ExtractionOrder.DoesNotExist:
+            messages.error(request, "Order not found.")
+            return HttpResponseRedirect(redirect_url)
         order = self.get_order()
 
         try:

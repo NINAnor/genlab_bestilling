@@ -9,6 +9,7 @@
 <div class="flex gap-5 mb-5">
     <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
     <a class="btn bg-yellow-500" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Download CSV</a>
+    <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples-lab' order.pk %}"><i class="fas fa-flask"></i> Lab</a>
 </div>
 {% endif %}
 {% endblock page-inner %}

@@ -21,6 +21,8 @@ from .models import (
     Organization,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatus,
+    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -522,3 +524,11 @@ class AnalysisResultAdmin(ModelAdmin):
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
+
+
+@admin.register(SampleStatus)
+class SampleStatusAdmin(ModelAdmin): ...
+
+
+@admin.register(SampleStatusAssignment)
+class SampleStatusAssignmentAdmin(ModelAdmin): ...

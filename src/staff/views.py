@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Any
 
 from django.contrib import messages
@@ -5,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -21,6 +23,8 @@ from genlab_bestilling.models import (
     Order,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatus,
+    SampleStatusAssignment,
 )
 from nina.models import Project
 from shared.views import ActionView
@@ -42,6 +46,7 @@ from .tables import (
     PlateTable,
     ProjectTable,
     SampleTable,
+    create_sample_table,
 )
 
 
@@ -244,6 +249,99 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 class SampleDetailView(StaffMixin, DetailView):
     model = Sample
+
+
+class SampleLabView(StaffMixin, TemplateView):
+    disable_pagination = False
+    template_name = "staff/sample_lab.html"
+
+    def get_order(self) -> ExtractionOrder:
+        if not hasattr(self, "_order"):
+            self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
+        return self._order
+
+    def get_data(self) -> list[Sample]:
+        order = self.get_order()
+        samples = Sample.objects.filter(order=order)
+        sample_status = SampleStatus.objects.filter(
+            area__name=samples.first().order.genrequest.area
+            if samples.exists()
+            else None
+        )
+
+        # Fetch all SampleStatusAssignment entries related to the current order
+        sample_assignments = SampleStatusAssignment.objects.filter(
+            order_id=order.id
+        ).select_related("status")
+
+        # Build a lookup: {sample_id: set of status names}
+        # This allows us to check status presence without querying per sample
+        sample_status_map = defaultdict(set)
+        for assignment in sample_assignments:
+            sample_status_map[assignment.sample_id].add(assignment.status.name)
+
+        # Annotate each sample instance with boolean flags per status
+        # Equivalent to: sample.status_name = True/False
+        # based on whether the sample has that status
+        for sample in samples:
+            status_names = sample_status_map.get(sample.id, set())
+            for status in sample_status:
+                setattr(sample, status.name, status.name in status_names)
+
+        return samples
+
+    def get_base_fields(self) -> list[str]:
+        return SampleStatus.objects.filter(
+            area__name=self.get_order().genrequest.area
+        ).values_list("name", flat=True)
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["order"] = self.get_order()
+        context["statuses"] = SampleStatus.objects.filter(
+            area=context["order"].genrequest.area
+        )
+        table_class = create_sample_table(base_fields=self.get_base_fields())
+        context["table"] = table_class(
+            self.get_data(),
+        )
+        return context
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        status_name = request.POST.get("status")
+        selected_ids = request.POST.getlist("checked")
+
+        redirect_url = self.request.path
+
+        if not selected_ids or not status_name:
+            messages.error(request, "No samples or status selected.")
+            return HttpResponseRedirect(redirect_url)
+
+        order = self.get_order()
+
+        try:
+            # Get status based on name and area to ensure only one status is returned
+            status = SampleStatus.objects.get(
+                name=status_name, area=order.genrequest.area
+            )
+        except SampleStatus.DoesNotExist:
+            messages.error(request, f"Status '{status_name}' not found.")
+            return HttpResponseRedirect(redirect_url)
+
+        samples = Sample.objects.filter(id__in=selected_ids)
+
+        # Create status assignments if not existing
+        for sample in samples:
+            SampleStatusAssignment.objects.get_or_create(
+                sample=sample,
+                status=status,
+                order=order,
+            )
+
+        messages.success(
+            request, f"{len(samples)} samples updated with status '{status_name}'."
+        )
+        return HttpResponseRedirect(redirect_url)
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):

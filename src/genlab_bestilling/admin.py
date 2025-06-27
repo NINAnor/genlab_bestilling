@@ -272,6 +272,7 @@ class SampleAdmin(ModelAdmin):
         (Sample.guid.field.name, unfold_filters.FieldTextFilter),
         (Sample.genlab_id.field.name, unfold_filters.FieldTextFilter),
         (Sample.year.field.name, unfold_filters.SingleNumericFilter),
+        (Sample.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
         (Sample.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
         (Sample.type.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
     ]

@@ -609,6 +609,23 @@ class Sample(models.Model):
         self.save()
 
     @property
+    def fish_id(self) -> str | None:
+        """
+        Generate a unique fish ID for the sample.
+
+        NOTE:
+        Only relevant for aquatic projects.
+        This function does not check if the sample is connected to an aquatic project
+        to prevent unnecessary database queries.
+        It is the responsibility of the caller to ensure that this is the case.
+        """
+        if not (self.location and self.location.code and self.name and self.year):
+            return None
+        format_year = str(self.year)[-2:]  # Get the last two digits.
+        format_name = str(self.name).zfill(4)  # Fill from left with zeros.
+        return f"{self.location.code}_{format_year}_{format_name}"
+
+    @property
     def has_error(self) -> bool:
         """
         Check if all the fields are filled correctly depending on several factors.

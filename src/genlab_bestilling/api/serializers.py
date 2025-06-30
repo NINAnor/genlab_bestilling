@@ -131,11 +131,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         return field_names
 
     def get_fish_id(self, obj: Sample) -> str:
-        if obj.location and obj.location.code:
-            format_year = str(obj.year)[-2:]  # Get the last two digits
-            format_name = str(obj.name).zfill(4)  # Fill from left with zeros
-            return f"{obj.location.code}_{format_year}_{format_name}"
-        return "-"
+        return obj.fish_id or "-"
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

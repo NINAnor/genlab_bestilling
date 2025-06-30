@@ -36,8 +36,16 @@ class OrderTable(tables.Table):
         empty_values=(),
     )
 
-    # Override as `tables.Column` to send a True/False value to the template
-    is_urgent = tables.Column(orderable=True)
+    is_urgent = tables.Column(
+        orderable=True,
+        visible=True,
+        verbose_name="",
+    )
+
+    status = tables.Column(
+        verbose_name="Status",
+        orderable=False,
+    )
 
     class Meta:
         fields = [
@@ -53,12 +61,21 @@ class OrderTable(tables.Table):
             "last_modified_at",
             "is_urgent",
         ]
-        sequence = ("id",)
+        sequence = ("is_urgent", "status", "id")
         empty_text = "No Orders"
-        order_by = ("-is_urgent",)
+        order_by = ("-is_urgent", "last_modified_at", "created_at")
 
     def render_id(self, record: Any) -> str:
         return str(record)
+
+    def render_is_urgent(self, value: bool) -> str:
+        html_exclaimation_mark = (
+            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
+        )
+        if value:
+            return mark_safe(html_exclaimation_mark)  # noqa: S308
+        else:
+            return ""
 
 
 class AnalysisOrderTable(OrderTable):

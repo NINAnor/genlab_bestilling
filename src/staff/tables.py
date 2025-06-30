@@ -1,4 +1,7 @@
 import django_tables2 as tables
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
+from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -103,6 +106,16 @@ class SampleBaseTable(tables.Table):
     plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
+    checked = tables.CheckBoxColumn(
+        attrs={
+            "th__input": {"type": "checkbox", "id": "select-all-checkbox"},
+        },
+        accessor="pk",
+        orderable=False,
+        empty_values=(),
+    )
+
+    name = tables.Column(order_by=("name_as_int",))
 
     class Meta:
         model = Sample
@@ -119,14 +132,26 @@ class SampleBaseTable(tables.Table):
             "plate_positions",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+        sequence = ("checked",)
 
         empty_text = "No Samples"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self.data, "data"):
+            self.data.data = self.data.data.annotate(
+                name_as_int=Cast("name", output_field=IntegerField())
+            )
 
     def render_plate_positions(self, value):
         if value:
             return ", ".join([str(v) for v in value.all()])
 
         return ""
+
+    def render_checked(self, record):
+        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')
 
 
 class OrderExtractionSampleTable(SampleBaseTable):

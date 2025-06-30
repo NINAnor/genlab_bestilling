@@ -316,15 +316,6 @@ class SampleAdmin(ModelAdmin):
 
 @admin.register(ExtractPlatePosition)
 class ExtractPlatePositionAdmin(ModelAdmin):
-    """
-    plate = models.ForeignKey(
-    sample = models.ForeignKey(
-    position = models.IntegerField()
-    extracted_at = models.DateTimeField(auto_now=True)
-    notes = models.CharField(null=True, blank=True)
-
-    """
-
     M = ExtractPlatePosition
     list_display = [
         "__str__",
@@ -349,7 +340,23 @@ class ExtractPlatePositionAdmin(ModelAdmin):
 
 
 @admin.register(ExtractionPlate)
-class ExtractionPlateAdmin(ModelAdmin): ...
+class ExtractionPlateAdmin(ModelAdmin):
+    M = ExtractionPlate
+    list_display = [
+        "__str__",
+        M.name.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    search_help_text = "Search for id or name"
+    search_fields = [M.id.field.name, M.name.field.name]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(AnalysisResult)

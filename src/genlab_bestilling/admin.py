@@ -127,7 +127,43 @@ class EquimentOrderQuantityAdmin(ModelAdmin): ...
 
 
 @admin.register(EquipmentOrder)
-class EquipmentOrderAdmin(ModelAdmin): ...
+class EquipmentOrderAdmin(ModelAdmin):
+    EO = EquipmentOrder
+    list_filter_submit = True
+
+    list_display = [
+        EO.name.field.name,
+        EO.genrequest.field.name,
+        EO.status.field.name,
+        EO.is_urgent.field.name,
+        EO.needs_guid.field.name,
+        EO.contact_person.field.name,
+        EO.contact_email.field.name,
+        EO.confirmed_at.field.name,
+        EO.last_modified_at.field.name,
+        EO.created_at.field.name,
+    ]
+    filter_horizontal = [
+        EO.sample_types.field.name,
+    ]
+
+    search_help_text = "Search for equipment name or id"
+    search_fields = [
+        EO.name.field.name,
+        EO.id.field.name,
+    ]
+    list_filter = [
+        (EO.sample_types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (EO.genrequest.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        EO.status.field.name,
+        EO.is_urgent.field.name,
+        (EO.contact_person.field.name, unfold_filters.FieldTextFilter),
+        (EO.contact_email.field.name, unfold_filters.FieldTextFilter),
+        EO.needs_guid.field.name,
+        EO.confirmed_at.field.name,
+        EO.last_modified_at.field.name,
+        EO.created_at.field.name,
+    ]
 
 
 @admin.register(ExtractionOrder)
@@ -174,38 +210,6 @@ class ExtractionOrderAdmin(ModelAdmin):
 
 @admin.register(AnalysisOrder)
 class AnalysisOrderAdmin(ModelAdmin):
-    """
-
-
-    name = models.CharField(null=True, blank=True)
-    genrequest = models.ForeignKey(
-    notes = models.TextField(blank=True, null=True)
-    status = models.CharField(default=OrderStatus.DRAFT, choices=OrderStatus)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-    confirmed_at = models.DateTimeField(null=True, blank=True)
-
-    samples = models.ManyToManyField(
-    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
-    from_order = models.ForeignKey(
-    expected_delivery_date = models.DateField(
-
-    AO.name.field.name
-    AO.genrequest.field.name
-    AO.notes.field.name
-    AO.status.field.name
-    AO.created_at.field.name
-    AO.last_modified_at.field.name
-    AO.confirmed_at.field.name
-
-    AO.samples.field.name
-    AO.markers.field.name
-    AO.from_order.field.name
-    AO.expected_delivery_date.field.name
-
-
-    """
-
     AO = AnalysisOrder
     list_filter_submit = True
 

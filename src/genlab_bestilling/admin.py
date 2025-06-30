@@ -84,7 +84,19 @@ class GenrequestAdmin(ModelAdmin):
 
 @admin.register(Marker)
 class MarkerAdmin(ModelAdmin):
-    search_fields = ["name"]
+    M = Marker
+    list_display = [M.name.field.name, M.analysis_type.field.name]
+
+    search_help_text = "Search for marker name"
+    search_fields = [M.name.field.name]
+
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.analysis_type.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+    ]
+    autocomplete_fields = [M.analysis_type.field.name]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(Species)

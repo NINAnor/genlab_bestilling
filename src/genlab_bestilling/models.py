@@ -452,6 +452,22 @@ class ExtractionOrder(Order):
         self.save()
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
 
+    def order_selected_checked(self, sorting_order=None, selected_samples=None):
+        """
+        Partially set the order as checked by the lab staff, generate a genlab id
+        """
+        self.internal_status = self.Status.CHECKED
+        self.status = self.OrderStatus.PROCESSING
+        self.save()
+
+        selected_sample_names = list(selected_samples.values_list("id", flat=True))
+
+        app.configure_task(name="generate-genlab-ids").defer(
+            order_id=self.id,
+            sorting_order=sorting_order,
+            selected_samples=selected_sample_names,
+        )
+
 
 class AnalysisOrder(Order):
     samples = models.ManyToManyField(

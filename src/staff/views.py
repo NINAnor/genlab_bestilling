@@ -351,6 +351,54 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class GenerateGenlabIDsView(
+    SingleObjectMixin, StaffMixin, SingleTableMixin, FilterView
+):
+    model = ExtractionOrder
+
+    def get_object(self):
+        return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        selected_ids = request.POST.getlist("checked")
+
+        if not selected_ids:
+            messages.error(request, "No samples were selected.")
+            return HttpResponseRedirect(self.get_success_url())
+
+        sort_param = request.POST.get("sort", "")
+        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
+
+        selected_samples = Sample.objects.filter(pk__in=selected_ids)
+
+        if sorting_order:
+            selected_samples = selected_samples.order_by(*sorting_order)
+
+        try:
+            self.object.order_selected_checked(
+                sorting_order=sorting_order, selected_samples=selected_samples
+            )
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+            )
+        except Exception as e:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Error: {str(e)}",
+            )
+
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
+        )
+
+
 class ExtractionPlateCreateView(StaffMixin, CreateView):
     model = ExtractionPlate
     form_class = ExtractionPlateForm

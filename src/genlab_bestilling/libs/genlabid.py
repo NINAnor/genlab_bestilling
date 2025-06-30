@@ -63,7 +63,7 @@ def get_current_sequences(order_id: int | str) -> Any:
         return sequences
 
 
-def generate(order_id: int | str) -> None:
+def generate(order_id, sorting_order=None, selected_samples=None):
     """
     wrapper to handle errors and reset the sequence to the current sequence value
     """
@@ -73,7 +73,9 @@ def generate(order_id: int | str) -> None:
     with connection.cursor() as cursor:
         try:
             with transaction.atomic():
-                cursor.execute(update_genlab_id_query(order_id))
+                cursor.execute(
+                    update_genlab_id_query(order_id, sorting_order, selected_samples)
+                )
         except Exception:
             # if there is an error, reset the sequence
             # NOTE: this is unsafe unless this function is executed in a queue
@@ -86,16 +88,25 @@ def generate(order_id: int | str) -> None:
     print(sequences)
 
 
-def update_genlab_id_query(order_id: int | str) -> Any:
+def update_genlab_id_query(order_id, sorting_order=None, selected_samples=None):
     """
     Safe generation of a SQL raw query using sqlglot
     The query runs an update on all the rows with a specific order_id
     and set genlab_id = generate_genlab_id(code, year)
     """
+    if sorting_order is None:
+        sorting_order = []
+
     samples_table = Sample._meta.db_table
     extraction_order_table = ExtractionOrder._meta.db_table
     order_table = Order._meta.db_table
     species_table = Species._meta.db_table
+
+    order_by_columns = (
+        [column(col, table=samples_table) for col in sorting_order]
+        if sorting_order
+        else [column("name", table=samples_table)]
+    )
 
     return sqlglot.expressions.update(
         samples_table,
@@ -187,7 +198,7 @@ def update_genlab_id_query(order_id: int | str) -> Any:
                                 column(col="genlab_id").is_(None),
                             )
                         )
-                        .order_by(column("name", table=samples_table))
+                        .order_by(*order_by_columns)
                     ),
                 ),
                 alias="order_samples",

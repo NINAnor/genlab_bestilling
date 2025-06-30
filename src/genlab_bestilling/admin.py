@@ -89,13 +89,24 @@ class MarkerAdmin(ModelAdmin):
 
 @admin.register(Species)
 class SpeciesAdmin(ModelAdmin):
-    list_display = ["name", "area"]
-    list_filter = [("area", unfold_filters.RelatedDropdownFilter)]
+    M = Species
+    list_display = [M.name.field.name, M.area.field.name, M.code.field.name]
+
+    search_help_text = "Search for species name"
+    search_fields = [M.name.field.name]
+
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.code.field.name, unfold_filters.FieldTextFilter),
+        (M.area.field.name, unfold_filters.RelatedDropdownFilter),
+    ]
+    autocomplete_fields = [
+        M.markers.field.name,
+        M.area.field.name,
+        M.location_type.field.name,
+    ]
     list_filter_submit = True
-
-    search_fields = ["name"]
-
-    autocomplete_fields = ["markers", "area"]
+    list_filter_sheet = False
 
 
 @admin.register(SampleType)

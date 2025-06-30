@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from django.db import transaction
 from django.db.models import QuerySet
@@ -97,6 +98,13 @@ class SampleViewset(ModelViewSet):
         if self.action in ["csv"]:
             return SampleCSVSerializer
         return super().get_serializer_class()
+
+    def get_serializer_context(self, *args, **kwargs) -> dict[str, Any]:
+        context = super().get_serializer_context(*args, **kwargs)
+        queryset = self.filter_queryset(self.get_queryset())
+        is_aquatic = queryset.filter(order__genrequest__area__name="Akvatisk").exists()
+        context["include_fish_id"] = is_aquatic
+        return context
 
     @action(
         methods=["GET"], url_path="csv", detail=False, renderer_classes=[CSVRenderer]

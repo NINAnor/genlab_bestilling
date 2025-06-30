@@ -7,34 +7,24 @@
     {% block table %}
         <table {% render_attrs table.attrs class="w-full table-auto tailwind-table" %}>
             {% block table.thead %}
-
-            {% comment %}
-            thead is the first row showing the column names. The is_urgent column is now forced
-            first in line and does not have a visible column name, as opposed to the other columns.
-            {% endcomment %}
-
             {% if table.show_header %}
                 <thead {{ table.attrs.thead.as_html }}>
                     <tr>
-
-                    {% comment %} Force the is_urgent column to be first in the header row. {% endcomment %}
                     {% for column in table.columns %}
-                        {% if column.name == "is_urgent" %}
-                            <th {{ column.attrs.th.as_html }}><a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"></a></th>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% comment %} Render the rest of the columns in the header row. {% endcomment %}
-                    {% for column in table.columns %}
-                        {% if column.name != "is_urgent" %}
                         <th {{ column.attrs.th.as_html }}>
                             {% if column.orderable %}
-                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                {% comment%}
+                                If the column is orderable, two small arrows will show next to the column name to signal that it can be sorted.
+                                {% endcomment%}
+                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
+                                style="display: inline-flex; align-items: center; gap: 0.5em;">
+                                    {{ column.header }}
+                                    <i class="fa-solid fa-sort text-gray-500 hover:text-black">
+                                </i></a>
                             {% else %}
                                 {{ column.header }}
                             {% endif %}
                         </th>
-                        {% endif %}
                     {% endfor %}
                     </tr>
                 </thead>
@@ -44,32 +34,11 @@
 
             {% block table.tbody %}
                 <tbody {{ table.attrs.tbody.as_html }}>
-
-                {% comment %}
-                tbody is the rows with the data, matching the column names of the thead. The is_urgent column is also set to show
-                first in the rows, just like in the thead. It is also overwritten to show the "True" value as an exclaimation mark, to highlight
-                the urgent orders.
-                {% endcomment %}
-
                 {% for row in table.paginated_rows %}
                     {% block table.tbody.row %}
                     <tr {{ row.attrs.as_html }}>
 
-                    {% comment %} Force the is_urgent column to be first in the row. {% endcomment %}
                     {% for column, cell in row.items %}
-                        {% if column.name == "is_urgent" %}
-                            <td {{ column.attrs.td.as_html }} style="text-align: right;">
-                            {% comment %} Show an exclaimation mark if the cell value is True, otherwise show nothing. {% endcomment %}
-                            {% if cell == True %}
-                                <i class="fa-solid fa-exclamation text-red-500 fa-2x" title="Urgent"></i>
-                            {% endif %}
-                        </td>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% comment %} Render the rest of the columns in the row. {% endcomment %}
-                    {% for column, cell in row.items %}
-                        {% if column.name != "is_urgent" %}
                             <td {{ column.attrs.td.as_html }}>
                             {% if column.localize == None %}
                                 {{ cell }}
@@ -80,7 +49,6 @@
                                     {{ cell|unlocalize }}
                                 {% endif %}
                             {% endif %} </td>
-                        {% endif %}
                     {% endfor %}
                     </tr>
                     {% endblock table.tbody.row %}

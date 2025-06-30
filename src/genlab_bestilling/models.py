@@ -536,6 +536,7 @@ class SampleMarkerAnalysis(models.Model):
     transaction = models.UUIDField(blank=True, null=True)
 
     class Meta:
+        verbose_name_plural = "Sample marker analyses"
         constraints = [
             models.UniqueConstraint(
                 fields=["sample", "order", "marker"],

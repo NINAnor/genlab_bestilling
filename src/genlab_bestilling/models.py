@@ -707,16 +707,19 @@ class ExtractionPlate(models.Model):
 
 class AnalysisResult(models.Model):
     name = models.CharField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
     analysis_date = models.DateTimeField(null=True, blank=True)
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
-    result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
-    extra = models.JSONField(null=True, blank=True)
     order = models.ForeignKey(
         f"{an}.AnalysisOrder",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
+    result_file = models.FileField(null=True, blank=True)
+    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
+    extra = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.name}"

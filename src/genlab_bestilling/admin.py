@@ -245,7 +245,35 @@ class AnalysisOrderAdmin(ModelAdmin):
 
 
 @admin.register(SampleMarkerAnalysis)
-class SampleMarkerAnalysisAdmin(ModelAdmin): ...
+class SampleMarkerAnalysisAdmin(ModelAdmin):
+    SMA = SampleMarkerAnalysis
+
+    search_help_text = "Search for id or transaction UUID"
+    search_fields = [
+        SMA.id.field.name,
+        SMA.transaction.field.name,
+    ]
+    list_display = [
+        SMA.id.field.name,
+        SMA.sample.field.name,
+        SMA.order.field.name,
+        SMA.marker.field.name,
+        SMA.transaction.field.name,
+    ]
+    list_filter = [
+        (SMA.id.field.name, unfold_filters.SingleNumericFilter),
+        (SMA.sample.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (SMA.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (SMA.marker.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (SMA.transaction.field.name, unfold_filters.FieldTextFilter),
+    ]
+    autocomplete_fields = [
+        SMA.sample.field.name,
+        SMA.order.field.name,
+        SMA.marker.field.name,
+    ]
+    list_filter_sheet = False
+    list_filter_submit = True
 
 
 @admin.register(Sample)

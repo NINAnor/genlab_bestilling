@@ -1,4 +1,6 @@
 # from .libs.isolation import isolate
+from typing import Any
+
 from django.db.utils import OperationalError
 from procrastinate import RetryStrategy
 from procrastinate.contrib.django import app
@@ -12,7 +14,11 @@ from .libs.genlabid import generate as generate_genlab_id
         max_attempts=5, linear_wait=5, retry_exceptions={OperationalError}
     ),
 )
-def generate_ids(order_id, sorting_order=None, selected_samples=None):
+def generate_ids(
+    order_id: int | str,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[Any] | None = None,
+) -> None:
     generate_genlab_id(
         order_id=order_id,
         sorting_order=sorting_order,

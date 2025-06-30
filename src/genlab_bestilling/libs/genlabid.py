@@ -63,7 +63,11 @@ def get_current_sequences(order_id: int | str) -> Any:
         return sequences
 
 
-def generate(order_id, sorting_order=None, selected_samples=None):
+def generate(
+    order_id: int | str,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[Any] | None = None,
+) -> None:
     """
     wrapper to handle errors and reset the sequence to the current sequence value
     """
@@ -88,7 +92,11 @@ def generate(order_id, sorting_order=None, selected_samples=None):
     print(sequences)
 
 
-def update_genlab_id_query(order_id, sorting_order=None, selected_samples=None):
+def update_genlab_id_query(
+    order_id: int | str,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[Any] | None = None,
+) -> str:
     """
     Safe generation of a SQL raw query using sqlglot
     The query runs an update on all the rows with a specific order_id

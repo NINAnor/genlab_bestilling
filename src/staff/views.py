@@ -356,10 +356,10 @@ class GenerateGenlabIDsView(
 ):
     model = ExtractionOrder
 
-    def get_object(self):
+    def get_object(self) -> ExtractionOrder:
         return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
         selected_ids = request.POST.getlist("checked")
 
@@ -393,7 +393,7 @@ class GenerateGenlabIDsView(
 
         return HttpResponseRedirect(self.get_success_url())
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse_lazy(
             "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
         )

@@ -452,7 +452,11 @@ class ExtractionOrder(Order):
         self.save()
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
 
-    def order_selected_checked(self, sorting_order=None, selected_samples=None):
+    def order_selected_checked(
+        self,
+        sorting_order: list[str] | None = None,
+        selected_samples: list[str] | None = None,
+    ) -> None:
         """
         Partially set the order as checked by the lab staff, generate a genlab id
         """

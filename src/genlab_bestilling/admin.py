@@ -315,7 +315,37 @@ class SampleAdmin(ModelAdmin):
 
 
 @admin.register(ExtractPlatePosition)
-class ExtractPlatePositionAdmin(ModelAdmin): ...
+class ExtractPlatePositionAdmin(ModelAdmin):
+    """
+    plate = models.ForeignKey(
+    sample = models.ForeignKey(
+    position = models.IntegerField()
+    extracted_at = models.DateTimeField(auto_now=True)
+    notes = models.CharField(null=True, blank=True)
+
+    """
+
+    M = ExtractPlatePosition
+    list_display = [
+        "__str__",
+        M.plate.field.name,
+        M.sample.field.name,
+        M.position.field.name,
+        M.extracted_at.field.name,
+    ]
+
+    search_help_text = "Search for id"
+    search_fields = [M.id.field.name]
+    list_filter = [
+        (M.id.field.name, unfold_filters.SingleNumericFilter),
+        (M.plate.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.sample.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.position.field.name, unfold_filters.SingleNumericFilter),
+        M.extracted_at.field.name,
+    ]
+
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(ExtractionPlate)

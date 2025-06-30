@@ -251,9 +251,12 @@ class SampleMarkerAnalysisAdmin(ModelAdmin): ...
 @admin.register(Sample)
 class SampleAdmin(ModelAdmin):
     list_display = [
-        Sample.order.field.name,
-        Sample.guid.field.name,
+        "__str__",
         Sample.name.field.name,
+        Sample.genlab_id.field.name,
+        Sample.guid.field.name,
+        "fish_id",
+        Sample.order.field.name,
         Sample.type.field.name,
         Sample.species.field.name,
         Sample.year.field.name,
@@ -261,7 +264,6 @@ class SampleAdmin(ModelAdmin):
         Sample.pop_id.field.name,
         Sample.location.field.name,
         Sample.volume.field.name,
-        Sample.genlab_id.field.name,
         Sample.parent.field.name,
     ]
     search_help_text = "Search for sample name, genlab ID, GUID or id"

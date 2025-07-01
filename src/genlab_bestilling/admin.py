@@ -376,4 +376,33 @@ class ExtractionPlateAdmin(ModelAdmin): ...
 
 
 @admin.register(AnalysisResult)
-class AnalysisResultAdmin(ModelAdmin): ...
+class AnalysisResultAdmin(ModelAdmin):
+    M = AnalysisResult
+    list_display = [
+        M.name.field.name,
+        M.marker.field.name,
+        M.order.field.name,
+        M.analysis_date.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
+    ]
+
+    search_help_text = "Search for analysis result name"
+    search_fields = [M.name.field.name]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.marker.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        M.analysis_date.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
+    ]
+    autocomplete_fields = [M.marker.field.name, M.order.field.name]
+    list_filter_submit = True
+    list_filter_sheet = False
+    filter_horizontal = [M.samples.field.name]
+    readonly_fields = [
+        M.analysis_date.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
+    ]

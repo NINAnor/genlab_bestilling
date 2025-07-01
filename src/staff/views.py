@@ -66,15 +66,16 @@ class DashboardView(StaffMixin, TemplateView):
 
         urgent_orders = Order.objects.filter(
             is_urgent=True,
-            status__in=[Order.OrderStatus.PROCESSING,
-                        Order.OrderStatus.DELIVERED],
+            status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
         ).order_by("-created_at")
         context["urgent_orders"] = urgent_orders
 
-        delivered_orders = Order.objects.filter(
-            status=Order.OrderStatus.DELIVERED)
+        delivered_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
 
         context["delivered_orders"] = delivered_orders
+        context["assigned_orders"] = self.request.user.responsible_orders.filter(
+            status__in=[Order.OrderStatus.DELIVERED, Order.OrderStatus.PROCESSING]
+        ).order_by("-created_at")
         context["now"] = now()
         return context
 
@@ -184,8 +185,7 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(
-            pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
 
 

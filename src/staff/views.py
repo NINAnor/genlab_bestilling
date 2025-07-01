@@ -32,7 +32,7 @@ from .filters import (
     SampleFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm
+from .forms import ExtractionPlateForm, OrderStaffForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
@@ -66,11 +66,13 @@ class DashboardView(StaffMixin, TemplateView):
 
         urgent_orders = Order.objects.filter(
             is_urgent=True,
-            status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
+            status__in=[Order.OrderStatus.PROCESSING,
+                        Order.OrderStatus.DELIVERED],
         ).order_by("-created_at")
         context["urgent_orders"] = urgent_orders
 
-        delivered_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        delivered_orders = Order.objects.filter(
+            status=Order.OrderStatus.DELIVERED)
 
         context["delivered_orders"] = delivered_orders
         context["now"] = now()
@@ -182,7 +184,8 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(
+            pk=self.kwargs.get("pk"))
         return context
 
 
@@ -279,6 +282,50 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
+
+
+class OrderStaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
+    model = Order
+    form_class = OrderStaffForm
+    template_name = "staff/order_staff_edit.html"
+
+    def get_queryset(self) -> models.QuerySet[Order]:
+        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        form = self.form_class(request.POST, order=self.object)
+
+        if form.is_valid():
+            responsible_staff = form.cleaned_data.get("responsible_staff", [])
+            self.object.responsible_staff.set(responsible_staff)
+
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Staff assignment updated successfully",
+            )
+
+            return HttpResponseRedirect(self.get_success_url())
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["object"] = self.object
+        context["form"] = self.form_class(order=self.object)
+
+        return context
+
+    def get_success_url(self) -> str:
+        return reverse_lazy(
+            f"staff:order-{self.object.get_type()}-detail",
+            kwargs={"pk": self.object.pk},
+        )
 
 
 class OrderToDraftActionView(SingleObjectMixin, ActionView):

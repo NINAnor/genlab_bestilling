@@ -271,6 +271,12 @@ class Order(PolymorphicModel):
         blank=True,
         help_text="Email to contact with questions about this order",
     )
+    responsible_staff = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="responsible_orders",
+        verbose_name="Responsible staff",
+        help_text="Staff members responsible for this order",
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
@@ -635,14 +641,16 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
+        # type: ignore[union-attr] # FIXME: Order can be None.
+        if self.order.genrequest.area.location_mandatory:
             if not self.location_id:
                 raise ValidationError("Location is required")
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
+                # type: ignore[union-attr] # FIXME: Order can be None.
+                not in self.location.types.values_list("id", flat=True)
             ):
                 raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:

@@ -145,7 +145,16 @@ class SpeciesAdmin(ModelAdmin):
 
 @admin.register(SampleType)
 class SampleTypeAdmin(ModelAdmin):
-    search_fields = ["name"]
+    M = SampleType
+    search_help_text = "Search for sample type name"
+    search_fields = [M.name.field.name]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.areas.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+    ]
+    autocomplete_fields = [M.areas.field.name]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(AnalysisType)

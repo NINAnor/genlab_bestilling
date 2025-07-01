@@ -53,9 +53,22 @@ class LocationTypeAdmin(ModelAdmin):
 
 @admin.register(Location)
 class LocationAdmin(ModelAdmin):
-    list_display = ["name", "river_id", "code"]
-    search_fields = ["name", "river_id", "code"]
-    list_filter = [("types", unfold_filters.RelatedDropdownFilter)]
+    M = Location
+
+    search_help_text = "Search for location name, river ID or code"
+    search_fields = [M.name.field.name, M.river_id.field.name, M.code.field.name]
+
+    list_display = [M.name.field.name, M.river_id.field.name, M.code.field.name]
+
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.river_id.field.name, unfold_filters.FieldTextFilter),
+        (M.code.field.name, unfold_filters.FieldTextFilter),
+        (M.fylke.field.name, unfold_filters.FieldTextFilter),
+        (M.types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+    ]
+
+    filter_horizontal = [M.types.field.name]
     list_filter_submit = True
 
 

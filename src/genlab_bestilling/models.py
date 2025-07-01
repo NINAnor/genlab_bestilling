@@ -177,16 +177,6 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         related_name="genrequests_created",
     )
     area = models.ForeignKey(f"{an}.Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField(
-        f"{an}.Species", blank=True, related_name="genrequests"
-    )
-    sample_types = models.ManyToManyField(
-        f"{an}.SampleType",
-        blank=True,
-        help_text="samples you plan to deliver, you can choose more than one. "
-        + "ONLY sample types selected here will be available later",
-    )
-    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     expected_samples_delivery_date = models.DateField(
         help_text="When you plan to start delivering the samples"
     )
@@ -199,6 +189,16 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         help_text="This helps the Lab estimating the workload, "
         + "provide how many samples you're going to deliver",
     )
+    species = models.ManyToManyField(
+        f"{an}.Species", blank=True, related_name="genrequests"
+    )
+    sample_types = models.ManyToManyField(
+        f"{an}.SampleType",
+        blank=True,
+        help_text="samples you plan to deliver, you can choose more than one. "
+        + "ONLY sample types selected here will be available later",
+    )
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 

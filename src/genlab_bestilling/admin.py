@@ -155,9 +155,18 @@ class AnalysisTypeAdmin(ModelAdmin):
 
 @admin.register(EquipmentType)
 class EquipmentTypeAdmin(ModelAdmin):
-    list_display = ["name", "unit"]
-    list_filter = ["unit"]
-    search_fields = ["name"]
+    M = EquipmentType
+    list_display = [M.name.field.name, M.unit.field.name]
+
+    search_help_text = "Search for equipment type name"
+    search_fields = [M.name.field.name]
+
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.unit.field.name, unfold_filters.FieldTextFilter),
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(EquipmentBuffer)

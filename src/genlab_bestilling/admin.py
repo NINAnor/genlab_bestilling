@@ -206,7 +206,35 @@ class EquipmentBufferAdmin(ModelAdmin):
 
 
 @admin.register(EquimentOrderQuantity)
-class EquimentOrderQuantityAdmin(ModelAdmin): ...
+class EquimentOrderQuantityAdmin(ModelAdmin):
+    M = EquimentOrderQuantity
+    list_display = [
+        M.id.field.name,
+        M.equipment.field.name,
+        M.order.field.name,
+        M.buffer.field.name,
+        M.buffer_quantity.field.name,
+        M.quantity.field.name,
+    ]
+    search_help_text = "Search for id"
+    search_fields = [
+        M.id.field.name,
+    ]
+    list_filter = [
+        (M.id.field.name, unfold_filters.SingleNumericFilter),
+        (M.equipment.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.buffer.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.buffer_quantity.field.name, unfold_filters.RangeNumericFilter),
+        (M.quantity.field.name, unfold_filters.RangeNumericFilter),
+    ]
+    autocomplete_fields = [
+        M.equipment.field.name,
+        M.order.field.name,
+        M.buffer.field.name,
+    ]
+    list_filter_sheet = False
+    list_filter_submit = True
 
 
 @admin.register(EquipmentOrder)

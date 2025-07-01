@@ -359,6 +359,9 @@ class EquimentOrderQuantity(models.Model):
 
     objects = managers.EquipmentOrderQuantityQuerySet.as_manager()
 
+    class Meta:
+        verbose_name_plural = "Equipment order quantities"
+
 
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?

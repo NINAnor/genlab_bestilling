@@ -3,7 +3,6 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
-from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -171,8 +170,7 @@ class SampleBaseTable(tables.Table):
         return ""
 
     def render_checked(self, record: Any) -> str:
-        record_id = escape(record.id)
-        return f'<input type="checkbox" name="checked" value="{record_id}">'
+        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')
 
 
 class OrderExtractionSampleTable(SampleBaseTable):

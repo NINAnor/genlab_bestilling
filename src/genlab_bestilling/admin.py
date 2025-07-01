@@ -34,7 +34,16 @@ class OrganizationAdmin(ModelAdmin):
 
 @admin.register(Area)
 class AreaAdmin(ModelAdmin):
-    search_fields = ["name"]
+    M = Area
+    search_help_text = "Search for area name"
+    search_fields = [M.name.field.name]
+    list_display = [M.name.field.name, M.location_mandatory.field.name]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        M.location_mandatory.field.name,
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(LocationType)

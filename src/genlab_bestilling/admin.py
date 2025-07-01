@@ -74,34 +74,54 @@ class LocationAdmin(ModelAdmin):
 
 @admin.register(Genrequest)
 class GenrequestAdmin(ModelAdmin):
+    M = Genrequest
     list_display = [
-        "project",
-        "name",
-        "samples_owner",
-        # "sample_types",
-        "area",
+        M.name.field.name,
+        M.project.field.name,
+        M.samples_owner.field.name,
+        M.area.field.name,
+        M.expected_total_samples.field.name,
+        M.expected_samples_delivery_date.field.name,
+        M.expected_analysis_delivery_date.field.name,
+        M.creator.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
     ]
-    search_fields = ["name", "project__name"]
-    list_filter_submit = True
+    search_help_text = "Search for genrequest name or project name"
+    search_fields = [M.name.field.name, "project__name"]
 
     list_filter = [
-        ("project", unfold_filters.RelatedDropdownFilter),
-        ("area", unfold_filters.RelatedDropdownFilter),
-        ("sample_types", unfold_filters.RelatedDropdownFilter),
-        ("markers", unfold_filters.RelatedDropdownFilter),
-        ("species", unfold_filters.RelatedDropdownFilter),
-        ("samples_owner", unfold_filters.RelatedDropdownFilter),
-        ("creator", unfold_filters.RelatedDropdownFilter),
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.project.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.area.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.sample_types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.markers.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.samples_owner.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.creator.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.expected_total_samples.field.name, unfold_filters.RangeNumericFilter),
+        M.expected_samples_delivery_date.field.name,
+        M.expected_analysis_delivery_date.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
     ]
 
     autocomplete_fields = [
-        "samples_owner",
-        "area",
-        "project",
-        "species",
-        "sample_types",
-        "markers",
+        M.area.field.name,
+        M.project.field.name,
+        M.samples_owner.field.name,
+        M.creator.field.name,
     ]
+    filter_horizontal = [
+        M.markers.field.name,
+        M.sample_types.field.name,
+        M.species.field.name,
+    ]
+    readonly_fields = [
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    list_filter_submit = True
 
 
 @admin.register(Marker)

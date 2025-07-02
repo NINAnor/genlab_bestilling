@@ -365,7 +365,7 @@ class GenerateGenlabIDsView(
 
         if not selected_ids:
             messages.error(request, "No samples were selected.")
-            return HttpResponseRedirect(self.get_success_url())
+            return HttpResponseRedirect(self.get_return_url())
 
         sort_param = request.POST.get("sort", "")
         sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
@@ -391,9 +391,9 @@ class GenerateGenlabIDsView(
                 f"Error: {str(e)}",
             )
 
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_return_url())
 
-    def get_success_url(self) -> str:
+    def get_return_url(self) -> str:
         return reverse_lazy(
             "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
         )

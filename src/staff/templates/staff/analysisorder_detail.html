@@ -27,6 +27,7 @@
     <div class="flex gap-5 my-5">
         <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
+        <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
         {% if object.status == object.OrderStatus.DELIVERED %}
             <div class="ml-auto"></div>
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}

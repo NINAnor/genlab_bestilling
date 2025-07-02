@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags core %}
+
+{% block css %}
+  <style>
+    /* Makes the responsible staff list vertical. By default it is horizontal. */
+    #id_responsible_staff {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <h3 class="text-4xl mb-5">Manage Responsible Staff - {{ object }}</h3>
+
+  <div class="flex gap-5 mb-5">
+    <a class="btn bg-primary" href="{% url 'staff:order-'|add:object.get_type|add:'-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Order</a>
+  </div>
+
+  <div class="bg-white p-6 rounded-lg shadow">
+    <h4 class="text-lg font-semibold mb-4">Assign Staff to Order</h4>
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-6">
+        {{ form.responsible_staff.label_tag }}
+
+        <div>{{ form.responsible_staff }}</div>
+
+        {% if form.responsible_staff.help_text %}
+          <p class="text-sm text-gray-600 mt-1">{{ form.responsible_staff.help_text }}</p>
+        {% endif %}
+
+        {% if form.responsible_staff.errors %}
+          <div class="text-red-600 text-sm mt-1">{{ form.responsible_staff.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div>
+        <button type="submit" class="btn bg-primary"><i class="fas fa-save"></i> Update staff assignment</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

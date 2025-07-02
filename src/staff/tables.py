@@ -10,6 +10,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Order,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -300,3 +301,139 @@ class PlateTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Plates"
+
+
+FLAG_OUTLINE = "<i class='fa-regular fa-flag fa-lg' title='Normal'></i>"
+FLAG_FILLED = "<i class='fa-solid fa-flag fa-lg' title='Prioritized'></i>"
+URGENT_FILLED = (
+    "<i class='fa-solid fa-exclamation fa-lg text-red-500' title='Urgent'></i>"
+)
+
+
+class StatusMixinTable(tables.Table):
+    status = tables.Column(
+        orderable=False,
+        verbose_name="Status",
+    )
+
+    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
+        status_colors = {
+            "Processing": "bg-yellow-100 text-yellow-800",
+            "Completed": "bg-green-100 text-green-800",
+            "Delivered": "bg-red-100 text-red-800",
+        }
+        status_text = {
+            "Processing": "Processing",
+            "Completed": "Completed",
+            "Delivered": "Not started",
+        }
+        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
+        status_text = status_text.get(value, "Unknown")
+        return mark_safe(  # noqa: S308
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full {color_class}">{status_text}</span>'  # noqa: E501
+        )
+
+
+class StaffIDMixinTable(tables.Table):
+    id = tables.Column(
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_id(
+        self, record: ExtractionOrder | AnalysisOrder | EquipmentOrder
+    ) -> str:
+        url = record.get_absolute_staff_url()
+
+        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
+
+
+class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["id", "description", "delivery_date", "status"]
+        empty_text = "No urgent orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class NewOrderTable(StaffIDMixinTable):
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    def render_samples(self, value: int) -> str:
+        if value > 0:
+            return str(value)
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["id", "description", "delivery_date", "samples"]
+        empty_text = "No new orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
+    priority = tables.Column(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="is_urgent",
+    )
+
+    def render_priority(self, value: bool) -> str:
+        if value:
+            return mark_safe(URGENT_FILLED)  # noqa: S308
+        return ""
+
+    samples_completed = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples completed",
+        orderable=False,
+    )
+
+    def render_samples_completed(self, value: int) -> str:
+        if value > 0:
+            return "- / " + str(value)
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["priority", "id", "samples_completed", "status"]
+        empty_text = "No assigned orders"
+        template_name = "django_tables2/tailwind_inner.html"

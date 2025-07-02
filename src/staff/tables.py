@@ -152,6 +152,7 @@ class SampleBaseTable(tables.Table):
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         sequence = ("checked",)
+        order_by = ("genlab_id", "name_as_int", "species")
 
         empty_text = "No Samples"
 

@@ -296,6 +296,10 @@ class Order(PolymorphicModel):
         return "order"
 
     @property
+    def filled_genlab_count(self) -> int:
+        return self.samples.filter(genlab_id__isnull=False).count()
+
+    @property
     def next_status(self) -> OrderStatus | None:
         current_index = self.STATUS_ORDER.index(self.status)
         if current_index + 1 < len(self.STATUS_ORDER):

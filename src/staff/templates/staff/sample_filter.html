@@ -3,7 +3,7 @@
 {% load render_table from django_tables2 %}
 
 {% block page-title %}
-{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}
+{% if order %}{{ order }} - Samples {{ order.filled_genlab_count }} / {{ order.samples.count }}{% else %}Samples{% endif %}
 {% endblock page-title %}
 
 {% block page-inner %}

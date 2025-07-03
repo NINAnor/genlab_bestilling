@@ -11,6 +11,7 @@ from .views import (
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
     ExtractionPlateListView,
+    GenerateGenlabIDsView,
     ManaullyCheckedOrderActionView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
@@ -78,6 +79,11 @@ urlpatterns = [
         "orders/extraction/<int:pk>/samples/",
         OrderExtractionSamplesListView.as_view(),
         name="order-extraction-samples",
+    ),
+    path(
+        "orders/extraction/<int:pk>/samples/generate-genlab-ids/",
+        GenerateGenlabIDsView.as_view(),
+        name="generate-genlab-ids",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",

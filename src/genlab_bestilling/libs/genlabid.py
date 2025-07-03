@@ -3,20 +3,9 @@ from typing import Any
 import sqlglot
 import sqlglot.expressions
 from django.db import connection, transaction
-from sqlglot.expressions import (
-    EQ,
-    Alias,
-    Cast,
-    DataType,
-    Extract,
-    From,
-    Literal,
-    Subquery,
-    and_,
-    column,
-)
+from django.db.models import Case, QuerySet, When
 
-from ..models import ExtractionOrder, Order, Sample, Species
+from ..models import Sample
 
 
 def get_replica_for_sample() -> None:
@@ -63,7 +52,11 @@ def get_current_sequences(order_id: int | str) -> Any:
         return sequences
 
 
-def generate(order_id: int | str) -> None:
+def generate(
+    order_id: int,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[int] | None = None,
+) -> None:
     """
     wrapper to handle errors and reset the sequence to the current sequence value
     """
@@ -73,7 +66,9 @@ def generate(order_id: int | str) -> None:
     with connection.cursor() as cursor:
         try:
             with transaction.atomic():
-                cursor.execute(update_genlab_id_query(order_id))
+                cursor.execute(
+                    update_genlab_id_query(order_id, sorting_order, selected_samples)
+                )
         except Exception:
             # if there is an error, reset the sequence
             # NOTE: this is unsafe unless this function is executed in a queue
@@ -86,111 +81,95 @@ def generate(order_id: int | str) -> None:
     print(sequences)
 
 
-def update_genlab_id_query(order_id: int | str) -> Any:
+# Format the genlab ID as GYYCODEXXXX
+def generate_genlab_id(code: str, year: int, count: int) -> str:
     """
-    Safe generation of a SQL raw query using sqlglot
-    The query runs an update on all the rows with a specific order_id
-    and set genlab_id = generate_genlab_id(code, year)
+    Generating the genlab ID in the format GYYCODEXXXX
+    where:
+    - YY is the last two digits of the year
+    - CODE is the species code in uppercase
+    - XXXX is a zero-padded number starting from 0001 for each species
+    and year combination.
+    Example: G23ABC0001 for the first sample of species ABC in 2023.
     """
-    samples_table = Sample._meta.db_table
-    extraction_order_table = ExtractionOrder._meta.db_table
-    order_table = Order._meta.db_table
-    species_table = Species._meta.db_table
+    return f"G{str(year)[-2:]}{code.upper()}{count:04d}"
 
-    return sqlglot.expressions.update(
-        samples_table,
-        properties={
-            "genlab_id": column(
-                "genlab_id",
-                table="order_samples",
-            )
-        },
-        where=sqlglot.expressions.EQ(
-            this=column("id", table=samples_table),
-            expression="order_samples.id",
-        ),
-        from_=From(
-            this=Alias(
-                this=Subquery(
-                    this=(
-                        sqlglot.select(
-                            column(
-                                "id",
-                                table=samples_table,
-                            ),
-                            Alias(
-                                this=sqlglot.expressions.func(
-                                    "generate_genlab_id",
-                                    column("code", table=species_table),
-                                    Cast(
-                                        this=Extract(
-                                            this="YEAR",
-                                            expression=column(
-                                                "confirmed_at",
-                                                table=order_table,
-                                            ),
-                                        ),
-                                        to=DataType(
-                                            this=DataType.Type.INT, nested=False
-                                        ),
-                                    ),
-                                ),
-                                alias="genlab_id",
-                            ),
-                        )
-                        .join(
-                            extraction_order_table,
-                            on=EQ(
-                                this=column(
-                                    "order_id",
-                                    table=samples_table,
-                                ),
-                                expression=column(
-                                    "order_ptr_id",
-                                    table=extraction_order_table,
-                                ),
-                            ),
-                        )
-                        .join(
-                            order_table,
-                            on=EQ(
-                                this=column(
-                                    "order_ptr_id",
-                                    table=extraction_order_table,
-                                ),
-                                expression=column(
-                                    "id",
-                                    table=order_table,
-                                ),
-                            ),
-                        )
-                        .from_(samples_table)
-                        .join(
-                            species_table,
-                            on=EQ(
-                                this=column(
-                                    "species_id",
-                                    table=samples_table,
-                                ),
-                                expression=column(
-                                    "id",
-                                    table=species_table,
-                                ),
-                            ),
-                        )
-                        .where(
-                            and_(
-                                EQ(
-                                    this=column(col="order_id"),
-                                    expression=Literal.number(order_id),
-                                ),
-                                column(col="genlab_id").is_(None),
-                            )
-                        )
-                        .order_by(column("name", table=samples_table))
-                    ),
-                ),
-                alias="order_samples",
-            )
-        ),
-    ).sql(dialect="postgres")
+
+# Order samples by their names, assuming they are numeric strings
+def order(samples: QuerySet) -> QuerySet:
+    """
+    Order samples by their names, assuming they are numeric strings.
+    """
+    name_to_sample = {sample.name.strip(): sample for sample in samples}
+    names = list(name_to_sample.keys())
+
+    # Check all are digits
+    if not all(name.isdigit() for name in names):
+        return samples
+
+    # Sort names as integers
+    sorted_names = sorted(names, key=lambda x: int(x))
+
+    # Build a CASE statement to preserve order in SQL
+    when_statements = [
+        When(name=name, then=pos) for pos, name in enumerate(sorted_names)
+    ]
+
+    return samples.order_by(Case(*when_statements))
+
+
+# New entry point for generating genlab IDs
+@transaction.atomic
+def update_genlab_id_query(
+    order_id: int,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[int] | None = None,
+) -> None:
+    """
+    Generate genlab IDs for samples in a specific order using Django QuerySet API.
+    """
+    if selected_samples is None:
+        return
+
+    # Sort order, default is by name
+    order_by = sorting_order or ["name"]
+
+    # Fetch samples
+    samples = (
+        Sample.objects.select_related("species", "order")
+        .filter(order_id=order_id, id__in=selected_samples, genlab_id__isnull=True)
+        .order_by(*order_by)
+    )
+
+    # If sorting order is by name, we might need to order them numerically
+    if order_by == ["name"]:
+        samples = order(samples)
+
+    # Group counts by species + year
+    counts = {}
+    updates = []
+
+    # Iterate through samples to generate genlab IDs in correct order
+    for sample in list(samples):
+        # Extract species code and year from the sample
+        species_code = sample.species.code
+        year = sample.order.confirmed_at.year
+        key = (species_code, year)
+
+        # Initialize count
+        if key not in counts:
+            existing_count = Sample.objects.filter(
+                species__code=species_code,
+                order__confirmed_at__year=year,
+                genlab_id__isnull=False,
+            ).count()
+            counts[key] = existing_count + 1
+        else:
+            counts[key] += 1
+
+        genlab_id = generate_genlab_id(species_code, year, counts[key])
+        sample.genlab_id = genlab_id
+        updates.append(sample)
+
+    # Bulk update samples with new genlab IDs
+    Sample.objects.bulk_update(updates, ["genlab_id"])

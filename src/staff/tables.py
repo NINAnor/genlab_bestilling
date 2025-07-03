@@ -124,6 +124,12 @@ class SampleBaseTable(tables.Table):
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
 
+    is_prioritised = tables.TemplateColumn(
+        template_name="staff/prioritise_flag.html",
+        orderable=True,
+        verbose_name="",
+    )
+
     class Meta:
         model = Sample
         fields = [
@@ -139,6 +145,8 @@ class SampleBaseTable(tables.Table):
             "plate_positions",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+        sequence = ("is_prioritised", "genlab_id", "guid", "name", "species", "type")
+        order_by = ("-is_prioritised", "species", "genlab_id", "name")
 
         empty_text = "No Samples"
 

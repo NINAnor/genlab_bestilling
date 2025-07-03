@@ -19,7 +19,24 @@
     {% render_table table %}
     </form>
 {% endblock page-inner %}
+<style>
+    #note-input {
+        width: 200px;
+        padding: 6px 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        resize: none;
+    }
 
+    #note-input::placeholder {
+        color: #aaa;
+        font-style: italic;
+    }
+</style>
 {% endblock %}
 
 {% block body_javascript %}
@@ -27,17 +44,38 @@
 <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
 {{ filter.form.media }}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const selectAll = document.getElementById('select-all-checkbox');
-        if(selectAll) {
-            selectAll.addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => {
-                    cb.checked = selectAll.checked;
+        const noteInput = document.getElementById('note-input');
+
+        selectAll?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((cb) => {
+                cb.checked = selectAll.checked;
+            })
+        });
+
+        let debounceTimeout;
+
+        noteInput?.addEventListener("input", function (event) {
+            const sampleId = event.target.dataset.sampleId;
+            const value = event.target.value;
+
+            const formData = new FormData();
+            formData.append("sample_id", sampleId);
+            formData.append("field_name", "note-input");
+            formData.append("field_value", value);
+            formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(function () {
+                fetch("{% url 'staff:update-sample' %}", {
+                    method: "POST",
+                    body: formData
                 })
             });
-        }
-    });
+            }, 500);
+        });
 </script>
 
 {% endblock body_javascript %}

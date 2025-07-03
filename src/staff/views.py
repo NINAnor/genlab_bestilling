@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.forms import Form
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -350,6 +350,27 @@ class SampleLabView(StaffMixin, TemplateView):
             request, f"{len(samples)} samples updated with status '{status_name}'."
         )
         return HttpResponseRedirect(redirect_url)
+
+
+class UpdateLabViewFields(StaffMixin, ActionView):
+    def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        sample_id = request.POST.get("sample_id")
+        field_name = request.POST.get("field_name")
+        field_value = request.POST.get("field_value")
+
+        if not sample_id or not field_name or field_value is None:
+            return JsonResponse({"error": "Invalid input"}, status=400)
+
+        try:
+            sample = Sample.objects.get(id=sample_id)
+
+            if field_name == "note-input":
+                sample.note = field_value
+            sample.save()
+
+            return JsonResponse({"success": True})
+        except Sample.DoesNotExist:
+            return JsonResponse({"error": "Sample not found"}, status=404)
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):

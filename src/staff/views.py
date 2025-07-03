@@ -195,6 +195,18 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
 
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        sample_id = request.POST.get("sample_id")
+
+        if sample_id:
+            sample = get_object_or_404(Sample, pk=sample_id)
+            sample.is_prioritised = not sample.is_prioritised
+            sample.save()
+
+        return self.get(
+            request, *args, **kwargs
+        )  # Re-render the view with updated data
+
 
 class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_pagination = False

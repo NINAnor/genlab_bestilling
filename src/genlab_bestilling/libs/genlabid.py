@@ -1,16 +1,105 @@
-from django.db import transaction
+from typing import Any
+
+import sqlglot
+import sqlglot.expressions
+from django.db import connection, transaction
 from django.db.models import Case, QuerySet, When
 
 from ..models import Sample
 
 
+def get_replica_for_sample() -> None:
+    """
+    TODO: implement
+    """
+    pass
+
+
+def get_current_sequences(order_id: int | str) -> Any:
+    """
+    Invoke a Postgres function to get the current sequence number
+    for a specific combination of year and species.
+    """
+    samples = (
+        Sample.objects.select_related("order", "species")
+        .filter(order=order_id)
+        .values("order__created_at", "species__code")
+        .distinct()
+    )
+
+    with connection.cursor() as cursor:
+        sequences = {}
+        for sample in samples:
+            query = sqlglot.select(
+                sqlglot.expressions.func(
+                    "get_genlab_sequence_name",
+                    sqlglot.expressions.Literal.string(sample["species__code"]),
+                    sqlglot.expressions.Literal.number(
+                        sample["order__created_at"].year
+                    ),
+                    dialect="postgres",
+                )
+            ).sql(dialect="postgres")
+            seq = cursor.execute(
+                query,
+            ).fetchone()[0]
+            sequences[seq] = 0
+
+        for k in sequences.keys():
+            query = sqlglot.select("last_value").from_(k).sql(dialect="postgres")
+            sequences[k] = cursor.execute(query).fetchone()[0]
+
+        return sequences
+
+
+def generate(
+    order_id: int,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[int] | None = None,
+) -> None:
+    """
+    wrapper to handle errors and reset the sequence to the current sequence value
+    """
+    sequences = get_current_sequences(order_id)
+    print(sequences)
+
+    with connection.cursor() as cursor:
+        try:
+            with transaction.atomic():
+                cursor.execute(
+                    update_genlab_id_query(order_id, sorting_order, selected_samples)
+                )
+        except Exception:
+            # if there is an error, reset the sequence
+            # NOTE: this is unsafe unless this function is executed in a queue
+            # by just one worker to prevent concurrency
+            with connection.cursor() as cursor:  # noqa: PLW2901 # Was this intentional?
+                for k, v in sequences.items():
+                    cursor.execute("SELECT setval(%s, %s)", [k, v])
+
+    sequences = get_current_sequences(order_id)
+    print(sequences)
+
+
 # Format the genlab ID as GYYCODEXXXX
 def generate_genlab_id(code: str, year: int, count: int) -> str:
+    """
+    Generating the genlab ID in the format GYYCODEXXXX
+    where:
+    - YY is the last two digits of the year
+    - CODE is the species code in uppercase
+    - XXXX is a zero-padded number starting from 0001 for each species
+    and year combination.
+    Example: G23ABC0001 for the first sample of species ABC in 2023.
+    """
     return f"G{str(year)[-2:]}{code.upper()}{count:04d}"
 
 
 # Order samples by their names, assuming they are numeric strings
 def order(samples: QuerySet) -> QuerySet:
+    """
+    Order samples by their names, assuming they are numeric strings.
+    """
     name_to_sample = {sample.name.strip(): sample for sample in samples}
     names = list(name_to_sample.keys())
 
@@ -31,11 +120,14 @@ def order(samples: QuerySet) -> QuerySet:
 
 # New entry point for generating genlab IDs
 @transaction.atomic
-def generate(
+def update_genlab_id_query(
     order_id: int,
     sorting_order: list[str] | None = None,
     selected_samples: list[int] | None = None,
 ) -> None:
+    """
+    Generate genlab IDs for samples in a specific order using Django QuerySet API.
+    """
     if selected_samples is None:
         return
 

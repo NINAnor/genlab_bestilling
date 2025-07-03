@@ -239,6 +239,11 @@ class Order(PolymorphicModel):
         # COMPLETED: Order has been completed, and results are available.
         COMPLETED = "completed", _("Completed")
 
+    class OrderPriority:
+        URGENT = 3
+        PRIORITIZED = 2
+        NORMAL = 1
+
     STATUS_ORDER = (
         OrderStatus.DRAFT,
         OrderStatus.DELIVERED,
@@ -260,6 +265,12 @@ class Order(PolymorphicModel):
     confirmed_at = models.DateTimeField(null=True, blank=True)
     is_urgent = models.BooleanField(
         default=False, help_text="Check this box if the order is urgent"
+    )
+    is_seen = models.BooleanField(
+        default=False, help_text="If an order has been seen by a staff"
+    )
+    is_prioritized = models.BooleanField(
+        default=False, help_text="If an order should be prioritized internally"
     )
     contact_person = models.CharField(
         null=True,
@@ -300,6 +311,14 @@ class Order(PolymorphicModel):
 
     def get_type(self) -> str:
         return "order"
+
+    def toggle_seen(self) -> None:
+        self.is_seen = not self.is_seen
+        self.save()
+
+    def toggle_prioritized(self) -> None:
+        self.is_prioritized = not self.is_prioritized
+        self.save()
 
     @property
     def next_status(self) -> OrderStatus | None:

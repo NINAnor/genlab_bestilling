@@ -3,7 +3,12 @@ from django.db import models
 
 from genlab_bestilling.models import Area, Order
 
-from ..tables import AssignedOrderTable, NewOrderTable, UrgentOrderTable
+from ..tables import (
+    AssignedOrderTable,
+    NewSeenOrderTable,
+    NewUnseenOrderTable,
+    UrgentOrderTable,
+)
 
 register = template.Library()
 
@@ -40,9 +45,47 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
-def new_orders_table(context: dict, area: Area | None = None) -> dict:
+def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = (
-        Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=True)
+        .select_related("genrequest")
+        .annotate(
+            sample_count=models.Count("extractionorder__samples"),
+        )
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True,
+                            then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            )
+        )
+        .only(
+            "id",
+            "genrequest__name",
+            "genrequest__expected_samples_delivery_date",
+            "status",
+        )
+        .order_by("-priority")
+    )
+
+    if area:
+        new_orders = new_orders.filter(genrequest__area=area)
+
+    new_orders = new_orders.order_by("-created_at")
+
+    return {
+        "title": "New seen orders",
+        "table": NewSeenOrderTable(new_orders),
+        "count": new_orders.count(),
+        "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
+    new_orders = (
+        Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=False)
         .select_related("genrequest")
         .annotate(sample_count=models.Count("extractionorder__samples"))
         .only(
@@ -60,8 +103,8 @@ def new_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = new_orders.order_by("-created_at")
 
     return {
-        "title": "New orders",
-        "table": NewOrderTable(new_orders),
+        "title": "New unseen orders",
+        "table": NewUnseenOrderTable(new_orders),
         "count": new_orders.count(),
         "request": context.get("request"),
     }
@@ -81,6 +124,14 @@ def assigned_orders_table(context: dict) -> dict:
         .annotate(
             sample_count=models.Count("extractionorder__samples"),
         )
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True,
+                            then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            )
+        )
         .only(
             "id",
             "genrequest__name",
@@ -95,6 +146,7 @@ def assigned_orders_table(context: dict) -> dict:
                 default=3,
                 output_field=models.IntegerField(),
             ),
+            "-priority",
             "-created_at",
         )
     )

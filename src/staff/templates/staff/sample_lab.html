@@ -40,9 +40,6 @@
 {% endblock %}
 
 {% block body_javascript %}
-{{ block.super }}
-<script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
-{{ filter.form.media }}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const selectAll = document.getElementById('select-all-checkbox');
@@ -72,8 +69,9 @@
                 fetch("{% url 'staff:update-sample' %}", {
                     method: "POST",
                     body: formData
-                });
+                })
+            });
             }, 500);
         });
-    </script>
+</script>
 {% endblock body_javascript%}

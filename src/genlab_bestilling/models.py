@@ -243,6 +243,11 @@ class Order(PolymorphicModel):
         # COMPLETED: Order has been completed, and results are available.
         COMPLETED = "completed", _("Completed")
 
+    class OrderPriority:
+        URGENT = 3
+        PRIORITIZED = 2
+        NORMAL = 1
+
     STATUS_ORDER = (
         OrderStatus.DRAFT,
         OrderStatus.DELIVERED,

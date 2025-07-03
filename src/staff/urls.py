@@ -15,6 +15,8 @@ from .views import (
     ManaullyCheckedOrderActionView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
+    OrderPrioritizedAdminView,
+    OrderSeenAdminView,
     OrderStaffEditView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
@@ -135,5 +137,11 @@ urlpatterns = [
         "orders/plates/<int:pk>/",
         ExtractionPlateDetailView.as_view(),
         name="plates-detail",
+    ),
+    path("orders/<int:pk>/seen/", OrderSeenAdminView.as_view(), name="order-seen"),
+    path(
+        "orders/<int:pk>/priority/",
+        OrderPrioritizedAdminView.as_view(),
+        name="order-priority",
     ),
 ]

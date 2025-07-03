@@ -3,24 +3,30 @@ from django.db import models
 
 from genlab_bestilling.models import Area, Order
 
-from ..tables import AssignedOrderTable, NewOrderTable, UrgentOrderTable
+from ..tables import (
+    AssignedOrderTable,
+    NewSeenOrderTable,
+    NewUnseenOrderTable,
+    UrgentOrderTable,
+)
 
 register = template.Library()
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
 def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
-    urgent_orders = Order.objects.filter(
-        is_urgent=True,
-        status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
-    ).select_related("genrequest")
+    urgent_orders = (
+        Order.objects.filter(
+            is_urgent=True,
+        )
+        .exclude(status=Order.OrderStatus.DRAFT)
+        .select_related("genrequest")
+    )
 
     if area:
         urgent_orders = urgent_orders.filter(genrequest__area=area)
 
-    urgent_orders = urgent_orders.only(
-        "id", "genrequest__name", "genrequest__expected_samples_delivery_date", "status"
-    ).order_by(
+    urgent_orders = urgent_orders.order_by(
         models.Case(
             models.When(status=Order.OrderStatus.PROCESSING, then=0),
             models.When(status=Order.OrderStatus.DELIVERED, then=1),
@@ -40,18 +46,43 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
-def new_orders_table(context: dict, area: Area | None = None) -> dict:
+def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = (
-        Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=True)
+        .exclude(is_urgent=True)
+        .select_related("genrequest")
+        .annotate(
+            sample_count=models.Count("extractionorder__samples"),
+        )
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            )
+        )
+    )
+
+    if area:
+        new_orders = new_orders.filter(genrequest__area=area)
+
+    new_orders = new_orders.order_by("-priority", "-created_at")
+
+    return {
+        "title": "New seen orders",
+        "table": NewSeenOrderTable(new_orders),
+        "count": new_orders.count(),
+        "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
+    new_orders = (
+        Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=False)
+        .exclude(is_urgent=True)
         .select_related("genrequest")
         .annotate(sample_count=models.Count("extractionorder__samples"))
-        .only(
-            "id",
-            "genrequest__name",
-            "genrequest__expected_samples_delivery_date",
-            "status",
-        )
-        .order_by("status")
     )
 
     if area:
@@ -60,8 +91,8 @@ def new_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = new_orders.order_by("-created_at")
 
     return {
-        "title": "New orders",
-        "table": NewOrderTable(new_orders),
+        "title": "New unseen orders",
+        "table": NewUnseenOrderTable(new_orders),
         "count": new_orders.count(),
         "request": context.get("request"),
     }
@@ -81,11 +112,12 @@ def assigned_orders_table(context: dict) -> dict:
         .annotate(
             sample_count=models.Count("extractionorder__samples"),
         )
-        .only(
-            "id",
-            "genrequest__name",
-            "genrequest__expected_samples_delivery_date",
-            "status",
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            )
         )
         .order_by(
             models.Case(
@@ -95,6 +127,7 @@ def assigned_orders_table(context: dict) -> dict:
                 default=3,
                 output_field=models.IntegerField(),
             ),
+            "-priority",
             "-created_at",
         )
     )

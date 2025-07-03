@@ -478,6 +478,8 @@ class AnalysisOrder(Order):
     expected_delivery_date = models.DateField(
         null=True,
         blank=True,
+        verbose_name="Requested analysis result deadline",
+        help_text="When you need to get the results",
     )
 
     @property

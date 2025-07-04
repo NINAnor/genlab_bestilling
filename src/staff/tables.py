@@ -235,9 +235,14 @@ def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Tab
                 default=False,
             )
 
+        note = tables.TemplateColumn(
+            template_name="staff/note_input_column.html", orderable=False
+        )
+
         class Meta:
             model = Sample
-            fields = ["checked", "genlab_id"] + list(base_fields)
+            fields = ["checked", "genlab_id", "note"] + list(base_fields)
+            sequence = ["checked", "genlab_id"] + list(base_fields) + ["note"]
 
     return CustomSampleTable
 

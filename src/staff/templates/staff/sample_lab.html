@@ -24,17 +24,37 @@
 
 {% block body_javascript %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const selectAll = document.getElementById('select-all-checkbox');
-        if(selectAll) {
-            selectAll.addEventListener('input', function() {
-                const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-                checkboxes.forEach(cb => {
-                    cb.checked = selectAll.checked;
-                })
+        const noteInputs = document.querySelectorAll('.note-input');
+
+        selectAll?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((cb) => {
+                cb.checked = selectAll.checked;
+            })
+        });
+
+        let debounceTimeout;
+        noteInputs.forEach(function (noteInput) {
+            noteInput.addEventListener("input", function (event) {
+                const sampleId = event.target.dataset.sampleId;
+                const value = event.target.value;
+                const formData = new FormData();
+                formData.append("sample_id", sampleId);
+                formData.append("field_name", "note-input");
+                formData.append("field_value", value);
+                formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(function () {
+                    fetch("{% url 'staff:update-sample' %}", {
+                        method: "POST",
+                        body: formData
+                    });
+                }, 500);
             });
-        }
+        });
     });
 </script>
-
-{% endblock body_javascript %}
+{% endblock body_javascript%}

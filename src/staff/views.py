@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Any
 
 from django.contrib import messages
@@ -5,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -253,8 +255,14 @@ class SampleLabView(StaffMixin, TemplateView):
     disable_pagination = False
     template_name = "staff/sample_lab.html"
 
+    def get_order(self) -> ExtractionOrder:
+        if not hasattr(self, "_order"):
+            self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
+        return self._order
+
     def get_data(self) -> list[Sample]:
-        samples = Sample.objects.filter(order=self.kwargs["pk"])
+        order = self.get_order()
+        samples = Sample.objects.filter(order=order)
         sample_status = SampleStatus.objects.filter(
             area__name=samples.first().order.genrequest.area
             if samples.exists()
@@ -263,18 +271,12 @@ class SampleLabView(StaffMixin, TemplateView):
 
         # Fetch all SampleStatusAssignment entries related to the current order
         sample_assignments = SampleStatusAssignment.objects.filter(
-            order__id=self.kwargs["pk"]
+            order_id=order.id
         ).select_related("status")
 
-        # Build a lookup: {sample_id: set of status names}
-        # This allows us to check status presence without querying per sample
-        sample_status_map = {}
+        sample_status_map = defaultdict(set)
         for assignment in sample_assignments:
-            sid = assignment.sample_id
-            sample_status_map.setdefault(sid, set()).add(assignment.status.name)
-
-        # Evaluate the samples QuerySet to a list so we can modify instances
-        samples = list(samples)
+            sample_status_map[assignment.sample_id].add(assignment.status.name)
 
         # Annotate each sample instance with boolean flags per status
         # Equivalent to: sample.status_name = True/False
@@ -287,18 +289,13 @@ class SampleLabView(StaffMixin, TemplateView):
         return samples
 
     def get_base_fields(self) -> list[str]:
-        return [
-            status.name
-            for status in SampleStatus.objects.filter(
-                area__name=Sample.objects.filter(order=self.kwargs["pk"])
-                .first()
-                .order.genrequest.area
-            )
-        ]
+        return SampleStatus.objects.filter(
+            area__name=self.get_order().genrequest.area
+        ).values_list("name", flat=True)
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+        context["order"] = self.get_order()
         context["statuses"] = SampleStatus.objects.filter(
             area=context["order"].genrequest.area
         )
@@ -318,14 +315,7 @@ class SampleLabView(StaffMixin, TemplateView):
             messages.error(request, "No samples or status selected.")
             return HttpResponseRedirect(redirect_url)
 
-        # Fetch order and area
-        try:
-            order = ExtractionOrder.objects.select_related("genrequest__area").get(
-                pk=self.kwargs["pk"]
-            )
-        except ExtractionOrder.DoesNotExist:
-            messages.error(request, "Order not found.")
-            return HttpResponseRedirect(redirect_url)
+        order = self.get_order()
 
         try:
             # Get status based on name and area to ensure only one status is returned

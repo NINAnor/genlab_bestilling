@@ -3,8 +3,8 @@
 alias dpcli_dev="docker compose --profile dev"
 alias dpcli_prod="docker compose --profile prod"
 
-alias djcli_dev="docker compose --profile dev exec -it django-dev ./src/manage.py"
-alias djcli_prod="docker compose --profile prod -it django ./src/manage.py"
+alias djcli_dev="docker compose exec -it django-dev ./src/manage.py"
+alias djcli_prod="docker compose exec -it django ./src/manage.py"
 
 alias deps-sync="uv sync"
 alias deps-sync-prod="uv sync --profile prod --no-dev"
@@ -18,4 +18,4 @@ alias django="uv run ./src/manage.py"
 
 echo "Aliases loaded successfully."
 
-[ -f aliases-private.sh ] && . aliases-private.sh
+[ -f aliases-private.sh ] && source aliases-private.sh

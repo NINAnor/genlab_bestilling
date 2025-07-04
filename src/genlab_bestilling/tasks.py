@@ -12,6 +12,6 @@ from .libs.genlabid import generate as generate_genlab_id
         max_attempts=5, linear_wait=5, retry_exceptions={OperationalError}
     ),
 )
-def generate_ids(order_id):
+def generate_ids(order_id: str | int) -> None:
     generate_genlab_id(order_id=order_id)
     # isolate(order_id=order_id)

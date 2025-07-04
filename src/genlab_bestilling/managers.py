@@ -1,9 +1,12 @@
 from django.db import models
+from django.db.models import QuerySet
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
+
+from capps.users.models import User
 
 
 class GenrequestQuerySet(models.QuerySet):
-    def filter_allowed(self, user):
+    def filter_allowed(self, user: User) -> QuerySet:
         """
         Get only requests of projects that the user is part of
         """
@@ -11,13 +14,13 @@ class GenrequestQuerySet(models.QuerySet):
 
 
 class OrderQuerySet(PolymorphicQuerySet):
-    def filter_allowed(self, user):
+    def filter_allowed(self, user: User) -> QuerySet:
         """
         Get only orders of projects that the user is part of
         """
         return self.filter(genrequest__project__memberships=user)
 
-    def filter_in_draft(self):
+    def filter_in_draft(self) -> QuerySet:
         """
         Get only orders in draft
         """
@@ -28,13 +31,13 @@ OrderManager = PolymorphicManager.from_queryset(OrderQuerySet)
 
 
 class EquipmentOrderQuantityQuerySet(models.QuerySet):
-    def filter_allowed(self, user):
+    def filter_allowed(self, user: User) -> QuerySet:
         """
         Get only orders of projects that the user is part of
         """
         return self.filter(order__genrequest__project__memberships=user)
 
-    def filter_in_draft(self):
+    def filter_in_draft(self) -> QuerySet:
         """
         Get only orders in draft
         """
@@ -44,13 +47,13 @@ class EquipmentOrderQuantityQuerySet(models.QuerySet):
 
 
 class SampleQuerySet(models.QuerySet):
-    def filter_allowed(self, user):
+    def filter_allowed(self, user: User) -> QuerySet:
         """
         Get only samples of projects that the user is part of
         """
         return self.filter(order__genrequest__project__memberships=user)
 
-    def filter_in_draft(self):
+    def filter_in_draft(self) -> QuerySet:
         """
         Get only samples of orders in draft
         """
@@ -60,13 +63,13 @@ class SampleQuerySet(models.QuerySet):
 
 
 class SampleAnalysisMarkerQuerySet(models.QuerySet):
-    def filter_allowed(self, user):
+    def filter_allowed(self, user: User) -> QuerySet:
         """
         Get only samples of projects that the user is part of
         """
         return self.filter(order__genrequest__project__memberships=user)
 
-    def filter_in_draft(self):
+    def filter_in_draft(self) -> QuerySet:
         """
         Get only samples of orders in draft
         """

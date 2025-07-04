@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models.query import QuerySet
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.forms import Form
+from django.http import Http404, HttpRequest, HttpResponse, HttpResponseRedirect
 from django.middleware.csrf import get_token
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -72,7 +73,7 @@ class GenrequestListView(
     filterset_class = GenrequestFilter
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [(self.model._meta.verbose_name_plural, reverse("genrequest-list"))]
 
     def get_queryset(self) -> QuerySet[Any]:
@@ -90,14 +91,14 @@ class GenrequestDetailView(BaseBreadcrumbMixin, LoginRequiredMixin, DetailView):
     add_home = False
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (self.model._meta.verbose_name_plural, reverse("genrequest-list")),
             (str(self.object), ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_allowed(self.request.user)
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_allowed(self.request.user)  # type: ignore[attr-defined]
 
 
 class GenrequestUpdateView(BaseBreadcrumbMixin, FormsetUpdateView):
@@ -106,7 +107,7 @@ class GenrequestUpdateView(BaseBreadcrumbMixin, FormsetUpdateView):
     add_home = False
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (self.model._meta.verbose_name_plural, reverse("genrequest-list")),
             (
@@ -116,10 +117,10 @@ class GenrequestUpdateView(BaseBreadcrumbMixin, FormsetUpdateView):
             ("Update", ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_allowed(self.request.user)
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_allowed(self.request.user)  # type: ignore[attr-defined]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.object.id},
@@ -132,7 +133,7 @@ class GenrequestDeleteView(BaseBreadcrumbMixin, DeleteView):
     add_home = False
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (self.model._meta.verbose_name_plural, reverse("genrequest-list")),
             (
@@ -142,7 +143,7 @@ class GenrequestDeleteView(BaseBreadcrumbMixin, DeleteView):
             ("Delete", ""),
         ]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-list",
         )
@@ -155,16 +156,16 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
     add_home = False
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (self.model._meta.verbose_name_plural, reverse("genrequest-list")),
             ("Create", ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_allowed(self.request.user)
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_allowed(self.request.user)  # type: ignore[attr-defined]
 
-    def get_form_kwargs(self):
+    def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
         if self.request.GET.get("project"):
@@ -173,10 +174,10 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
             ).first()
         return kwargs
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-detail",
-            kwargs={"pk": self.object.id},
+            kwargs={"pk": self.object.id},  # type: ignore[union-attr] # FIXME: Can object be None?
         )
 
 
@@ -195,7 +196,7 @@ class GenrequestNestedMixin(BaseBreadcrumbMixin, LoginRequiredMixin):
     gen_crumbs: list[tuple] = []
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (Genrequest._meta.verbose_name_plural, reverse("genrequest-list")),
             (
@@ -204,16 +205,16 @@ class GenrequestNestedMixin(BaseBreadcrumbMixin, LoginRequiredMixin):
             ),
         ] + self.gen_crumbs
 
-    def get_genrequest(self):
+    def get_genrequest(self) -> Genrequest:
         return Genrequest.objects.filter_allowed(self.request.user).get(
             id=self.kwargs["genrequest_id"]
         )
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.genrequest = self.get_genrequest()
         return super().post(request, *args, **kwargs)
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.genrequest = self.get_genrequest()
         return super().get(request, *args, **kwargs)
 
@@ -239,7 +240,7 @@ class GenrequestOrderListView(GenrequestNestedMixin, SingleTableMixin, FilterVie
     filterset_class = OrderFilter
     gen_crumbs = [("Orders", "")]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return super().get_queryset().select_related("genrequest", "polymorphic_ctype")
 
 
@@ -249,7 +250,7 @@ class OrderListView(SingleTableMixin, FilterView):
     filterset_class = OrderFilter
     crumbs = [("Orders", "")]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super()
             .get_queryset()
@@ -265,7 +266,7 @@ class GenrequestEquipmentOrderListView(
     filterset_class = OrderEquipmentFilter
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -280,7 +281,7 @@ class GenrequestEquipmentOrderListView(
             ),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return super().get_queryset().select_related("genrequest")
 
 
@@ -290,7 +291,7 @@ class EquipmentOrderListView(SingleTableMixin, FilterView):
     filterset_class = OrderEquipmentFilter
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -304,8 +305,10 @@ class EquipmentOrderListView(SingleTableMixin, FilterView):
             ),
         ]
 
-    def get_queryset(self):
-        super().get_queryset().select_related("genrequest", "genrequest__project")
+    def get_queryset(self) -> QuerySet:
+        return (
+            super().get_queryset().select_related("genrequest", "genrequest__project")
+        )
 
 
 class GenrequestExtractionOrderListView(
@@ -316,7 +319,7 @@ class GenrequestExtractionOrderListView(
     filterset_class = OrderExtractionFilter
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -331,7 +334,7 @@ class GenrequestExtractionOrderListView(
             ),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return super().get_queryset().select_related("genrequest")
 
 
@@ -341,7 +344,7 @@ class ExtractionOrderListView(SingleTableMixin, FilterView):
     filterset_class = OrderExtractionFilter
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -355,7 +358,7 @@ class ExtractionOrderListView(SingleTableMixin, FilterView):
             ),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super().get_queryset().select_related("genrequest", "genrequest__project")
         )
@@ -369,7 +372,7 @@ class GenrequestAnalysisOrderListView(
     filterset_class = OrderAnalysisFilter
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -384,7 +387,7 @@ class GenrequestAnalysisOrderListView(
             ),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super().get_queryset().select_related("genrequest", "genrequest__project")
         )
@@ -396,7 +399,7 @@ class AnalysisOrderListView(SingleTableMixin, FilterView):
     filterset_class = OrderAnalysisFilter
 
     @cached_property
-    def crumbs(self):
+    def crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -410,7 +413,7 @@ class AnalysisOrderListView(SingleTableMixin, FilterView):
             ),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super().get_queryset().select_related("genrequest", "genrequest__project")
         )
@@ -420,7 +423,7 @@ class EquipmentOrderDetailView(GenrequestNestedMixin, DetailView):
     model = EquipmentOrder
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -444,7 +447,7 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
     model = AnalysisOrder
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -463,7 +466,7 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
             (str(self.object), ""),
         ]
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return (
             super()
             .get_queryset()
@@ -476,7 +479,7 @@ class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):
     model = ExtractionOrder
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -501,7 +504,7 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
     template_name = "genlab_bestilling/order_confirm_delete.html"
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -525,7 +528,7 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
         qs = super().get_queryset()
         return qs.filter(status=Order.OrderStatus.DRAFT)
 
-    def get_object(self, queryset=None) -> Order:
+    def get_object(self, queryset: QuerySet | None = None) -> Order:
         return (super().get_object(queryset)).get_real_instance()
 
     def get_form_kwargs(self) -> dict[str, Any]:
@@ -533,7 +536,7 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
         del kwargs["genrequest"]
         return kwargs
 
-    def form_valid(self, form):
+    def form_valid(self, form: Form) -> HttpResponse:
         response = super().form_valid(form)
         messages.success(self.request, f"Order #{self.kwargs['pk']} deleted!")
         return response
@@ -547,15 +550,15 @@ class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
 class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):
     model = Order
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.genrequest = self.get_genrequest()
         self.object = (self.get_object()).get_real_instance()
         return super().post(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
+    def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs.pop("genrequest")
         return kwargs
@@ -565,7 +568,7 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
             # TODO: check state transition
             self.object.confirm_order()
             messages.add_message(
-                self.request, messages.SUCCESS, _("Your order is confirmed")
+                self.request, messages.SUCCESS, _("Your order is delivered")
             )
         except (Order.CannotConfirm, ValidationError) as e:
             messages.add_message(
@@ -578,14 +581,14 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
     def get_success_url(self) -> str:
         return self.object.get_absolute_url()
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
 class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView):
     model = Order
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.genrequest = self.get_genrequest()
         self.object = (self.get_object()).get_real_instance()
         return super().post(request, *args, **kwargs)
@@ -626,7 +629,7 @@ class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView)
             )
         return self.object.get_absolute_url()
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -638,7 +641,7 @@ class EquipmentOrderEditView(
     form_class = EquipmentOrderForm
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -658,10 +661,10 @@ class EquipmentOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-equipment-detail",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
@@ -676,7 +679,7 @@ class EquipmentOrderCreateView(
     form_class = EquipmentOrderForm
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -689,10 +692,10 @@ class EquipmentOrderCreateView(
             ("Create", ""),
         ]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-equipment-quantity-update",
-            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},  # type: ignore[union-attr] # FIXME: Can object be None?
         )
 
 
@@ -704,7 +707,7 @@ class AnalysisOrderEditView(
     form_class = AnalysisOrderUpdateForm
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -718,10 +721,10 @@ class AnalysisOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-analysis-detail",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
@@ -736,7 +739,7 @@ class ExtractionOrderEditView(
     form_class = ExtractionOrderForm
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -750,10 +753,10 @@ class ExtractionOrderEditView(
             ("Update", ""),
         ]
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-extraction-detail",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
@@ -767,7 +770,7 @@ class AnalysisOrderCreateView(
     form_class = AnalysisOrderForm
     model = AnalysisOrder
 
-    def get_initial(self):
+    def get_initial(self) -> Any:
         initial = super().get_initial()
 
         if "from_order" in self.request.GET:
@@ -791,7 +794,7 @@ class AnalysisOrderCreateView(
         return initial
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -804,16 +807,23 @@ class AnalysisOrderCreateView(
             ("Create", ""),
         ]
 
-    def get_success_url(self):
-        if self.object.from_order:
+    def get_success_url(self) -> str:
+        obj: AnalysisOrder = self.object  # type: ignore[assignment] # Possibly None
+        if obj.from_order:
             return reverse(
                 "genrequest-analysis-samples",
-                kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+                kwargs={
+                    "genrequest_id": self.genrequest.id,
+                    "pk": obj.id,
+                },
             )
         else:
             return reverse(
                 "genrequest-analysis-samples-edit",
-                kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+                kwargs={
+                    "genrequest_id": self.genrequest.id,
+                    "pk": self.object.id,  # type: ignore[union-attr]
+                },
             )
 
 
@@ -825,7 +835,7 @@ class ExtractionOrderCreateView(
     model = ExtractionOrder
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -838,10 +848,10 @@ class ExtractionOrderCreateView(
             ("Create", ""),
         ]
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-extraction-samples-edit",
-            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},
+            kwargs={"genrequest_id": self.genrequest.id, "pk": self.object.id},  # type: ignore[union-attr] # FIXME: Can object be None?
         )
 
 
@@ -852,7 +862,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
     genrequest_accessor = "order__genrequest"
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         self.get_queryset()
         return [
             (
@@ -882,18 +892,18 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
             .select_related("order", "equipment")
         )
 
-    def get_collection_kwargs(self):
+    def get_collection_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_collection_kwargs()
         kwargs["context"] = {"order_id": self.kwargs["pk"]}
         return kwargs
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse(
             "genrequest-equipment-detail",
             kwargs={"genrequest_id": self.genrequest.id, "pk": self.kwargs["pk"]},
         )
 
-    def get_initial(self):
+    def get_initial(self) -> Any:
         collection_class = self.get_collection_class()
         queryset = self.get_queryset()
         initial = collection_class(
@@ -907,7 +917,7 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
     template_name = "genlab_bestilling/sample_form_frontend.html"
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -940,8 +950,8 @@ class SamplesFrontendView(GenrequestNestedMixin, DetailView):
         }
         return context
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
 
 class SamplesListView(GenrequestNestedMixin, SingleTableView):
@@ -952,7 +962,7 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
     table_class = SampleTable
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         self.get_queryset()
         return [
             (
@@ -989,7 +999,7 @@ class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
     template_name = "genlab_bestilling/analysis_sample_form_frontend.html"
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         return [
             (
                 "Orders",
@@ -1022,8 +1032,8 @@ class AnalysisSamplesFrontendView(GenrequestNestedMixin, DetailView):
         }
         return context
 
-    def get_queryset(self):
-        return super().get_queryset().filter_in_draft()
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter_in_draft()  # type: ignore[attr-defined]
 
 
 class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
@@ -1034,7 +1044,7 @@ class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
     table_class = AnalysisSampleTable
 
     @cached_property
-    def gen_crumbs(self):
+    def gen_crumbs(self) -> list[tuple]:
         self.get_queryset()
         return [
             (

@@ -23,7 +23,6 @@ if [[ -z "${DJANGO_MIGRATE}" ]]
 then
   echo "Skip migration and setup"
 else
-  ./src/manage.py makemigrations
   ./src/manage.py migrate
   ./src/manage.py setup
 fi

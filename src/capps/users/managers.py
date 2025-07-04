@@ -17,7 +17,7 @@ class UserManager(DjangoUserManager):
         email: str,
         password: str | None,
         **extra_fields,
-    ):
+    ) -> User:
         """Create and save a user with the given email and password."""
         if not email:
             raise ValueError("The given email must be set")
@@ -27,7 +27,7 @@ class UserManager(DjangoUserManager):
         user.save(using=self._db)
         return user
 
-    def create_user(  # type: ignore[override] # Intended override.
+    def create_user(
         self: Self,
         email: str,
         password: str | None = None,
@@ -37,7 +37,7 @@ class UserManager(DjangoUserManager):
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(  # type: ignore[override] # Intended override.
+    def create_superuser(
         self: Self,
         email: str,
         password: str | None = None,

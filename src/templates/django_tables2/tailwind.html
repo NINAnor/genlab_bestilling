@@ -13,7 +13,14 @@
                     {% for column in table.columns %}
                         <th {{ column.attrs.th.as_html }}>
                             {% if column.orderable %}
-                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}">{{ column.header }}</a>
+                                {% comment%}
+                                If the column is orderable, two small arrows will show next to the column name to signal that it can be sorted.
+                                {% endcomment%}
+                                <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
+                                style="display: inline-flex; align-items: center; gap: 0.5em;">
+                                    {{ column.header }}
+                                    <i class="fa-solid fa-sort text-gray-500 hover:text-black">
+                                </i></a>
                             {% else %}
                                 {{ column.header }}
                             {% endif %}
@@ -23,14 +30,26 @@
                 </thead>
             {% endif %}
             {% endblock table.thead %}
+
+
             {% block table.tbody %}
                 <tbody {{ table.attrs.tbody.as_html }}>
                 {% for row in table.paginated_rows %}
                     {% block table.tbody.row %}
                     <tr {{ row.attrs.as_html }}>
-                        {% for column, cell in row.items %}
-                            <td {{ column.attrs.td.as_html }}>{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
-                        {% endfor %}
+
+                    {% for column, cell in row.items %}
+                            <td {{ column.attrs.td.as_html }}>
+                            {% if column.localize == None %}
+                                {{ cell }}
+                            {% else %}
+                                {% if column.localize %}
+                                    {{ cell|localize }}
+                                {% else %}
+                                    {{ cell|unlocalize }}
+                                {% endif %}
+                            {% endif %} </td>
+                    {% endfor %}
                     </tr>
                     {% endblock table.tbody.row %}
                 {% empty %}
@@ -42,6 +61,8 @@
                 {% endfor %}
                 </tbody>
             {% endblock table.tbody %}
+
+
             {% block table.tfoot %}
             {% if table.has_footer %}
                 <tfoot {{ table.attrs.tfoot.as_html }}>

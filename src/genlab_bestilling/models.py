@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
@@ -83,11 +84,11 @@ class SampleType(models.Model):
         return self.name or ""
 
     @property
-    def konciv_id(self):
+    def konciv_id(self) -> str:
         return f"ST_{self.id}"
 
     @property
-    def konciv_type(self):
+    def konciv_type(self) -> str:
         return "SAMPLE_TYPE"
 
     class Meta:
@@ -101,11 +102,11 @@ class AnalysisType(models.Model):
         return self.name or ""
 
     @property
-    def konciv_id(self):
+    def konciv_id(self) -> str:
         return f"AT_{self.id}"
 
     @property
-    def konciv_type(self):
+    def konciv_type(self) -> str:
         return "ANALYSIS_TYPE"
 
     class Meta:
@@ -176,16 +177,6 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         related_name="genrequests_created",
     )
     area = models.ForeignKey(f"{an}.Area", on_delete=models.PROTECT)
-    species = models.ManyToManyField(
-        f"{an}.Species", blank=True, related_name="genrequests"
-    )
-    sample_types = models.ManyToManyField(
-        f"{an}.SampleType",
-        blank=True,
-        help_text="samples you plan to deliver, you can choose more than one. "
-        + "ONLY sample types selected here will be available later",
-    )
-    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     expected_samples_delivery_date = models.DateField(
         help_text="When you plan to start delivering the samples"
     )
@@ -198,6 +189,16 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         help_text="This helps the Lab estimating the workload, "
         + "provide how many samples you're going to deliver",
     )
+    species = models.ManyToManyField(
+        f"{an}.Species", blank=True, related_name="genrequests"
+    )
+    sample_types = models.ManyToManyField(
+        f"{an}.SampleType",
+        blank=True,
+        help_text="samples you plan to deliver, you can choose more than one. "
+        + "ONLY sample types selected here will be available later",
+    )
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 
@@ -205,16 +206,16 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     tags = TaggableManager(blank=True)
 
     def __str__(self):
-        return f"#GEN_{self.id}"
+        return f"#GEN_{self.id} ({self.project})"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
 
     @property
-    def short_timeframe(self):
+    def short_timeframe(self) -> bool:
         return (
             self.expected_analysis_delivery_date - self.expected_samples_delivery_date
         ) < timedelta(days=30)
@@ -228,14 +229,19 @@ class Order(PolymorphicModel):
         pass
 
     class OrderStatus(models.TextChoices):
+        # DRAFT: External researcher has created the order, and is currently working on it before having it delivered for processing.  # noqa: E501
         DRAFT = "draft", _("Draft")
-        CONFIRMED = "confirmed", _("Confirmed")
+        # DELIVERED: Order has been delivered from researcher to the NINA staff.
+        # NOTE: # The old value `confirmed` was preserved during a name change to avoid migration issues. The primary goal is to have a more descriptive name for staff users in the GUI.  # noqa: E501
+        DELIVERED = "confirmed", _("Delivered")
+        # PROCESSING: NINA staff has begun processing the order.
         PROCESSING = "processing", _("Processing")
+        # COMPLETED: Order has been completed, and results are available.
         COMPLETED = "completed", _("Completed")
 
     STATUS_ORDER = (
         OrderStatus.DRAFT,
-        OrderStatus.CONFIRMED,
+        OrderStatus.DELIVERED,
         OrderStatus.PROCESSING,
         OrderStatus.COMPLETED,
     )
@@ -252,38 +258,51 @@ class Order(PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
+    is_urgent = models.BooleanField(
+        default=False, help_text="Check this box if the order is urgent"
+    )
+    contact_person = models.CharField(
+        null=True,
+        blank=True,
+        help_text="Person to contact with questions about this order",
+    )
+    contact_email = models.EmailField(
+        null=True,
+        blank=True,
+        help_text="Email to contact with questions about this order",
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
 
-    def confirm_order(self):
-        self.status = Order.OrderStatus.CONFIRMED
+    def confirm_order(self) -> None:
+        self.status = Order.OrderStatus.DELIVERED
         self.confirmed_at = timezone.now()
         self.save()
 
-    def clone(self):
+    def clone(self) -> None:
         self.id = None
         self.pk = None
         self.status = self.OrderStatus.DRAFT
         self.confirmed_at = None
         self.save()
 
-    def to_draft(self):
+    def to_draft(self) -> None:
         self.status = Order.OrderStatus.DRAFT
         self.confirmed_at = None
         self.save()
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "order"
 
     @property
-    def next_status(self):
+    def next_status(self) -> OrderStatus | None:
         current_index = self.STATUS_ORDER.index(self.status)
         if current_index + 1 < len(self.STATUS_ORDER):
             return self.STATUS_ORDER[current_index + 1]
         return None
 
-    def to_next_status(self):
+    def to_next_status(self) -> None:
         if status := self.next_status:
             self.status = status
             self.save()
@@ -340,6 +359,9 @@ class EquimentOrderQuantity(models.Model):
 
     objects = managers.EquipmentOrderQuantityQuerySet.as_manager()
 
+    class Meta:
+        verbose_name_plural = "Equipment order quantities"
+
 
 class EquipmentOrder(Order):
     needs_guid = models.BooleanField()  # TODO: default?
@@ -348,21 +370,21 @@ class EquipmentOrder(Order):
     def __str__(self) -> str:
         return f"#EQP_{self.id}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-equipment-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def confirm_order(self):
+    def confirm_order(self) -> Any:
         if not EquimentOrderQuantity.objects.filter(order=self).exists():
             raise Order.CannotConfirm(_("No equipments found"))
         return super().confirm_order()
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "equipment"
 
-    def clone(self):
+    def clone(self) -> None:
         sample_types = self.sample_types.all()
         super().clone()
         self.sample_types.add(*sample_types)
@@ -383,16 +405,16 @@ class ExtractionOrder(Order):
     def __str__(self) -> str:
         return f"#EXT_{self.id}"
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "extraction"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-extraction-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def clone(self):
+    def clone(self) -> None:
         """
         Generates a clone of the model, with a different ID
         """
@@ -404,7 +426,7 @@ class ExtractionOrder(Order):
         self.species.add(*species)
         self.sample_types.add(*sample_types)
 
-    def confirm_order(self, persist=True):
+    def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
             if not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
@@ -424,7 +446,7 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def order_manually_checked(self):
+    def order_manually_checked(self) -> None:
         """
         Set the order as checked by the lab staff, generate a genlab id
         """
@@ -453,7 +475,7 @@ class AnalysisOrder(Order):
     )
 
     @property
-    def short_timeframe(self):
+    def short_timeframe(self) -> bool:
         if not self.expected_delivery_date:
             return False
         return (self.expected_delivery_date - self.created_at.date()) < timedelta(
@@ -463,16 +485,16 @@ class AnalysisOrder(Order):
     def __str__(self) -> str:
         return f"#ANL_{self.id}"
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
-    def get_type(self):
+    def get_type(self) -> str:
         return "analysis"
 
-    def confirm_order(self, persist=True):
+    def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
             if not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
@@ -480,7 +502,7 @@ class AnalysisOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def populate_from_order(self):
+    def populate_from_order(self) -> None:
         """
         Create the list of markers per sample to analyze
         based on a previous extraction order
@@ -517,6 +539,7 @@ class SampleMarkerAnalysis(models.Model):
     transaction = models.UUIDField(blank=True, null=True)
 
     class Meta:
+        verbose_name_plural = "Sample marker analyses"
         constraints = [
             models.UniqueConstraint(
                 fields=["sample", "order", "marker"],
@@ -566,7 +589,7 @@ class Sample(models.Model):
             models.UniqueConstraint(fields=["genlab_id"], name="unique_genlab_id")
         ]
 
-    def create_replica(self):
+    def create_replica(self) -> None:
         pk = self.id
         self.id = None
         self.genlab_id = None
@@ -574,7 +597,24 @@ class Sample(models.Model):
         self.save()
 
     @property
-    def has_error(self):
+    def fish_id(self) -> str | None:
+        """
+        Generate a unique fish ID for the sample.
+
+        NOTE:
+        Only relevant for aquatic projects.
+        This function does not check if the sample is connected to an aquatic project
+        to prevent unnecessary database queries.
+        It is the responsibility of the caller to ensure that this is the case.
+        """
+        if not (self.location and self.location.code and self.name and self.year):
+            return None
+        format_year = str(self.year)[-2:]  # Get the last two digits.
+        format_name = str(self.name).zfill(4)  # Fill from left with zeros.
+        return f"{self.location.code}_{format_year}_{format_name}"
+
+    @property
+    def has_error(self) -> bool:
         """
         Check if all the fields are filled correctly depending on several factors.
 
@@ -595,14 +635,14 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if self.order.genrequest.area.location_mandatory:
+        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
             if not self.location_id:
                 raise ValidationError("Location is required")
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)
+                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
             ):
                 raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:
@@ -670,16 +710,19 @@ class ExtractionPlate(models.Model):
 
 class AnalysisResult(models.Model):
     name = models.CharField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
     analysis_date = models.DateTimeField(null=True, blank=True)
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
-    result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
-    extra = models.JSONField(null=True, blank=True)
     order = models.ForeignKey(
         f"{an}.AnalysisOrder",
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
     )
+    result_file = models.FileField(null=True, blank=True)
+    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
+    extra = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.name}"

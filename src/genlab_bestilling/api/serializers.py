@@ -1,3 +1,7 @@
+from collections.abc import Mapping
+from typing import Any
+
+from django.forms import Field
 from rest_framework import exceptions, serializers
 
 from ..models import (
@@ -53,7 +57,7 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ("id", "name")
 
-    def get_name(self, obj):
+    def get_name(self, obj: Location) -> str:
         return str(obj)
 
 
@@ -69,7 +73,7 @@ class SampleSerializer(serializers.ModelSerializer):
     location = LocationSerializer(allow_null=True, required=False)
     has_error = serializers.SerializerMethodField()
 
-    def get_has_error(self, obj):
+    def get_has_error(self, obj: Sample) -> bool:
         try:
             return obj.has_error
         except exceptions.ValidationError as e:
@@ -98,10 +102,12 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     type = SampleTypeSerializer()
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
+    fish_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        fields = (
+        # Make fields as a list to enable the removal of fish_id dynamically
+        fields = [
             "order",
             "guid",
             "name",
@@ -112,13 +118,26 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "location",
             "notes",
             "genlab_id",
-        )
+            "fish_id",
+        ]
+
+    def get_field_names(
+        self, declared_fields: Mapping[str, Field], info: Any
+    ) -> list[str]:
+        field_names = super().get_field_names(declared_fields, info)
+        if not self.context.get("include_fish_id", False):
+            # Remove fish_id if the area is not aquatic (only relevant for aquatic area)
+            field_names.remove("fish_id")
+        return field_names
+
+    def get_fish_id(self, obj: Sample) -> str:
+        return obj.fish_id or "-"
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):
     has_error = serializers.SerializerMethodField()
 
-    def get_has_error(self, obj):
+    def get_has_error(self, obj: Sample) -> bool:
         try:
             return obj.has_error
         except exceptions.ValidationError as e:

@@ -1,3 +1,5 @@
+from typing import Any
+
 import sqlglot
 import sqlglot.expressions
 from django.db import connection, transaction
@@ -17,14 +19,14 @@ from sqlglot.expressions import (
 from ..models import ExtractionOrder, Order, Sample, Species
 
 
-def get_replica_for_sample():
+def get_replica_for_sample() -> None:
     """
     TODO: implement
     """
     pass
 
 
-def get_current_sequences(order_id):
+def get_current_sequences(order_id: int | str) -> Any:
     """
     Invoke a Postgres function to get the current sequence number
     for a specific combination of year and species.
@@ -61,7 +63,7 @@ def get_current_sequences(order_id):
         return sequences
 
 
-def generate(order_id):
+def generate(order_id: int | str) -> None:
     """
     wrapper to handle errors and reset the sequence to the current sequence value
     """
@@ -84,7 +86,7 @@ def generate(order_id):
     print(sequences)
 
 
-def update_genlab_id_query(order_id):
+def update_genlab_id_query(order_id: int | str) -> Any:
     """
     Safe generation of a SQL raw query using sqlglot
     The query runs an update on all the rows with a specific order_id

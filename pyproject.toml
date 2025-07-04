@@ -90,6 +90,9 @@ plugins = ["django_coverage_plugin"]
 django_settings_module = "config.settings.local"
 
 [tool.mypy]
+disable_error_code = [
+  "override"  # Python is a dynamic language, subclasses will get overwritten.
+]
 explicit_package_bases = true  # Use mypy_path only (ignores path passed when calling mypy).
 follow_imports = "normal"
 ignore_missing_imports = true  # Ignore missing imports, e.g. third-party packages without stubs. # Also covered by ruff.
@@ -114,14 +117,27 @@ python_files = ["tests.py", "test_*.py"]
 fix = true
 
 [tool.ruff.lint]
-ignore = ["COM812", "RUF012", "RUF005", "RUF010"]
-select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF"]
+ignore = [
+  "COM812",
+  "RUF012",
+  "RUF005",
+  "RUF010",
+  "ANN002",  # Too strict for introduction of ANN. # https://docs.astral.sh/ruff/rules/missing-type-args/
+  "ANN003",  # Too strict for introduction of ANN. # https://docs.astral.sh/ruff/rules/missing-type-kwargs/
+  "ANN204",  # Too strict for introduction of ANN. # https://docs.astral.sh/ruff/rules/missing-return-type-special-method/
+  "ANN401"  # Too strict and too many errors atm. Consider enabling later after more typing is added. Search for `Any` to find unknown types. # https://docs.astral.sh/ruff/rules/any-type/
+]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF", "ANN"]
+
+[tool.ruff.lint.flake8-annotations]
+mypy-init-return = true  # https://docs.astral.sh/ruff/settings/#lint_flake8-annotations_mypy-init-return
 
 [tool.ruff.lint.per-file-ignores]
 "**/migrations/*.py" = ["E501", "ANN", "I"]
 "**/tests/*.py" = [
   "S101",
-  "PLR2004"
+  "PLR2004",
+  "ANN"  # Types on tests is more annoying than useful, types can be optional. # https://docs.astral.sh/ruff/rules/missing-return-type-undocumented-public-function/
 ]
 
 [tool.ruff.lint.pycodestyle]

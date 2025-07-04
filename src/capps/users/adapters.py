@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Self
+from typing import Any, Self
 
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http import HttpRequest
 
 
-def report(e, error):
+def report(e: Exception | None, error: Any) -> None:
     logging.error(str(e))  # noqa: LOG015
     logging.error(str(error))  # noqa: LOG015
     try:
@@ -31,8 +31,13 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     """
 
     def on_authentication_error(
-        self: Self, request, provider, error=None, exception=None, extra_context=None
-    ):
+        self: Self,
+        request: HttpRequest,
+        provider: Any,
+        error: Any = None,
+        exception: Exception | None = None,
+        extra_context: dict | None = None,
+    ) -> None:
         report(exception, error)
         return super().on_authentication_error(
             request,

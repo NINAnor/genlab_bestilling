@@ -1,0 +1,8 @@
+<form method="post" action="{% url 'staff:order-extraction-samples' pk=record.order_id %}" style="display:inline;">
+    {% csrf_token %}
+    <input type="hidden" name="sample_id" value="{{ record.pk }}">
+    <button type="submit" title="Toggle prioritised">
+        {% csrf_token %}
+        <i class="fa-solid fa-flag {% if record.is_prioritised %}text-blue-500{% else %}text-gray-300{% endif %}"></i>
+    </button>
+</form>

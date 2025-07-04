@@ -56,4 +56,27 @@
       <p>No urgent orders found.</p>
     </div>
   {% endif %}
+
+  {% if assigned_orders|length > 0 %}
+    <div class="rounded-md border bg-white p-4">
+      <h4 class="text-2xl mb-4">My orders ({{ assigned_orders|length }})</h4>
+
+      {% for order in assigned_orders %}
+        {% if order.polymorphic_ctype.model == 'analysisorder' %}
+          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+        {% elif order.polymorphic_ctype.model == 'equipmentorder' %}
+          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+        {% elif order.polymorphic_ctype.model == 'extractionorder' %}
+          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
+        {% else %}
+          <p>{{ order }} - {{ order.name }}</p>
+        {% endif %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="rounded-md border bg-white p-4">
+      <h4 class="text-2xl mb-4">Assigned orders</h4>
+      <p>No assigned orders found.</p>
+    </div>
+  {% endif %}
 {% endblock %}

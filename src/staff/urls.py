@@ -14,12 +14,14 @@ from .views import (
     ManaullyCheckedOrderActionView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
+    OrderStaffEditView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
     ProjectDetailView,
     ProjectListView,
     ProjectValidateActionView,
     SampleDetailView,
+    SampleLabView,
     SampleReplicaActionView,
     SamplesListView,
 )
@@ -69,9 +71,19 @@ urlpatterns = [
         name="order-manually-checked",
     ),
     path(
+        "orders/<int:pk>/add-staff/",
+        OrderStaffEditView.as_view(),
+        name="order-add-staff",
+    ),
+    path(
         "orders/extraction/<int:pk>/samples/",
         OrderExtractionSamplesListView.as_view(),
         name="order-extraction-samples",
+    ),
+    path(
+        "orders/extraction/<int:pk>/samples/lab",
+        SampleLabView.as_view(),
+        name="order-extraction-samples-lab",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",

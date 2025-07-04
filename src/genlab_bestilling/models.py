@@ -271,6 +271,12 @@ class Order(PolymorphicModel):
         blank=True,
         help_text="Email to contact with questions about this order",
     )
+    responsible_staff = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="responsible_orders",
+        verbose_name="Responsible staff",
+        help_text="Staff members responsible for this order",
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
@@ -472,6 +478,8 @@ class AnalysisOrder(Order):
     expected_delivery_date = models.DateField(
         null=True,
         blank=True,
+        verbose_name="Requested analysis result deadline",
+        help_text="When you need to get the results",
     )
 
     @property
@@ -578,6 +586,12 @@ class Sample(models.Model):
 
     extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
+    assigned_statuses = models.ManyToManyField(
+        f"{an}.SampleStatus",
+        through=f"{an}.SampleStatusAssignment",
+        related_name="samples",
+        blank=True,
+    )
 
     objects = managers.SampleQuerySet.as_manager()
 
@@ -635,14 +649,16 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
+        # type: ignore[union-attr] # FIXME: Order can be None.
+        if self.order.genrequest.area.location_mandatory:
             if not self.location_id:
                 raise ValidationError("Location is required")
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
+                # type: ignore[union-attr] # FIXME: Order can be None.
+                not in self.location.types.values_list("id", flat=True)
             ):
                 raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:
@@ -666,6 +682,51 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
+
+
+class SampleStatus(models.Model):
+    name = models.CharField(max_length=255)
+    weight = models.IntegerField(
+        default=0,
+    )
+    area = models.ForeignKey(
+        f"{an}.Area",
+        on_delete=models.CASCADE,
+        related_name="area_statuses",
+        help_text="The area this status is related to.",
+    )
+
+
+class SampleStatusAssignment(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+    )
+    status = models.ForeignKey(
+        f"{an}.SampleStatus",
+        on_delete=models.CASCADE,
+        related_name="status_assignments",
+    )
+    order = models.ForeignKey(
+        f"{an}.Order",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+        null=True,
+        blank=True,
+    )
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("sample", "status", "order")
+
+
+class IsolationMethod(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    def __str__(self) -> str:
+        return self.name
 
 
 # Some extracts can be placed in multiple wells

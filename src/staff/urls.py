@@ -21,6 +21,7 @@ from .views import (
     ProjectListView,
     ProjectValidateActionView,
     SampleDetailView,
+    SampleLabView,
     SampleReplicaActionView,
     SamplesListView,
 )
@@ -78,6 +79,11 @@ urlpatterns = [
         "orders/extraction/<int:pk>/samples/",
         OrderExtractionSamplesListView.as_view(),
         name="order-extraction-samples",
+    ),
+    path(
+        "orders/extraction/<int:pk>/samples/lab",
+        SampleLabView.as_view(),
+        name="order-extraction-samples-lab",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",

@@ -311,11 +311,15 @@ class SampleLabView(StaffMixin, TemplateView):
         status_name = request.POST.get("status")
         selected_ids = request.POST.getlist("checked")
 
-        redirect_url = self.request.path
+        def get_success_url() -> str:
+            return reverse_lazy(
+                "staff:order-extraction-samples-lab",
+                kwargs={"pk": self.get_order().pk},
+            )
 
         if not selected_ids or not status_name:
             messages.error(request, "No samples or status selected.")
-            return HttpResponseRedirect(redirect_url)
+            return HttpResponseRedirect(get_success_url())
 
         order = self.get_order()
 
@@ -326,7 +330,7 @@ class SampleLabView(StaffMixin, TemplateView):
             )
         except SampleStatus.DoesNotExist:
             messages.error(request, f"Status '{status_name}' not found.")
-            return HttpResponseRedirect(redirect_url)
+            return HttpResponseRedirect(get_success_url())
 
         samples = Sample.objects.filter(id__in=selected_ids)
 
@@ -341,7 +345,7 @@ class SampleLabView(StaffMixin, TemplateView):
         messages.success(
             request, f"{len(samples)} samples updated with status '{status_name}'."
         )
-        return HttpResponseRedirect(redirect_url)
+        return HttpResponseRedirect(get_success_url())
 
 
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):

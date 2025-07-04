@@ -180,9 +180,20 @@ def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Tab
                 default=False,
             )
 
+        note_input = """
+            <textarea
+                   id="note-input-{{ record.pk }}"
+                   class="note-input"
+                   data-sample-id="{{ record.pk }}"
+                   placeholder="Write a note...">{{ record.note|default:'' }}</textarea>
+        """
+
+        note = tables.TemplateColumn(note_input, verbose_name="Note", orderable=True)
+
         class Meta:
             model = Sample
-            fields = ["checked", "genlab_id"] + list(base_fields)
+            fields = ["checked", "genlab_id", "note"] + list(base_fields)
+            sequence = ["checked", "genlab_id"] + list(base_fields) + ["note"]
 
     return CustomSampleTable
 

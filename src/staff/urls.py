@@ -24,6 +24,7 @@ from .views import (
     SampleLabView,
     SampleReplicaActionView,
     SamplesListView,
+    UpdateLabViewFields,
 )
 
 app_name = "staff"
@@ -84,6 +85,11 @@ urlpatterns = [
         "orders/extraction/<int:pk>/samples/lab",
         SampleLabView.as_view(),
         name="order-extraction-samples-lab",
+    ),
+    path(
+        "orders/samples/update/",
+        UpdateLabViewFields.as_view(),
+        name="update-sample",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",

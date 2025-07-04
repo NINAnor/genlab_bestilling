@@ -53,13 +53,12 @@ class OrderTable(tables.Table):
             "genrequest__name",
             "genrequest__project",
             "genrequest__area",
-            "genrequest__expected_total_samples",
             "genrequest__samples_owner",
             "created_at",
             "last_modified_at",
             "is_urgent",
         ]
-        sequence = ("is_urgent", "status", "id")
+        sequence = ("is_urgent", "status", "id", "name")
         empty_text = "No Orders"
         order_by = ("-is_urgent", "last_modified_at", "created_at")
 
@@ -95,6 +94,12 @@ class ExtractionOrderTable(OrderTable):
         empty_values=(),
     )
 
+    sample_count = tables.Column(
+        accessor="sample_count",
+        verbose_name="Sample Count",
+        orderable=False,
+    )
+
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
         fields = OrderTable.Meta.fields + [
@@ -105,6 +110,10 @@ class ExtractionOrderTable(OrderTable):
             "return_samples",
             "pre_isolated",
         ]
+        sequence = OrderTable.Meta.sequence + ("sample_count",)
+
+    def render_sample_count(self, record: Any) -> str:
+        return record.sample_count or "0"
 
 
 class EquipmentOrderTable(OrderTable):

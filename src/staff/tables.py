@@ -182,7 +182,8 @@ def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Tab
 
         note_input = """
             <textarea
-                   id="note-input"
+                   id="note-input-{{ record.pk }}"
+                   class="note-input"
                    data-sample-id="{{ record.pk }}"
                    placeholder="Write a note...">{{ record.note|default:'' }}</textarea>
         """

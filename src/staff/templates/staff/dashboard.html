@@ -1,14 +1,19 @@
 {% extends 'staff/base.html' %}
+
 {% load i18n %}
 {% load static %}
 {% load tz %}
-
-{% block head_javascript %}
-  <script type="module" src="{% static 'js/staff/dashboard.js' %}"></script>
-{% endblock %}
+{% load order_tags %}
 
 {% block content %}
   <div class="flex items-center mb-5 gap-2">
+    <div class="flex items-center bg-white rounded-xl border">
+      <a data-active="{% if not request.GET.area %}true{% endif %}" href="{% url 'staff:dashboard' %}" class="px-4 py-2 rounded-xl data-[active='true']:bg-blue-400/40">All</a>
+      {% for area in areas %}
+        <a data-active="{% if request.GET.area == area.pk|stringformat:'s' %}true{% endif %}" href="{% url 'staff:dashboard' %}?area={{ area.pk }}" class="px-4 py-2 rounded-xl data-[active='true']:bg-blue-400/40">{{ area.name }}</a>
+      {% endfor %}
+    </div>
+
     <p class="flex items-center gap-2 ml-auto">
       <span>{{ now|date:'F j, Y' }}</span>
       <span>|</span>
@@ -16,67 +21,14 @@
     </p>
   </div>
 
-  {% if delivered_orders|length > 0 %}
-    <div class="rounded-md border bg-white p-4">
-      <p class="text-2xl mb-4">Delivered Orders</p>
-
-      {% for order in delivered_orders %}
-        {% if order.polymorphic_ctype.model == 'analysisorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'equipmentorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'extractionorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% else %}
-          <p>{{ order }} - {{ order.name }}</p>
-        {% endif %}
-      {% endfor %}
+  <div class="grid grid-cols-2 gap-4">
+    <div class="flex flex-col gap-8">
+      {% urgent_orders_table area=area %}
+      {% new_orders_table area=area %}
     </div>
-  {% endif %}
 
-  {% if urgent_orders|length > 0 %}
-    <div class="rounded-md border bg-white p-4">
-      <h4 class="text-2xl mb-4">Urgent orders</h4>
-
-      {% for order in urgent_orders %}
-        {% if order.polymorphic_ctype.model == 'analysisorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:'-' }} - Status: {{ order.status|default:'-' }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'equipmentorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:'-' }} - Status: {{ order.status|default:'-' }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'extractionorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }} - Deadline: {{ order.expected_delivery_date|default:'-' }} - Status: {{ order.status|default:'-' }}</p></a>
-        {% else %}
-          <p>{{ order }} - {{ order.name }}</p>
-        {% endif %}
-      {% endfor %}
+    <div class="flex flex-col gap-8">
+      {% assigned_orders_table %}
     </div>
-  {% else %}
-    <div class="rounded-md border bg-white p-4">
-      <h4 class="text-2xl mb-4">Urgent orders</h4>
-      <p>No urgent orders found.</p>
-    </div>
-  {% endif %}
-
-  {% if assigned_orders|length > 0 %}
-    <div class="rounded-md border bg-white p-4">
-      <h4 class="text-2xl mb-4">My orders ({{ assigned_orders|length }})</h4>
-
-      {% for order in assigned_orders %}
-        {% if order.polymorphic_ctype.model == 'analysisorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-analysis-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'equipmentorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-equipment-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% elif order.polymorphic_ctype.model == 'extractionorder' %}
-          <a class="hover:underline" href="{% url 'staff:order-extraction-detail' order.pk %}"><p>{{ order }} - {{ order.name }}</p></a>
-        {% else %}
-          <p>{{ order }} - {{ order.name }}</p>
-        {% endif %}
-      {% endfor %}
-    </div>
-  {% else %}
-    <div class="rounded-md border bg-white p-4">
-      <h4 class="text-2xl mb-4">Assigned orders</h4>
-      <p>No assigned orders found.</p>
-    </div>
-  {% endif %}
+  </div>
 {% endblock %}

@@ -32,7 +32,6 @@
         <div class="ml-auto"></div>
         {% if object.status == object.OrderStatus.DELIVERED %}
             {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
-            
             {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
         {% endif %}
 
@@ -40,7 +39,6 @@
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
-
 
         {% if object.next_status %}
             {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}

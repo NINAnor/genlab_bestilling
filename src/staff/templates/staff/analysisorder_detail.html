@@ -10,7 +10,9 @@
         <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
 
-        <a class="btn bg-primary" href="{% url 'staff:order-extraction-detail' pk=extraction_order.id %}">Go to {{ extraction_order}}</a>
+        {% if extraction_order %}
+            <a class="btn bg-primary" href="{% url 'staff:order-extraction-detail' pk=extraction_order.id %}">Go to {{ extraction_order}}</a>
+        {% endif %}
 
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 

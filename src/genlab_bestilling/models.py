@@ -302,6 +302,10 @@ class Order(PolymorphicModel):
         return "order"
 
     @property
+    def filled_genlab_count(self) -> int:
+        return self.samples.filter(genlab_id__isnull=False).count()
+
+    @property
     def next_status(self) -> OrderStatus | None:
         current_index = self.STATUS_ORDER.index(self.status)
         if current_index + 1 < len(self.STATUS_ORDER):
@@ -460,6 +464,27 @@ class ExtractionOrder(Order):
         self.status = self.OrderStatus.PROCESSING
         self.save()
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
+
+    def order_selected_checked(
+        self,
+        sorting_order: list[str] | None = None,
+        selected_samples: list[str] | None = None,
+    ) -> None:
+        """
+        Partially set the order as checked by the lab staff,
+        generate a genlab id for the samples selected
+        """
+        self.internal_status = self.Status.CHECKED
+        self.status = self.OrderStatus.PROCESSING
+        self.save()
+
+        selected_sample_names = list(selected_samples.values_list("id", flat=True))
+
+        app.configure_task(name="generate-genlab-ids").defer(
+            order_id=self.id,
+            sorting_order=sorting_order,
+            selected_samples=selected_sample_names,
+        )
 
 
 class AnalysisOrder(Order):

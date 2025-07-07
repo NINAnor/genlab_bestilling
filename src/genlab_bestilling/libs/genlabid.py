@@ -63,7 +63,11 @@ def get_current_sequences(order_id: int | str) -> Any:
         return sequences
 
 
-def generate(order_id: int | str) -> None:
+def generate(
+    order_id: int | str,
+    sorting_order: list[str] | None = None,
+    selected_samples: list[Any] | None = None,
+) -> None:
     """
     wrapper to handle errors and reset the sequence to the current sequence value
     """

@@ -281,6 +281,12 @@ class Order(PolymorphicModel):
         verbose_name="Responsible staff",
         help_text="Staff members responsible for this order",
     )
+    is_seen = models.BooleanField(
+        default=False, help_text="If an order has been seen by a staff"
+    )
+    is_prioritized = models.BooleanField(
+        default=False, help_text="If an order should be prioritized internally"
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
@@ -300,6 +306,14 @@ class Order(PolymorphicModel):
     def to_draft(self) -> None:
         self.status = Order.OrderStatus.DRAFT
         self.confirmed_at = None
+        self.save()
+
+    def toggle_seen(self) -> None:
+        self.is_seen = not self.is_seen
+        self.save()
+
+    def toggle_prioritized(self) -> None:
+        self.is_prioritized = not self.is_prioritized
         self.save()
 
     def get_type(self) -> str:

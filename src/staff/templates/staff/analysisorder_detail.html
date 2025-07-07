@@ -17,6 +17,16 @@
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 
         <div class="ml-auto"></div>
+
+        {% if not object.is_seen %}
+            {% url 'staff:mark-as-seen' pk=object.id as mark_as_seen %}
+            <form method="post" action=mark_as_seen>
+                {% csrf_token %}
+                {% if form %}{{ form }}{% endif %}
+                <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>
+            </form>
+        {% endif %}
+
         {% if object.status == object.OrderStatus.DELIVERED %}
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}

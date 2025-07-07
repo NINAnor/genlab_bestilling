@@ -1,9 +1,10 @@
 import uuid
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,9 @@ from polymorphic.models import PolymorphicModel
 from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
+
+if TYPE_CHECKING:
+    from .models import Sample
 
 from . import managers
 from .libs.helpers import position_to_coordinates
@@ -302,6 +306,10 @@ class Order(PolymorphicModel):
         return "order"
 
     @property
+    def filled_genlab_count(self) -> int:
+        return self.samples.filter(genlab_id__isnull=False).count()
+
+    @property
     def next_status(self) -> OrderStatus | None:
         current_index = self.STATUS_ORDER.index(self.status)
         if current_index + 1 < len(self.STATUS_ORDER):
@@ -460,6 +468,27 @@ class ExtractionOrder(Order):
         self.status = self.OrderStatus.PROCESSING
         self.save()
         app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
+
+    def order_selected_checked(
+        self,
+        sorting_order: list[str] | None = None,
+        selected_samples: QuerySet["Sample"] | None = None,
+    ) -> None:
+        """
+        Partially set the order as checked by the lab staff,
+        generate a genlab id for the samples selected
+        """
+        self.internal_status = self.Status.CHECKED
+        self.status = self.OrderStatus.PROCESSING
+        self.save()
+
+        selected_sample_names = list(selected_samples.values_list("id", flat=True))
+
+        app.configure_task(name="generate-genlab-ids").defer(
+            order_id=self.id,
+            sorting_order=sorting_order,
+            selected_samples=selected_sample_names,
+        )
 
 
 class AnalysisOrder(Order):

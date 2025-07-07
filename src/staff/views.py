@@ -381,11 +381,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
                 _("The order was checked, GenLab IDs will be generated"),
             )
         except Exception as e:
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                f"Error: {str(e)}",
-            )
+            messages.error(self.request, f"Error: {str(e)}")
 
         return super().form_valid(form)
 
@@ -511,6 +507,54 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
+
+
+class GenerateGenlabIDsView(
+    SingleObjectMixin, StaffMixin, SingleTableMixin, FilterView
+):
+    model = ExtractionOrder
+
+    def get_object(self) -> ExtractionOrder:
+        return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        selected_ids = request.POST.getlist("checked")
+
+        if not selected_ids:
+            messages.error(request, "No samples were selected.")
+            return HttpResponseRedirect(self.get_return_url())
+
+        sort_param = request.POST.get("sort", "")
+        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
+
+        selected_samples = Sample.objects.filter(pk__in=selected_ids)
+
+        if sorting_order:
+            selected_samples = selected_samples.order_by(*sorting_order)
+
+        try:
+            self.object.order_selected_checked(
+                sorting_order=sorting_order, selected_samples=selected_samples
+            )
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+            )
+        except Exception as e:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Error: {str(e)}",
+            )
+
+        return HttpResponseRedirect(self.get_return_url())
+
+    def get_return_url(self) -> str:
+        return reverse_lazy(
+            "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
+        )
 
 
 class ExtractionPlateCreateView(StaffMixin, CreateView):

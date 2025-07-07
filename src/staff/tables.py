@@ -1,6 +1,8 @@
 from typing import Any
 
 import django_tables2 as tables
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -139,6 +141,17 @@ class SampleBaseTable(tables.Table):
         verbose_name="",
     )
 
+    checked = tables.CheckBoxColumn(
+        attrs={
+            "th__input": {"type": "checkbox", "id": "select-all-checkbox"},
+        },
+        accessor="pk",
+        orderable=False,
+        empty_values=(),
+    )
+
+    name = tables.Column(order_by=("name_as_int",))
+
     class Meta:
         model = Sample
         fields = [
@@ -154,16 +167,40 @@ class SampleBaseTable(tables.Table):
             "plate_positions",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-        sequence = ("is_prioritised", "genlab_id", "guid", "name", "species", "type")
-        order_by = ("-is_prioritised", "species", "genlab_id", "name")
+        sequence = (
+            "checked",
+            "is_prioritised",
+            "genlab_id",
+            "guid",
+            "name",
+            "species",
+            "type",
+        )
+        order_by = (
+            "-is_prioritised",
+            "species",
+            "genlab_id",
+            "name_as_int",
+        )
 
         empty_text = "No Samples"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self.data, "data"):
+            self.data.data = self.data.data.annotate(
+                name_as_int=Cast("name", output_field=IntegerField())
+            )
 
     def render_plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])
 
         return ""
+
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
 
 
 def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Table]:

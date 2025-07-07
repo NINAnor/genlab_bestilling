@@ -303,13 +303,6 @@ class PlateTable(tables.Table):
         empty_text = "No Plates"
 
 
-FLAG_OUTLINE = "<i class='fa-regular fa-flag fa-lg' title='Normal'></i>"
-FLAG_FILLED = "<i class='fa-solid fa-flag fa-lg' title='Prioritized'></i>"
-URGENT_FILLED = (
-    "<i class='fa-solid fa-exclamation fa-lg text-red-500' title='Urgent'></i>"
-)
-
-
 class StatusMixinTable(tables.Table):
     status = tables.Column(
         orderable=False,
@@ -373,7 +366,14 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
         template_name = "django_tables2/tailwind_inner.html"
 
 
-class NewOrderTable(StaffIDMixinTable):
+class NewUnseenOrderTable(StaffIDMixinTable):
+    seen = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Seen",
+        template_name="staff/components/seen_column.html",
+        empty_values=(),
+    )
+
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
@@ -404,22 +404,61 @@ class NewOrderTable(StaffIDMixinTable):
 
     class Meta:
         model = Order
-        fields = ["id", "description", "delivery_date", "samples"]
-        empty_text = "No new orders"
+        fields = ["id", "description", "delivery_date", "samples", "seen"]
+        empty_text = "No new unseen orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class NewSeenOrderTable(StaffIDMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    def render_samples(self, value: int) -> str:
+        if value > 0:
+            return str(value)
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["priority", "id", "description", "delivery_date", "samples"]
+        empty_text = "No new seen orders"
         template_name = "django_tables2/tailwind_inner.html"
 
 
 class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
-    priority = tables.Column(
+    priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="is_urgent",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
     )
-
-    def render_priority(self, value: bool) -> str:
-        if value:
-            return mark_safe(URGENT_FILLED)  # noqa: S308
-        return ""
 
     samples_completed = tables.Column(
         accessor="sample_count",

@@ -660,3 +660,29 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
+
+
+class OrderSeenAdminView(StaffMixin, ActionView):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        pk = kwargs.get("pk")
+        order = Order.objects.get(pk=pk)
+        order.toggle_seen()
+
+        return HttpResponseRedirect(
+            reverse(
+                "staff:dashboard",
+            )
+        )
+
+
+class OrderPrioritizedAdminView(StaffMixin, ActionView):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        pk = kwargs.get("pk")
+        order = Order.objects.get(pk=pk)
+        order.toggle_prioritized()
+
+        return HttpResponseRedirect(
+            reverse(
+                "staff:dashboard",
+            )
+        )

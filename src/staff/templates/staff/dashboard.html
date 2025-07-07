@@ -24,7 +24,8 @@
   <div class="grid grid-cols-2 gap-4">
     <div class="flex flex-col gap-8">
       {% urgent_orders_table area=area %}
-      {% new_orders_table area=area %}
+      {% new_unseen_orders_table area=area %}
+      {% new_seen_orders_table area=area %}
     </div>
 
     <div class="flex flex-col gap-8">

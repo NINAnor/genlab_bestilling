@@ -28,10 +28,18 @@
         <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
-        {% if object.status != object.OrderStatus.DRAFT%}
-            <div class="ml-auto"></div>
+
+        <div class="ml-auto"></div>
+        {% if object.status == object.OrderStatus.DELIVERED %}
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
+        {% endif %}
+
+        {% if object.status != object.OrderStatus.DRAFT and object.next_status %}
+            {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
+            {% with "Set as "|add:object.next_status as btn_name %}
+                {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
+            {% endwith %}
         {% endif %}
     </div>
 {% endblock %}

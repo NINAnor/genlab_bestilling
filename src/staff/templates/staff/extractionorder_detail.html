@@ -3,30 +3,22 @@
 
 
 {% block content %}
-    {% fragment as table_header %}
-    {% #table-cell header=True %}GUID{% /table-cell %}
-    {% #table-cell header=True %}Type{% /table-cell %}
-    {% #table-cell header=True %}Species{% /table-cell %}
-    {% #table-cell header=True %}Markers{% /table-cell %}
-    {% #table-cell header=True %}Location{% /table-cell %}
-    {% #table-cell header=True %}Date{% /table-cell %}
-    {% #table-cell header=True %}Volume{% /table-cell %}
-    {% endfragment %}
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
-    </div>
-
-    {% object-detail object=object %}
-
-
-    <h5 class="text-2xl my-5">Delivered Samples</h5>
-    <div class="bg-white p-4">
-        <p>{{ object.samples.count }} samples were delivered</p>
-    </div>
+    <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
         <a class="btn bg-yellow-200" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
+        {% if analysis_orders|length > 1 %}
+            <select id="analysis-select" class="btn bg-yellow-200" onchange="if(this.value) { window.location.href = this.value; }" style="width: 13rem;">
+            <option value="">Go to Analysis Order</option>
+            {% for ao in analysis_orders %}
+                <option value="{% url 'staff:order-analysis-detail' pk=ao.id %}">{{ ao }}</option>
+            {% endfor %}
+            </select>
+        {% elif analysis_orders|length == 1 %}
+            <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
+        {% endif %}
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 
         <div class="ml-auto"></div>
@@ -46,5 +38,23 @@
                 {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
             {% endwith %}
         {% endif %}
+
+    </div>
+
+    {% fragment as table_header %}
+    {% #table-cell header=True %}GUID{% /table-cell %}
+    {% #table-cell header=True %}Type{% /table-cell %}
+    {% #table-cell header=True %}Species{% /table-cell %}
+    {% #table-cell header=True %}Markers{% /table-cell %}
+    {% #table-cell header=True %}Location{% /table-cell %}
+    {% #table-cell header=True %}Date{% /table-cell %}
+    {% #table-cell header=True %}Volume{% /table-cell %}
+    {% endfragment %}
+
+    {% object-detail object=object %}
+
+    <h5 class="text-2xl my-5">Delivered Samples</h5>
+    <div class="bg-white p-4">
+        <p>{{ object.samples.count }} samples were delivered</p>
     </div>
 {% endblock %}

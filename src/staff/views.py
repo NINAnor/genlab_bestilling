@@ -172,6 +172,12 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        extraction_order = self.object
+        context["analysis_orders"] = extraction_order.analysis_orders.all()
+        return context
+
 
 class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_pagination = False

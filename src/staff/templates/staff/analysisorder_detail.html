@@ -3,30 +3,15 @@
 
 
 {% block content %}
-    {% fragment as table_header %}
-    {% #table-cell header=True %}GUID{% /table-cell %}
-    {% #table-cell header=True %}Type{% /table-cell %}
-    {% #table-cell header=True %}Species{% /table-cell %}
-    {% #table-cell header=True %}Markers{% /table-cell %}
-    {% #table-cell header=True %}Location{% /table-cell %}
-    {% #table-cell header=True %}Date{% /table-cell %}
-    {% #table-cell header=True %}Volume{% /table-cell %}
-    {% endfragment %}
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
-    </div>
-
-    {% object-detail object=object %}
-
-
-    <h5 class="text-2xl my-5">Samples to analyze</h5>
-    <div class="bg-white p-4">
-        <p>Selected {{ object.samples.count }} samples</p>
-    </div>
+    <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
         <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
+
+        <a class="btn bg-primary" href="{% url 'staff:order-extraction-detail' pk=extraction_order.id %}">Go to {{ extraction_order}}</a>
+
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 
         <div class="ml-auto"></div>
@@ -42,4 +27,23 @@
             {% endwith %}
         {% endif %}
     </div>
+
+    {% fragment as table_header %}
+    {% #table-cell header=True %}GUID{% /table-cell %}
+    {% #table-cell header=True %}Type{% /table-cell %}
+    {% #table-cell header=True %}Species{% /table-cell %}
+    {% #table-cell header=True %}Markers{% /table-cell %}
+    {% #table-cell header=True %}Location{% /table-cell %}
+    {% #table-cell header=True %}Date{% /table-cell %}
+    {% #table-cell header=True %}Volume{% /table-cell %}
+    {% endfragment %}
+
+    {% object-detail object=object %}
+
+
+    <h5 class="text-2xl my-5">Samples to analyze</h5>
+    <div class="bg-white p-4">
+        <p>Selected {{ object.samples.count }} samples</p>
+    </div>
+
 {% endblock %}

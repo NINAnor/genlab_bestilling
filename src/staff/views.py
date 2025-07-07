@@ -168,6 +168,12 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class AnalysisOrderDetailView(StaffMixin, DetailView):
     model = AnalysisOrder
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        analysis_order = self.object
+        context["extraction_order"] = analysis_order.from_order
+        return context
+
 
 class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder

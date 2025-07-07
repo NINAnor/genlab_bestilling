@@ -594,6 +594,10 @@ class Sample(models.Model):
     )
 
     objects = managers.SampleQuerySet.as_manager()
+    is_prioritised = models.BooleanField(
+        default=False,
+        help_text="Check this box if the sample is prioritised for processing",
+    )
 
     def __str__(self) -> str:
         return self.genlab_id or f"#SMP_{self.id}"

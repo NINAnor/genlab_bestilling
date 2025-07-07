@@ -18,6 +18,7 @@ from django_tables2.views import SingleTableMixin
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    Area,
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
@@ -67,22 +68,25 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 class DashboardView(StaffMixin, TemplateView):
     template_name = "staff/dashboard.html"
 
+    def get_area_from_query(self) -> Area | None:
+        area_id = self.request.GET.get("area")
+        if area_id:
+            try:
+                return Area.objects.get(pk=area_id)
+            except Area.DoesNotExist:
+                return None
+        return None
+
+    def get_areas(self) -> models.QuerySet[Area]:
+        return Area.objects.all().order_by("name")
+
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        urgent_orders = Order.objects.filter(
-            is_urgent=True,
-            status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
-        ).order_by("-created_at")
-        context["urgent_orders"] = urgent_orders
-
-        delivered_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
-
-        context["delivered_orders"] = delivered_orders
-        context["assigned_orders"] = self.request.user.responsible_orders.filter(
-            status__in=[Order.OrderStatus.DELIVERED, Order.OrderStatus.PROCESSING]
-        ).order_by("-created_at")
         context["now"] = now()
+        context["areas"] = self.get_areas()
+        context["area"] = self.get_area_from_query()
+
         return context
 
 

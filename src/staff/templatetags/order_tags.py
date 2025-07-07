@@ -1,0 +1,107 @@
+from django import template
+from django.db import models
+
+from genlab_bestilling.models import Area, Order
+
+from ..tables import AssignedOrderTable, NewOrderTable, UrgentOrderTable
+
+register = template.Library()
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
+    urgent_orders = Order.objects.filter(
+        is_urgent=True,
+        status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
+    ).select_related("genrequest")
+
+    if area:
+        urgent_orders = urgent_orders.filter(genrequest__area=area)
+
+    urgent_orders = urgent_orders.only(
+        "id", "genrequest__name", "genrequest__expected_samples_delivery_date", "status"
+    ).order_by(
+        models.Case(
+            models.When(status=Order.OrderStatus.PROCESSING, then=0),
+            models.When(status=Order.OrderStatus.DELIVERED, then=1),
+            models.When(status=Order.OrderStatus.COMPLETED, then=2),
+            default=3,
+            output_field=models.IntegerField(),
+        ),
+        "-created_at",
+    )
+
+    return {
+        "title": "Urgent orders",
+        "table": UrgentOrderTable(urgent_orders),
+        "count": urgent_orders.count(),
+        "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def new_orders_table(context: dict, area: Area | None = None) -> dict:
+    new_orders = (
+        Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        .select_related("genrequest")
+        .annotate(sample_count=models.Count("extractionorder__samples"))
+        .only(
+            "id",
+            "genrequest__name",
+            "genrequest__expected_samples_delivery_date",
+            "status",
+        )
+        .order_by("status")
+    )
+
+    if area:
+        new_orders = new_orders.filter(genrequest__area=area)
+
+    new_orders = new_orders.order_by("-created_at")
+
+    return {
+        "title": "New orders",
+        "table": NewOrderTable(new_orders),
+        "count": new_orders.count(),
+        "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def assigned_orders_table(context: dict) -> dict:
+    assigned_orders = (
+        Order.objects.filter(
+            status__in=[
+                Order.OrderStatus.PROCESSING,
+                Order.OrderStatus.DELIVERED,
+                Order.OrderStatus.COMPLETED,
+            ]
+        )
+        .select_related("genrequest")
+        .annotate(
+            sample_count=models.Count("extractionorder__samples"),
+        )
+        .only(
+            "id",
+            "genrequest__name",
+            "genrequest__expected_samples_delivery_date",
+            "status",
+        )
+        .order_by(
+            models.Case(
+                models.When(status=Order.OrderStatus.PROCESSING, then=0),
+                models.When(status=Order.OrderStatus.DELIVERED, then=1),
+                models.When(status=Order.OrderStatus.COMPLETED, then=2),
+                default=3,
+                output_field=models.IntegerField(),
+            ),
+            "-created_at",
+        )
+    )
+
+    return {
+        "title": "My orders",
+        "table": AssignedOrderTable(assigned_orders),
+        "count": assigned_orders.count(),
+        "request": context.get("request"),
+    }

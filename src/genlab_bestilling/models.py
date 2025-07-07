@@ -390,6 +390,9 @@ class EquipmentOrder(Order):
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-equipment-detail", kwargs={"pk": self.pk})
+
     def confirm_order(self) -> Any:
         if not EquimentOrderQuantity.objects.filter(order=self).exists():
             raise Order.CannotConfirm(_("No equipments found"))
@@ -427,6 +430,9 @@ class ExtractionOrder(Order):
             "genrequest-extraction-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-extraction-detail", kwargs={"pk": self.pk})
 
     def clone(self) -> None:
         """
@@ -527,6 +533,9 @@ class AnalysisOrder(Order):
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-analysis-detail", kwargs={"pk": self.pk})
 
     def get_type(self) -> str:
         return "analysis"

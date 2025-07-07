@@ -443,7 +443,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
     def get_queryset(self) -> models.QuerySet[Order]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
+        return super().get_queryset()
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object: Order = self.get_object()

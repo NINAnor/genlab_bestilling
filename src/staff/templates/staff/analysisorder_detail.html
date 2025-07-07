@@ -28,7 +28,7 @@
         <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}">Samples</a>
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
-        {% if object.status == object.OrderStatus.DELIVERED %}
+        {% if object.status != object.OrderStatus.DRAFT%}
             <div class="ml-auto"></div>
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}

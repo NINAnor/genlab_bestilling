@@ -29,15 +29,16 @@
         <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 
+        <div class="ml-auto"></div>
         {% if object.status == object.OrderStatus.DELIVERED %}
-            <div class="ml-auto"></div>
             {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
-            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
-
             {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
-            {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
 
+        {% if object.status != object.OrderStatus.DRAFT %}
+            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
+            {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
+        {% endif %}
 
         {% if object.next_status %}
             {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}

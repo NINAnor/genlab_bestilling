@@ -1,7 +1,7 @@
 <textarea
-    id="note-input-{{ record.pk }}"
-    class="note-input w-52 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg resize-none placeholder:text-gray-400 placeholder:italic"
+    id="internal_note-input-{{ record.pk }}"
+    class="internal_note-input w-52 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg resize-none placeholder:text-gray-400 placeholder:italic"
     data-sample-id="{{ record.pk }}"
     placeholder="Write a note..."
->{{ record.note|default:'' }}
+>{{ record.internal_note|default:'' }}
 </textarea>

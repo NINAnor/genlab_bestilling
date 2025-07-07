@@ -636,7 +636,7 @@ class Sample(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     # "Merknad" in the Excel sheet.
-    note = models.TextField(null=True, blank=True)
+    internal_note = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
     location = models.ForeignKey(
         f"{an}.Location", on_delete=models.PROTECT, null=True, blank=True

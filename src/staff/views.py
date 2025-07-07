@@ -389,8 +389,8 @@ class UpdateLabViewFields(StaffMixin, ActionView):
         try:
             sample = Sample.objects.get(id=sample_id)
 
-            if field_name == "note-input":
-                sample.note = field_value
+            if field_name == "internal_note-input":
+                sample.internal_note = field_value
                 sample.save()
 
             return JsonResponse({"success": True})

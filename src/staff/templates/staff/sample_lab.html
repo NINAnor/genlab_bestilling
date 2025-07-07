@@ -26,7 +26,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const selectAll = document.getElementById('select-all-checkbox');
-        const noteInputs = document.querySelectorAll('.note-input');
+        const noteInputs = document.querySelectorAll('.internal_note-input');
 
         selectAll?.addEventListener('change', function() {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -42,7 +42,7 @@
                 const value = event.target.value;
                 const formData = new FormData();
                 formData.append("sample_id", sampleId);
-                formData.append("field_name", "note-input");
+                formData.append("field_name", "internal_note-input");
                 formData.append("field_value", value);
                 formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
 

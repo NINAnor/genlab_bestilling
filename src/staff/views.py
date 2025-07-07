@@ -4,6 +4,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
+from django.db.models import Count
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -121,6 +122,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types")
+            .annotate(sample_count=Count("samples"))
         )
 
 

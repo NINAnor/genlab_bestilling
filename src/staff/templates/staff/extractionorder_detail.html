@@ -10,14 +10,29 @@
         <a class="btn bg-yellow-200" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
         {% if analysis_orders|length > 1 %}
-            <select id="analysis-select" class="btn bg-yellow-200" onchange="if(this.value) { window.location.href = this.value; }" style="width: 13rem;">
-            <option value="">Go to Analysis Order</option>
-            {% for ao in analysis_orders %}
-                <option value="{% url 'staff:order-analysis-detail' pk=ao.id %}">{{ ao }}</option>
-            {% endfor %}
-            </select>
+        <div class="relative inline-block text-left">
+            <button type="button"
+              onclick="document.getElementById('dropdown-menu').classList.toggle('hidden')"
+              class="btn bg-primary"
+            >
+              Go to Analysis Order
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+
+            <div id="dropdown-menu"
+                 class="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg hidden"
+                 role="menu" aria-orientation="vertical" aria-labelledby="dropdownMenuButton">
+              {% for ao in analysis_orders %}
+                <a href="{% url 'staff:order-analysis-detail' pk=ao.id %}"
+                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                   role="menuitem">
+                   {{ ao }}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
         {% elif analysis_orders|length == 1 %}
-            <a class="btn bg-yellow-200" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
+            <a class="btn bg-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
         {% endif %}
         <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
 
@@ -38,7 +53,6 @@
                 {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
             {% endwith %}
         {% endif %}
-
     </div>
 
     {% fragment as table_header %}

@@ -1,0 +1,4 @@
+<form method="post" action="{% url 'staff:order-seen' pk=record.pk %}">
+  {% csrf_token %}
+  <input title="Mark as seen" onchange="this.form.submit()" type="checkbox" class="size-4 border rounded" />
+</form>

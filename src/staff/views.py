@@ -381,11 +381,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
                 _("The order was checked, GenLab IDs will be generated"),
             )
         except Exception as e:
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                f"Error: {str(e)}",
-            )
+            messages.error(self.request, f"Error: {str(e)}")
 
         return super().form_valid(form)
 

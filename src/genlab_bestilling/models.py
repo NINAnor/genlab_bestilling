@@ -1,9 +1,10 @@
 import uuid
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,9 @@ from polymorphic.models import PolymorphicModel
 from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
+
+if TYPE_CHECKING:
+    from .models import Sample
 
 from . import managers
 from .libs.helpers import position_to_coordinates
@@ -468,7 +472,7 @@ class ExtractionOrder(Order):
     def order_selected_checked(
         self,
         sorting_order: list[str] | None = None,
-        selected_samples: list[str] | None = None,
+        selected_samples: QuerySet["Sample"] | None = None,
     ) -> None:
         """
         Partially set the order as checked by the lab staff,

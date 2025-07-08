@@ -53,13 +53,14 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
         .select_related("genrequest")
         .annotate(
             sample_count=models.Count("extractionorder__samples"),
-        )
-        .annotate(
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
                 default=1,
-            )
+            ),
+        )
+        .prefetch_related(
+            "analysisorder__markers",
         )
     )
 
@@ -82,7 +83,12 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
         Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=False)
         .exclude(is_urgent=True)
         .select_related("genrequest")
-        .annotate(sample_count=models.Count("extractionorder__samples"))
+        .annotate(
+            sample_count=models.Count("extractionorder__samples"),
+        )
+        .prefetch_related(
+            "analysisorder__markers",
+        )
     )
 
     if area:

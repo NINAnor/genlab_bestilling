@@ -351,25 +351,38 @@ class SampleLabView(StaffMixin, TemplateView):
             return HttpResponseRedirect(self.get_success_url())
 
         order = self.get_order()
+        statuses = SampleStatus.objects.filter(
+            area=order.genrequest.area,
+        ).all()
 
-        try:
-            # Get status based on name and area to ensure only one status is returned
-            status = SampleStatus.objects.get(
-                name=status_name, area=order.genrequest.area
-            )
-        except SampleStatus.DoesNotExist:
-            messages.error(request, f"Status '{status_name}' not found.")
+        # Check if the provided status exists
+        if status_name not in [status.name for status in statuses]:
+            messages.error(request, f"Status '{status_name}' is not valid.")
             return HttpResponseRedirect(self.get_success_url())
 
+        # Get the selected samples
         samples = Sample.objects.filter(id__in=selected_ids)
 
-        # Create status assignments if not existing
+        # Get the selected status and all statuses with a lower or equal weight
+        selected_status = statuses.filter(name=status_name).first()
+        statuses_to_apply = statuses.filter(weight__lte=selected_status.weight)
+
+        # Apply status assignments
+        assignments = []
         for sample in samples:
-            SampleStatusAssignment.objects.get_or_create(
-                sample=sample,
-                status=status,
-                order=order,
-            )
+            for status in statuses_to_apply:
+                assignments.append(
+                    SampleStatusAssignment(
+                        sample=sample,
+                        status=status,
+                        order=order,
+                    )
+                )
+
+        SampleStatusAssignment.objects.bulk_create(
+            assignments,
+            ignore_conflicts=True,
+        )
 
         messages.success(
             request, f"{len(samples)} samples updated with status '{status_name}'."

@@ -52,7 +52,17 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
         .exclude(is_urgent=True)
         .select_related("genrequest")
         .annotate(
-            sample_count=models.Count("extractionorder__samples"),
+            sample_count=models.Case(
+                models.When(
+                    extractionorder__isnull=False,
+                    then=models.Count("extractionorder__samples", distinct=True),
+                ),
+                models.When(
+                    analysisorder__isnull=False,
+                    then=models.Count("analysisorder__samples", distinct=True),
+                ),
+                default=0,
+            ),
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
@@ -84,7 +94,17 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
         .exclude(is_urgent=True)
         .select_related("genrequest")
         .annotate(
-            sample_count=models.Count("extractionorder__samples"),
+            sample_count=models.Case(
+                models.When(
+                    extractionorder__isnull=False,
+                    then=models.Count("extractionorder__samples", distinct=True),
+                ),
+                models.When(
+                    analysisorder__isnull=False,
+                    then=models.Count("analysisorder__samples", distinct=True),
+                ),
+                default=0,
+            )
         )
         .prefetch_related(
             "analysisorder__markers",
@@ -116,14 +136,12 @@ def assigned_orders_table(context: dict) -> dict:
         )
         .select_related("genrequest")
         .annotate(
-            sample_count=models.Count("extractionorder__samples"),
-        )
-        .annotate(
+            sample_count=models.Count("extractionorder__samples", distinct=True),
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
                 default=1,
-            )
+            ),
         )
         .order_by(
             models.Case(

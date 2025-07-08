@@ -652,6 +652,13 @@ class Sample(models.Model):
         related_name="samples",
         blank=True,
     )
+    isolation_method = models.ManyToManyField(
+        f"{an}.IsolationMethod",
+        related_name="samples",
+        through=f"{an}.SampleIsolationMethod",
+        blank=True,
+        help_text="The isolation method used for this sample",
+    )
 
     objects = managers.SampleQuerySet.as_manager()
     is_prioritised = models.BooleanField(
@@ -786,8 +793,31 @@ class SampleStatusAssignment(models.Model):
         unique_together = ("sample", "status", "order")
 
 
+class SampleIsolationMethod(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="isolation_methods",
+    )
+    isolation_method = models.ForeignKey(
+        f"{an}.IsolationMethod",
+        on_delete=models.CASCADE,
+        related_name="sample_isolation_methods",
+    )
+
+    class Meta:
+        unique_together = ("sample", "isolation_method")
+
+
 class IsolationMethod(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    species = models.ForeignKey(
+        f"{an}.Species",
+        on_delete=models.CASCADE,
+        related_name="species_isolation_methods",
+        help_text="The species this isolation method is related to.",
+        default=None,
+    )
 
     def __str__(self) -> str:
         return self.name

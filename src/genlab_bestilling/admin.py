@@ -15,6 +15,7 @@ from .models import (
     ExtractionPlate,
     ExtractPlatePosition,
     Genrequest,
+    IsolationMethod,
     Location,
     LocationType,
     Marker,
@@ -532,3 +533,7 @@ class SampleStatusAdmin(ModelAdmin): ...
 
 @admin.register(SampleStatusAssignment)
 class SampleStatusAssignmentAdmin(ModelAdmin): ...
+
+
+@admin.register(IsolationMethod)
+class IsolationMethodAdmin(ModelAdmin): ...

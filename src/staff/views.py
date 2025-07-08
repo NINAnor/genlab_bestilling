@@ -188,6 +188,8 @@ class MarkAsSeenView(StaffMixin, DetailView):
             return ExtractionOrder
         elif order_type == "analysis":
             return AnalysisOrder
+        elif order_type == "dashboard":
+            return Order
         raise ValueError("Unknown order type")
 
     def get_object(self) -> ExtractionOrder | AnalysisOrder:
@@ -206,6 +208,10 @@ class MarkAsSeenView(StaffMixin, DetailView):
 
     def get_return_url(self) -> str:
         order_type = self.kwargs.get("order_type")
+
+        if order_type == "dashboard":
+            return reverse("staff:dashboard")
+
         detail_name = (
             "staff:order-extraction-detail"
             if order_type == "extraction"
@@ -735,19 +741,6 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
-
-
-class OrderSeenAdminView(StaffMixin, ActionView):
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        pk = kwargs.get("pk")
-        order = Order.objects.get(pk=pk)
-        order.toggle_seen()
-
-        return HttpResponseRedirect(
-            reverse(
-                "staff:dashboard",
-            )
-        )
 
 
 class OrderPrioritizedAdminView(StaffMixin, ActionView):

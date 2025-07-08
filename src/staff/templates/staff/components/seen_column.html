@@ -1,4 +1,5 @@
-<form method="post" action="{% url 'staff:order-seen' pk=record.pk %}">
+<form method="post" action="{% url 'staff:mark-as-seen' pk=record.id  order_type='dashboard' %}">
   {% csrf_token %}
-  <input title="Mark as seen" onchange="this.form.submit()" type="checkbox" class="size-4 border rounded" />
+  {% comment %} <input title="Mark as seen" onchange="this.form.submit()" type="checkbox" class="size-4 border rounded" /> {% endcomment %}
+  <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>
 </form>

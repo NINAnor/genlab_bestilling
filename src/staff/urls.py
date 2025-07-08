@@ -13,6 +13,7 @@ from .views import (
     ExtractionPlateListView,
     GenerateGenlabIDsView,
     ManaullyCheckedOrderActionView,
+    MarkAsSeenView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
@@ -123,6 +124,11 @@ urlpatterns = [
         "orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="order-equipment-detail",
+    ),
+    path(
+        "order/<str:order_type>/<int:pk>/mark-as-seen/",
+        MarkAsSeenView.as_view(),
+        name="mark-as-seen",
     ),
     path(
         "orders/extraction/<int:pk>/",

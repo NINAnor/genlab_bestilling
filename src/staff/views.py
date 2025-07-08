@@ -179,6 +179,41 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
+class MarkAsSeenView(StaffMixin, DetailView):
+    model = Order
+
+    def get_model_class(self) -> type[ExtractionOrder | AnalysisOrder]:
+        order_type = self.kwargs.get("order_type")
+        if order_type == "extraction":
+            return ExtractionOrder
+        elif order_type == "analysis":
+            return AnalysisOrder
+        raise ValueError("Unknown order type")
+
+    def get_object(self) -> ExtractionOrder | AnalysisOrder:
+        model_class = self.get_model_class()
+        return model_class.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        try:
+            order = self.get_object()
+            order.toggle_seen()
+            messages.success(request, _("Order is marked as seen"))
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+
+        return HttpResponseRedirect(self.get_return_url())
+
+    def get_return_url(self) -> str:
+        order_type = self.kwargs.get("order_type")
+        detail_name = (
+            "staff:order-extraction-detail"
+            if order_type == "extraction"
+            else "staff:order-analysis-detail"
+        )
+        return reverse_lazy(detail_name, kwargs={"pk": self.kwargs.get("pk")})
+
+
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
 

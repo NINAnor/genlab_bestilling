@@ -69,9 +69,6 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
                 default=1,
             ),
         )
-        .prefetch_related(
-            "analysisorder__markers",
-        )
     )
 
     if area:
@@ -105,9 +102,6 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
                 ),
                 default=0,
             )
-        )
-        .prefetch_related(
-            "analysisorder__markers",
         )
     )
 

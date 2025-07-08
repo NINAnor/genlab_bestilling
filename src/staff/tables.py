@@ -480,6 +480,12 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
         template_name="staff/components/priority_column.html",
     )
 
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
     samples_completed = tables.Column(
         accessor="sample_count",
         verbose_name="Samples isolated",
@@ -493,6 +499,6 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
 
     class Meta:
         model = Order
-        fields = ["priority", "id", "samples_completed", "status"]
+        fields = ["priority", "id", "description", "samples_completed", "status"]
         empty_text = "No assigned orders"
         template_name = "django_tables2/tailwind_inner.html"

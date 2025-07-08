@@ -120,13 +120,16 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
 def assigned_orders_table(context: dict) -> dict:
+    user = context.get("user")
+
     assigned_orders = (
         Order.objects.filter(
             status__in=[
                 Order.OrderStatus.PROCESSING,
                 Order.OrderStatus.DELIVERED,
                 Order.OrderStatus.COMPLETED,
-            ]
+            ],
+            responsible_staff=user,
         )
         .select_related("genrequest")
         .annotate(

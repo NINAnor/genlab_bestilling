@@ -482,7 +482,7 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
 
     samples_completed = tables.Column(
         accessor="sample_count",
-        verbose_name="Samples completed",
+        verbose_name="Samples isolated",
         orderable=False,
     )
 

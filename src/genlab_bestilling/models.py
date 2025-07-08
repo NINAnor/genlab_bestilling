@@ -285,6 +285,7 @@ class Order(PolymorphicModel):
         related_name="responsible_orders",
         verbose_name="Responsible staff",
         help_text="Staff members responsible for this order",
+        blank=True,
     )
     is_seen = models.BooleanField(
         default=False, help_text="If an order has been seen by a staff"

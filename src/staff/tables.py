@@ -48,6 +48,12 @@ class OrderTable(tables.Table):
         orderable=False,
     )
 
+    is_seen = tables.Column(
+        orderable=False,
+        visible=True,
+        verbose_name="",
+    )
+
     class Meta:
         fields = [
             "name",
@@ -60,8 +66,9 @@ class OrderTable(tables.Table):
             "created_at",
             "last_modified_at",
             "is_urgent",
+            "is_seen",
         ]
-        sequence = ("is_urgent", "status", "id", "name")
+        sequence = ("is_seen", "is_urgent", "status", "id", "name")
         empty_text = "No Orders"
         order_by = ("-is_urgent", "last_modified_at", "created_at")
 
@@ -76,6 +83,14 @@ class OrderTable(tables.Table):
             return mark_safe(html_exclaimation_mark)  # noqa: S308
         else:
             return ""
+
+    def render_is_seen(self, value: bool) -> str:
+        if not value:
+            return mark_safe(
+                '<i class="fa-solid fa-bell text-yellow-500" '
+                'title="New within 24h"></i>'
+            )
+        return ""
 
 
 class AnalysisOrderTable(OrderTable):

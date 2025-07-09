@@ -38,5 +38,22 @@
 
     {% render_table table %}
   </form>
+
+  <form id="prioritise-form" method="post" action="{% url 'staff:order-extraction-samples' pk=order.pk %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="sample_id" id="prioritise-sample-id">
+  </form>
 {% endif %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll('.toggle-prioritise').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const sampleId = this.dataset.sampleId;
+          const form = document.getElementById('prioritise-form');
+          form.querySelector('#prioritise-sample-id').value = sampleId;
+          form.submit();
+        });
+      });
+    });
+    </script>
 {% endblock page-inner %}

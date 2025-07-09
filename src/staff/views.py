@@ -130,6 +130,25 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
 
+class OrderListView(StaffMixin, SingleTableMixin, FilterView):
+    model = Order
+    table_class = AnalysisOrderTable
+    filterset_class = AnalysisOrderFilter
+
+    def get_queryset(self) -> models.QuerySet[Order]:
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "genrequest",
+                "genrequest__samples_owner",
+                "genrequest__project",
+                "genrequest__area",
+            )
+            .prefetch_related("sample_types")
+        )
+
+
 class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
     model = ExtractionPlate
     table_class = PlateTable

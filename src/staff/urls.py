@@ -15,6 +15,7 @@ from .views import (
     ManaullyCheckedOrderActionView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
+    OrderListView,
     OrderPrioritizedAdminView,
     OrderSeenAdminView,
     OrderStaffEditView,
@@ -44,6 +45,7 @@ urlpatterns = [
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"
     ),
+    path("orders/", OrderListView.as_view(), name="order-list"),
     path(
         "orders/equipment/",
         EqupimentOrderListView.as_view(),

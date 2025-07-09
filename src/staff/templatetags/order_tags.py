@@ -5,6 +5,7 @@ from genlab_bestilling.models import Area, Order
 
 from ..tables import (
     AssignedOrderTable,
+    DraftOrderTable,
     NewSeenOrderTable,
     NewUnseenOrderTable,
     UrgentOrderTable,
@@ -157,5 +158,31 @@ def assigned_orders_table(context: dict) -> dict:
         "title": "My orders",
         "table": AssignedOrderTable(assigned_orders),
         "count": assigned_orders.count(),
+        "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("staff/components/order_table.html", takes_context=True)
+def draft_orders_table(context: dict, area: Area) -> dict:
+    draft_orders = (
+        Order.objects.filter(status=Order.OrderStatus.DRAFT)
+        .select_related("genrequest")
+        .annotate(
+            sample_count=models.Count("extractionorder__samples", distinct=True),
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                default=1,
+            ),
+        )
+        .order_by("-priority", "-created_at")
+    )
+
+    if area:
+        draft_orders = draft_orders.filter(genrequest__area=area)
+
+    return {
+        "title": "Draft orders",
+        "table": DraftOrderTable(draft_orders),
+        "count": draft_orders.count(),
         "request": context.get("request"),
     }

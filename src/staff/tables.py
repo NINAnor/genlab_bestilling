@@ -502,3 +502,54 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
         fields = ["priority", "id", "description", "samples_completed", "status"]
         empty_text = "No assigned orders"
         template_name = "django_tables2/tailwind_inner.html"
+
+
+class DraftOrderTable(StaffIDMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    markers = tables.ManyToManyColumn(
+        transform=lambda x: x.name,
+        verbose_name="Markers",
+        orderable=False,
+    )
+
+    class Meta:
+        model = Order
+        fields = [
+            "priority",
+            "id",
+            "description",
+            "delivery_date",
+            "markers",
+            "samples",
+        ]
+        empty_text = "No draft orders"
+        template_name = "django_tables2/tailwind_inner.html"

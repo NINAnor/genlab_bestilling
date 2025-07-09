@@ -179,6 +179,30 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
+class MarkAsSeenView(StaffMixin, DetailView):
+    model = Order
+
+    def get_object(self) -> Order:
+        return Order.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        try:
+            order = self.get_object()
+            order.toggle_seen()
+            messages.success(request, _("Order is marked as seen"))
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+
+        return_to = request.POST.get("return_to")
+        return HttpResponseRedirect(self.get_return_url(return_to))
+
+    def get_return_url(self, return_to: str) -> str:
+        if return_to == "dashboard":
+            return reverse("staff:dashboard")
+        else:
+            return self.get_object().get_absolute_staff_url()
+
+
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
 
@@ -700,19 +724,6 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
-
-
-class OrderSeenAdminView(StaffMixin, ActionView):
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        pk = kwargs.get("pk")
-        order = Order.objects.get(pk=pk)
-        order.toggle_seen()
-
-        return HttpResponseRedirect(
-            reverse(
-                "staff:dashboard",
-            )
-        )
 
 
 class OrderPrioritizedAdminView(StaffMixin, ActionView):

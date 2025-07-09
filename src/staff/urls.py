@@ -17,7 +17,6 @@ from .views import (
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
-    OrderSeenAdminView,
     OrderStaffEditView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
@@ -126,7 +125,7 @@ urlpatterns = [
         name="order-equipment-detail",
     ),
     path(
-        "order/<str:order_type>/<int:pk>/mark-as-seen/",
+        "order/mark-as-seen/<int:pk>/",
         MarkAsSeenView.as_view(),
         name="mark-as-seen",
     ),
@@ -150,7 +149,6 @@ urlpatterns = [
         ExtractionPlateDetailView.as_view(),
         name="plates-detail",
     ),
-    path("orders/<int:pk>/seen/", OrderSeenAdminView.as_view(), name="order-seen"),
     path(
         "orders/<int:pk>/priority/",
         OrderPrioritizedAdminView.as_view(),

@@ -22,8 +22,10 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    IsolationMethod,
     Order,
     Sample,
+    SampleIsolationMethod,
     SampleMarkerAnalysis,
     SampleStatus,
     SampleStatusAssignment,
@@ -314,11 +316,25 @@ class SampleLabView(StaffMixin, TemplateView):
         # Equivalent to: sample.status_name = True/False
         # based on whether the sample has that status
         for sample in samples:
+            sample.selected_isolation_method = (
+                sample.isolation_method.first()
+                if sample.isolation_method.exists()
+                else None
+            )
             status_names = sample_status_map.get(sample.id, set())
             for status in sample_status:
                 setattr(sample, status.name, status.name in status_names)
 
         return samples
+
+    def get_isolation_methods(self) -> list[str]:
+        order = self.get_order()
+        samples = Sample.objects.filter(order=order)
+        species_ids = samples.values_list("species_id", flat=True).distinct()
+
+        return IsolationMethod.objects.filter(species_id__in=species_ids).values_list(
+            "name", flat=True
+        )
 
     def get_base_fields(self) -> list[str]:
         return SampleStatus.objects.filter(
@@ -331,6 +347,7 @@ class SampleLabView(StaffMixin, TemplateView):
         context["statuses"] = SampleStatus.objects.filter(
             area=context["order"].genrequest.area
         )
+        context["isolation_methods"] = self.get_isolation_methods()
         table_class = create_sample_table(base_fields=self.get_base_fields())
         context["table"] = table_class(
             self.get_data(),
@@ -345,25 +362,36 @@ class SampleLabView(StaffMixin, TemplateView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         status_name = request.POST.get("status")
         selected_ids = request.POST.getlist("checked")
+        isolation_method = request.POST.get("isolation_method")
 
-        if not selected_ids or not status_name:
-            messages.error(request, "No samples or status selected.")
+        if not selected_ids:
+            messages.error(request, "No samples selected.")
             return HttpResponseRedirect(self.get_success_url())
 
         order = self.get_order()
+        samples = Sample.objects.filter(id__in=selected_ids)
 
+        if status_name:
+            self.assign_status_to_samples(samples, status_name, order, request)
+        if isolation_method:
+            self.update_isolation_methods(samples, isolation_method, request)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def assign_status_to_samples(
+        self,
+        samples: models.QuerySet,
+        status_name: str,
+        order: ExtractionOrder,
+        request: HttpRequest,
+    ) -> None:
         try:
-            # Get status based on name and area to ensure only one status is returned
             status = SampleStatus.objects.get(
                 name=status_name, area=order.genrequest.area
             )
         except SampleStatus.DoesNotExist:
             messages.error(request, f"Status '{status_name}' not found.")
-            return HttpResponseRedirect(self.get_success_url())
+            return
 
-        samples = Sample.objects.filter(id__in=selected_ids)
-
-        # Create status assignments if not existing
         for sample in samples:
             SampleStatusAssignment.objects.get_or_create(
                 sample=sample,
@@ -372,12 +400,38 @@ class SampleLabView(StaffMixin, TemplateView):
             )
 
         messages.success(
-            request, f"{len(samples)} samples updated with status '{status_name}'."
+            request, f"{samples.count()} samples updated with status '{status_name}'."
         )
-        return HttpResponseRedirect(self.get_success_url())
+
+    def update_isolation_methods(
+        self, samples: models.QuerySet, isolation_method: str, request: HttpRequest
+    ) -> None:
+        selected_isolation_method = IsolationMethod.objects.filter(
+            name=isolation_method
+        ).first()
+
+        try:
+            im = IsolationMethod.objects.get(name=selected_isolation_method.name)
+        except IsolationMethod.DoesNotExist:
+            messages.error(
+                request,
+                f"Isolation method '{selected_isolation_method.name}' not found.",
+            )
+            return
+
+        for sample in samples:
+            # Remove any existing methods for this sample
+            SampleIsolationMethod.objects.filter(sample=sample).delete()
+
+            # Add the new one
+            SampleIsolationMethod.objects.create(sample=sample, isolation_method=im)
+        messages.success(
+            request,
+            f"{samples.count()} samples updated with isolation method '{isolation_method}'.",  # noqa: E501
+        )
 
 
-class UpdateLabViewFields(StaffMixin, ActionView):
+class UpdateInternalNote(StaffMixin, ActionView):
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
         sample_id = request.POST.get("sample_id")
         field_name = request.POST.get("field_name")

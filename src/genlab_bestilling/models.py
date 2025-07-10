@@ -485,7 +485,6 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
-    @transaction.atomic
     def order_manually_checked(self) -> None:
         """
         Set the order as checked by the lab staff, generate a genlab id
@@ -493,8 +492,8 @@ class ExtractionOrder(Order):
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
         self.save(update_fields=["internal_status", "status"])
-        Sample.objects.generate_genlab_ids(order_id=self.id)
 
+    @transaction.atomic
     def order_selected_checked(
         self,
         sorting_order: list[str] | None = None,
@@ -506,14 +505,15 @@ class ExtractionOrder(Order):
         """
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
-        self.save()
+        self.save(update_fields=["internal_status", "status"])
 
-        selected_sample_names = list(selected_samples.values_list("id", flat=True))
+        if not selected_samples.exists():
+            return
 
-        app.configure_task(name="generate-genlab-ids").defer(
+        Sample.objects.generate_genlab_ids(
             order_id=self.id,
             sorting_order=sorting_order,
-            selected_samples=selected_sample_names,
+            selected_samples=selected_samples,
         )
 
 

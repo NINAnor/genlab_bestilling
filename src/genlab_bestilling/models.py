@@ -9,7 +9,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
-from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
@@ -492,9 +491,9 @@ class ExtractionOrder(Order):
         """
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
-        self.save()
-        app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
+        self.save(update_fields=["internal_status", "status"])
 
+    @transaction.atomic
     def order_selected_checked(
         self,
         sorting_order: list[str] | None = None,
@@ -506,14 +505,15 @@ class ExtractionOrder(Order):
         """
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
-        self.save()
+        self.save(update_fields=["internal_status", "status"])
 
-        selected_sample_names = list(selected_samples.values_list("id", flat=True))
+        if not selected_samples.exists():
+            return
 
-        app.configure_task(name="generate-genlab-ids").defer(
+        Sample.objects.generate_genlab_ids(
             order_id=self.id,
             sorting_order=sorting_order,
-            selected_samples=selected_sample_names,
+            selected_samples=selected_samples,
         )
 
 
@@ -738,6 +738,23 @@ class Sample(models.Model):
 
         return False
 
+    @transaction.atomic
+    def generate_genlab_id(self, commit: bool = True) -> str:
+        if self.genlab_id:
+            return self.genlab_id
+        species = self.species
+        year = self.order.confirmed_at.year
+
+        sequence = GIDSequence.objects.get_sequence_for_species_year(
+            year=year, species=species, lock=True
+        )
+        self.genlab_id = sequence.next_value()
+
+        if commit:
+            self.save(update_fields=["genlab_id"])
+
+        return self.genlab_id
+
 
 # class Analysis(models.Model):
 # type =
@@ -852,3 +869,49 @@ class AnalysisResult(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+
+class GIDSequence(models.Model):
+    """
+    Represents a sequence of IDs
+    This table provides a way to atomically update
+    the counter of each combination of (species, year)
+
+    NOTE: this replaces the usage of postgres sequences,
+        while probably slower, this table can be atomically updated
+    """
+
+    id = models.CharField(primary_key=True)
+    last_value = models.IntegerField(default=0)
+    year = models.IntegerField()
+    species = models.ForeignKey(
+        f"{an}.Species", on_delete=models.PROTECT, db_constraint=False
+    )
+    sample = models.OneToOneField(
+        f"{an}.Sample",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="replica_sequence",
+    )
+
+    def __str__(self):
+        return f"{self.id}@{self.last_value}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_id_year_species", fields=["year", "species"]
+            ),
+        ]
+
+    objects = managers.GIDSequenceQuerySet.as_manager()
+
+    @transaction.atomic()
+    def next_value(self) -> str:
+        """
+        Update the last_value transactionally and return the corresponding genlab_id
+        """
+        self.last_value += 1
+        self.save(update_fields=["last_value"])
+        return f"{self.id}{self.last_value:05d}"

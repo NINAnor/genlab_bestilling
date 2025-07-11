@@ -3,7 +3,7 @@ from django.forms import ModelForm
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import ExtractionPlate, Order
+from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
 
 
 class ExtractionPlateForm(ModelForm):
@@ -22,7 +22,7 @@ class OrderStaffForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, *args, order: Order | None = None, **kwargs):
+    def __init__(self, *args, order: Order | Genrequest | None = None, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.fields["responsible_staff"].choices = self.get_all_staff()
@@ -32,7 +32,7 @@ class OrderStaffForm(forms.Form):
                 user.id for user in self.get_assigned_staff(order)
             ]
 
-    def get_assigned_staff(self, order: Order) -> list[User]:
+    def get_assigned_staff(self, order: Order | Genrequest) -> list[User]:
         return list(order.responsible_staff.all())
 
     def get_all_staff(self) -> list[tuple[int, str]]:

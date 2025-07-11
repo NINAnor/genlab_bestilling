@@ -51,6 +51,13 @@
       href="{% url 'genrequest-delete' pk=genrequest.id %}"
       ><i class="fas fa-trash"></i> Delete</a
     >
+
+    {% if user.is_staff %}
+    <a class="btn bg-primary ml-auto" href="{% url 'staff:add-staff' pk=genrequest.id model_type="genrequest" %}">
+      <input type="hidden" name="type" value="genrequest">
+      <i class="fa-solid fa-id-badge"></i> Assign staff
+    </a>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

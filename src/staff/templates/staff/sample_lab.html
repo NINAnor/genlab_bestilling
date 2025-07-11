@@ -5,7 +5,7 @@
 <h3 class="text-4xl mb-5">{% block page-title %}{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}{% endblock page-title %}</h3>
 {% block page-inner %}
     <div class="flex gap-5 mb-5">
-        <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="./"><i class="fas fa-arrow-left"></i> back</a>
     </div>
     <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
         {% csrf_token %}

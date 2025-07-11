@@ -284,6 +284,11 @@ class SampleStatusTable(tables.Table):
             "isolation_method",
         ]
 
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(  # noqa: S308
+            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        )
+
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):

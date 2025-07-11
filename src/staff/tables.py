@@ -256,8 +256,12 @@ def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Tab
 
         class Meta:
             model = Sample
-            fields = ["checked", "genlab_id", "internal_note"] + list(base_fields)
-            sequence = ["checked", "genlab_id"] + list(base_fields) + ["internal_note"]
+            fields = ["checked", "genlab_id", "internal_note", "type"] + list(
+                base_fields
+            )
+            sequence = (
+                ["checked", "genlab_id", "type"] + list(base_fields) + ["internal_note"]
+            )
 
     return CustomSampleTable
 

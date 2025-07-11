@@ -235,8 +235,7 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(
-            pk=self.kwargs.get("pk"))
+        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -315,8 +314,7 @@ class SampleLabView(StaffMixin, TemplateView):
 
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
-            self._order = get_object_or_404(
-                ExtractionOrder, pk=self.kwargs["pk"])
+            self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
         return self._order
 
     def get_data(self) -> list[Sample]:
@@ -396,14 +394,6 @@ class SampleLabView(StaffMixin, TemplateView):
             return HttpResponseRedirect(self.get_success_url())
 
         order = self.get_order()
-        statuses = SampleStatus.objects.filter(
-            area=order.genrequest.area,
-        ).all()
-
-        # Check if the provided status exists
-        if status_name not in [status.name for status in statuses]:
-            messages.error(request, f"Status '{status_name}' is not valid.")
-            return HttpResponseRedirect(self.get_success_url())
 
         # Get the selected samples
         samples = Sample.objects.filter(id__in=selected_ids)
@@ -421,6 +411,15 @@ class SampleLabView(StaffMixin, TemplateView):
         order: ExtractionOrder,
         request: HttpRequest,
     ) -> None:
+        statuses = SampleStatus.objects.filter(
+            area=order.genrequest.area,
+        ).all()
+
+        # Check if the provided status exists
+        if status_name not in [status.name for status in statuses]:
+            messages.error(request, f"Status '{status_name}' is not valid.")
+            return HttpResponseRedirect(self.get_success_url())
+
         try:
             status = SampleStatus.objects.get(
                 name=status_name, area=order.genrequest.area
@@ -464,8 +463,7 @@ class SampleLabView(StaffMixin, TemplateView):
         ).first()
 
         try:
-            im = IsolationMethod.objects.get(
-                name=selected_isolation_method.name)
+            im = IsolationMethod.objects.get(name=selected_isolation_method.name)
         except IsolationMethod.DoesNotExist:
             messages.error(
                 request,
@@ -478,8 +476,7 @@ class SampleLabView(StaffMixin, TemplateView):
             SampleIsolationMethod.objects.filter(sample=sample).delete()
 
             # Add the new one
-            SampleIsolationMethod.objects.create(
-                sample=sample, isolation_method=im)
+            SampleIsolationMethod.objects.create(sample=sample, isolation_method=im)
         messages.success(
             request,
             f"{samples.count()} samples updated with isolation method '{isolation_method}'.",  # noqa: E501

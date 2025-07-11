@@ -229,7 +229,7 @@ def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Tab
 
         checked = tables.CheckBoxColumn(
             accessor="pk",
-            orderable=True,
+            orderable=False,
             attrs={
                 "th__input": {
                     "id": "select-all-checkbox",

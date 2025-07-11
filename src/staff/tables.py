@@ -1,6 +1,8 @@
 from typing import Any
 
 import django_tables2 as tables
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -8,6 +10,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Order,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -45,6 +48,12 @@ class OrderTable(tables.Table):
         orderable=False,
     )
 
+    is_seen = tables.Column(
+        orderable=False,
+        visible=True,
+        verbose_name="",
+    )
+
     class Meta:
         fields = [
             "name",
@@ -53,13 +62,13 @@ class OrderTable(tables.Table):
             "genrequest__name",
             "genrequest__project",
             "genrequest__area",
-            "genrequest__expected_total_samples",
             "genrequest__samples_owner",
             "created_at",
             "last_modified_at",
             "is_urgent",
+            "is_seen",
         ]
-        sequence = ("is_urgent", "status", "id")
+        sequence = ("is_seen", "is_urgent", "status", "id", "name")
         empty_text = "No Orders"
         order_by = ("-is_urgent", "last_modified_at", "created_at")
 
@@ -74,6 +83,14 @@ class OrderTable(tables.Table):
             return mark_safe(html_exclaimation_mark)  # noqa: S308
         else:
             return ""
+
+    def render_is_seen(self, value: bool) -> str:
+        if not value:
+            return mark_safe(
+                '<i class="fa-solid fa-bell text-yellow-500" '
+                'title="New within 24h"></i>'
+            )
+        return ""
 
 
 class AnalysisOrderTable(OrderTable):
@@ -95,6 +112,12 @@ class ExtractionOrderTable(OrderTable):
         empty_values=(),
     )
 
+    sample_count = tables.Column(
+        accessor="sample_count",
+        verbose_name="Sample Count",
+        orderable=False,
+    )
+
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
         fields = OrderTable.Meta.fields + [
@@ -105,6 +128,10 @@ class ExtractionOrderTable(OrderTable):
             "return_samples",
             "pre_isolated",
         ]
+        sequence = OrderTable.Meta.sequence + ("sample_count",)
+
+    def render_sample_count(self, record: Any) -> str:
+        return record.sample_count or "0"
 
 
 class EquipmentOrderTable(OrderTable):
@@ -124,6 +151,23 @@ class SampleBaseTable(tables.Table):
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
 
+    is_prioritised = tables.TemplateColumn(
+        template_name="staff/prioritise_flag.html",
+        orderable=True,
+        verbose_name="",
+    )
+
+    checked = tables.CheckBoxColumn(
+        attrs={
+            "th__input": {"type": "checkbox", "id": "select-all-checkbox"},
+        },
+        accessor="pk",
+        orderable=False,
+        empty_values=(),
+    )
+
+    name = tables.Column(order_by=("name_as_int",))
+
     class Meta:
         model = Sample
         fields = [
@@ -139,14 +183,106 @@ class SampleBaseTable(tables.Table):
             "plate_positions",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+        sequence = (
+            "checked",
+            "is_prioritised",
+            "genlab_id",
+            "guid",
+            "name",
+            "species",
+            "type",
+        )
+        order_by = (
+            "-is_prioritised",
+            "species",
+            "genlab_id",
+            "name_as_int",
+        )
 
         empty_text = "No Samples"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self.data, "data"):
+            self.data.data = self.data.data.annotate(
+                name_as_int=Cast("name", output_field=IntegerField())
+            )
 
     def render_plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])
 
         return ""
+
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
+
+
+class SampleStatusTable(tables.Table):
+    """
+    This shows a checkbox in the header.
+    To display text in the header alongside the checkbox
+    override the header-property in the CheckBoxColumn class.
+    """
+
+    checked = tables.CheckBoxColumn(
+        accessor="pk",
+        orderable=False,
+        attrs={
+            "th__input": {
+                "id": "select-all-checkbox",
+            },
+            "td__input": {
+                "name": "checked",
+            },
+        },
+        empty_values=(),
+        verbose_name="Mark",
+    )
+
+    internal_note = tables.TemplateColumn(
+        template_name="staff/note_input_column.html", orderable=False
+    )
+
+    marked = tables.BooleanColumn(
+        verbose_name="Marked",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
+    plucked = tables.BooleanColumn(
+        verbose_name="Plucked",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
+    isolated = tables.BooleanColumn(
+        verbose_name="Isolated",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
+
+    class Meta:
+        model = Sample
+        fields = [
+            "checked",
+            "genlab_id",
+            "internal_note",
+            "isolation_method",
+            "type",
+        ]
+        sequence = [
+            "checked",
+            "genlab_id",
+            "type",
+            "marked",
+            "plucked",
+            "isolated",
+            "internal_note",
+            "isolation_method",
+        ]
 
 
 class OrderExtractionSampleTable(SampleBaseTable):
@@ -208,3 +344,250 @@ class PlateTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Plates"
+
+
+class StatusMixinTable(tables.Table):
+    status = tables.Column(
+        orderable=False,
+        verbose_name="Status",
+    )
+
+    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
+        status_colors = {
+            "Processing": "bg-yellow-100 text-yellow-800",
+            "Completed": "bg-green-100 text-green-800",
+            "Delivered": "bg-red-100 text-red-800",
+        }
+        status_text = {
+            "Processing": "Processing",
+            "Completed": "Completed",
+            "Delivered": "Not started",
+        }
+        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
+        status_text = status_text.get(value, "Unknown")
+        return mark_safe(  # noqa: S308
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full {color_class}">{status_text}</span>'  # noqa: E501
+        )
+
+
+class StaffIDMixinTable(tables.Table):
+    id = tables.Column(
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_id(
+        self, record: ExtractionOrder | AnalysisOrder | EquipmentOrder
+    ) -> str:
+        url = record.get_absolute_staff_url()
+
+        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
+
+
+class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["id", "description", "delivery_date", "status"]
+        empty_text = "No urgent orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class NewUnseenOrderTable(StaffIDMixinTable):
+    seen = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Seen",
+        template_name="staff/components/seen_column.html",
+        empty_values=(),
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    def render_samples(self, value: int) -> str:
+        if value > 0:
+            return str(value)
+        return "-"
+
+    markers = tables.ManyToManyColumn(
+        transform=lambda x: x.name,
+    )
+
+    class Meta:
+        model = Order
+        fields = ["id", "description", "delivery_date", "samples", "markers", "seen"]
+        empty_text = "No new unseen orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class NewSeenOrderTable(StaffIDMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    def render_samples(self, value: int) -> str:
+        if value > 0:
+            return str(value)
+        return "-"
+
+    markers = tables.ManyToManyColumn(
+        transform=lambda x: x.name,
+    )
+
+    class Meta:
+        model = Order
+        fields = [
+            "priority",
+            "id",
+            "description",
+            "delivery_date",
+            "markers",
+            "samples",
+        ]
+        empty_text = "No new seen orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    samples_completed = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples isolated",
+        orderable=False,
+    )
+
+    def render_samples_completed(self, value: int) -> str:
+        if value > 0:
+            return "- / " + str(value)
+        return "-"
+
+    class Meta:
+        model = Order
+        fields = ["priority", "id", "description", "samples_completed", "status"]
+        empty_text = "No assigned orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class DraftOrderTable(StaffIDMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    delivery_date = tables.Column(
+        accessor="genrequest__expected_samples_delivery_date",
+        verbose_name="Delivery date",
+        orderable=False,
+    )
+
+    def render_delivery_date(self, value: Any) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
+
+    samples = tables.Column(
+        accessor="sample_count",
+        verbose_name="Samples",
+        orderable=False,
+    )
+
+    markers = tables.ManyToManyColumn(
+        transform=lambda x: x.name,
+        verbose_name="Markers",
+        orderable=False,
+    )
+
+    class Meta:
+        model = Order
+        fields = [
+            "priority",
+            "id",
+            "description",
+            "delivery_date",
+            "markers",
+            "samples",
+        ]
+        empty_text = "No draft orders"
+        template_name = "django_tables2/tailwind_inner.html"

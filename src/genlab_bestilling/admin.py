@@ -15,12 +15,14 @@ from .models import (
     ExtractionPlate,
     ExtractPlatePosition,
     Genrequest,
+    IsolationMethod,
     Location,
     LocationType,
     Marker,
     Organization,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -200,9 +202,18 @@ class EquipmentTypeAdmin(ModelAdmin):
 
 @admin.register(EquipmentBuffer)
 class EquipmentBufferAdmin(ModelAdmin):
-    list_display = ["name", "unit"]
-    list_filter = ["unit"]
-    search_fields = ["name"]
+    M = EquipmentBuffer
+    list_display = [M.name.field.name, M.unit.field.name]
+
+    search_help_text = "Search for equipment buffer name"
+    search_fields = [M.name.field.name]
+
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.unit.field.name, unfold_filters.FieldTextFilter),
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False
 
 
 @admin.register(EquimentOrderQuantity)
@@ -513,3 +524,11 @@ class AnalysisResultAdmin(ModelAdmin):
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
+
+
+@admin.register(SampleStatusAssignment)
+class SampleStatusAssignmentAdmin(ModelAdmin): ...
+
+
+@admin.register(IsolationMethod)
+class IsolationMethodAdmin(ModelAdmin): ...

@@ -11,17 +11,23 @@ from .views import (
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
     ExtractionPlateListView,
+    GenerateGenlabIDsView,
     ManaullyCheckedOrderActionView,
+    MarkAsSeenView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
+    OrderPrioritizedAdminView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
     ProjectDetailView,
     ProjectListView,
     ProjectValidateActionView,
     SampleDetailView,
+    SampleLabView,
     SampleReplicaActionView,
     SamplesListView,
+    StaffEditView,
+    UpdateInternalNote,
 )
 
 app_name = "staff"
@@ -69,9 +75,29 @@ urlpatterns = [
         name="order-manually-checked",
     ),
     path(
+        "<str:model_type>/<int:pk>/add-staff/",
+        StaffEditView.as_view(),
+        name="add-staff",
+    ),
+    path(
         "orders/extraction/<int:pk>/samples/",
         OrderExtractionSamplesListView.as_view(),
         name="order-extraction-samples",
+    ),
+    path(
+        "orders/extraction/<int:pk>/samples/lab",
+        SampleLabView.as_view(),
+        name="order-extraction-samples-lab",
+    ),
+    path(
+        "orders/extraction/<int:pk>/samples/generate-genlab-ids/",
+        GenerateGenlabIDsView.as_view(),
+        name="generate-genlab-ids",
+    ),
+    path(
+        "orders/samples/update/internal-note/",
+        UpdateInternalNote.as_view(),
+        name="update-internal-note",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",
@@ -99,6 +125,11 @@ urlpatterns = [
         name="order-equipment-detail",
     ),
     path(
+        "order/mark-as-seen/<int:pk>/",
+        MarkAsSeenView.as_view(),
+        name="mark-as-seen",
+    ),
+    path(
         "orders/extraction/<int:pk>/",
         ExtractionOrderDetailView.as_view(),
         name="order-extraction-detail",
@@ -117,5 +148,10 @@ urlpatterns = [
         "orders/plates/<int:pk>/",
         ExtractionPlateDetailView.as_view(),
         name="plates-detail",
+    ),
+    path(
+        "orders/<int:pk>/priority/",
+        OrderPrioritizedAdminView.as_view(),
+        name="order-priority",
     ),
 ]

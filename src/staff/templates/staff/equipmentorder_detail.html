@@ -33,6 +33,8 @@
     {% /table %}
 
     <div class="flex gap-5 my-5">
+        <a class="btn bg-yellow-200" href="{% url 'staff:order-equipment-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn bg-primary" href="{% url 'staff:add-staff' pk=object.id model_type="equipment" %}">Assign staff</a>
         {% comment %}
         {% if object.status == 'draft' %}
         <a class="btn bg-primary" href="{% url 'genrequest-equipment-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>

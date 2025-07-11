@@ -1,0 +1,3 @@
+<button type="button" class="toggle-prioritise" data-sample-id="{{ record.pk }}" data-order-id="{{ record.order_id }}" title="Toggle prioritised">
+    <i class="fa-solid fa-flag {% if record.is_prioritised %}text-blue-500{% else %}text-gray-300{% endif %}"></i>
+</button>

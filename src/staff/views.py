@@ -1,11 +1,14 @@
+from collections import defaultdict
 from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
+from django.db.models import Count
 from django.forms import Form
-from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
-from django.urls import reverse_lazy
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404
+from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView, TemplateView
@@ -15,12 +18,17 @@ from django_tables2.views import SingleTableMixin
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    Area,
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
+    IsolationMethod,
     Order,
     Sample,
+    SampleIsolationMethod,
     SampleMarkerAnalysis,
+    SampleStatusAssignment,
 )
 from nina.models import Project
 from shared.views import ActionView
@@ -32,7 +40,7 @@ from .filters import (
     SampleFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm
+from .forms import ExtractionPlateForm, OrderStaffForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
@@ -41,6 +49,7 @@ from .tables import (
     OrderExtractionSampleTable,
     PlateTable,
     ProjectTable,
+    SampleStatusTable,
     SampleTable,
 )
 
@@ -61,19 +70,25 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 class DashboardView(StaffMixin, TemplateView):
     template_name = "staff/dashboard.html"
 
+    def get_area_from_query(self) -> Area | None:
+        area_id = self.request.GET.get("area")
+        if area_id:
+            try:
+                return Area.objects.get(pk=area_id)
+            except Area.DoesNotExist:
+                return None
+        return None
+
+    def get_areas(self) -> models.QuerySet[Area]:
+        return Area.objects.all().order_by("name")
+
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
-        urgent_orders = Order.objects.filter(
-            is_urgent=True,
-            status__in=[Order.OrderStatus.PROCESSING, Order.OrderStatus.DELIVERED],
-        ).order_by("-created_at")
-        context["urgent_orders"] = urgent_orders
-
-        delivered_orders = Order.objects.filter(status=Order.OrderStatus.DELIVERED)
-
-        context["delivered_orders"] = delivered_orders
         context["now"] = now()
+        context["areas"] = self.get_areas()
+        context["area"] = self.get_area_from_query()
+
         return context
 
 
@@ -113,6 +128,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types")
+            .annotate(sample_count=Count("samples"))
         )
 
 
@@ -154,13 +170,49 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class AnalysisOrderDetailView(StaffMixin, DetailView):
     model = AnalysisOrder
 
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        analysis_order = self.object
+        context["extraction_order"] = analysis_order.from_order
+        return context
+
 
 class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
+class MarkAsSeenView(StaffMixin, DetailView):
+    model = Order
+
+    def get_object(self) -> Order:
+        return Order.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        try:
+            order = self.get_object()
+            order.toggle_seen()
+            messages.success(request, _("Order is marked as seen"))
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+
+        return_to = request.POST.get("return_to")
+        return HttpResponseRedirect(self.get_return_url(return_to))
+
+    def get_return_url(self, return_to: str) -> str:
+        if return_to == "dashboard":
+            return reverse("staff:dashboard")
+        else:
+            return self.get_object().get_absolute_staff_url()
+
+
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        extraction_order = self.object
+        context["analysis_orders"] = extraction_order.analysis_orders.all()
+        return context
 
 
 class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
@@ -184,6 +236,18 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         context = super().get_context_data(**kwargs)
         context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         return context
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        sample_id = request.POST.get("sample_id")
+
+        if sample_id:
+            sample = get_object_or_404(Sample, pk=sample_id)
+            sample.is_prioritised = not sample.is_prioritised
+            sample.save()
+
+        return self.get(
+            request, *args, **kwargs
+        )  # Re-render the view with updated data
 
 
 class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
@@ -243,6 +307,184 @@ class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
 
+class SampleLabView(StaffMixin, TemplateView):
+    disable_pagination = False
+    template_name = "staff/sample_lab.html"
+    table_class = SampleStatusTable
+
+    def get_order(self) -> ExtractionOrder:
+        if not hasattr(self, "_order"):
+            self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
+        return self._order
+
+    def get_data(self) -> list[Sample]:
+        order = self.get_order()
+        samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
+        sample_status = SampleStatusAssignment.SampleStatus.choices
+
+        # Fetch all SampleStatusAssignment entries related to the current order
+        sample_assignments = SampleStatusAssignment.objects.filter(order_id=order.id)
+
+        # Build a lookup: {sample_id: set of status names}
+        # This allows us to check status presence without querying per sample
+        sample_status_map = defaultdict(set)
+        for assignment in sample_assignments:
+            name = str(assignment.status)
+
+            sample_status_map[assignment.sample_id].add(name)
+
+        # Annotate each sample instance with boolean flags per status
+        # Equivalent to: sample.status_name = True/False
+        # based on whether the sample has that status
+        for sample in samples:
+            sample.selected_isolation_method = (
+                sample.isolation_method.first()
+                if sample.isolation_method.exists()
+                else None
+            )
+            status_names = sample_status_map.get(sample.id, set())
+            for status, _i in sample_status:
+                setattr(sample, status, status in status_names)
+
+        return samples
+
+    def get_isolation_methods(self) -> list[str]:
+        order = self.get_order()
+        samples = Sample.objects.filter(order=order)
+        species_ids = samples.values_list("species_id", flat=True).distinct()
+
+        return IsolationMethod.objects.filter(species_id__in=species_ids).values_list(
+            "name", flat=True
+        )
+
+    def get_base_fields(self) -> list[str]:
+        return [v for v, _ in SampleStatusAssignment.SampleStatus.choices]
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["order"] = self.get_order()
+        context["statuses"] = self.get_base_fields()
+        context["isolation_methods"] = self.get_isolation_methods()
+        context["table"] = self.table_class(data=self.get_data())
+
+        return context
+
+    def get_success_url(self) -> str:
+        return reverse(
+            "staff:order-extraction-samples-lab", kwargs={"pk": self.get_order().pk}
+        )
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        status_name = request.POST.get("status")
+        selected_ids = request.POST.getlist("checked")
+        isolation_method = request.POST.get("isolation_method")
+
+        if not selected_ids:
+            messages.error(request, "No samples selected.")
+            return HttpResponseRedirect(self.get_success_url())
+
+        order = self.get_order()
+
+        # Get the selected samples
+        samples = Sample.objects.filter(id__in=selected_ids)
+
+        if status_name:
+            self.assign_status_to_samples(samples, status_name, order, request)
+        if isolation_method:
+            self.update_isolation_methods(samples, isolation_method, request)
+        return HttpResponseRedirect(self.get_success_url())
+
+    def assign_status_to_samples(
+        self,
+        samples: models.QuerySet,
+        status_name: str,
+        order: ExtractionOrder,
+        request: HttpRequest,
+    ) -> None:
+        statuses = SampleStatusAssignment.SampleStatus.choices
+
+        # Check if the provided status exists
+        if status_name not in [k for k, _ in statuses]:
+            messages.error(request, f"Status '{status_name}' is not valid.")
+            return HttpResponseRedirect(self.get_success_url())
+
+        # Get the index of the target status
+        status_weight = next(
+            i for i, (name, _) in enumerate(statuses) if name == status_name
+        )
+
+        # Slice the list up to that index (inclusive) and extract only the names
+        statuses_to_apply = [name for name, _ in statuses[: status_weight + 1]]
+
+        # Apply status assignments
+        assignments = []
+        for sample in samples:
+            for status in statuses_to_apply:
+                assignment = SampleStatusAssignment(
+                    sample=sample,
+                    status=status,
+                    order=order,
+                )
+                assignments.append(assignment)
+
+        SampleStatusAssignment.objects.bulk_create(
+            assignments,
+            ignore_conflicts=True,
+        )
+
+        messages.success(
+            request, f"{samples.count()} samples updated with status '{status_name}'."
+        )
+
+    def update_isolation_methods(
+        self, samples: models.QuerySet, isolation_method: str, request: HttpRequest
+    ) -> None:
+        selected_isolation_method = IsolationMethod.objects.filter(
+            name=isolation_method
+        ).first()
+
+        try:
+            im = IsolationMethod.objects.get(name=selected_isolation_method.name)
+        except IsolationMethod.DoesNotExist:
+            messages.error(
+                request,
+                f"Isolation method '{selected_isolation_method.name}' not found.",
+            )
+            return
+
+        for sample in samples:
+            # Remove any existing methods for this sample
+            SampleIsolationMethod.objects.filter(sample=sample).delete()
+
+            # Add the new one
+            SampleIsolationMethod.objects.create(sample=sample, isolation_method=im)
+        messages.success(
+            request,
+            f"{samples.count()} samples updated with isolation method '{isolation_method}'.",  # noqa: E501
+        )
+
+
+class UpdateInternalNote(StaffMixin, ActionView):
+    def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
+        sample_id = request.POST.get("sample_id")
+        field_name = request.POST.get("field_name")
+        field_value = request.POST.get("field_value")
+
+        if not sample_id or not field_name or field_value is None:
+            return JsonResponse({"error": "Invalid input"}, status=400)
+
+        try:
+            sample = Sample.objects.get(id=sample_id)
+
+            if field_name == "internal_note-input":
+                sample.internal_note = field_value
+                sample.save()
+
+            return JsonResponse({"success": True})
+        except Sample.DoesNotExist:
+            return JsonResponse({"error": "Sample not found"}, status=404)
+
+
 class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
     model = ExtractionOrder
 
@@ -263,11 +505,7 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
                 _("The order was checked, GenLab IDs will be generated"),
             )
         except Exception as e:
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                f"Error: {str(e)}",
-            )
+            messages.error(self.request, f"Error: {str(e)}")
 
         return super().form_valid(form)
 
@@ -281,11 +519,68 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
+class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
+    form_class = OrderStaffForm
+    template_name = "staff/order_staff_edit.html"
+
+    def get_queryset(self) -> models.QuerySet[Order] | models.QuerySet[Genrequest]:
+        model_type = self._get_model_type()
+        if model_type == "genrequest":
+            return Genrequest.objects.all()
+        return Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+
+    def _get_model_type(self) -> str:
+        """Returns model type based on request data."""
+        return self.kwargs["model_type"]
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        form = self.form_class(request.POST, order=self.object)
+
+        if form.is_valid():
+            responsible_staff = form.cleaned_data.get("responsible_staff", [])
+            self.object.responsible_staff.set(responsible_staff)
+
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                "Staff assignment updated successfully",
+            )
+            model_type = self._get_model_type()
+            return HttpResponseRedirect(self.get_success_url(model_type))
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["object"] = self.object
+        context["form"] = self.form_class(order=self.object)
+        context["model_type"] = self._get_model_type()
+
+        return context
+
+    def get_success_url(self, model_type: str | None) -> str:
+        if model_type == "genrequest":
+            return reverse(
+                "genrequest-detail",
+                kwargs={"pk": self.object.id},
+            )
+
+        return reverse_lazy(
+            f"staff:order-{model_type}-detail",
+            kwargs={"pk": self.object.pk},
+        )
+
+
 class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
     def get_queryset(self) -> models.QuerySet[Order]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
+        return super().get_queryset()
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object: Order = self.get_object()
@@ -349,6 +644,54 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
+
+
+class GenerateGenlabIDsView(
+    SingleObjectMixin, StaffMixin, SingleTableMixin, FilterView
+):
+    model = ExtractionOrder
+
+    def get_object(self) -> ExtractionOrder:
+        return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        selected_ids = request.POST.getlist("checked")
+
+        if not selected_ids:
+            messages.error(request, "No samples were selected.")
+            return HttpResponseRedirect(self.get_return_url())
+
+        sort_param = request.POST.get("sort", "")
+        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
+
+        selected_samples = Sample.objects.filter(pk__in=selected_ids)
+
+        if sorting_order:
+            selected_samples = selected_samples.order_by(*sorting_order)
+
+        try:
+            self.object.order_selected_checked(
+                sorting_order=sorting_order, selected_samples=selected_samples
+            )
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+            )
+        except Exception as e:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Error: {str(e)}",
+            )
+
+        return HttpResponseRedirect(self.get_return_url())
+
+    def get_return_url(self) -> str:
+        return reverse_lazy(
+            "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
+        )
 
 
 class ExtractionPlateCreateView(StaffMixin, CreateView):
@@ -444,3 +787,16 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
+
+
+class OrderPrioritizedAdminView(StaffMixin, ActionView):
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        pk = kwargs.get("pk")
+        order = Order.objects.get(pk=pk)
+        order.toggle_prioritized()
+
+        return HttpResponseRedirect(
+            reverse(
+                "staff:dashboard",
+            )
+        )

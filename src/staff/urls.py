@@ -27,7 +27,7 @@ from .views import (
     SampleReplicaActionView,
     SamplesListView,
     StaffEditView,
-    UpdateLabViewFields,
+    UpdateInternalNote,
 )
 
 app_name = "staff"
@@ -95,9 +95,9 @@ urlpatterns = [
         name="generate-genlab-ids",
     ),
     path(
-        "orders/samples/update/",
-        UpdateLabViewFields.as_view(),
-        name="update-sample",
+        "orders/samples/update/internal-note/",
+        UpdateInternalNote.as_view(),
+        name="update-internal-note",
     ),
     path(
         "orders/analysis/<int:pk>/samples/",

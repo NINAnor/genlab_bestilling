@@ -4,7 +4,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -376,7 +376,7 @@ class SampleLabView(StaffMixin, TemplateView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         status_name = request.POST.get("status")
-        selected_ids = request.POST.getlist("checked")
+        selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
         isolation_method = request.POST.get("isolation_method")
 
         if not selected_ids:
@@ -390,6 +390,10 @@ class SampleLabView(StaffMixin, TemplateView):
 
         if status_name:
             self.assign_status_to_samples(samples, status_name, order, request)
+            if status_name == "isolated":
+                # Cannot use "samples" here
+                # because we need to check all samples in the order
+                self.check_all_isolated(Sample.objects.filter(order=order))
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
         return HttpResponseRedirect(self.get_success_url())
@@ -435,6 +439,25 @@ class SampleLabView(StaffMixin, TemplateView):
         messages.success(
             request, f"{samples.count()} samples updated with status '{status_name}'."
         )
+
+    # Checks if all samples in the order are isolated
+    # If they are, it updates the order status to completed
+    def check_all_isolated(self, samples: models.QuerySet) -> None:
+        samples_with_flag = samples.annotate(
+            has_isolated=Exists(
+                SampleStatusAssignment.objects.filter(
+                    sample=OuterRef("pk"),
+                    status=SampleStatusAssignment.SampleStatus.ISOLATED,
+                )
+            )
+        )
+
+        if not samples_with_flag.filter(has_isolated=False).exists():
+            self.get_order().to_next_status()
+            messages.success(
+                self.request,
+                "All samples are isolated. The order status is updated to completed.",
+            )
 
     def update_isolation_methods(
         self, samples: models.QuerySet, isolation_method: str, request: HttpRequest

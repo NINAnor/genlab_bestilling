@@ -219,47 +219,68 @@ class SampleBaseTable(tables.Table):
         return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
 
 
-def create_sample_table(base_fields: list[str] | None = None) -> type[tables.Table]:
-    class CustomSampleTable(tables.Table):
-        """
-        This shows a checkbox in the header.
-        To display text in the header alongside the checkbox
-        override the header-property in the CheckBoxColumn class.
-        """
+class SampleStatusTable(tables.Table):
+    """
+    This shows a checkbox in the header.
+    To display text in the header alongside the checkbox
+    override the header-property in the CheckBoxColumn class.
+    """
 
-        checked = tables.CheckBoxColumn(
-            accessor="pk",
-            orderable=True,
-            attrs={
-                "th__input": {
-                    "id": "select-all-checkbox",
-                },
-                "td__input": {
-                    "name": "checked",
-                },
+    checked = tables.CheckBoxColumn(
+        accessor="pk",
+        orderable=False,
+        attrs={
+            "th__input": {
+                "id": "select-all-checkbox",
             },
-            empty_values=(),
-            verbose_name="Mark",
-        )
+            "td__input": {
+                "name": "checked",
+            },
+        },
+        empty_values=(),
+        verbose_name="Mark",
+    )
 
-        for field in base_fields:
-            locals()[field] = tables.BooleanColumn(
-                verbose_name=field.capitalize(),
-                orderable=True,
-                yesno="✔,-",
-                default=False,
-            )
+    internal_note = tables.TemplateColumn(
+        template_name="staff/note_input_column.html", orderable=False
+    )
 
-        internal_note = tables.TemplateColumn(
-            template_name="staff/note_input_column.html", orderable=False
-        )
+    marked = tables.BooleanColumn(
+        verbose_name="Marked",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
+    plucked = tables.BooleanColumn(
+        verbose_name="Plucked",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
+    isolated = tables.BooleanColumn(
+        verbose_name="Isolated",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+    )
 
-        class Meta:
-            model = Sample
-            fields = ["checked", "genlab_id", "internal_note"] + list(base_fields)
-            sequence = ["checked", "genlab_id"] + list(base_fields) + ["internal_note"]
-
-    return CustomSampleTable
+    class Meta:
+        model = Sample
+        fields = [
+            "checked",
+            "genlab_id",
+            "internal_note",
+            "isolation_method",
+        ]
+        sequence = [
+            "checked",
+            "genlab_id",
+            "marked",
+            "plucked",
+            "isolated",
+            "internal_note",
+            "isolation_method",
+        ]
 
 
 class OrderExtractionSampleTable(SampleBaseTable):

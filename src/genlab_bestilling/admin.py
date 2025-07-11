@@ -15,13 +15,13 @@ from .models import (
     ExtractionPlate,
     ExtractPlatePosition,
     Genrequest,
+    IsolationMethod,
     Location,
     LocationType,
     Marker,
     Organization,
     Sample,
     SampleMarkerAnalysis,
-    SampleStatus,
     SampleStatusAssignment,
     SampleType,
     Species,
@@ -526,9 +526,9 @@ class AnalysisResultAdmin(ModelAdmin):
     ]
 
 
-@admin.register(SampleStatus)
-class SampleStatusAdmin(ModelAdmin): ...
-
-
 @admin.register(SampleStatusAssignment)
 class SampleStatusAssignmentAdmin(ModelAdmin): ...
+
+
+@admin.register(IsolationMethod)
+class IsolationMethodAdmin(ModelAdmin): ...

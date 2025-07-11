@@ -657,11 +657,13 @@ class Sample(models.Model):
 
     extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
-    assigned_statuses = models.ManyToManyField(
-        f"{an}.SampleStatus",
-        through=f"{an}.SampleStatusAssignment",
+
+    isolation_method = models.ManyToManyField(
+        f"{an}.IsolationMethod",
         related_name="samples",
+        through=f"{an}.SampleIsolationMethod",
         blank=True,
+        help_text="The isolation method used for this sample",
     )
 
     objects = managers.SampleQuerySet.as_manager()
@@ -776,29 +778,23 @@ class Sample(models.Model):
 # assignee (one or plus?)
 
 
-class SampleStatus(models.Model):
-    name = models.CharField(max_length=255)
-    weight = models.IntegerField(
-        default=0,
-    )
-    area = models.ForeignKey(
-        f"{an}.Area",
-        on_delete=models.CASCADE,
-        related_name="area_statuses",
-        help_text="The area this status is related to.",
-    )
-
-
 class SampleStatusAssignment(models.Model):
+    class SampleStatus(models.TextChoices):
+        MARKED = "marked", _("Marked")
+        PLUCKED = "plucked", _("Plucked")
+        ISOLATED = "isolated", _("Isolated")
+
     sample = models.ForeignKey(
         f"{an}.Sample",
         on_delete=models.CASCADE,
         related_name="sample_status_assignments",
     )
-    status = models.ForeignKey(
-        f"{an}.SampleStatus",
-        on_delete=models.CASCADE,
-        related_name="status_assignments",
+    status = models.CharField(
+        choices=SampleStatus.choices,
+        null=True,
+        blank=True,
+        verbose_name="Sample status",
+        help_text="The status of the sample in the lab",
     )
     order = models.ForeignKey(
         f"{an}.Order",
@@ -814,8 +810,31 @@ class SampleStatusAssignment(models.Model):
         unique_together = ("sample", "status", "order")
 
 
+class SampleIsolationMethod(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="isolation_methods",
+    )
+    isolation_method = models.ForeignKey(
+        f"{an}.IsolationMethod",
+        on_delete=models.CASCADE,
+        related_name="sample_isolation_methods",
+    )
+
+    class Meta:
+        unique_together = ("sample", "isolation_method")
+
+
 class IsolationMethod(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    species = models.ForeignKey(
+        f"{an}.Species",
+        on_delete=models.CASCADE,
+        related_name="species_isolation_methods",
+        help_text="The species this isolation method is related to.",
+        default=None,
+    )
 
     def __str__(self) -> str:
         return self.name

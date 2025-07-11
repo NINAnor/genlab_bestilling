@@ -271,10 +271,12 @@ class SampleStatusTable(tables.Table):
             "genlab_id",
             "internal_note",
             "isolation_method",
+            "type",
         ]
         sequence = [
             "checked",
             "genlab_id",
+            "type",
             "marked",
             "plucked",
             "isolated",

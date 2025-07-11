@@ -1,16 +1,19 @@
 import uuid
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
-from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
+
+if TYPE_CHECKING:
+    from .models import Sample
 
 from . import managers
 from .libs.helpers import position_to_coordinates
@@ -198,6 +201,13 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         help_text="samples you plan to deliver, you can choose more than one. "
         + "ONLY sample types selected here will be available later",
     )
+    responsible_staff = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="responsible_genrequest",
+        verbose_name="Responsible staff",
+        help_text="Staff members responsible for this order",
+        blank=True,
+    )
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
@@ -213,6 +223,9 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
+
+    def get_type(self) -> str:
+        return "genrequest"
 
     @property
     def short_timeframe(self) -> bool:
@@ -238,6 +251,11 @@ class Order(PolymorphicModel):
         PROCESSING = "processing", _("Processing")
         # COMPLETED: Order has been completed, and results are available.
         COMPLETED = "completed", _("Completed")
+
+    class OrderPriority:
+        URGENT = 3
+        PRIORITIZED = 2
+        NORMAL = 1
 
     STATUS_ORDER = (
         OrderStatus.DRAFT,
@@ -271,6 +289,19 @@ class Order(PolymorphicModel):
         blank=True,
         help_text="Email to contact with questions about this order",
     )
+    responsible_staff = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="responsible_orders",
+        verbose_name="Responsible staff",
+        help_text="Staff members responsible for this order",
+        blank=True,
+    )
+    is_seen = models.BooleanField(
+        default=False, help_text="If an order has been seen by a staff"
+    )
+    is_prioritized = models.BooleanField(
+        default=False, help_text="If an order should be prioritized internally"
+    )
 
     tags = TaggableManager(blank=True)
     objects = managers.OrderManager()
@@ -292,8 +323,20 @@ class Order(PolymorphicModel):
         self.confirmed_at = None
         self.save()
 
+    def toggle_seen(self) -> None:
+        self.is_seen = not self.is_seen
+        self.save()
+
+    def toggle_prioritized(self) -> None:
+        self.is_prioritized = not self.is_prioritized
+        self.save()
+
     def get_type(self) -> str:
         return "order"
+
+    @property
+    def filled_genlab_count(self) -> int:
+        return self.samples.filter(genlab_id__isnull=False).count()
 
     @property
     def next_status(self) -> OrderStatus | None:
@@ -376,6 +419,9 @@ class EquipmentOrder(Order):
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
 
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-equipment-detail", kwargs={"pk": self.pk})
+
     def confirm_order(self) -> Any:
         if not EquimentOrderQuantity.objects.filter(order=self).exists():
             raise Order.CannotConfirm(_("No equipments found"))
@@ -413,6 +459,9 @@ class ExtractionOrder(Order):
             "genrequest-extraction-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-extraction-detail", kwargs={"pk": self.pk})
 
     def clone(self) -> None:
         """
@@ -452,8 +501,30 @@ class ExtractionOrder(Order):
         """
         self.internal_status = self.Status.CHECKED
         self.status = self.OrderStatus.PROCESSING
-        self.save()
-        app.configure_task(name="generate-genlab-ids").defer(order_id=self.id)
+        self.save(update_fields=["internal_status", "status"])
+
+    @transaction.atomic
+    def order_selected_checked(
+        self,
+        sorting_order: list[str] | None = None,
+        selected_samples: QuerySet["Sample"] | None = None,
+    ) -> None:
+        """
+        Partially set the order as checked by the lab staff,
+        generate a genlab id for the samples selected
+        """
+        self.internal_status = self.Status.CHECKED
+        self.status = self.OrderStatus.PROCESSING
+        self.save(update_fields=["internal_status", "status"])
+
+        if not selected_samples.exists():
+            return
+
+        Sample.objects.generate_genlab_ids(
+            order_id=self.id,
+            sorting_order=sorting_order,
+            selected_samples=selected_samples,
+        )
 
 
 class AnalysisOrder(Order):
@@ -472,6 +543,8 @@ class AnalysisOrder(Order):
     expected_delivery_date = models.DateField(
         null=True,
         blank=True,
+        verbose_name="Requested analysis result deadline",
+        help_text="When you need to get the results",
     )
 
     @property
@@ -490,6 +563,9 @@ class AnalysisOrder(Order):
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_absolute_staff_url(self) -> str:
+        return reverse("staff:order-analysis-detail", kwargs={"pk": self.pk})
 
     def get_type(self) -> str:
         return "analysis"
@@ -569,6 +645,9 @@ class Sample(models.Model):
     species = models.ForeignKey(f"{an}.Species", on_delete=models.PROTECT)
     year = models.IntegerField()
     notes = models.TextField(null=True, blank=True)
+
+    # "Merknad" in the Excel sheet.
+    internal_note = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
     location = models.ForeignKey(
         f"{an}.Location", on_delete=models.PROTECT, null=True, blank=True
@@ -579,7 +658,19 @@ class Sample(models.Model):
     extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
+    isolation_method = models.ManyToManyField(
+        f"{an}.IsolationMethod",
+        related_name="samples",
+        through=f"{an}.SampleIsolationMethod",
+        blank=True,
+        help_text="The isolation method used for this sample",
+    )
+
     objects = managers.SampleQuerySet.as_manager()
+    is_prioritised = models.BooleanField(
+        default=False,
+        help_text="Check this box if the sample is prioritised for processing",
+    )
 
     def __str__(self) -> str:
         return self.genlab_id or f"#SMP_{self.id}"
@@ -635,14 +726,16 @@ class Sample(models.Model):
                 "GUID, Sample Name, Sample Type, Species and Year are required"
             )
 
-        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
+        # type: ignore[union-attr] # FIXME: Order can be None.
+        if self.order.genrequest.area.location_mandatory:
             if not self.location_id:
                 raise ValidationError("Location is required")
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
+                # type: ignore[union-attr] # FIXME: Order can be None.
+                not in self.location.types.values_list("id", flat=True)
             ):
                 raise ValidationError("Invalid location for the selected species")
         elif self.location_id and self.species.location_type_id:
@@ -657,6 +750,23 @@ class Sample(models.Model):
 
         return False
 
+    @transaction.atomic
+    def generate_genlab_id(self, commit: bool = True) -> str:
+        if self.genlab_id:
+            return self.genlab_id
+        species = self.species
+        year = self.order.confirmed_at.year
+
+        sequence = GIDSequence.objects.get_sequence_for_species_year(
+            year=year, species=species, lock=True
+        )
+        self.genlab_id = sequence.next_value()
+
+        if commit:
+            self.save(update_fields=["genlab_id"])
+
+        return self.genlab_id
+
 
 # class Analysis(models.Model):
 # type =
@@ -666,6 +776,68 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
+
+
+class SampleStatusAssignment(models.Model):
+    class SampleStatus(models.TextChoices):
+        MARKED = "marked", _("Marked")
+        PLUCKED = "plucked", _("Plucked")
+        ISOLATED = "isolated", _("Isolated")
+
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+    )
+    status = models.CharField(
+        choices=SampleStatus.choices,
+        null=True,
+        blank=True,
+        verbose_name="Sample status",
+        help_text="The status of the sample in the lab",
+    )
+    order = models.ForeignKey(
+        f"{an}.Order",
+        on_delete=models.CASCADE,
+        related_name="sample_status_assignments",
+        null=True,
+        blank=True,
+    )
+
+    assigned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("sample", "status", "order")
+
+
+class SampleIsolationMethod(models.Model):
+    sample = models.ForeignKey(
+        f"{an}.Sample",
+        on_delete=models.CASCADE,
+        related_name="isolation_methods",
+    )
+    isolation_method = models.ForeignKey(
+        f"{an}.IsolationMethod",
+        on_delete=models.CASCADE,
+        related_name="sample_isolation_methods",
+    )
+
+    class Meta:
+        unique_together = ("sample", "isolation_method")
+
+
+class IsolationMethod(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    species = models.ForeignKey(
+        f"{an}.Species",
+        on_delete=models.CASCADE,
+        related_name="species_isolation_methods",
+        help_text="The species this isolation method is related to.",
+        default=None,
+    )
+
+    def __str__(self) -> str:
+        return self.name
 
 
 # Some extracts can be placed in multiple wells
@@ -726,3 +898,49 @@ class AnalysisResult(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+
+class GIDSequence(models.Model):
+    """
+    Represents a sequence of IDs
+    This table provides a way to atomically update
+    the counter of each combination of (species, year)
+
+    NOTE: this replaces the usage of postgres sequences,
+        while probably slower, this table can be atomically updated
+    """
+
+    id = models.CharField(primary_key=True)
+    last_value = models.IntegerField(default=0)
+    year = models.IntegerField()
+    species = models.ForeignKey(
+        f"{an}.Species", on_delete=models.PROTECT, db_constraint=False
+    )
+    sample = models.OneToOneField(
+        f"{an}.Sample",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="replica_sequence",
+    )
+
+    def __str__(self):
+        return f"{self.id}@{self.last_value}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="unique_id_year_species", fields=["year", "species"]
+            ),
+        ]
+
+    objects = managers.GIDSequenceQuerySet.as_manager()
+
+    @transaction.atomic()
+    def next_value(self) -> str:
+        """
+        Update the last_value transactionally and return the corresponding genlab_id
+        """
+        self.last_value += 1
+        self.save(update_fields=["last_value"])
+        return f"{self.id}{self.last_value:05d}"

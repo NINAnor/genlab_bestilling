@@ -22,6 +22,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -469,13 +470,19 @@ class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class OrderStaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
-    model = Order
+class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
     form_class = OrderStaffForm
     template_name = "staff/order_staff_edit.html"
 
-    def get_queryset(self) -> models.QuerySet[Order]:
-        return super().get_queryset().filter(status=Order.OrderStatus.DELIVERED)
+    def get_queryset(self) -> models.QuerySet[Order] | models.QuerySet[Genrequest]:
+        model_type = self._get_model_type()
+        if model_type == "genrequest":
+            return Genrequest.objects.all()
+        return Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+
+    def _get_model_type(self) -> str:
+        """Returns model type based on request data."""
+        return self.kwargs["model_type"]
 
     def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
@@ -494,8 +501,8 @@ class OrderStaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
                 messages.SUCCESS,
                 "Staff assignment updated successfully",
             )
-
-            return HttpResponseRedirect(self.get_success_url())
+            model_type = self._get_model_type()
+            return HttpResponseRedirect(self.get_success_url(model_type))
 
         return self.render_to_response(self.get_context_data(form=form))
 
@@ -503,12 +510,19 @@ class OrderStaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["object"] = self.object
         context["form"] = self.form_class(order=self.object)
+        context["model_type"] = self._get_model_type()
 
         return context
 
-    def get_success_url(self) -> str:
+    def get_success_url(self, model_type: str | None) -> str:
+        if model_type == "genrequest":
+            return reverse(
+                "genrequest-detail",
+                kwargs={"pk": self.object.id},
+            )
+
         return reverse_lazy(
-            f"staff:order-{self.object.get_type()}-detail",
+            f"staff:order-{model_type}-detail",
             kwargs={"pk": self.object.pk},
         )
 

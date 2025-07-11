@@ -34,7 +34,7 @@
         {% elif analysis_orders|length == 1 %}
             <a class="btn bg-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
         {% endif %}
-        <a class="btn bg-primary" href="{% url 'staff:order-add-staff' pk=object.id %}">Assign staff</a>
+        <a class="btn bg-primary" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
 
         <div class="ml-auto"></div>
 

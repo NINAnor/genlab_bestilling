@@ -201,6 +201,13 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         help_text="samples you plan to deliver, you can choose more than one. "
         + "ONLY sample types selected here will be available later",
     )
+    responsible_staff = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="responsible_genrequest",
+        verbose_name="Responsible staff",
+        help_text="Staff members responsible for this order",
+        blank=True,
+    )
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
@@ -216,6 +223,9 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
+
+    def get_type(self) -> str:
+        return "genrequest"
 
     @property
     def short_timeframe(self) -> bool:

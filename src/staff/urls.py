@@ -17,7 +17,6 @@ from .views import (
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
-    OrderStaffEditView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
     ProjectDetailView,
@@ -27,6 +26,7 @@ from .views import (
     SampleLabView,
     SampleReplicaActionView,
     SamplesListView,
+    StaffEditView,
     UpdateLabViewFields,
 )
 
@@ -75,9 +75,9 @@ urlpatterns = [
         name="order-manually-checked",
     ),
     path(
-        "orders/<int:pk>/add-staff/",
-        OrderStaffEditView.as_view(),
-        name="order-add-staff",
+        "<str:model_type>/<int:pk>/add-staff/",
+        StaffEditView.as_view(),
+        name="add-staff",
     ),
     path(
         "orders/extraction/<int:pk>/samples/",

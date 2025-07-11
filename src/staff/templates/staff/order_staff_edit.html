@@ -16,7 +16,11 @@
   <h3 class="text-4xl mb-5">Manage Responsible Staff - {{ object }}</h3>
 
   <div class="flex gap-5 mb-5">
-    <a class="btn bg-primary" href="{% url 'staff:order-'|add:object.get_type|add:'-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Order</a>
+    {% if model_type == "genrequest" %}
+    <a class="btn bg-primary" href="{% url 'genrequest-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Genrequest</a>
+    {% else %}
+    <a class="btn bg-primary" href="{% url 'staff:order-'|add:model_type|add:'-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Order</a>
+    {% endif %}
   </div>
 
   <div class="bg-white p-6 rounded-lg shadow">

@@ -10,8 +10,8 @@
     <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
         {% csrf_token %}
         {% for status in statuses %}
-            <button class="btn bg-blue-500 text-white mt-4 mr-2" type="submit" name="status" value="{{ status.name }}">
-                {{ status.name }}
+            <button class="btn bg-blue-500 text-white mt-4 mr-2" type="submit" name="status" value="{{ status }}">
+                {{ status|capfirst }}
             </button>
         {% endfor %}
         <div class="inline-block text-left">
@@ -27,18 +27,21 @@
           <div id="parent-dropdown-menu"
                class="absolute z-10 mt-2 w-100 origin-top-right rounded-md bg-white shadow-lg hidden"
                role="menu" aria-orientation="vertical" aria-labelledby="parent-dropdown-button">
-
-            {% for im in isolation_methods %}
-              <button
-                type="submit"
-                name="isolation_method"
-                value="{{ im }}"
+            {% if not isolation_methods %}
+              <p class="px-4 py-2 text-sm text-gray-700">No isolation methods available</p>
+            {% else %}
+              {% for im in isolation_methods %}
+                <button
+                  type="submit"
+                  name="isolation_method"
+                  value="{{ im }}"
                 class="update-isolation-button block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-gray-700"
                 role="menuitem"
               >
                 {{ im }}
               </button>
             {% endfor %}
+            {% endif %}
           </div>
         </div>
         {% render_table table %}

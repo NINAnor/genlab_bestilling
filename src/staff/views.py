@@ -28,7 +28,6 @@ from genlab_bestilling.models import (
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
-    SampleStatus,
     SampleStatusAssignment,
 )
 from nina.models import Project
@@ -50,8 +49,8 @@ from .tables import (
     OrderExtractionSampleTable,
     PlateTable,
     ProjectTable,
+    SampleStatusTable,
     SampleTable,
-    create_sample_table,
 )
 
 
@@ -311,6 +310,7 @@ class SampleDetailView(StaffMixin, DetailView):
 class SampleLabView(StaffMixin, TemplateView):
     disable_pagination = False
     template_name = "staff/sample_lab.html"
+    table_class = SampleStatusTable
 
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
@@ -319,23 +319,19 @@ class SampleLabView(StaffMixin, TemplateView):
 
     def get_data(self) -> list[Sample]:
         order = self.get_order()
-        samples = Sample.objects.filter(order=order)
-        sample_status = SampleStatus.objects.filter(
-            area__name=samples.first().order.genrequest.area
-            if samples.exists()
-            else None
-        )
+        samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
+        sample_status = SampleStatusAssignment.SampleStatus.choices
 
         # Fetch all SampleStatusAssignment entries related to the current order
-        sample_assignments = SampleStatusAssignment.objects.filter(
-            order_id=order.id
-        ).select_related("status")
+        sample_assignments = SampleStatusAssignment.objects.filter(order_id=order.id)
 
         # Build a lookup: {sample_id: set of status names}
         # This allows us to check status presence without querying per sample
         sample_status_map = defaultdict(set)
         for assignment in sample_assignments:
-            sample_status_map[assignment.sample_id].add(assignment.status.name)
+            name = str(assignment.status)
+
+            sample_status_map[assignment.sample_id].add(name)
 
         # Annotate each sample instance with boolean flags per status
         # Equivalent to: sample.status_name = True/False
@@ -347,8 +343,8 @@ class SampleLabView(StaffMixin, TemplateView):
                 else None
             )
             status_names = sample_status_map.get(sample.id, set())
-            for status in sample_status:
-                setattr(sample, status.name, status.name in status_names)
+            for status, _i in sample_status:
+                setattr(sample, status, status in status_names)
 
         return samples
 
@@ -362,21 +358,15 @@ class SampleLabView(StaffMixin, TemplateView):
         )
 
     def get_base_fields(self) -> list[str]:
-        return SampleStatus.objects.filter(
-            area__name=self.get_order().genrequest.area
-        ).values_list("name", flat=True)
+        return [v for v, _ in SampleStatusAssignment.SampleStatus.choices]
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["order"] = self.get_order()
-        context["statuses"] = SampleStatus.objects.filter(
-            area=context["order"].genrequest.area
-        )
+        context["statuses"] = self.get_base_fields()
         context["isolation_methods"] = self.get_isolation_methods()
-        table_class = create_sample_table(base_fields=self.get_base_fields())
-        context["table"] = table_class(
-            self.get_data(),
-        )
+        context["table"] = self.table_class(data=self.get_data())
+
         return context
 
     def get_success_url(self) -> str:
@@ -411,29 +401,20 @@ class SampleLabView(StaffMixin, TemplateView):
         order: ExtractionOrder,
         request: HttpRequest,
     ) -> None:
-        statuses = SampleStatus.objects.filter(
-            area=order.genrequest.area,
-        ).all()
+        statuses = SampleStatusAssignment.SampleStatus.choices
 
         # Check if the provided status exists
-        if status_name not in [status.name for status in statuses]:
+        if status_name not in [k for k, _ in statuses]:
             messages.error(request, f"Status '{status_name}' is not valid.")
             return HttpResponseRedirect(self.get_success_url())
 
-        try:
-            status = SampleStatus.objects.get(
-                name=status_name, area=order.genrequest.area
-            )
-        except SampleStatus.DoesNotExist:
-            messages.error(request, f"Status '{status_name}' not found.")
-            return
-
-        # Get the selected status and all statuses with a lower or equal weight
-        statuses = SampleStatus.objects.filter(
-            area=order.genrequest.area,
+        # Get the index of the target status
+        status_weight = next(
+            i for i, (name, _) in enumerate(statuses) if name == status_name
         )
-        selected_status = statuses.filter(name=status_name).first()
-        statuses_to_apply = statuses.filter(weight__lte=selected_status.weight)
+
+        # Slice the list up to that index (inclusive) and extract only the names
+        statuses_to_apply = [name for name, _ in statuses[: status_weight + 1]]
 
         # Apply status assignments
         assignments = []

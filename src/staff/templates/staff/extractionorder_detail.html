@@ -1,5 +1,6 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
+{% load order_tags %}
 
 
 {% block content %}
@@ -38,16 +39,11 @@
 
         <div class="ml-auto"></div>
 
-        {% if not object.is_seen %}
+        {% if object.genrequest.responsible_staff.all|is_responsible:request.user and not object.is_seen %}
             <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
                 {% csrf_token %}
                 <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>
             </form>
-        {% endif %}
-
-        {% if object.status == object.OrderStatus.DELIVERED %}
-            {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
-            {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
         {% endif %}
 
         {% if object.status != object.OrderStatus.DRAFT %}
@@ -55,7 +51,7 @@
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
 
-        {% if object.next_status %}
+        {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == "checked" %}
             {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
             {% with "Set as "|add:object.next_status as btn_name %}
                 {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}

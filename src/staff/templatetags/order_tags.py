@@ -1,7 +1,8 @@
 from django import template
 from django.db import models
 
-from genlab_bestilling.models import Area, Order
+from capps.users.models import User
+from genlab_bestilling.models import Area, Order, SampleStatusAssignment
 
 from ..tables import (
     AssignedOrderTable,
@@ -14,6 +15,11 @@ from ..tables import (
 register = template.Library()
 
 
+@register.filter
+def is_responsible(staff_queryset: models.QuerySet, user: User) -> bool:
+    return staff_queryset.filter(id=user.id).exists()
+
+
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
 def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
     urgent_orders = (
@@ -22,6 +28,13 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
         )
         .exclude(status=Order.OrderStatus.DRAFT)
         .select_related("genrequest")
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            ),
+        )
     )
 
     if area:
@@ -134,7 +147,20 @@ def assigned_orders_table(context: dict) -> dict:
         )
         .select_related("genrequest")
         .annotate(
-            sample_count=models.Count("extractionorder__samples", distinct=True),
+            isolated_sample_count=models.Count(
+                "sample_status_assignments",
+                distinct=True,
+                filter=models.Q(
+                    sample_status_assignments__status=SampleStatusAssignment.SampleStatus.ISOLATED,
+                ),
+            ),
+            sample_count=models.Case(
+                models.When(
+                    extractionorder__isnull=False,
+                    then=models.Count("extractionorder__samples", distinct=True),
+                ),
+                default=0,
+            ),
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),

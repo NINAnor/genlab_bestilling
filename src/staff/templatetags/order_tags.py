@@ -1,6 +1,7 @@
 from django import template
 from django.db import models
 
+from capps.users.models import User
 from genlab_bestilling.models import Area, Order
 
 from ..tables import (
@@ -86,7 +87,9 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
-def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
+def new_unseen_orders_table(
+    context: dict, area: Area | None = None, user: User | None = None
+) -> dict:
     new_orders = (
         Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=False)
         .exclude(is_urgent=True)
@@ -113,7 +116,9 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
 
     return {
         "title": "New unseen orders",
-        "table": NewUnseenOrderTable(new_orders),
+        "table": NewUnseenOrderTable(
+            new_orders, user=user, request=context.get("request")
+        ),
         "count": new_orders.count(),
         "request": context.get("request"),
     }

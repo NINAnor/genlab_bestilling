@@ -12,7 +12,6 @@ from .views import (
     ExtractionPlateDetailView,
     ExtractionPlateListView,
     GenerateGenlabIDsView,
-    ManaullyCheckedOrderActionView,
     MarkAsSeenView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
@@ -68,11 +67,6 @@ urlpatterns = [
         "orders/<int:pk>/to-next-status/",
         OrderToNextStatusActionView.as_view(),
         name="order-to-next-status",
-    ),
-    path(
-        "orders/<int:pk>/manually-checked/",
-        ManaullyCheckedOrderActionView.as_view(),
-        name="order-manually-checked",
     ),
     path(
         "<str:model_type>/<int:pk>/add-staff/",

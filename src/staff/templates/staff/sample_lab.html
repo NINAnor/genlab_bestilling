@@ -54,7 +54,7 @@
         const noteInputs = document.querySelectorAll('.internal_note-input');
 
         selectAll?.addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkboxes = document.querySelectorAll(`input[name="checked-{{ order.pk }}"]`);
             checkboxes.forEach((cb) => {
                 cb.checked = selectAll.checked;
             })

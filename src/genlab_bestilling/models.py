@@ -495,14 +495,6 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def order_manually_checked(self) -> None:
-        """
-        Set the order as checked by the lab staff, generate a genlab id
-        """
-        self.internal_status = self.Status.CHECKED
-        self.status = self.OrderStatus.PROCESSING
-        self.save(update_fields=["internal_status", "status"])
-
     @transaction.atomic
     def order_selected_checked(
         self,

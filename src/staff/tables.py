@@ -284,10 +284,15 @@ class SampleStatusTable(tables.Table):
             "isolation_method",
         ]
 
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(  # noqa: S308
+            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        )
+
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields
+        exclude = ("pop_id", "location")
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -385,6 +390,13 @@ class StaffIDMixinTable(tables.Table):
 
 
 class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
@@ -404,7 +416,7 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
 
     class Meta:
         model = Order
-        fields = ["id", "description", "delivery_date", "status"]
+        fields = ["priority", "id", "description", "delivery_date", "status"]
         empty_text = "No urgent orders"
         template_name = "django_tables2/tailwind_inner.html"
 

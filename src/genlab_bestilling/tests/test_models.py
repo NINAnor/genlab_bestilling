@@ -142,11 +142,20 @@ def test_full_order_ids_generation(extraction):
     """
     extraction.confirm_order()
 
-    Sample.objects.generate_genlab_ids(extraction.id)
+    sample_ids = list(
+        Sample.objects.filter(order_id=extraction.id).values_list(
+            "id", flat=True
+        )  # selected_samples is always a list
+    )
+
+    Sample.objects.generate_genlab_ids(
+        extraction.id,
+        selected_samples=[str(pk) for pk in sample_ids],
+    )
 
     assertQuerySetEqual(
         Sample.objects.filter(genlab_id__isnull=False),
-        Sample.objects.all(),
+        Sample.objects.filter(order_id=extraction.id),
         ordered=False,
     )
 
@@ -159,7 +168,7 @@ def test_order_selected_ids_generation(extraction):
 
     Sample.objects.generate_genlab_ids(
         extraction.id,
-        selected_samples=extraction.samples.all().values("id")[
+        selected_samples=extraction.samples.all().values_list("id", flat=True)[
             : extraction.samples.count() - 1
         ],
     )
@@ -168,6 +177,14 @@ def test_order_selected_ids_generation(extraction):
         Sample.objects.filter(genlab_id__isnull=False).count() + 1
         == Sample.objects.all().count()
     )
+
+
+def natural_sort_key(s):
+    """Return a key that sorts numbers numerically and strings lexicographically"""
+    try:
+        return (0, int(s.name))
+    except (ValueError, TypeError):
+        return (1, str(s.name))
 
 
 def test_ids_generation_with_only_numeric_names(genlab_setup):
@@ -226,7 +243,14 @@ def test_ids_generation_with_only_numeric_names(genlab_setup):
 
     extraction.confirm_order()
 
-    Sample.objects.generate_genlab_ids(order_id=extraction.id)
+    samples = [s1, s2, s3, s4]
+    samples.sort(key=natural_sort_key)
+    sample_ids = [str(s.id) for s in samples]
+
+    Sample.objects.generate_genlab_ids(
+        order_id=extraction.id,
+        selected_samples=sample_ids,
+    )
 
     gid = GIDSequence.objects.get_sequence_for_species_year(
         species=combo[0][0], year=extraction.confirmed_at.year, lock=False
@@ -302,8 +326,13 @@ def test_ids_generation_order_by_pop_id(genlab_setup):
 
     extraction.confirm_order()
 
+    samples = list(Sample.objects.filter(order_id=extraction.id))
+    samples.sort(key=lambda s: (s.pop_id, str(s.name)))
+    sample_ids = [str(s.id) for s in samples]
+
     Sample.objects.generate_genlab_ids(
-        order_id=extraction.id, sorting_order=["pop_id", "name"]
+        order_id=extraction.id,
+        selected_samples=sample_ids,
     )
 
     gid = GIDSequence.objects.get_sequence_for_species_year(

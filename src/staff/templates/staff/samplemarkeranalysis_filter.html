@@ -9,15 +9,15 @@
 {% block page-inner %}
 {% if order %}
 <div class="flex gap-5 mb-5">
-    <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
+    <a class="btn custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 {% endif %}
 
 <form method="get" class="py-3 px-4 border mb-3 ">
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
+        <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
     </div>
-    <button class="btn bg-primary" type="submit">Search</button>
 </form>
 
 {% render_table table %}

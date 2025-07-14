@@ -1,10 +1,10 @@
-from collections import defaultdict
 from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count
+from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models.functions import Cast
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -28,13 +28,13 @@ from genlab_bestilling.models import (
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
-    SampleStatusAssignment,
 )
 from nina.models import Project
 from shared.views import ActionView
 
 from .filters import (
     AnalysisOrderFilter,
+    ExtractionOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
     SampleFilter,
@@ -114,7 +114,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
-    filterset_class = AnalysisOrderFilter
+    filterset_class = ExtractionOrderFilter
 
     def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
         return (
@@ -190,6 +190,17 @@ class MarkAsSeenView(StaffMixin, DetailView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
             order = self.get_object()
+
+            if not order.genrequest.responsible_staff.filter(
+                id=request.user.id
+            ).exists():
+                messages.error(
+                    request, _("You are not authorized to mark this order as seen.")
+                )
+                return HttpResponseRedirect(
+                    self.get_return_url(request.POST.get("return_to"))
+                )
+
             order.toggle_seen()
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:
@@ -223,18 +234,37 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     filterset_class = OrderSampleFilter
 
     def get_queryset(self) -> models.QuerySet[Sample]:
-        return (
+        queryset = (
             super()
             .get_queryset()
             .select_related("type", "location", "species")
             .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
-            .order_by("species__name", "year", "location__name", "name")
+        )
+
+        # added to sort based on type (int/str)
+        return queryset.annotate(
+            name_as_int=Case(
+                When(
+                    name__regex=r"^\d+$",
+                    then=Cast("name", IntegerField()),
+                ),
+                default=Value(None),
+                output_field=IntegerField(),
+            )
         )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = order
+        total_samples = order.samples.count()
+        filled_count = order.filled_genlab_count
+        context["progress_percent"] = (
+            (float(filled_count) / float(total_samples)) * 100
+            if total_samples > 0
+            else 0
+        )
         return context
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -307,7 +337,12 @@ class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
 
-class SampleLabView(StaffMixin, TemplateView):
+class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
+    MARKED = "marked"
+    PLUCKED = "plucked"
+    ISOLATED = "isolated"
+    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED]
+
     disable_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
@@ -317,34 +352,16 @@ class SampleLabView(StaffMixin, TemplateView):
             self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
         return self._order
 
-    def get_data(self) -> list[Sample]:
+    def get_table_data(self) -> list[Sample]:
         order = self.get_order()
         samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
-        sample_status = SampleStatusAssignment.SampleStatus.choices
 
-        # Fetch all SampleStatusAssignment entries related to the current order
-        sample_assignments = SampleStatusAssignment.objects.filter(order_id=order.id)
-
-        # Build a lookup: {sample_id: set of status names}
-        # This allows us to check status presence without querying per sample
-        sample_status_map = defaultdict(set)
-        for assignment in sample_assignments:
-            name = str(assignment.status)
-
-            sample_status_map[assignment.sample_id].add(name)
-
-        # Annotate each sample instance with boolean flags per status
-        # Equivalent to: sample.status_name = True/False
-        # based on whether the sample has that status
         for sample in samples:
             sample.selected_isolation_method = (
                 sample.isolation_method.first()
                 if sample.isolation_method.exists()
                 else None
             )
-            status_names = sample_status_map.get(sample.id, set())
-            for status, _i in sample_status:
-                setattr(sample, status, status in status_names)
 
         return samples
 
@@ -353,19 +370,20 @@ class SampleLabView(StaffMixin, TemplateView):
         samples = Sample.objects.filter(order=order)
         species_ids = samples.values_list("species_id", flat=True).distinct()
 
-        return IsolationMethod.objects.filter(species_id__in=species_ids).values_list(
-            "name", flat=True
+        return (
+            IsolationMethod.objects.filter(species_id__in=species_ids)
+            .values_list("name", flat=True)
+            .distinct()
         )
 
     def get_base_fields(self) -> list[str]:
-        return [v for v, _ in SampleStatusAssignment.SampleStatus.choices]
+        return self.VALID_STATUSES
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["order"] = self.get_order()
         context["statuses"] = self.get_base_fields()
         context["isolation_methods"] = self.get_isolation_methods()
-        context["table"] = self.table_class(data=self.get_data())
 
         return context
 
@@ -376,7 +394,7 @@ class SampleLabView(StaffMixin, TemplateView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         status_name = request.POST.get("status")
-        selected_ids = request.POST.getlist("checked")
+        selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
         isolation_method = request.POST.get("isolation_method")
 
         if not selected_ids:
@@ -389,7 +407,11 @@ class SampleLabView(StaffMixin, TemplateView):
         samples = Sample.objects.filter(id__in=selected_ids)
 
         if status_name:
-            self.assign_status_to_samples(samples, status_name, order, request)
+            self.assign_status_to_samples(samples, status_name, request)
+            if status_name == self.ISOLATED:
+                # Cannot use "samples" here
+                # because we need to check all samples in the order
+                self.check_all_isolated(Sample.objects.filter(order=order))
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
         return HttpResponseRedirect(self.get_success_url())
@@ -398,43 +420,39 @@ class SampleLabView(StaffMixin, TemplateView):
         self,
         samples: models.QuerySet,
         status_name: str,
-        order: ExtractionOrder,
         request: HttpRequest,
     ) -> None:
-        statuses = SampleStatusAssignment.SampleStatus.choices
-
-        # Check if the provided status exists
-        if status_name not in [k for k, _ in statuses]:
+        if status_name not in self.VALID_STATUSES:
             messages.error(request, f"Status '{status_name}' is not valid.")
-            return HttpResponseRedirect(self.get_success_url())
+            return
 
-        # Get the index of the target status
-        status_weight = next(
-            i for i, (name, _) in enumerate(statuses) if name == status_name
-        )
+        update_fields = []
 
-        # Slice the list up to that index (inclusive) and extract only the names
-        statuses_to_apply = [name for name, _ in statuses[: status_weight + 1]]
+        if status_name == self.MARKED:
+            update_fields.append("is_marked")
+            samples.update(is_marked=True)
 
-        # Apply status assignments
-        assignments = []
-        for sample in samples:
-            for status in statuses_to_apply:
-                assignment = SampleStatusAssignment(
-                    sample=sample,
-                    status=status,
-                    order=order,
-                )
-                assignments.append(assignment)
+        elif status_name == self.PLUCKED:
+            update_fields.extend(["is_marked", "is_plucked"])
+            samples.update(is_marked=True, is_plucked=True)
 
-        SampleStatusAssignment.objects.bulk_create(
-            assignments,
-            ignore_conflicts=True,
-        )
+        elif status_name == self.ISOLATED:
+            update_fields.extend(["is_marked", "is_plucked", "is_isolated"])
+            samples.update(is_marked=True, is_plucked=True, is_isolated=True)
 
         messages.success(
             request, f"{samples.count()} samples updated with status '{status_name}'."
         )
+
+    # Checks if all samples in the order are isolated
+    # If they are, it updates the order status to completed
+    def check_all_isolated(self, samples: models.QuerySet) -> None:
+        if not samples.filter(is_isolated=False).exists():
+            self.get_order().to_next_status()
+            messages.success(
+                self.request,
+                "All samples are isolated. The order status is updated to completed.",
+            )
 
     def update_isolation_methods(
         self, samples: models.QuerySet, isolation_method: str, request: HttpRequest
@@ -444,7 +462,9 @@ class SampleLabView(StaffMixin, TemplateView):
         ).first()
 
         try:
-            im = IsolationMethod.objects.get(name=selected_isolation_method.name)
+            im = IsolationMethod.objects.filter(
+                name=selected_isolation_method.name
+            ).first()
         except IsolationMethod.DoesNotExist:
             messages.error(
                 request,
@@ -485,40 +505,6 @@ class UpdateInternalNote(StaffMixin, ActionView):
             return JsonResponse({"error": "Sample not found"}, status=404)
 
 
-class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
-    model = ExtractionOrder
-
-    def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
-        return ExtractionOrder.objects.filter(status=Order.OrderStatus.DELIVERED)
-
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form: Form) -> HttpResponse:
-        try:
-            # TODO: check state transition
-            self.object.order_manually_checked()
-            messages.add_message(
-                self.request,
-                messages.SUCCESS,
-                _("The order was checked, GenLab IDs will be generated"),
-            )
-        except Exception as e:
-            messages.error(self.request, f"Error: {str(e)}")
-
-        return super().form_valid(form)
-
-    def get_success_url(self) -> str:
-        return reverse_lazy(
-            f"staff:order-{self.object.get_type()}-detail",
-            kwargs={"pk": self.object.id},
-        )
-
-    def form_invalid(self, form: Form) -> HttpResponse:
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
     form_class = OrderStaffForm
     template_name = "staff/order_staff_edit.html"
@@ -527,7 +513,7 @@ class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
         model_type = self._get_model_type()
         if model_type == "genrequest":
             return Genrequest.objects.all()
-        return Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        return Order.objects.all()
 
     def _get_model_type(self) -> str:
         """Returns model type based on request data."""
@@ -640,7 +626,10 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
-        return reverse_lazy(f"staff:order-{self.object.get_type()}-list")
+        return reverse_lazy(
+            f"staff:order-{self.object.get_type()}-detail",
+            kwargs={"pk": self.object.pk},
+        )
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())
@@ -656,28 +645,20 @@ class GenerateGenlabIDsView(
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
+
+        # getlist automatically reads the values in the order presented in the table
         selected_ids = request.POST.getlist("checked")
 
         if not selected_ids:
             messages.error(request, "No samples were selected.")
             return HttpResponseRedirect(self.get_return_url())
 
-        sort_param = request.POST.get("sort", "")
-        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
-
-        selected_samples = Sample.objects.filter(pk__in=selected_ids)
-
-        if sorting_order:
-            selected_samples = selected_samples.order_by(*sorting_order)
-
         try:
-            self.object.order_selected_checked(
-                sorting_order=sorting_order, selected_samples=selected_samples
-            )
+            self.object.order_selected_checked(selected_samples=selected_ids)
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+                _(f"Genlab IDs generated for {len(selected_ids)} samples."),
             )
         except Exception as e:
             messages.add_message(

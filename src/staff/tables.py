@@ -542,9 +542,9 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
         orderable=False,
     )
 
-    def render_samples_completed(self, value: int) -> str:
+    def render_samples_completed(self, value: int, record: Order) -> str:
         if value > 0:
-            return "- / " + str(value)
+            return str(record.isolated_sample_count) + " / " + str(value)
         return "-"
 
     class Meta:

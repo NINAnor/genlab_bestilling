@@ -292,7 +292,7 @@ class SampleStatusTable(tables.Table):
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields
+        exclude = ("pop_id", "location")
 
 
 class OrderAnalysisSampleTable(tables.Table):

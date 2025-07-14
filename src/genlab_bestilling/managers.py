@@ -86,7 +86,7 @@ class SampleQuerySet(models.QuerySet):
 
         # Lock the samples
         samples = (
-            self.select_related("species", "order")
+            self.select_related("species")
             .filter(order_id=order_id, genlab_id__isnull=True)
             .select_for_update()
         )

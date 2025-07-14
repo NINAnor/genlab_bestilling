@@ -17,8 +17,6 @@ register = template.Library()
 
 @register.filter
 def is_responsible(staff_queryset: models.QuerySet, user: User) -> bool:
-    print(staff_queryset)
-    print(user)
     return staff_queryset.filter(id=user.id).exists()
 
 

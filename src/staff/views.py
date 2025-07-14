@@ -508,40 +508,6 @@ class UpdateInternalNote(StaffMixin, ActionView):
             return JsonResponse({"error": "Sample not found"}, status=404)
 
 
-class ManaullyCheckedOrderActionView(SingleObjectMixin, ActionView):
-    model = ExtractionOrder
-
-    def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
-        return ExtractionOrder.objects.filter(status=Order.OrderStatus.DELIVERED)
-
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form: Form) -> HttpResponse:
-        try:
-            # TODO: check state transition
-            self.object.order_manually_checked()
-            messages.add_message(
-                self.request,
-                messages.SUCCESS,
-                _("The order was checked, GenLab IDs will be generated"),
-            )
-        except Exception as e:
-            messages.error(self.request, f"Error: {str(e)}")
-
-        return super().form_valid(form)
-
-    def get_success_url(self) -> str:
-        return reverse_lazy(
-            f"staff:order-{self.object.get_type()}-detail",
-            kwargs={"pk": self.object.id},
-        )
-
-    def form_invalid(self, form: Form) -> HttpResponse:
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
     form_class = OrderStaffForm
     template_name = "staff/order_staff_edit.html"
@@ -663,7 +629,10 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
-        return reverse_lazy(f"staff:order-{self.object.get_type()}-list")
+        return reverse_lazy(
+            f"staff:order-{self.object.get_type()}-detail",
+            kwargs={"pk": self.object.pk},
+        )
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())

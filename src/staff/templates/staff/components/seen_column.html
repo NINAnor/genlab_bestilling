@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
+  {% csrf_token %}
+  <input type="hidden" name="return_to" value="dashboard">
+  <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod; height: auto;" type="submit">Mark as seen</button>
+</form>

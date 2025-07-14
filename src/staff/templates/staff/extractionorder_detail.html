@@ -3,36 +3,55 @@
 
 
 {% block content %}
-    {% fragment as table_header %}
-    {% #table-cell header=True %}GUID{% /table-cell %}
-    {% #table-cell header=True %}Type{% /table-cell %}
-    {% #table-cell header=True %}Species{% /table-cell %}
-    {% #table-cell header=True %}Markers{% /table-cell %}
-    {% #table-cell header=True %}Location{% /table-cell %}
-    {% #table-cell header=True %}Date{% /table-cell %}
-    {% #table-cell header=True %}Volume{% /table-cell %}
-    {% endfragment %}
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
-    </div>
-
-    {% object-detail object=object %}
-
-
-    <h5 class="text-2xl my-5">Delivered Samples</h5>
-    <div class="bg-white p-4">
-        <p>{{ object.samples.count }} samples were delivered</p>
-    </div>
+    <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
         <a class="btn bg-yellow-200" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> back</a>
         <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
-        {% if object.status == object.OrderStatus.DELIVERED %}
-            <div class="ml-auto"></div>
-            {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
-            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
+        {% if analysis_orders|length > 1 %}
+        <div class="relative inline-block text-left">
+            <button type="button"
+              onclick="document.getElementById('dropdown-menu').classList.toggle('hidden')"
+              class="btn bg-primary"
+            >
+              Go to Analysis Order
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
 
+            <div id="dropdown-menu"
+                 class="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg hidden"
+                 role="menu" aria-orientation="vertical" aria-labelledby="dropdownMenuButton">
+              {% for ao in analysis_orders %}
+                <a href="{% url 'staff:order-analysis-detail' pk=ao.id %}"
+                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                   role="menuitem">
+                   {{ ao }}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% elif analysis_orders|length == 1 %}
+            <a class="btn bg-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
+        {% endif %}
+        <a class="btn bg-primary" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
+
+        <div class="ml-auto"></div>
+
+        {% if not object.is_seen %}
+            <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
+                {% csrf_token %}
+                <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>
+            </form>
+        {% endif %}
+
+        {% if object.status == object.OrderStatus.DELIVERED %}
+            {% url 'staff:order-manually-checked' pk=object.id as confirm_check_url %}
             {% action-button action=confirm_check_url class="bg-secondary text-white" submit_text="Confirm - Order checked" csrf_token=csrf_token %}
+        {% endif %}
+
+        {% if object.status != object.OrderStatus.DRAFT %}
+            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
             {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
         {% endif %}
 
@@ -42,5 +61,22 @@
                 {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
             {% endwith %}
         {% endif %}
+    </div>
+
+    {% fragment as table_header %}
+    {% #table-cell header=True %}GUID{% /table-cell %}
+    {% #table-cell header=True %}Type{% /table-cell %}
+    {% #table-cell header=True %}Species{% /table-cell %}
+    {% #table-cell header=True %}Markers{% /table-cell %}
+    {% #table-cell header=True %}Location{% /table-cell %}
+    {% #table-cell header=True %}Date{% /table-cell %}
+    {% #table-cell header=True %}Volume{% /table-cell %}
+    {% endfragment %}
+
+    {% object-detail object=object %}
+
+    <h5 class="text-2xl my-5">Delivered Samples</h5>
+    <div class="bg-white p-4">
+        <p>{{ object.samples.count }} samples were delivered</p>
     </div>
 {% endblock %}

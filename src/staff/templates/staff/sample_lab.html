@@ -1,0 +1,85 @@
+{% extends "staff/base.html" %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+<h3 class="text-4xl mb-5">{% block page-title %}{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}{% endblock page-title %}</h3>
+{% block page-inner %}
+    <div class="flex gap-5 mb-5">
+        <a class="btn bg-primary" href="./"><i class="fas fa-arrow-left"></i> back</a>
+    </div>
+    <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
+        {% csrf_token %}
+        {% for status in statuses %}
+            <button class="btn bg-blue-500 text-white mt-4 mr-2" type="submit" name="status" value="{{ status }}">
+                {{ status|capfirst }}
+            </button>
+        {% endfor %}
+        <div class="inline-block text-left">
+            <button type="button"
+                id="parent-dropdown-button"
+                onclick="document.getElementById('parent-dropdown-menu').classList.toggle('hidden')"
+                class="btn bg-slate-100 w-64 h-10 px-4">
+            <span id="selected-method-{{ record.pk }}" class="truncate block w-full text-center">
+                {{ record.selected_isolation_method.name|default:"Isolation method" }}
+                <i class="fa-solid fa-chevron-down ml-2"></i>
+            </span>
+            </button>
+          <div id="parent-dropdown-menu"
+               class="absolute z-10 mt-2 w-100 origin-top-right rounded-md bg-white shadow-lg hidden"
+               role="menu" aria-orientation="vertical" aria-labelledby="parent-dropdown-button">
+            {% if not isolation_methods %}
+              <p class="px-4 py-2 text-sm text-gray-700">No isolation methods available</p>
+            {% else %}
+              {% for im in isolation_methods %}
+                <button
+                  type="submit"
+                  name="isolation_method"
+                  value="{{ im }}"
+                class="update-isolation-button block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 text-gray-700"
+                role="menuitem"
+              >
+                {{ im }}
+              </button>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+        {% render_table table %}
+    </form>
+{% endblock page-inner %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectAll = document.getElementById('select-all-checkbox');
+        const noteInputs = document.querySelectorAll('.internal_note-input');
+
+        selectAll?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((cb) => {
+                cb.checked = selectAll.checked;
+            })
+        });
+
+        let debounceTimeout;
+        noteInputs.forEach(function (noteInput) {
+            noteInput.addEventListener("input", function (event) {
+                const sampleId = event.target.dataset.sampleId;
+                const value = event.target.value;
+                const formData = new FormData();
+                formData.append("sample_id", sampleId);
+                formData.append("field_name", "internal_note-input");
+                formData.append("field_value", value);
+                formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(function () {
+                    fetch("{% url 'staff:update-internal-note' %}", {
+                        method: "POST",
+                        body: formData
+                    });
+                }, 500);
+            });
+        });
+    });
+</script>
+{% endblock content %}

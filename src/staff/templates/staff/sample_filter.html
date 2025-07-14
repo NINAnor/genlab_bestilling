@@ -1,7 +1,22 @@
 {% extends "staff/base_filter.html" %}
+{% load crispy_forms_tags static %}
+{% load render_table from django_tables2 %}
 
 {% block page-title %}
-{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}
+<div class="flex justify-between items-center w-full">
+    <div>
+        {% if order %}
+            {{ order }} - Samples
+        {% else %}
+            Samples
+        {% endif %}
+    </div>
+    {% if order %}
+        <div>
+            {{ order.filled_genlab_count }} / {{ order.samples.count }} Genlabs generated
+        </div>
+    {% endif %}
+</div>
 {% endblock page-title %}
 
 {% block page-inner %}
@@ -9,6 +24,36 @@
 <div class="flex gap-5 mb-5">
     <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
     <a class="btn bg-yellow-500" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Download CSV</a>
+    <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples-lab' order.pk %}"><i class="fas fa-flask"></i> Lab</a>
 </div>
+
+<form method="post" action="{% url 'staff:generate-genlab-ids' pk=order.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}">
+    <button class="btn bg-blue-500 text-white mt-4" type="submit" name="generate_genlab_ids">
+        <i class="fa-solid fa-id-badge"></i> Generate genlab IDs
+    </button>
+
+    <div class="text-right text-sm text-red-500"> This page is under development. The genlab IDs will generate for all, and without sorting as per now. </div>
+
+    {% render_table table %}
+  </form>
+
+  <form id="prioritise-form" method="post" action="{% url 'staff:order-extraction-samples' pk=order.pk %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="sample_id" id="prioritise-sample-id">
+  </form>
 {% endif %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll('.toggle-prioritise').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const sampleId = this.dataset.sampleId;
+          const form = document.getElementById('prioritise-form');
+          form.querySelector('#prioritise-sample-id').value = sampleId;
+          form.submit();
+        });
+      });
+    });
+    </script>
 {% endblock page-inner %}

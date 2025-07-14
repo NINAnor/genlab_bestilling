@@ -385,6 +385,13 @@ class StaffIDMixinTable(tables.Table):
 
 
 class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
@@ -404,7 +411,7 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
 
     class Meta:
         model = Order
-        fields = ["id", "description", "delivery_date", "status"]
+        fields = ["priority", "id", "description", "delivery_date", "status"]
         empty_text = "No urgent orders"
         template_name = "django_tables2/tailwind_inner.html"
 

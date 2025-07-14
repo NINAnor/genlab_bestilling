@@ -15,6 +15,13 @@ from ..tables import (
 register = template.Library()
 
 
+@register.filter
+def is_responsible(staff_queryset: models.QuerySet, user: User) -> bool:
+    print(staff_queryset)
+    print(user)
+    return staff_queryset.filter(id=user.id).exists()
+
+
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
 def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
     urgent_orders = (
@@ -87,9 +94,7 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
-def new_unseen_orders_table(
-    context: dict, area: Area | None = None, user: User | None = None
-) -> dict:
+def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = (
         Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=False)
         .exclude(is_urgent=True)
@@ -116,9 +121,7 @@ def new_unseen_orders_table(
 
     return {
         "title": "New unseen orders",
-        "table": NewUnseenOrderTable(
-            new_orders, user=user, request=context.get("request")
-        ),
+        "table": NewUnseenOrderTable(new_orders, user=context.get("request").user),
         "count": new_orders.count(),
         "request": context.get("request"),
     }

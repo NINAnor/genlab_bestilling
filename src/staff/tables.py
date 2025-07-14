@@ -3,9 +3,7 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
-from django.middleware.csrf import get_token
-from django.urls import reverse
-from django.utils.html import format_html
+from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
 from capps.users.models import User
@@ -413,39 +411,26 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
         template_name = "django_tables2/tailwind_inner.html"
 
 
-class UserAwareTemplateColumn(tables.TemplateColumn):
-    def __init__(self, *args, user: User = None, **kwargs) -> str:
-        self.user = user
-        super().__init__(*args, **kwargs)
-
-    def render(self, record: Any, table: tables.Table, **kwargs) -> str:
-        context = self.get_context(record, table, **kwargs)
-        context["user"] = self.user
-        return self.template.render(context)
-
-
 class NewUnseenOrderTable(StaffIDMixinTable):
-    seen = tables.Column(verbose_name="", orderable=False, empty_values=())
+    seen = tables.TemplateColumn(
+        verbose_name="",
+        orderable=False,
+        empty_values=(),
+        template_name="staff/components/seen_column.html",
+    )
 
     def __init__(self, *args, user: User = None, request: Any = None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        self.request = request
 
     def render_seen(self, record: Order) -> str:
-        if record.genrequest.responsible_staff.filter(id=self.user.id).exists():
-            return format_html(
-                """
-                <form method="post" action="{}">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{}">
-                    <input type="hidden" name="return_to" value="dashboard">
-                    <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod; height: auto;" type="submit">Mark as seen</button>
-                </form>
-                """,  # noqa: E501
-                reverse("staff:mark-as-seen", kwargs={"pk": record.pk}),
-                get_token(self.request),
-            )
-        return ""
+        return render_to_string(
+            "staff/components/seen_column.html",
+            {
+                "record": record,
+                "user": self.user,  # manually pass user into template context
+            },
+        )
 
     description = tables.Column(
         accessor="genrequest__name",

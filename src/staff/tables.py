@@ -423,10 +423,10 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
 
 class NewUnseenOrderTable(StaffIDMixinTable):
     seen = tables.TemplateColumn(
+        verbose_name="",
         orderable=False,
-        verbose_name="Seen",
-        template_name="staff/components/seen_column.html",
         empty_values=(),
+        template_name="staff/components/seen_column.html",
     )
 
     description = tables.Column(

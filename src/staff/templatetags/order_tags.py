@@ -1,6 +1,7 @@
 from django import template
 from django.db import models
 
+from capps.users.models import User
 from genlab_bestilling.models import Area, Order
 
 from ..tables import (
@@ -12,6 +13,11 @@ from ..tables import (
 )
 
 register = template.Library()
+
+
+@register.filter
+def is_responsible(staff_queryset: models.QuerySet, user: User) -> bool:
+    return staff_queryset.filter(id=user.id).exists()
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)

@@ -22,6 +22,13 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
         )
         .exclude(status=Order.OrderStatus.DRAFT)
         .select_related("genrequest")
+        .annotate(
+            priority=models.Case(
+                models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
+                models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
+                default=1,
+            ),
+        )
     )
 
     if area:

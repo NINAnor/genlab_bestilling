@@ -190,6 +190,17 @@ class MarkAsSeenView(StaffMixin, DetailView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
             order = self.get_object()
+
+            if not order.genrequest.responsible_staff.filter(
+                id=request.user.id
+            ).exists():
+                messages.error(
+                    request, _("You are not authorized to mark this order as seen.")
+                )
+                return HttpResponseRedirect(
+                    self.get_return_url(request.POST.get("return_to"))
+                )
+
             order.toggle_seen()
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:

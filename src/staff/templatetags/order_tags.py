@@ -121,7 +121,7 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
 
     return {
         "title": "New unseen orders",
-        "table": NewUnseenOrderTable(new_orders, user=context.get("request").user),
+        "table": NewUnseenOrderTable(new_orders),
         "count": new_orders.count(),
         "request": context.get("request"),
     }

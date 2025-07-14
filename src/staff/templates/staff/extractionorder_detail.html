@@ -1,5 +1,6 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
+{% load order_tags %}
 
 
 {% block content %}
@@ -38,7 +39,7 @@
 
         <div class="ml-auto"></div>
 
-        {% if not object.is_seen %}
+        {% if object.genrequest.responsible_staff.all|is_responsible:request.user and not object.is_seen %}
             <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
                 {% csrf_token %}
                 <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>

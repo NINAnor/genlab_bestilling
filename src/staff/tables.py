@@ -3,10 +3,8 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from capps.users.models import User
 from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
@@ -418,19 +416,6 @@ class NewUnseenOrderTable(StaffIDMixinTable):
         empty_values=(),
         template_name="staff/components/seen_column.html",
     )
-
-    def __init__(self, *args, user: User = None, request: Any = None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-
-    def render_seen(self, record: Order) -> str:
-        return render_to_string(
-            "staff/components/seen_column.html",
-            {
-                "record": record,
-                "user": self.user,  # manually pass user into template context
-            },
-        )
 
     description = tables.Column(
         accessor="genrequest__name",

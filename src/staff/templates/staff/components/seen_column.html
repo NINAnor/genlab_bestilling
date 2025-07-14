@@ -1,6 +1,6 @@
 {% load order_tags %}
 
-{% if record.genrequest.responsible_staff.all|is_responsible:user %}
+{% if record.genrequest.responsible_staff.all|is_responsible:request.user %}
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
   <input type="hidden" name="return_to" value="dashboard">

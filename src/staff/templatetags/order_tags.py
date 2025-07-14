@@ -2,7 +2,7 @@ from django import template
 from django.db import models
 
 from capps.users.models import User
-from genlab_bestilling.models import Area, Order
+from genlab_bestilling.models import Area, Order, SampleStatusAssignment
 
 from ..tables import (
     AssignedOrderTable,
@@ -147,7 +147,20 @@ def assigned_orders_table(context: dict) -> dict:
         )
         .select_related("genrequest")
         .annotate(
-            sample_count=models.Count("extractionorder__samples", distinct=True),
+            isolated_sample_count=models.Count(
+                "sample_status_assignments",
+                distinct=True,
+                filter=models.Q(
+                    sample_status_assignments__status=SampleStatusAssignment.SampleStatus.ISOLATED,
+                ),
+            ),
+            sample_count=models.Case(
+                models.When(
+                    extractionorder__isnull=False,
+                    then=models.Count("extractionorder__samples", distinct=True),
+                ),
+                default=0,
+            ),
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),

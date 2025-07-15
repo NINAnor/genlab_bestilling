@@ -103,10 +103,13 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     fish_id = serializers.SerializerMethodField()
+    analysis_orders = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
+    isolation_method = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        # Make fields as a list to enable the removal of fish_id dynamically
+        # Make fields as a list to enable the removal of fields dynamically
         fields = [
             "order",
             "guid",
@@ -119,6 +122,9 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "notes",
             "genlab_id",
             "fish_id",
+            "analysis_orders",
+            "project",
+            "isolation_method",
         ]
 
     def get_field_names(
@@ -132,6 +138,20 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
+
+    def get_analysis_orders(self, obj: Sample) -> list[str]:
+        if obj.order and obj.order.analysis_orders.exists():
+            return [str(anl.id) for anl in obj.order.analysis_orders.all()]
+        return []
+
+    def get_project(self, obj: Sample) -> str:
+        if obj.order and obj.order.genrequest and obj.order.genrequest.project:
+            return str(obj.order.genrequest.project)
+        return ""
+
+    def get_isolation_method(self, obj: Sample) -> str:
+        method = obj.isolation_method.first()
+        return method.name if method else "-"
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

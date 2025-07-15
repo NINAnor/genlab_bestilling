@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.db.models import Count, Exists, OuterRef
+from django.db.models.expressions import RawSQL
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -241,6 +242,13 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
             .order_by("species__name", "year", "location__name", "name")
+            .annotate(
+                name_as_int=RawSQL(
+                    r"substring(%s from '^\d+$')::int",
+                    params=["name"],
+                    output_field=models.IntegerField(),
+                )
+            )
         )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:

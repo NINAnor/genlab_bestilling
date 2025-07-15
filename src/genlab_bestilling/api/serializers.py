@@ -1,7 +1,3 @@
-from collections.abc import Mapping
-from typing import Any
-
-from django.forms import Field
 from rest_framework import exceptions, serializers
 
 from ..models import (
@@ -106,10 +102,12 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     analysis_orders = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     isolation_method = serializers.SerializerMethodField()
+    marked = serializers.SerializerMethodField()
+    plucked = serializers.SerializerMethodField()
+    isolated = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        # Make fields as a list to enable the removal of fields dynamically
         fields = [
             "order",
             "guid",
@@ -125,16 +123,10 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "analysis_orders",
             "project",
             "isolation_method",
+            "marked",
+            "plucked",
+            "isolated",
         ]
-
-    def get_field_names(
-        self, declared_fields: Mapping[str, Field], info: Any
-    ) -> list[str]:
-        field_names = super().get_field_names(declared_fields, info)
-        if not self.context.get("include_fish_id", False):
-            # Remove fish_id if the area is not aquatic (only relevant for aquatic area)
-            field_names.remove("fish_id")
-        return field_names
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
@@ -151,7 +143,19 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
     def get_isolation_method(self, obj: Sample) -> str:
         method = obj.isolation_method.first()
-        return method.name if method else "-"
+        return method.name if method else ""
+
+    def _flag(self, value: bool) -> str:
+        return "x" if value else ""
+
+    def get_marked(self, obj: Sample) -> str:
+        return self._flag(obj.is_marked)
+
+    def get_plucked(self, obj: Sample) -> str:
+        return self._flag(obj.is_plucked)
+
+    def get_isolated(self, obj: Sample) -> str:
+        return self._flag(obj.is_isolated)
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

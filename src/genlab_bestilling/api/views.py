@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Exists, OuterRef, QuerySet
 from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -33,6 +33,7 @@ from ..models import (
     Marker,
     Sample,
     SampleMarkerAnalysis,
+    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -79,7 +80,7 @@ class SampleViewset(ModelViewSet):
 
     CSV_FIELD_LABELS: dict[str, str] = {
         "genlab_id": "Genlab ID",
-        "fish_id": "Gammel Genlab ID",
+        "fish_id": "Old Genlab ID",
         "guid": "GUID",
         "name": "Name",
         "species.name": "Species",
@@ -97,20 +98,26 @@ class SampleViewset(ModelViewSet):
         "project": "Projectnumber",
         "isolation_method": "Isolation Method",
         "qiagen_number": "Qiagen#",
+        "marked": "Marked",
+        "plucked": "Plucked",
+        "isolated": "Isolated",
+        "station": "Station",
+        "placement_in_fridge": "Placement in fridge",
+        "delivered_to_lab": "Delivered to lab",
     }
 
+    # NOTE: This can be modified to include more fields based on species or area.
     CSV_FIELDS_BY_AREA: dict[str, list[str]] = {
         "Akvatisk": [
             "genlab_id",
             "fish_id",
             "guid",
-            "name",
-            "species.name",
-            "location.name",
             "order",
             "analysis_orders",
+            "location.name",
             "pop_id",
-            "type.name",
+            "name",
+            "species.name",
             "gender",
             "length",
             "weight",
@@ -118,21 +125,63 @@ class SampleViewset(ModelViewSet):
             "year",
             "notes",
             "project",
+            "type.name",
+            "isolation_method",
+            "qiagen_number",
+            "marked",
+            "plucked",
+            "isolated",
+        ],
+        "Elvemusling": [
+            "genlab_id",
+            "fish_id",
+            "guid",
+            "location.name",
+            "year",
+            "name",
+            "station",
+            "type.name",
+            "length",
+            "notes",
+            "isolation_method",
+            "qiagen_number",
+            "placement_in_fridge",
+            "marked",
+            "plucked",
+            "isolated",
+        ],
+        "Terrestrisk": [
+            "genlab_id",
+            "guid",
+            "name",
+            "type.name",
+            "species.name",
+            "location.name",
+            "delivered_to_lab",
+            "order",
+            "analysis_orders",
+            "notes",
+            "marked",
+            "plucked",
+            "isolated",
             "isolation_method",
             "qiagen_number",
         ],
+        # Same as "Terrestrisk" for now, can be modified later if needed.
         "default": [
             "genlab_id",
             "guid",
             "name",
+            "type.name",
             "species.name",
             "location.name",
+            "delivered_to_lab",
             "order",
             "analysis_orders",
-            "pop_id",
-            "type.name",
             "notes",
-            "project",
+            "marked",
+            "plucked",
+            "isolated",
             "isolation_method",
             "qiagen_number",
         ],
@@ -150,7 +199,24 @@ class SampleViewset(ModelViewSet):
                 "order__genrequest__area",
                 "location",
             )
-            .order_by("id")
+            .annotate(
+                is_marked=Exists(
+                    SampleStatusAssignment.objects.filter(
+                        sample=OuterRef("pk"), status="marked"
+                    )
+                ),
+                is_plucked=Exists(
+                    SampleStatusAssignment.objects.filter(
+                        sample=OuterRef("pk"), status="plucked"
+                    )
+                ),
+                is_isolated=Exists(
+                    SampleStatusAssignment.objects.filter(
+                        sample=OuterRef("pk"), status="isolated"
+                    )
+                ),
+            )
+            .order_by("genlab_id", "type")
         )
 
     def get_serializer_class(self) -> type[BaseSerializer]:
@@ -166,13 +232,25 @@ class SampleViewset(ModelViewSet):
             or "default"
         )
 
-    def get_csv_fields_and_labels(self, area_name: str) -> tuple[list[str], list[str]]:
+    # NOTE: If the headers differ from species to species, we can add more headers
+    # to the CSV_FIELDS_BY_AREA dict, and then use the species name to determine
+    # which headers to use.
+    def get_csv_fields_and_labels(
+        self, area_name: str, queryset: QuerySet
+    ) -> tuple[list[str], list[str]]:
+        get_fields = area_name
+        if area_name == "Akvatisk":
+            species = queryset.values_list("species__name", flat=True).distinct()
+            if species.first() == "Elvemusling":
+                get_fields = "Elvemusling"
+
         fields = self.CSV_FIELDS_BY_AREA.get(
-            area_name, self.CSV_FIELDS_BY_AREA["default"]
+            get_fields, self.CSV_FIELDS_BY_AREA["default"]
         )
         labels = [self.CSV_FIELD_LABELS.get(f, f) for f in fields]
         return fields, labels
 
+    # Helper function to get nested values from a dict using dotted notation.
     def get_nested(self, obj: dict, dotted: str) -> str | None:
         for part in dotted.split("."):
             obj = obj.get(part) if isinstance(obj, dict) else None
@@ -206,10 +284,9 @@ class SampleViewset(ModelViewSet):
         serializer = self.get_serializer(
             queryset,
             many=True,
-            context={"include_fish_id": area_name == "Akvatisk"},
         )
 
-        fields, headers = self.get_csv_fields_and_labels(area_name)
+        fields, headers = self.get_csv_fields_and_labels(area_name, queryset)
         data = self.build_csv_data(serializer.data, fields)
 
         csv_data = CSVRenderer().render(

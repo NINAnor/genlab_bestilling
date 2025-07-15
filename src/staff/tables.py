@@ -2,8 +2,6 @@ from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
-from django.db.models import IntegerField
-from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -167,7 +165,7 @@ class SampleBaseTable(tables.Table):
         empty_values=(),
     )
 
-    name = tables.Column(order_by=("name_as_int",))
+    name = tables.Column(order_by=("name_as_int", "name"))
 
     class Meta:
         model = Sample
@@ -193,22 +191,12 @@ class SampleBaseTable(tables.Table):
             "species",
             "type",
         )
-        order_by = (
-            "-is_prioritised",
-            "species",
-            "genlab_id",
-            "name_as_int",
-        )
+        order_by = ("-is_prioritised", "species", "genlab_id", "name_as_int", "name")
 
         empty_text = "No Samples"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        if hasattr(self.data, "data"):
-            self.data.data = self.data.data.annotate(
-                name_as_int=Cast("name", output_field=IntegerField())
-            )
 
     def render_plate_positions(self, value: Any) -> str:
         if value:

@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import QuerySet
-from django.db.models.expressions import RawSQL
+from django.db.models import Case, IntegerField, QuerySet, Value, When
+from django.db.models.functions import Cast
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 from capps.users.models import User
@@ -54,9 +54,6 @@ class EquipmentOrderQuantityQuerySet(models.QuerySet):
         )
 
 
-DEFAULT_SORTING_FIELDS = ["name_as_int", "name"]
-
-
 class SampleQuerySet(models.QuerySet):
     def filter_allowed(self, user: User) -> QuerySet:
         """
@@ -76,7 +73,7 @@ class SampleQuerySet(models.QuerySet):
     def generate_genlab_ids(
         self,
         order_id: int,
-        sorting_order: list[str] | None = DEFAULT_SORTING_FIELDS,
+        sorting_order: list[str] | None = None,
         selected_samples: list[int] | None = None,
     ) -> None:
         """
@@ -94,18 +91,41 @@ class SampleQuerySet(models.QuerySet):
         if selected_samples:
             samples = samples.filter(id__in=selected_samples)
 
-        if sorting_order == DEFAULT_SORTING_FIELDS:
-            # create an annotation containg all integer values
-            # of "name", so that it's possible to sort numerically and alphabetically
+        # if we are defaulting, set to name as of now
+        if not sorting_order:
+            sorting_order = ["name"]
+
+        # able to sort on nullable fields
+        if any("type" in field for field in sorting_order):
+            samples = samples.filter(type__isnull=False)
+
+        # handle name based on its type
+        if sorting_order and any(f.lstrip("-") == "name" for f in sorting_order):
             samples = samples.annotate(
-                name_as_int=RawSQL(
-                    r"substring(%s from '^\d+$')::int",
-                    params=["name"],
-                    output_field=models.IntegerField(),
+                name_as_int=Case(
+                    When(name__regex=r"^\d+$", then=Cast("name", IntegerField())),
+                    default=Value(None),
+                    output_field=IntegerField(),
                 )
-            ).order_by(*sorting_order)
-        else:
-            samples = samples.order_by(*sorting_order)
+            )
+
+            # Replace "name" with "name_as_int" (and optionally fallback to "name")
+            new_sorting_order = []
+            for field in sorting_order:
+                is_desc = field.startswith("-")
+                base = field.lstrip("-")
+
+                if base == "name":
+                    # Sort numerically first
+                    name_as_int = "-name_as_int" if is_desc else "name_as_int"
+                    name_fallback = "-name" if is_desc else "name"
+                    new_sorting_order.extend([name_as_int, name_fallback])
+                else:
+                    new_sorting_order.append(field)
+
+            sorting_order = new_sorting_order
+
+        samples = samples.order_by(*sorting_order)
 
         updates = []
         for sample in samples:

@@ -34,6 +34,13 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
                 default=1,
             ),
+            delivery_date=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then="analysisorder__expected_delivery_date",
+                ),
+                default=models.Value(None, output_field=models.DateField()),
+            ),
         )
     )
 
@@ -82,6 +89,13 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
                 models.When(is_prioritized=True, then=Order.OrderPriority.PRIORITIZED),
                 default=1,
             ),
+            delivery_date=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then="analysisorder__expected_delivery_date",
+                ),
+                default=models.Value(None, output_field=models.DateField()),
+            ),
         )
     )
 
@@ -115,7 +129,14 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
                     then=models.Count("analysisorder__samples", distinct=True),
                 ),
                 default=0,
-            )
+            ),
+            delivery_date=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then="analysisorder__expected_delivery_date",
+                ),
+                default=models.Value(None, output_field=models.DateField()),
+            ),
         )
     )
 
@@ -198,6 +219,13 @@ def draft_orders_table(context: dict, area: Area) -> dict:
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
                 default=1,
+            ),
+            delivery_date=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then="analysisorder__expected_delivery_date",
+                ),
+                default=models.Value(None, output_field=models.DateField()),
             ),
         )
         .order_by("-priority", "-created_at")

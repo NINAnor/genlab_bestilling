@@ -197,6 +197,14 @@ class SampleBaseTable(tables.Table):
 
         empty_text = "No Samples"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if hasattr(self.data, "data"):
+            self.data.data = self.data.data.annotate(
+                name_as_int=Cast("name", output_field=IntegerField())
+            )
+
     def render_plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])

@@ -6,16 +6,16 @@
     <h3 class="text-4xl mb-5">Samples for Extraction #{{ view.kwargs.pk }}</h3>
     {% render_table table %}
     <div class="flex gap-5 mt-5">
-        <a class="btn bg-yellow-200" href="{% url 'genrequest-extraction-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back to order</a>
+        <a class="btn custom_order_button" href="{% url 'genrequest-extraction-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> Back to order</a>
         {% if extraction.status == 'draft' %}
         {% url 'genrequest-order-confirm' genrequest_id=view.kwargs.genrequest_id pk=view.kwargs.pk as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Deliver order" csrf_token=csrf_token %}
-        <a class="ml-auto btn bg-blue-300" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">edit samples</a>
+        {% action-button action=confirm_order_url class="btn custom_order_button" submit_text="Deliver order" csrf_token=csrf_token %}
+        <a class="ml-auto btn custom_order_button" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">Edit samples</a>
         {% endif %}
 
         {% if extraction.status != 'draft' %}
-        <a class="btn bg-primary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
+        <a class="btn custom_order_button" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
         {% endif %}
-        <a class="btn bg-yellow-500" href="{% url 'samples-csv' %}?order={{ view.kwargs.pk }}"><i class="fas fa-download"></i> Download CSV</a>
+        <a class="btn custom_order_button" href="{% url 'samples-csv' %}?order={{ view.kwargs.pk }}"><i class="fas fa-download"></i> Download CSV</a>
     </div>
 {% endblock %}

@@ -233,4 +233,62 @@ ol.breadcrumb > li + ::before {
 
 .select2-container .select2-selection--single {
   height: 3.2rem !important;
+  position: relative; /* Needed for absolute positioning inside */
+  padding-right: 2.5rem; /* Leave space for arrow */
+  display: flex;
+  align-items: center;
+}
+
+.select2-container .select2-selection__arrow {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  transform: translateY(50%);
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+}
+
+.custom_order_button {
+  background-color: #F2F2F2; /* Fill */
+  border: 1px solid #BABABA; /* Stroke */
+  color: #4A4A4A; /* Text & icon color */
+}
+
+.custom_order_button:hover {
+  background-color: #e0e0e0; /* Optional: darker on hover */
+  border: 1px solid #A0A0A0; /* Stroke */
+}
+
+.custom_order_button_blue {
+  background-color: #E6F0FA; /* Fill */
+  border: 1px solid #8CA5BE; /* Stroke */
+  color: #0F3D6A; /* Text & icon color */
+}
+
+.custom_order_button_blue:hover {
+  background-color: #D2E4F5; /* Optional: darker on hover */
+  border: 1px solid #7792AB; /* Stroke */
+}
+
+.custom_order_button_green {
+  background-color: #DFF7CA; /* Fill */
+  border: 1px solid #93AD7D; /* Stroke */
+  color: #001D3A; /* Text & icon color */
+}
+
+.custom_order_button_green:hover {
+  background-color: #C9EBB0; /* Optional: darker on hover */
+  border: 1px solid #7F996C; /* Stroke */
+}
+
+.custom_order_button_red {
+  background-color: #f7caca; /* Fill */
+  border: 1px solid #ad7d7d; /* Stroke */
+  color: #3a0000; /* Text & icon color */
+}
+
+.custom_order_button_red:hover {
+  background-color: #ebb0b0; /* Optional: darker on hover */
+  border: 1px solid #996c6c; /* Stroke */
 }

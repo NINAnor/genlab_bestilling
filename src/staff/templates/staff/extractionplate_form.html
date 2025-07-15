@@ -5,15 +5,15 @@
     <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
     <div class="flex gap-5 mb-5">
         {% if object.id %}
-        <a class="btn bg-primary" href=".._/"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn custom_order_button" href=".._/"><i class="fas fa-arrow-left"></i> Back</a>
         {% else %}
-        <a class="btn bg-primary" href="../"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
         {% endif %}
     </div>
     <form method="post">
         {{ form|crispy }}
         {% csrf_token %}
-        <button class="btn bg-primary">
+        <button class="btn custom_order_button">
             Send
         </button>
     </form>

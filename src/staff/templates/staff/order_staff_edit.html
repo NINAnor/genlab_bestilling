@@ -17,9 +17,9 @@
 
   <div class="flex gap-5 mb-5">
     {% if model_type == "genrequest" %}
-    <a class="btn bg-primary" href="{% url 'genrequest-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Genrequest</a>
+    <a class="btn custom_order_button" href="{% url 'genrequest-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Genrequest</a>
     {% else %}
-    <a class="btn bg-primary" href="{% url 'staff:order-'|add:model_type|add:'-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Order</a>
+    <a class="btn custom_order_button" href="{% url 'staff:order-'|add:model_type|add:'-detail' pk=object.pk %}"><i class="fas fa-arrow-left"></i> Back to Order</a>
     {% endif %}
   </div>
 
@@ -43,7 +43,7 @@
       </div>
 
       <div>
-        <button type="submit" class="btn bg-primary"><i class="fas fa-save"></i> Update staff assignment</button>
+        <button type="submit" class="btn custom_order_button"><i class="fas fa-save"></i> Update staff assignment</button>
       </div>
     </form>
   </div>

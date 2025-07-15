@@ -19,6 +19,7 @@ from .models import (
     Location,
     LocationType,
     Marker,
+    Order,
     Organization,
     Sample,
     SampleMarkerAnalysis,
@@ -46,6 +47,13 @@ class AreaAdmin(ModelAdmin):
     ]
     list_filter_submit = True
     list_filter_sheet = False
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["id", "name"]
 
 
 @admin.register(LocationType)

@@ -819,7 +819,7 @@ class SampleIsolationMethod(models.Model):
 
 
 class IsolationMethod(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=False)
     species = models.ForeignKey(
         f"{an}.Species",
         on_delete=models.CASCADE,

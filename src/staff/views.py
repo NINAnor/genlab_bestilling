@@ -527,7 +527,7 @@ class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
         model_type = self._get_model_type()
         if model_type == "genrequest":
             return Genrequest.objects.all()
-        return Order.objects.filter(status=Order.OrderStatus.DELIVERED)
+        return Order.objects.all()
 
     def _get_model_type(self) -> str:
         """Returns model type based on request data."""

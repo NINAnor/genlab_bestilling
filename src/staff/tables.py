@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
@@ -404,12 +405,11 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
@@ -436,12 +436,11 @@ class NewUnseenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
@@ -483,12 +482,11 @@ class NewSeenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
@@ -569,12 +567,11 @@ class DraftOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"

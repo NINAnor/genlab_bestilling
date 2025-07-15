@@ -335,3 +335,6 @@ staticfiles/
 
 # Local History for devcontainer
 .devcontainer/bash_history
+
+### macOS ###
+.DS_Store

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -17,6 +18,27 @@ from genlab_bestilling.models import (
 )
 from nina.models import Project
 
+from .mixins import StaffIDMixinTable, StatusMixinTable, render_status_helper
+
+
+@dataclass
+class CombinedOrder:
+    extraction_order: ExtractionOrder
+    analysis_order: AnalysisOrder | None = None
+    priority: Order.OrderPriority = Order.OrderPriority.NORMAL
+
+    def status(self) -> Order.OrderStatus:
+        """Returns the lowest status of the extraction and analysis orders."""
+        order = Order.STATUS_ORDER
+        if self.analysis_order:
+            return min(
+                self.extraction_order.status,
+                self.analysis_order.status,
+                key=order.index,
+            )
+
+        return self.extraction_order.status
+
 
 class ProjectTable(tables.Table):
     number = tables.Column(
@@ -32,107 +54,135 @@ class ProjectTable(tables.Table):
 
 
 class OrderTable(tables.Table):
-    id = tables.Column(
-        linkify=True,
+    priority = tables.Column(
         orderable=False,
-        empty_values=(),
+        verbose_name="Priority",
+        accessor="priority",
     )
 
-    is_urgent = tables.Column(
-        orderable=True,
-        visible=True,
-        verbose_name="",
-    )
-
-    status = tables.Column(
-        verbose_name="Status",
-        orderable=False,
-    )
-
-    is_seen = tables.Column(
-        orderable=False,
-        visible=True,
-        verbose_name="",
-    )
-
-    class Meta:
-        fields = [
-            "name",
-            "status",
-            "genrequest",
-            "genrequest__name",
-            "genrequest__project",
-            "genrequest__area",
-            "genrequest__samples_owner",
-            "created_at",
-            "last_modified_at",
-            "is_urgent",
-            "is_seen",
-        ]
-        sequence = ("is_seen", "is_urgent", "status", "id", "name")
-        empty_text = "No Orders"
-        order_by = ("-is_urgent", "last_modified_at", "created_at")
-
-    def render_id(self, record: Any) -> str:
-        return str(record)
-
-    def render_is_urgent(self, value: bool) -> str:
-        html_exclaimation_mark = (
-            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
-        )
-        if value:
-            return mark_safe(html_exclaimation_mark)  # noqa: S308
-        else:
-            return ""
-
-    def render_is_seen(self, value: bool) -> str:
-        if not value:
+    def render_priority(self, value: Order.OrderPriority) -> str:
+        if value == Order.OrderPriority.URGENT:
             return mark_safe(
-                '<i class="fa-solid fa-bell text-yellow-500" '
-                'title="New within 24h"></i>'
+                '<i class="fa-solid fa-exclamation fa-lg text-red-500" title="Urgent"></i>'  # noqa: E501
             )
         return ""
 
+    def get_extraction_link(record: CombinedOrder) -> str | None:
+        return record.extraction_order.get_absolute_staff_url()
 
-class AnalysisOrderTable(OrderTable):
-    id = tables.Column(
-        linkify=("staff:order-analysis-detail", {"pk": tables.A("id")}),
+    ext_id = tables.Column(
+        linkify=get_extraction_link,
+        orderable=False,
+        empty_values=(),
+        verbose_name="EXT ID",
+        accessor="extraction_order",
+    )
+
+    def render_ext_id(self, record: CombinedOrder) -> str:
+        return str(record.extraction_order)
+
+    def get_analysis_link(record: CombinedOrder) -> str | None:
+        if record.analysis_order is not None:
+            return record.analysis_order.get_absolute_staff_url()
+        return None
+
+    anl_id = tables.Column(
+        linkify=get_analysis_link,
+        orderable=False,
+        empty_values=(),
+        verbose_name="ANL ID",
+        accessor="analysis_order",
+    )
+
+    def render_anl_id(self, record: CombinedOrder) -> str:
+        if record.analysis_order:
+            return str(record.analysis_order)
+        return "-"
+
+    ext_status = tables.Column(
+        accessor="extraction_order__status",
+        verbose_name="EXT status",
+        orderable=False,
+    )
+
+    def render_ext_status(self, value: Order.OrderStatus, record: CombinedOrder) -> str:
+        return render_status_helper(value)
+
+    anl_status = tables.Column(
+        verbose_name="ANL status",
+        orderable=False,
+        accessor="analysis_order__status",
+        empty_values=(),
+    )
+
+    def render_anl_status(self, value: Order.OrderStatus, record: CombinedOrder) -> str:
+        if record.analysis_order:
+            return render_status_helper(value)
+        return "-"
+
+    area = tables.Column(
+        accessor="extraction_order__genrequest__area__name",
+        verbose_name="Area",
+        orderable=False,
+    )
+
+    description = tables.Column(
+        accessor="extraction_order__genrequest__name",
+        verbose_name="Description",
+        orderable=False,
+    )
+
+    total_samples_extraction = tables.Column(
+        accessor="extraction_order__sample_count",
+        verbose_name="Total samples EXT",
+        orderable=False,
+    )
+
+    total_samples_analysis = tables.Column(
+        accessor="analysis_order__sample_count",
+        verbose_name="Total samples ANL",
+        orderable=False,
+    )
+
+    samples_isolated = tables.Column(
+        accessor="extraction_order__sample_isolated_count",
+        verbose_name="Samples isolated",
+        orderable=False,
+    )
+
+    markers = tables.ManyToManyColumn(
+        accessor="extraction_order__genrequest__markers",
+        transform=lambda x: x.name,
+    )
+
+    delivery_date = tables.Column(
+        accessor="analysis_order__expected_delivery_date",
+        verbose_name="Delivery date",
         orderable=False,
         empty_values=(),
     )
 
-    class Meta(OrderTable.Meta):
-        model = AnalysisOrder
-        fields = OrderTable.Meta.fields + ["return_samples"]
+    def render_delivery_date(self, value: datetime) -> str:
+        if value:
+            return value.strftime("%d/%m/%Y")
+        return "-"
 
-
-class ExtractionOrderTable(OrderTable):
-    id = tables.Column(
-        linkify=("staff:order-extraction-detail", {"pk": tables.A("id")}),
-        orderable=False,
-        empty_values=(),
-    )
-
-    sample_count = tables.Column(
-        accessor="sample_count",
-        verbose_name="Sample Count",
-        orderable=False,
-    )
-
-    class Meta(OrderTable.Meta):
-        model = ExtractionOrder
-        fields = OrderTable.Meta.fields + [
-            "species",
-            "sample_types",
-            "internal_status",
-            "needs_guid",
-            "return_samples",
-            "pre_isolated",
+    class Meta:
+        fields = [
+            "priority",
+            "ext_id",
+            "anl_id",
+            "ext_status",
+            "anl_status",
+            "area",
+            "description",
+            "total_samples_extraction",
+            "total_samples_analysis",
+            "samples_isolated",
+            "markers",
+            "delivery_date",
         ]
-        sequence = OrderTable.Meta.sequence + ("sample_count",)
-
-    def render_sample_count(self, record: Any) -> str:
-        return record.sample_count or "0"
+        empty_text = "No Orders"
 
 
 class EquipmentOrderTable(OrderTable):
@@ -350,44 +400,6 @@ class PlateTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Plates"
-
-
-class StatusMixinTable(tables.Table):
-    status = tables.Column(
-        orderable=False,
-        verbose_name="Status",
-    )
-
-    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
-        status_colors = {
-            "Processing": "bg-yellow-100 text-yellow-800",
-            "Completed": "bg-green-100 text-green-800",
-            "Delivered": "bg-red-100 text-red-800",
-        }
-        status_text = {
-            "Processing": "Processing",
-            "Completed": "Completed",
-            "Delivered": "Not started",
-        }
-        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
-        status_text = status_text.get(value, "Unknown")
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full {color_class}">{status_text}</span>'  # noqa: E501
-        )
-
-
-class StaffIDMixinTable(tables.Table):
-    id = tables.Column(
-        orderable=False,
-        empty_values=(),
-    )
-
-    def render_id(
-        self, record: ExtractionOrder | AnalysisOrder | EquipmentOrder
-    ) -> str:
-        url = record.get_absolute_staff_url()
-
-        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
 
 
 class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):

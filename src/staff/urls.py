@@ -2,12 +2,10 @@ from django.urls import path
 
 from .views import (
     AnalysisOrderDetailView,
-    AnalysisOrderListView,
     DashboardView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
     ExtractionOrderDetailView,
-    ExtractionOrderListView,
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
     ExtractionPlateListView,
@@ -15,6 +13,7 @@ from .views import (
     MarkAsSeenView,
     OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
+    OrderListView,
     OrderPrioritizedAdminView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
@@ -40,18 +39,11 @@ urlpatterns = [
         ProjectValidateActionView.as_view(),
         name="projects-verify",
     ),
-    path(
-        "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"
-    ),
+    path("orders/", OrderListView.as_view(), name="order-list"),
     path(
         "orders/equipment/",
         EqupimentOrderListView.as_view(),
         name="order-equipment-list",
-    ),
-    path(
-        "orders/extraction/",
-        ExtractionOrderListView.as_view(),
-        name="order-extraction-list",
     ),
     path(
         "orders/analysis/<int:pk>/",

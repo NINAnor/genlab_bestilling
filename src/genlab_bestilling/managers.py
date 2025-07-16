@@ -71,6 +71,7 @@ class SampleQuerySet(models.QuerySet):
     @transaction.atomic
     def generate_genlab_ids(
         self,
+        order_id: int,
         selected_samples: list[int] | None = None,
     ) -> None:
         """

@@ -512,6 +512,7 @@ class ExtractionOrder(Order):
             return
 
         Sample.objects.generate_genlab_ids(
+            order_id=self.id,
             selected_samples=selected_samples,
         )
 

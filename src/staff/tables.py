@@ -195,9 +195,6 @@ class SampleBaseTable(tables.Table):
 
         empty_text = "No Samples"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
     def render_plate_positions(self, value: Any) -> str:
         if value:
             return ", ".join([str(v) for v in value.all()])

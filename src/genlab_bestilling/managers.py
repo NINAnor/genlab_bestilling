@@ -79,8 +79,22 @@ class SampleQuerySet(models.QuerySet):
 
         """
 
+        samples = list(
+            (
+                self.select_related("species")
+                .filter(
+                    order_id=order_id, genlab_id__isnull=True, id__in=selected_samples
+                )
+                .select_for_update()
+            ).all()
+        )
+
+        # Sort samples in the order of selected_samples
+        id_pos = {id_: i for i, id_ in enumerate(selected_samples)}
+        samples.sort(key=lambda sample: id_pos.get(sample.id, 99999))  # Safe fallback
+
         updates = []
-        for sample in selected_samples:
+        for sample in samples:
             sample.generate_genlab_id(commit=False)
             updates.append(sample)
 

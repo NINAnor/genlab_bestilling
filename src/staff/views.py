@@ -648,24 +648,26 @@ class GenerateGenlabIDsView(
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
+
+        # getlist automatically reads the values in the order presented in the table
         selected_ids = request.POST.getlist("checked")
 
         if not selected_ids:
             messages.error(request, "No samples were selected.")
             return HttpResponseRedirect(self.get_return_url())
 
-        sort_param = request.POST.get("sort", "")
-        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
+        # Preserve the visual order using a CASE WHEN expression
+        preserved_order = Case(
+            *[When(pk=pk, then=pos) for pos, pk in enumerate(selected_ids)]
+        )
 
-        selected_samples = Sample.objects.filter(pk__in=selected_ids)
-
-        if sorting_order:
-            selected_samples = selected_samples.order_by(*sorting_order)
+        # Get the SampleQuerySet in the same order
+        selected_samples = Sample.objects.filter(pk__in=selected_ids).order_by(
+            preserved_order
+        )
 
         try:
-            self.object.order_selected_checked(
-                sorting_order=sorting_order, selected_samples=selected_samples
-            )
+            self.object.order_selected_checked(selected_samples=selected_samples)
             messages.add_message(
                 request,
                 messages.SUCCESS,

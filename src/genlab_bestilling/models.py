@@ -498,7 +498,6 @@ class ExtractionOrder(Order):
     @transaction.atomic
     def order_selected_checked(
         self,
-        sorting_order: list[str] | None = None,
         selected_samples: QuerySet["Sample"] | None = None,
     ) -> None:
         """
@@ -513,8 +512,6 @@ class ExtractionOrder(Order):
             return
 
         Sample.objects.generate_genlab_ids(
-            order_id=self.id,
-            sorting_order=sorting_order,
             selected_samples=selected_samples,
         )
 

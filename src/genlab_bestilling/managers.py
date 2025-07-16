@@ -98,7 +98,7 @@ class SampleQuerySet(models.QuerySet):
         samples.sort(key=lambda sample: id_pos.get(sample.id, 99999))  # Safe fallback
 
         updates = []
-        for sample in selected_samples:
+        for sample in samples:
             sample.generate_genlab_id(commit=False)
             updates.append(sample)
 

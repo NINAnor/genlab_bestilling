@@ -10,8 +10,8 @@ Projects
 <form method="get" class="py-3 px-4 border mb-3 ">
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
+    <button class="btn custom_order_button_blue" type="submit" style="margin-top: 1.5rem;">Search</button>
     </div>
-    <button class="btn bg-primary" type="submit">Search</button>
 </form>
 
 {% render_table table %}

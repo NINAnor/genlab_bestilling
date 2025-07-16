@@ -12,6 +12,7 @@ from genlab_bestilling.autocomplete import (
     OrderAutocomplete,
     SampleTypeAutocomplete,
     SpeciesAutocomplete,
+    StatusAutocomplete,
 )
 from nina.autocomplete import ProjectAutocomplete
 
@@ -20,6 +21,7 @@ urlpatterns = [
     path("area/", AreaAutocomplete.as_view(), name="area"),
     path("species/", SpeciesAutocomplete.as_view(), name="species"),
     path("sample-type/", SampleTypeAutocomplete.as_view(), name="sample-type"),
+    path("order-status/", StatusAutocomplete.as_view(), name="order-status"),
     path("project/", ProjectAutocomplete.as_view(), name="project"),
     path("marker/", MarkerAutocomplete.as_view(), name="marker"),
     path("user/", UserAutocomplete.as_view(), name="user"),

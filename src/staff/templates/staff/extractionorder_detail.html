@@ -1,6 +1,7 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
 {% load order_tags %}
+{% load static %}
 
 
 {% block content %}
@@ -8,13 +9,13 @@
     <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn bg-yellow-200" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> back</a>
-        <a class="btn bg-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}">Samples</a>
+        <a class="btn custom_order_button" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+        <a class="btn custom_order_button" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
         {% if analysis_orders|length > 1 %}
         <div class="relative inline-block text-left">
             <button type="button"
               onclick="document.getElementById('dropdown-menu').classList.toggle('hidden')"
-              class="btn bg-primary"
+              class="btn custom_order_button_blue"
             >
               Go to Analysis Order
               <i class="fa-solid fa-chevron-down"></i>
@@ -33,30 +34,32 @@
             </div>
           </div>
         {% elif analysis_orders|length == 1 %}
-            <a class="btn bg-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
+            <a class="btn custom_order_button_blue" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
         {% endif %}
-        <a class="btn bg-primary" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
 
         <div class="ml-auto"></div>
 
         {% if object.genrequest.responsible_staff.all|is_responsible:request.user and not object.is_seen %}
             <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
                 {% csrf_token %}
-                <button class="btn bg-secondary text-white" style="background-color: darkgoldenrod" type="submit">Mark as seen</button>
+                <button class="btn bg-purple-50 text-purple-900 border border-purple-800 hover:bg-purple-300" type="submit">Mark as seen</button>
             </form>
         {% endif %}
 
         {% if object.status != object.OrderStatus.DRAFT %}
             {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
-            {% action-button action=to_draft_url class="bg-secondary text-white" submit_text="Convert to draft" csrf_token=csrf_token %}
+            {% action-button action=to_draft_url class="custom_order_button" submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
         {% endif %}
 
         {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == "checked" %}
             {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
-            {% with "Set as "|add:object.next_status as btn_name %}
-                {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text=btn_name csrf_token=csrf_token %}
+            {% with "<i class='fa-solid fa-arrow-right'></i> Set as "|add:object.next_status as btn_name %}
+                {% action-button action=to_next_status_url class="bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300" submit_text=btn_name csrf_token=csrf_token %}
             {% endwith %}
         {% endif %}
+    </div>
+    <div class="flex gap-5 my-5">
+        <a class="btn custom_order_button" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
     </div>
 
     {% fragment as table_header %}

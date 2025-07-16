@@ -364,8 +364,10 @@ class SampleLabView(StaffMixin, TemplateView):
         samples = Sample.objects.filter(order=order)
         species_ids = samples.values_list("species_id", flat=True).distinct()
 
-        return IsolationMethod.objects.filter(species_id__in=species_ids).values_list(
-            "name", flat=True
+        return (
+            IsolationMethod.objects.filter(species_id__in=species_ids)
+            .values_list("name", flat=True)
+            .distinct()
         )
 
     def get_base_fields(self) -> list[str]:
@@ -478,7 +480,9 @@ class SampleLabView(StaffMixin, TemplateView):
         ).first()
 
         try:
-            im = IsolationMethod.objects.get(name=selected_isolation_method.name)
+            im = IsolationMethod.objects.filter(
+                name=selected_isolation_method.name
+            ).first()
         except IsolationMethod.DoesNotExist:
             messages.error(
                 request,

@@ -69,7 +69,11 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)
 def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = (
-        Order.objects.filter(status=Order.OrderStatus.DELIVERED, is_seen=True)
+        Order.objects.filter(
+            status__in=[Order.OrderStatus.DELIVERED, Order.OrderStatus.PROCESSING],
+            is_seen=True,
+            responsible_staff__isnull=True,
+        )
         .exclude(is_urgent=True)
         .select_related("genrequest")
         .annotate(
@@ -105,7 +109,7 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = new_orders.order_by("-priority", "-created_at")
 
     return {
-        "title": "New seen orders",
+        "title": "Unassigned orders",
         "table": NewSeenOrderTable(new_orders),
         "count": new_orders.count(),
         "request": context.get("request"),
@@ -146,7 +150,7 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
     new_orders = new_orders.order_by("-created_at")
 
     return {
-        "title": "New unseen orders",
+        "title": "New orders",
         "table": NewUnseenOrderTable(new_orders),
         "count": new_orders.count(),
         "request": context.get("request"),

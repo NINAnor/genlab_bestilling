@@ -420,37 +420,41 @@ class SampleLabView(StaffMixin, TemplateView):
     ) -> None:
         statuses = SampleStatusAssignment.SampleStatus.choices
 
-        # Check if the provided status exists
         if status_name not in [k for k, _ in statuses]:
             messages.error(request, f"Status '{status_name}' is not valid.")
             return HttpResponseRedirect(self.get_success_url())
 
-        # Get the index of the target status
         status_weight = next(
             i for i, (name, _) in enumerate(statuses) if name == status_name
         )
-
-        # Slice the list up to that index (inclusive) and extract only the names
         statuses_to_apply = [name for name, _ in statuses[: status_weight + 1]]
 
-        # Apply status assignments
-        assignments = []
+        # Toggle the status for each sample
         for sample in samples:
-            for status in statuses_to_apply:
-                assignment = SampleStatusAssignment(
-                    sample=sample,
-                    status=status,
-                    order=order,
-                )
-                assignments.append(assignment)
+            existing = SampleStatusAssignment.objects.filter(
+                sample=sample,
+                status=status_name,
+                order=order,
+            )
 
-        SampleStatusAssignment.objects.bulk_create(
-            assignments,
-            ignore_conflicts=True,
-        )
+            if existing:
+                # If the status already exists, we remove it
+                existing.delete()
+            else:
+                # If the status does not exist, we create it
+                for status in statuses_to_apply:
+                    if not SampleStatusAssignment.objects.filter(
+                        sample=sample, status=status, order=order
+                    ).exists():
+                        SampleStatusAssignment.objects.create(
+                            sample=sample,
+                            status=status,
+                            order=order,
+                        )
 
         messages.success(
-            request, f"{samples.count()} samples updated with status '{status_name}'."
+            request,
+            "Samples updated successfully.",
         )
 
     # Checks if all samples in the order are isolated

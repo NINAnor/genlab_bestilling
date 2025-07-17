@@ -3,13 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import (
-    Case,
-    Count,
-    IntegerField,
-    Value,
-    When,
-)
+from django.db.models import Case, Count, IntegerField, Value, When
 from django.db.models.functions import Cast
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -344,6 +338,11 @@ class SampleDetailView(StaffMixin, DetailView):
 
 
 class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
+    MARKED = "marked"
+    PLUCKED = "plucked"
+    ISOLATED = "isolated"
+    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED]
+
     disable_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
@@ -378,7 +377,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
         )
 
     def get_base_fields(self) -> list[str]:
-        return ["marked", "plucked", "isolated"]
+        return self.VALID_STATUSES
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -409,7 +408,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
 
         if status_name:
             self.assign_status_to_samples(samples, status_name, request)
-            if status_name == "isolated":
+            if status_name == self.ISOLATED:
                 # Cannot use "samples" here
                 # because we need to check all samples in the order
                 self.check_all_isolated(Sample.objects.filter(order=order))
@@ -423,23 +422,21 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
         status_name: str,
         request: HttpRequest,
     ) -> None:
-        valid_statuses = ["marked", "plucked", "isolated"]
-
-        if status_name not in valid_statuses:
+        if status_name not in self.VALID_STATUSES:
             messages.error(request, f"Status '{status_name}' is not valid.")
             return
 
         update_fields = []
 
-        if status_name == "marked":
+        if status_name == self.MARKED:
             update_fields.append("is_marked")
             samples.update(is_marked=True)
 
-        elif status_name == "plucked":
+        elif status_name == self.PLUCKED:
             update_fields.extend(["is_marked", "is_plucked"])
             samples.update(is_marked=True, is_plucked=True)
 
-        elif status_name == "isolated":
+        elif status_name == self.ISOLATED:
             update_fields.extend(["is_marked", "is_plucked", "is_isolated"])
             samples.update(is_marked=True, is_plucked=True, is_isolated=True)
 

@@ -9,6 +9,7 @@ from django_filters import CharFilter
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    ExtractionOrder,
     ExtractionPlate,
     Order,
     Sample,
@@ -48,6 +49,33 @@ class AnalysisOrderFilter(filters.FilterSet):
                 "class": "w-full",
             },
         )
+
+
+class OrderFilter(filters.FilterSet):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["genrequest__project"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:project"
+        )
+        self.filters["genrequest"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:genrequest"
+        )
+
+    class Meta:
+        model = ExtractionOrder
+        fields = [
+            "id",
+            "status",
+            "genrequest",
+            "genrequest__project",
+        ]
 
 
 class OrderSampleFilter(filters.FilterSet):

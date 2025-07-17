@@ -4,7 +4,8 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count, Exists, OuterRef
+from django.db.models import Exists, OuterRef
+from django.db.models.functions import Concat
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -34,19 +35,19 @@ from nina.models import Project
 from shared.views import ActionView
 
 from .filters import (
-    AnalysisOrderFilter,
     ExtractionPlateFilter,
+    OrderFilter,
     OrderSampleFilter,
     SampleFilter,
     SampleMarkerOrderFilter,
 )
 from .forms import ExtractionPlateForm, OrderStaffForm
 from .tables import (
-    AnalysisOrderTable,
+    CombinedOrder,
     EquipmentOrderTable,
-    ExtractionOrderTable,
     OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
+    OrderTable,
     PlateTable,
     ProjectTable,
     SampleStatusTable,
@@ -92,44 +93,93 @@ class DashboardView(StaffMixin, TemplateView):
         return context
 
 
-class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
-    model = AnalysisOrder
-    table_class = AnalysisOrderTable
-    filterset_class = AnalysisOrderFilter
-
-    def get_queryset(self) -> models.QuerySet[AnalysisOrder]:
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "genrequest",
-                "polymorphic_ctype",
-                "genrequest__samples_owner",
-                "genrequest__project",
-                "genrequest__area",
-            )
-        )
-
-
-class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
+class OrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = ExtractionOrder
-    table_class = ExtractionOrderTable
-    filterset_class = AnalysisOrderFilter
+    table_class = OrderTable
+    filterset_class = OrderFilter
 
     def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
-        return (
+        queryset = (
             super()
             .get_queryset()
             .select_related(
                 "genrequest",
-                "genrequest__samples_owner",
-                "polymorphic_ctype",
                 "genrequest__project",
                 "genrequest__area",
             )
-            .prefetch_related("species", "sample_types")
-            .annotate(sample_count=Count("samples"))
+            .annotate(
+                sample_count=models.Count("samples", distinct=True),
+                sample_isolated_count=models.Count(
+                    "sample_status_assignments",
+                    distinct=True,
+                    filter=models.Q(
+                        sample_status_assignments__status=SampleStatusAssignment.SampleStatus.ISOLATED,
+                    ),
+                ),
+            )
+            .prefetch_related("analysis_orders")
         )
+
+        # TODO: Filter
+        return queryset
+
+    def get_table_data(self) -> list[CombinedOrder]:
+        flattened = []
+        for extraction_order in self.get_queryset():
+            assigned = list(
+                extraction_order.responsible_staff.all()
+                .annotate(
+                    full_name=Concat("first_name", models.Value(" "), "last_name")
+                )
+                .values_list("full_name", flat=True)
+            )
+            priority = Order.OrderPriority.NORMAL
+            if extraction_order.is_urgent:
+                priority = Order.OrderPriority.URGENT
+
+            analysis_orders = extraction_order.analysis_orders.annotate(
+                sample_count=models.Count("samples", distinct=True),
+            ).all()
+
+            if analysis_orders:
+                for analysis_order in analysis_orders:
+                    assigned.extend(
+                        analysis_order.responsible_staff.all()
+                        .annotate(
+                            full_name=Concat(
+                                "first_name", models.Value(" "), "last_name"
+                            )
+                        )
+                        .values_list("full_name", flat=True)
+                        .iterator()
+                    )
+                    if analysis_order.is_urgent:
+                        priority = Order.OrderPriority.URGENT
+
+                    combined_order = CombinedOrder(
+                        extraction_order=extraction_order,
+                        analysis_order=analysis_order,
+                        priority=priority,
+                        assigned_staff=assigned,
+                    )
+                    flattened.append(combined_order)
+            else:
+                flattened.append(
+                    CombinedOrder(
+                        extraction_order=extraction_order,
+                        priority=priority,
+                        assigned_staff=assigned,
+                    )
+                )
+
+        status_order = [
+            Order.OrderStatus.DELIVERED,
+            Order.OrderStatus.DRAFT,
+            Order.OrderStatus.PROCESSING,
+            Order.OrderStatus.COMPLETED,
+        ]
+        flattened.sort(key=lambda x: (status_order.index(x.status())))
+        return flattened
 
 
 class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
@@ -150,7 +200,7 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
 class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = EquipmentOrder
     table_class = EquipmentOrderTable
-    filterset_class = AnalysisOrderFilter
+    filterset_class = OrderFilter
 
     def get_queryset(self) -> models.QuerySet[EquipmentOrder]:
         return (

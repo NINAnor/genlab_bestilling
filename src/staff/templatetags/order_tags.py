@@ -2,7 +2,7 @@ from django import template
 from django.db import models
 
 from capps.users.models import User
-from genlab_bestilling.models import Area, Order, SampleStatusAssignment
+from genlab_bestilling.models import Area, Order
 
 from ..tables import (
     AssignedOrderTable,
@@ -168,12 +168,15 @@ def assigned_orders_table(context: dict) -> dict:
         )
         .select_related("genrequest")
         .annotate(
-            isolated_sample_count=models.Count(
-                "sample_status_assignments",
-                distinct=True,
-                filter=models.Q(
-                    sample_status_assignments__status=SampleStatusAssignment.SampleStatus.ISOLATED,
-                ),
+            isolated_sample_count=models.Case(
+                models.When(
+                    extractionorder__isnull=False,
+                    then=models.Count(
+                        "extractionorder__samples",
+                        filter=models.Q(extractionorder__samples__is_isolated=True),
+                        distinct=True,
+                    ),
+                )
             ),
             sample_count=models.Case(
                 models.When(

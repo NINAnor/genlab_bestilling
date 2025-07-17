@@ -638,6 +638,10 @@ class Sample(models.Model):
     year = models.IntegerField()
     notes = models.TextField(null=True, blank=True)
 
+    is_marked = models.BooleanField(default=False)
+    is_plucked = models.BooleanField(default=False)
+    is_isolated = models.BooleanField(default=False)
+
     # "Merknad" in the Excel sheet.
     internal_note = models.TextField(null=True, blank=True)
     pop_id = models.CharField(max_length=150, null=True, blank=True)
@@ -768,38 +772,6 @@ class Sample(models.Model):
 # result
 # status
 # assignee (one or plus?)
-
-
-class SampleStatusAssignment(models.Model):
-    class SampleStatus(models.TextChoices):
-        MARKED = "marked", _("Marked")
-        PLUCKED = "plucked", _("Plucked")
-        ISOLATED = "isolated", _("Isolated")
-
-    sample = models.ForeignKey(
-        f"{an}.Sample",
-        on_delete=models.CASCADE,
-        related_name="sample_status_assignments",
-    )
-    status = models.CharField(
-        choices=SampleStatus.choices,
-        null=True,
-        blank=True,
-        verbose_name="Sample status",
-        help_text="The status of the sample in the lab",
-    )
-    order = models.ForeignKey(
-        f"{an}.Order",
-        on_delete=models.CASCADE,
-        related_name="sample_status_assignments",
-        null=True,
-        blank=True,
-    )
-
-    assigned_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("sample", "status", "order")
 
 
 class SampleIsolationMethod(models.Model):

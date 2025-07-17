@@ -251,18 +251,21 @@ class SampleStatusTable(tables.Table):
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_marked",
     )
     plucked = tables.BooleanColumn(
         verbose_name="Plucked",
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_plucked",
     )
     isolated = tables.BooleanColumn(
         verbose_name="Isolated",
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_isolated",
     )
 
     class Meta:
@@ -270,6 +273,9 @@ class SampleStatusTable(tables.Table):
         fields = [
             "checked",
             "genlab_id",
+            "marked",
+            "plucked",
+            "isolated",
             "internal_note",
             "isolation_method",
             "type",
@@ -284,6 +290,7 @@ class SampleStatusTable(tables.Table):
             "internal_note",
             "isolation_method",
         ]
+        order_by = ()
 
     def render_checked(self, record: Any) -> str:
         return mark_safe(  # noqa: S308

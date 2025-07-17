@@ -8,14 +8,14 @@ Extraction plates
 
 {% block page-inner %}
 <div class="flex justify-end my-3">
-    <a class="btn bg-primary" href="{% url 'staff:plates-create' %}">Create</a>
+    <a class="btn custom_order_button_green" href="{% url 'staff:plates-create' %}"><i class="fas fa-plus"></i> Create</a>
 </div>
 
 <form method="get" class="py-3 px-4 border mb-3 ">
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
     </div>
-    <button class="btn bg-primary" type="submit">Search</button>
+    <button class="btn custom_order_button_blue" type="submit">Search</button>
 </form>
 
 {% render_table table %}

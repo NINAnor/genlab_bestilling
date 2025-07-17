@@ -1,7 +1,3 @@
-from collections.abc import Mapping
-from typing import Any
-
-from django.forms import Field
 from rest_framework import exceptions, serializers
 
 from ..models import (
@@ -103,10 +99,15 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     fish_id = serializers.SerializerMethodField()
+    analysis_orders = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
+    isolation_method = serializers.SerializerMethodField()
+    marked = serializers.SerializerMethodField()
+    plucked = serializers.SerializerMethodField()
+    isolated = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        # Make fields as a list to enable the removal of fish_id dynamically
         fields = [
             "order",
             "guid",
@@ -119,19 +120,42 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "notes",
             "genlab_id",
             "fish_id",
+            "analysis_orders",
+            "project",
+            "isolation_method",
+            "marked",
+            "plucked",
+            "isolated",
         ]
-
-    def get_field_names(
-        self, declared_fields: Mapping[str, Field], info: Any
-    ) -> list[str]:
-        field_names = super().get_field_names(declared_fields, info)
-        if not self.context.get("include_fish_id", False):
-            # Remove fish_id if the area is not aquatic (only relevant for aquatic area)
-            field_names.remove("fish_id")
-        return field_names
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
+
+    def get_analysis_orders(self, obj: Sample) -> list[str]:
+        if obj.order and obj.order.analysis_orders.exists():
+            return [str(anl.id) for anl in obj.order.analysis_orders.all()]
+        return []
+
+    def get_project(self, obj: Sample) -> str:
+        if obj.order and obj.order.genrequest and obj.order.genrequest.project:
+            return str(obj.order.genrequest.project)
+        return ""
+
+    def get_isolation_method(self, obj: Sample) -> str:
+        method = obj.isolation_method.first()
+        return method.name if method else ""
+
+    def _flag(self, value: bool) -> str:
+        return "x" if value else ""
+
+    def get_marked(self, obj: Sample) -> str:
+        return self._flag(obj.is_marked)
+
+    def get_plucked(self, obj: Sample) -> str:
+        return self._flag(obj.is_plucked)
+
+    def get_isolated(self, obj: Sample) -> str:
+        return self._flag(obj.is_isolated)
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

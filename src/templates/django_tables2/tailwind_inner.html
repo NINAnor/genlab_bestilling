@@ -1,53 +1,33 @@
 {% load django_tables2 %}
+{% load table_header_tag %}
 {% load i18n %}
 
 {% block table %}
     <table {% render_attrs table.attrs class="w-full table-auto tailwind-table" %}>
         {% block table.thead %}
-        {% if table.show_header %}
-            <thead {{ table.attrs.thead.as_html }}>
-                <tr>
-                {% for column in table.columns %}
-                    <th {{ column.attrs.th.as_html }}>
-                        {% if column.orderable %}
-                            {% comment%}
-                            If the column is orderable, two small arrows will show next to the column name to signal that it can be sorted.
-                            {% endcomment%}
-                            <a href="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
-                            style="display: inline-flex; align-items: center; gap: 0.5em;">
-                                {{ column.header }}
-                                <i class="fa-solid fa-sort text-gray-500 hover:text-black">
-                            </i></a>
-                        {% else %}
-                            {{ column.header }}
-                        {% endif %}
-                    </th>
-                {% endfor %}
-                </tr>
-            </thead>
-        {% endif %}
+            {% if table.show_header %}
+                {% render_header %}
+            {% endif %}
         {% endblock table.thead %}
-
-
         {% block table.tbody %}
             <tbody {{ table.attrs.tbody.as_html }}>
             {% for row in table.paginated_rows %}
                 {% block table.tbody.row %}
-                <tr {{ row.attrs.as_html }}>
+                    <tr {{ row.attrs.as_html }}>
 
-                {% for column, cell in row.items %}
-                        <td {{ column.attrs.td.as_html }}>
-                        {% if column.localize == None %}
-                            {{ cell }}
-                        {% else %}
-                            {% if column.localize %}
-                                {{ cell|localize }}
+                    {% for column, cell in row.items %}
+                            <td {{ column.attrs.td.as_html }}>
+                            {% if column.localize == None %}
+                                {{ cell }}
                             {% else %}
-                                {{ cell|unlocalize }}
-                            {% endif %}
-                        {% endif %} </td>
-                {% endfor %}
-                </tr>
+                                {% if column.localize %}
+                                    {{ cell|localize }}
+                                {% else %}
+                                    {{ cell|unlocalize }}
+                                {% endif %}
+                            {% endif %} </td>
+                    {% endfor %}
+                    </tr>
                 {% endblock table.tbody.row %}
             {% empty %}
                 {% if table.empty_text %}

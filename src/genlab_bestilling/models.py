@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -320,6 +319,7 @@ class Order(PolymorphicModel):
 
     def to_draft(self) -> None:
         self.status = Order.OrderStatus.DRAFT
+        self.is_seen = False
         self.confirmed_at = None
         self.save()
 
@@ -495,19 +495,10 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def order_manually_checked(self) -> None:
-        """
-        Set the order as checked by the lab staff, generate a genlab id
-        """
-        self.internal_status = self.Status.CHECKED
-        self.status = self.OrderStatus.PROCESSING
-        self.save(update_fields=["internal_status", "status"])
-
     @transaction.atomic
     def order_selected_checked(
         self,
-        sorting_order: list[str] | None = None,
-        selected_samples: QuerySet["Sample"] | None = None,
+        selected_samples: list[int] | None = None,
     ) -> None:
         """
         Partially set the order as checked by the lab staff,
@@ -517,12 +508,11 @@ class ExtractionOrder(Order):
         self.status = self.OrderStatus.PROCESSING
         self.save(update_fields=["internal_status", "status"])
 
-        if not selected_samples.exists():
+        if not selected_samples:
             return
 
         Sample.objects.generate_genlab_ids(
             order_id=self.id,
-            sorting_order=sorting_order,
             selected_samples=selected_samples,
         )
 
@@ -645,6 +635,10 @@ class Sample(models.Model):
     species = models.ForeignKey(f"{an}.Species", on_delete=models.PROTECT)
     year = models.IntegerField()
     notes = models.TextField(null=True, blank=True)
+
+    is_marked = models.BooleanField(default=False)
+    is_plucked = models.BooleanField(default=False)
+    is_isolated = models.BooleanField(default=False)
 
     # "Merknad" in the Excel sheet.
     internal_note = models.TextField(null=True, blank=True)
@@ -778,38 +772,6 @@ class Sample(models.Model):
 # assignee (one or plus?)
 
 
-class SampleStatusAssignment(models.Model):
-    class SampleStatus(models.TextChoices):
-        MARKED = "marked", _("Marked")
-        PLUCKED = "plucked", _("Plucked")
-        ISOLATED = "isolated", _("Isolated")
-
-    sample = models.ForeignKey(
-        f"{an}.Sample",
-        on_delete=models.CASCADE,
-        related_name="sample_status_assignments",
-    )
-    status = models.CharField(
-        choices=SampleStatus.choices,
-        null=True,
-        blank=True,
-        verbose_name="Sample status",
-        help_text="The status of the sample in the lab",
-    )
-    order = models.ForeignKey(
-        f"{an}.Order",
-        on_delete=models.CASCADE,
-        related_name="sample_status_assignments",
-        null=True,
-        blank=True,
-    )
-
-    assigned_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("sample", "status", "order")
-
-
 class SampleIsolationMethod(models.Model):
     sample = models.ForeignKey(
         f"{an}.Sample",
@@ -827,7 +789,7 @@ class SampleIsolationMethod(models.Model):
 
 
 class IsolationMethod(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255, unique=False)
     species = models.ForeignKey(
         f"{an}.Species",
         on_delete=models.CASCADE,

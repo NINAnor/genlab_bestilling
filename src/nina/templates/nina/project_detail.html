@@ -14,6 +14,28 @@
 </div>
 {% endif %}
 
+<div class="flex gap-5 my-5">
+  <a class="btn custom_order_button" href="{% url 'nina:project-list' %}"
+    ><i class="fas fa-arrow-left"></i> Back</a
+  >
+  <a class="btn custom_order_button" href="{% url 'nina:project-edit' pk=object.pk %}"
+    ><i class="fas fa-edit"></i> Edit</a
+  >
+  <a class="btn custom_order_button" href="{% url 'nina:project-members-edit' pk=object.pk %}"
+    ><i class="fas fa-edit"></i> Members</a
+  >
+  {% if object.verified_at %}
+  <a class="btn custom_order_button_blue" href="{% url 'genrequest-list' %}?project={{object.pk}}"
+    ><i class="fas fa-folder"></i> Genetic projects</a
+  >
+    {% if object.active %}
+    <a class="btn custom_order_button_green" href="{% url 'genrequest-create' %}?project={{object.pk}}"
+      ><i class="fas fa-plus"></i> New Genetic project</a
+    >
+    {% endif %}
+  {% endif %}
+</div>
+
 <div>
   {% object-detail object=object %}
 
@@ -21,28 +43,6 @@
     <h4 class="text-3xl">Members</h4>
 
     {% render_table table %}
-  </div>
-
-  <div class="flex gap-5 my-5">
-    <a class="btn bg-primary" href="{% url 'nina:project-list' %}"
-      ><i class="fas fa-arrow-left"></i> back</a
-    >
-    <a class="btn btn-secondary" href="{% url 'nina:project-edit' pk=object.pk %}"
-      ><i class="fas fa-edit"></i> Edit</a
-    >
-    <a class="btn btn-secondary" href="{% url 'nina:project-members-edit' pk=object.pk %}"
-      ><i class="fas fa-edit"></i> Members</a
-    >
-    {% if object.verified_at %}
-    <a class="btn bg-primary" href="{% url 'genrequest-list' %}?project={{object.pk}}"
-      ><i class="fas fa-folder"></i> Genetic projects</a
-    >
-    {% if object.active %}
-    <a class="btn bg-primary" href="{% url 'genrequest-create' %}?project={{object.pk}}"
-      ><i class="fas fa-plus"></i> new Genetic project</a
-    >
-    {% endif %}
-    {% endif %}
   </div>
 </div>
 {% endblock %}

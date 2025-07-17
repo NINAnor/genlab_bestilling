@@ -7,7 +7,7 @@
     <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn bg-yellow-200" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn custom_order_button" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
         {% if object.verified_at is null %}
             {% action-button action=verify_url class="btn-secondary text-white" submit_text="Mark as verified" csrf_token=csrf_token %}

@@ -1,9 +1,9 @@
+import re
+from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
-from django.db.models import IntegerField
-from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -167,7 +167,7 @@ class SampleBaseTable(tables.Table):
         empty_values=(),
     )
 
-    name = tables.Column(order_by=("name_as_int",))
+    name = tables.Column()
 
     class Meta:
         model = Sample
@@ -193,22 +193,9 @@ class SampleBaseTable(tables.Table):
             "species",
             "type",
         )
-        order_by = (
-            "-is_prioritised",
-            "species",
-            "genlab_id",
-            "name_as_int",
-        )
+        order_by = ("-is_prioritised", "species", "genlab_id")
 
         empty_text = "No Samples"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if hasattr(self.data, "data"):
-            self.data.data = self.data.data.annotate(
-                name_as_int=Cast("name", output_field=IntegerField())
-            )
 
     def render_plate_positions(self, value: Any) -> str:
         if value:
@@ -218,6 +205,24 @@ class SampleBaseTable(tables.Table):
 
     def render_checked(self, record: Any) -> str:
         return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
+
+    def order_name(
+        self, records: Sequence[Any], is_descending: bool
+    ) -> tuple[list[Any], bool]:
+        def natural_sort_key(record: Any) -> list[str]:
+            name = record.name or ""
+            parts = re.findall(r"\d+|\D+", name)
+            key = []
+            for part in parts:
+                if part.isdigit():
+                    # Pad numbers with zeros for proper string compare, e.g., '000012' > '000001'  # noqa: E501
+                    key.append(f"{int(part):010d}")
+                else:
+                    key.append(part.lower())
+            return key
+
+        sorted_records = sorted(records, key=natural_sort_key, reverse=is_descending)
+        return (sorted_records, True)
 
 
 class SampleStatusTable(tables.Table):

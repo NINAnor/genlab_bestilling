@@ -40,6 +40,7 @@ from shared.views import ActionView
 
 from .filters import (
     AnalysisOrderFilter,
+    ExtractionOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
     SampleFilter,
@@ -119,7 +120,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
-    filterset_class = AnalysisOrderFilter
+    filterset_class = ExtractionOrderFilter
 
     def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
         return (

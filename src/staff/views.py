@@ -416,6 +416,10 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             self.update_isolation_methods(samples, isolation_method, request)
         return HttpResponseRedirect(self.get_success_url())
 
+    def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
+        index = self.VALID_STATUSES.index(status_name)
+        return self.VALID_STATUSES[: index + 1]
+
     def assign_status_to_samples(
         self,
         samples: models.QuerySet,
@@ -426,23 +430,24 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             messages.error(request, f"Status '{status_name}' is not valid.")
             return
 
-        update_fields = []
+        statuses_to_turn_on = self.statuses_with_lower_or_equal_priority(status_name)
+        field_name = f"is_{status_name}"
 
-        if status_name == self.MARKED:
-            update_fields.append("is_marked")
-            samples.update(is_marked=True)
-
-        elif status_name == self.PLUCKED:
-            update_fields.extend(["is_marked", "is_plucked"])
-            samples.update(is_marked=True, is_plucked=True)
-
-        elif status_name == self.ISOLATED:
-            update_fields.extend(["is_marked", "is_plucked", "is_isolated"])
-            samples.update(is_marked=True, is_plucked=True, is_isolated=True)
-
-        messages.success(
-            request, f"{samples.count()} samples updated with status '{status_name}'."
+        samples_to_turn_off_ids = list(
+            samples.filter(**{field_name: True}).values_list("id", flat=True)
         )
+        samples_to_turn_on_ids = list(
+            samples.filter(**{field_name: False}).values_list("id", flat=True)
+        )
+
+        Sample.objects.filter(id__in=samples_to_turn_off_ids).update(
+            **{field_name: False}
+        )
+
+        update_dict = {f"is_{status}": True for status in statuses_to_turn_on}
+        Sample.objects.filter(id__in=samples_to_turn_on_ids).update(**update_dict)
+
+        messages.success(request, "Samples updated successfully")
 
     # Checks if all samples in the order are isolated
     # If they are, it updates the order status to completed
@@ -452,6 +457,12 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             messages.success(
                 self.request,
                 "All samples are isolated. The order status is updated to completed.",
+            )
+        elif self.get_order().status == Order.OrderStatus.COMPLETED:
+            self.get_order().to_processing()
+            messages.success(
+                self.request,
+                "Not all samples are isolated. The order status is updated to processing.",  # noqa: E501
             )
 
     def update_isolation_methods(

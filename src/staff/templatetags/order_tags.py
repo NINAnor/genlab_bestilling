@@ -26,7 +26,7 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
         Order.objects.filter(
             is_urgent=True,
         )
-        .exclude(status=Order.OrderStatus.DRAFT)
+        .exclude(status__in=[Order.OrderStatus.DRAFT, Order.OrderStatus.COMPLETED])
         .select_related("genrequest")
         .annotate(
             priority=models.Case(
@@ -166,7 +166,6 @@ def assigned_orders_table(context: dict) -> dict:
             status__in=[
                 Order.OrderStatus.PROCESSING,
                 Order.OrderStatus.DELIVERED,
-                Order.OrderStatus.COMPLETED,
             ],
             responsible_staff=user,
         )

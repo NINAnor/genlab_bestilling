@@ -379,7 +379,7 @@ class StatusMixinTable(tables.Table):
         color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
         status_text = status_text.get(value, "Unknown")
         return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full {color_class}">{status_text}</span>'  # noqa: E501
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
         )
 
 

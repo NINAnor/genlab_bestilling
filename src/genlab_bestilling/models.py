@@ -319,6 +319,7 @@ class Order(PolymorphicModel):
 
     def to_draft(self) -> None:
         self.status = Order.OrderStatus.DRAFT
+        self.is_seen = False
         self.confirmed_at = None
         self.save()
 

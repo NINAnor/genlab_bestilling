@@ -168,6 +168,7 @@ def assigned_orders_table(context: dict) -> dict:
                 Order.OrderStatus.DELIVERED,
             ],
             responsible_staff=user,
+            is_seen=True,
         )
         .select_related("genrequest")
         .annotate(

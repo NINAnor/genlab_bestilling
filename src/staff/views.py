@@ -656,22 +656,12 @@ class GenerateGenlabIDsView(
             messages.error(request, "No samples were selected.")
             return HttpResponseRedirect(self.get_return_url())
 
-        # Preserve the visual order using a CASE WHEN expression
-        preserved_order = Case(
-            *[When(pk=pk, then=pos) for pos, pk in enumerate(selected_ids)]
-        )
-
-        # Get the SampleQuerySet in the same order
-        selected_samples = Sample.objects.filter(pk__in=selected_ids).order_by(
-            preserved_order
-        )
-
         try:
-            self.object.order_selected_checked(selected_samples=selected_samples)
+            self.object.order_selected_checked(selected_samples=selected_ids)
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+                _(f"Genlab IDs generated for {len(selected_ids)} samples."),
             )
         except Exception as e:
             messages.add_message(

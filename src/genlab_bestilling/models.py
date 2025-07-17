@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.db import models, transaction
-from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -499,8 +498,7 @@ class ExtractionOrder(Order):
     @transaction.atomic
     def order_selected_checked(
         self,
-        sorting_order: list[str] | None = None,
-        selected_samples: QuerySet["Sample"] | None = None,
+        selected_samples: list[int] | None = None,
     ) -> None:
         """
         Partially set the order as checked by the lab staff,
@@ -510,12 +508,11 @@ class ExtractionOrder(Order):
         self.status = self.OrderStatus.PROCESSING
         self.save(update_fields=["internal_status", "status"])
 
-        if not selected_samples.exists():
+        if not selected_samples:
             return
 
         Sample.objects.generate_genlab_ids(
             order_id=self.id,
-            sorting_order=sorting_order,
             selected_samples=selected_samples,
         )
 

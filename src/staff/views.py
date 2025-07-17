@@ -3,7 +3,14 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count
+from django.db.models import (
+    Case,
+    Count,
+    IntegerField,
+    Value,
+    When,
+)
+from django.db.models.functions import Cast
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -232,18 +239,37 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     filterset_class = OrderSampleFilter
 
     def get_queryset(self) -> models.QuerySet[Sample]:
-        return (
+        queryset = (
             super()
             .get_queryset()
             .select_related("type", "location", "species")
             .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
-            .order_by("species__name", "year", "location__name", "name")
+        )
+
+        # added to sort based on type (int/str)
+        return queryset.annotate(
+            name_as_int=Case(
+                When(
+                    name__regex=r"^\d+$",
+                    then=Cast("name", IntegerField()),
+                ),
+                default=Value(None),
+                output_field=IntegerField(),
+            )
         )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        context["order"] = order
+        total_samples = order.samples.count()
+        filled_count = order.filled_genlab_count
+        context["progress_percent"] = (
+            (float(filled_count) / float(total_samples)) * 100
+            if total_samples > 0
+            else 0
+        )
         return context
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -621,28 +647,20 @@ class GenerateGenlabIDsView(
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
+
+        # getlist automatically reads the values in the order presented in the table
         selected_ids = request.POST.getlist("checked")
 
         if not selected_ids:
             messages.error(request, "No samples were selected.")
             return HttpResponseRedirect(self.get_return_url())
 
-        sort_param = request.POST.get("sort", "")
-        sorting_order = [s.strip() for s in sort_param.split(",") if s.strip()]
-
-        selected_samples = Sample.objects.filter(pk__in=selected_ids)
-
-        if sorting_order:
-            selected_samples = selected_samples.order_by(*sorting_order)
-
         try:
-            self.object.order_selected_checked(
-                sorting_order=sorting_order, selected_samples=selected_samples
-            )
+            self.object.order_selected_checked(selected_samples=selected_ids)
             messages.add_message(
                 request,
                 messages.SUCCESS,
-                _(f"Genlab IDs generated for {selected_samples.count()} samples."),
+                _(f"Genlab IDs generated for {len(selected_ids)} samples."),
             )
         except Exception as e:
             messages.add_message(

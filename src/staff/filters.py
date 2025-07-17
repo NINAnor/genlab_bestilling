@@ -9,6 +9,7 @@ from django_filters import CharFilter
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    ExtractionOrder,
     ExtractionPlate,
     Order,
     Sample,
@@ -44,6 +45,48 @@ class AnalysisOrderFilter(filters.FilterSet):
         self.filters["genrequest__area"].field.label = "Area"
         self.filters["genrequest__area"].field.widget = autocomplete.ModelSelect2(
             url="autocomplete:area",
+            attrs={
+                "class": "w-full",
+            },
+        )
+
+
+class ExtractionOrderFilter(filters.FilterSet):
+    class Meta:
+        model = ExtractionOrder
+        fields = ["id", "status", "genrequest__area", "sample_types"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.filters["id"].field.label = "Order ID"
+        self.filters["id"].field.widget = forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "placeholder": "Enter Order ID",
+            }
+        )
+
+        self.filters["status"].field.label = "Order Status"
+        self.filters["status"].field.choices = Order.OrderStatus.choices
+        self.filters["status"].field.widget = autocomplete.ListSelect2(
+            url="autocomplete:order-status",
+            attrs={
+                "class": "w-full",
+            },
+        )
+
+        self.filters["genrequest__area"].field.label = "Area"
+        self.filters["genrequest__area"].field.widget = autocomplete.ModelSelect2(
+            url="autocomplete:area",
+            attrs={
+                "class": "w-full",
+            },
+        )
+
+        self.filters["sample_types"].field.label = "Sample types"
+        self.filters["sample_types"].field.widget = autocomplete.ModelSelect2Multiple(
+            url="autocomplete:sample-type",
             attrs={
                 "class": "w-full",
             },

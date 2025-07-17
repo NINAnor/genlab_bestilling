@@ -23,7 +23,6 @@ from .models import (
     Organization,
     Sample,
     SampleMarkerAnalysis,
-    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -532,10 +531,6 @@ class AnalysisResultAdmin(ModelAdmin):
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
-
-
-@admin.register(SampleStatusAssignment)
-class SampleStatusAssignmentAdmin(ModelAdmin): ...
 
 
 @admin.register(IsolationMethod)

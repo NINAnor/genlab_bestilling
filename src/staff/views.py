@@ -1,10 +1,9 @@
-from collections import defaultdict
 from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count, Exists, OuterRef
+from django.db.models import Count
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -28,7 +27,6 @@ from genlab_bestilling.models import (
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
-    SampleStatusAssignment,
 )
 from nina.models import Project
 from shared.views import ActionView
@@ -318,7 +316,7 @@ class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
 
-class SampleLabView(StaffMixin, TemplateView):
+class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
     disable_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
@@ -328,34 +326,16 @@ class SampleLabView(StaffMixin, TemplateView):
             self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
         return self._order
 
-    def get_data(self) -> list[Sample]:
+    def get_table_data(self) -> list[Sample]:
         order = self.get_order()
         samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
-        sample_status = SampleStatusAssignment.SampleStatus.choices
 
-        # Fetch all SampleStatusAssignment entries related to the current order
-        sample_assignments = SampleStatusAssignment.objects.filter(order_id=order.id)
-
-        # Build a lookup: {sample_id: set of status names}
-        # This allows us to check status presence without querying per sample
-        sample_status_map = defaultdict(set)
-        for assignment in sample_assignments:
-            name = str(assignment.status)
-
-            sample_status_map[assignment.sample_id].add(name)
-
-        # Annotate each sample instance with boolean flags per status
-        # Equivalent to: sample.status_name = True/False
-        # based on whether the sample has that status
         for sample in samples:
             sample.selected_isolation_method = (
                 sample.isolation_method.first()
                 if sample.isolation_method.exists()
                 else None
             )
-            status_names = sample_status_map.get(sample.id, set())
-            for status, _i in sample_status:
-                setattr(sample, status, status in status_names)
 
         return samples
 
@@ -371,14 +351,13 @@ class SampleLabView(StaffMixin, TemplateView):
         )
 
     def get_base_fields(self) -> list[str]:
-        return [v for v, _ in SampleStatusAssignment.SampleStatus.choices]
+        return ["marked", "plucked", "isolated"]
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["order"] = self.get_order()
         context["statuses"] = self.get_base_fields()
         context["isolation_methods"] = self.get_isolation_methods()
-        context["table"] = self.table_class(data=self.get_data())
 
         return context
 
@@ -402,7 +381,7 @@ class SampleLabView(StaffMixin, TemplateView):
         samples = Sample.objects.filter(id__in=selected_ids)
 
         if status_name:
-            self.assign_status_to_samples(samples, status_name, order, request)
+            self.assign_status_to_samples(samples, status_name, request)
             if status_name == "isolated":
                 # Cannot use "samples" here
                 # because we need to check all samples in the order
@@ -415,39 +394,27 @@ class SampleLabView(StaffMixin, TemplateView):
         self,
         samples: models.QuerySet,
         status_name: str,
-        order: ExtractionOrder,
         request: HttpRequest,
     ) -> None:
-        statuses = SampleStatusAssignment.SampleStatus.choices
+        valid_statuses = ["marked", "plucked", "isolated"]
 
-        # Check if the provided status exists
-        if status_name not in [k for k, _ in statuses]:
+        if status_name not in valid_statuses:
             messages.error(request, f"Status '{status_name}' is not valid.")
-            return HttpResponseRedirect(self.get_success_url())
+            return
 
-        # Get the index of the target status
-        status_weight = next(
-            i for i, (name, _) in enumerate(statuses) if name == status_name
-        )
+        update_fields = []
 
-        # Slice the list up to that index (inclusive) and extract only the names
-        statuses_to_apply = [name for name, _ in statuses[: status_weight + 1]]
+        if status_name == "marked":
+            update_fields.append("is_marked")
+            samples.update(is_marked=True)
 
-        # Apply status assignments
-        assignments = []
-        for sample in samples:
-            for status in statuses_to_apply:
-                assignment = SampleStatusAssignment(
-                    sample=sample,
-                    status=status,
-                    order=order,
-                )
-                assignments.append(assignment)
+        elif status_name == "plucked":
+            update_fields.extend(["is_marked", "is_plucked"])
+            samples.update(is_marked=True, is_plucked=True)
 
-        SampleStatusAssignment.objects.bulk_create(
-            assignments,
-            ignore_conflicts=True,
-        )
+        elif status_name == "isolated":
+            update_fields.extend(["is_marked", "is_plucked", "is_isolated"])
+            samples.update(is_marked=True, is_plucked=True, is_isolated=True)
 
         messages.success(
             request, f"{samples.count()} samples updated with status '{status_name}'."
@@ -456,16 +423,7 @@ class SampleLabView(StaffMixin, TemplateView):
     # Checks if all samples in the order are isolated
     # If they are, it updates the order status to completed
     def check_all_isolated(self, samples: models.QuerySet) -> None:
-        samples_with_flag = samples.annotate(
-            has_isolated=Exists(
-                SampleStatusAssignment.objects.filter(
-                    sample=OuterRef("pk"),
-                    status=SampleStatusAssignment.SampleStatus.ISOLATED,
-                )
-            )
-        )
-
-        if not samples_with_flag.filter(has_isolated=False).exists():
+        if not samples.filter(is_isolated=False).exists():
             self.get_order().to_next_status()
             messages.success(
                 self.request,

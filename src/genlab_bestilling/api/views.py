@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import transaction
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import QuerySet
 from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -33,7 +33,6 @@ from ..models import (
     Marker,
     Sample,
     SampleMarkerAnalysis,
-    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -98,9 +97,9 @@ class SampleViewset(ModelViewSet):
         "project": "Projectnumber",
         "isolation_method": "Isolation Method",
         "qiagen_number": "Qiagen#",
-        "marked": "Marked",
-        "plucked": "Plucked",
-        "isolated": "Isolated",
+        "is_marked": "Marked",
+        "is_plucked": "Plucked",
+        "is_isolated": "Isolated",
         "station": "Station",
         "placement_in_fridge": "Placement in fridge",
         "delivered_to_lab": "Delivered to lab",
@@ -128,9 +127,9 @@ class SampleViewset(ModelViewSet):
             "type.name",
             "isolation_method",
             "qiagen_number",
-            "marked",
-            "plucked",
-            "isolated",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
         ],
         "Elvemusling": [
             "genlab_id",
@@ -146,9 +145,9 @@ class SampleViewset(ModelViewSet):
             "isolation_method",
             "qiagen_number",
             "placement_in_fridge",
-            "marked",
-            "plucked",
-            "isolated",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
         ],
         "Terrestrisk": [
             "genlab_id",
@@ -161,9 +160,9 @@ class SampleViewset(ModelViewSet):
             "order",
             "analysis_orders",
             "notes",
-            "marked",
-            "plucked",
-            "isolated",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
             "isolation_method",
             "qiagen_number",
         ],
@@ -179,9 +178,9 @@ class SampleViewset(ModelViewSet):
             "order",
             "analysis_orders",
             "notes",
-            "marked",
-            "plucked",
-            "isolated",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
             "isolation_method",
             "qiagen_number",
         ],
@@ -198,23 +197,6 @@ class SampleViewset(ModelViewSet):
                 "order__genrequest",
                 "order__genrequest__area",
                 "location",
-            )
-            .annotate(
-                is_marked=Exists(
-                    SampleStatusAssignment.objects.filter(
-                        sample=OuterRef("pk"), status="marked"
-                    )
-                ),
-                is_plucked=Exists(
-                    SampleStatusAssignment.objects.filter(
-                        sample=OuterRef("pk"), status="plucked"
-                    )
-                ),
-                is_isolated=Exists(
-                    SampleStatusAssignment.objects.filter(
-                        sample=OuterRef("pk"), status="isolated"
-                    )
-                ),
             )
             .order_by("genlab_id", "type")
         )

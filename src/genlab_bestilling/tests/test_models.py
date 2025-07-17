@@ -244,12 +244,8 @@ def test_ids_generation_with_only_numeric_names(genlab_setup):
     extraction.confirm_order()
 
     samples = [s1, s2, s3, s4]
-    print(samples)
     samples.sort(key=natural_sort_key)
-    print(samples)
-
     sample_ids = [str(s.id) for s in samples]
-    print(sample_ids)
 
     Sample.objects.generate_genlab_ids(
         order_id=extraction.id,

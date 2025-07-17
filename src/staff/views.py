@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
 from django.db.models import Exists, OuterRef
+from django.db.models.functions import Concat
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
@@ -119,15 +120,19 @@ class OrderListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related("analysis_orders")
         )
 
-        return self.filterset_class(
-            self.request.GET,
-            queryset=queryset,
-            request=self.request,
-        ).qs
+        # TODO: Filter
+        return queryset
 
     def get_table_data(self) -> list[CombinedOrder]:
         flattened = []
         for extraction_order in self.get_queryset():
+            assigned = list(
+                extraction_order.responsible_staff.all()
+                .annotate(
+                    full_name=Concat("first_name", models.Value(" "), "last_name")
+                )
+                .values_list("full_name", flat=True)
+            )
             priority = Order.OrderPriority.NORMAL
             if extraction_order.is_urgent:
                 priority = Order.OrderPriority.URGENT
@@ -138,6 +143,16 @@ class OrderListView(StaffMixin, SingleTableMixin, FilterView):
 
             if analysis_orders:
                 for analysis_order in analysis_orders:
+                    assigned.extend(
+                        analysis_order.responsible_staff.all()
+                        .annotate(
+                            full_name=Concat(
+                                "first_name", models.Value(" "), "last_name"
+                            )
+                        )
+                        .values_list("full_name", flat=True)
+                        .iterator()
+                    )
                     if analysis_order.is_urgent:
                         priority = Order.OrderPriority.URGENT
 
@@ -145,11 +160,16 @@ class OrderListView(StaffMixin, SingleTableMixin, FilterView):
                         extraction_order=extraction_order,
                         analysis_order=analysis_order,
                         priority=priority,
+                        assigned_staff=assigned,
                     )
                     flattened.append(combined_order)
             else:
                 flattened.append(
-                    CombinedOrder(extraction_order=extraction_order, priority=priority)
+                    CombinedOrder(
+                        extraction_order=extraction_order,
+                        priority=priority,
+                        assigned_staff=assigned,
+                    )
                 )
 
         status_order = [

@@ -26,6 +26,7 @@ class CombinedOrder:
     extraction_order: ExtractionOrder
     analysis_order: AnalysisOrder | None = None
     priority: Order.OrderPriority = Order.OrderPriority.NORMAL
+    assigned_staff: list[str] | None = None
 
     def status(self) -> Order.OrderStatus:
         """Returns the lowest status of the extraction and analysis orders."""
@@ -155,6 +156,18 @@ class OrderTable(tables.Table):
         transform=lambda x: x.name,
     )
 
+    assigned_staff = tables.Column(
+        accessor="assigned_staff",
+        verbose_name="Assigned staff",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_assigned_staff(self, value: list[str] | None) -> str:
+        if value:
+            return ", ".join(value)
+        return "-"
+
     delivery_date = tables.Column(
         accessor="analysis_order__expected_delivery_date",
         verbose_name="Delivery date",
@@ -180,6 +193,7 @@ class OrderTable(tables.Table):
             "total_samples_analysis",
             "samples_isolated",
             "markers",
+            "assigned_staff",
             "delivery_date",
         ]
         empty_text = "No Orders"

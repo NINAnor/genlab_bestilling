@@ -54,17 +54,35 @@
       {% render_table table %}
   </form>
 
-  <form id="prioritise-form" method="post" action="{% url 'staff:order-extraction-samples' pk=order.pk %}" style="display:none;">
-    {% csrf_token %}
-    <input type="hidden" name="sample_id" id="prioritise-sample-id">
-  </form>
+{% else %}
+
+<form method="get" class="py-3 px-4 border mb-3 ">
+  <div class="flex flex-wrap gap-4">
+      {{ filter.form | crispy }}
+  <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
+  </div>
+</form>
+<input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}">
+
+{% render_table table %}
 {% endif %}
+
+<form id="prioritise-form" method="post" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="sample_id" id="prioritise-sample-id">
+  <input type="hidden" name="next" id="prioritise-next-url" value="{{ request.get_full_path }}">
+</form>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll('.toggle-prioritise').forEach(btn => {
         btn.addEventListener('click', function () {
           const sampleId = this.dataset.sampleId;
+          const orderId = this.dataset.orderId;
           const form = document.getElementById('prioritise-form');
+          const actionUrl = `/staff/orders/extraction/${orderId}/samples/`;
+          form.action = actionUrl;
+          form.querySelector('#prioritise-next-url').value = window.location.href;
           form.querySelector('#prioritise-sample-id').value = sampleId;
           form.submit();
         });

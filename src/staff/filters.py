@@ -213,7 +213,7 @@ class SampleFilter(filters.FilterSet):
             # "order",
             # "order__status",
             # "order__genrequest__project",
-            "guid",
+            # "guid",
             "name",
             "genlab_id",
             "species",
@@ -223,7 +223,7 @@ class SampleFilter(filters.FilterSet):
             "pop_id",
             "type",
             # "desired_extractions",
-            "plate_positions__plate",
+            # "plate_positions__plate",
         ]
 
 

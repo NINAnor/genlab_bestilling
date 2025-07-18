@@ -7,7 +7,7 @@ from django.db.models import Case, Count, IntegerField, Value, When
 from django.db.models.functions import Cast
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
@@ -275,6 +275,10 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             sample.is_prioritised = not sample.is_prioritised
             sample.save()
 
+        next_url = request.POST.get("next")
+        if next_url:
+            return redirect(next_url)
+
         return self.get(
             request, *args, **kwargs
         )  # Re-render the view with updated data
@@ -311,6 +315,8 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 
 class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
+    table_pagination = False
+
     model = Sample
     table_class = SampleTable
     filterset_class = SampleFilter
@@ -327,7 +333,10 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "order__genrequest",
                 "order__genrequest__project",
             )
-            .prefetch_related("plate_positions")
+            .prefetch_related(
+                "plate_positions",
+                "order__responsible_staff",
+            )
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .order_by("species__name", "year", "location__name", "name")
         )

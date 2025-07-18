@@ -295,7 +295,7 @@ class SampleStatusTable(tables.Table):
             "internal_note",
             "isolation_method",
         ]
-        order_by = ()
+        order_by = ("genlab_id",)
 
     def render_checked(self, record: Any) -> str:
         return mark_safe(  # noqa: S308

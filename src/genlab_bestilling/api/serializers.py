@@ -102,9 +102,10 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     analysis_orders = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     isolation_method = serializers.SerializerMethodField()
-    marked = serializers.SerializerMethodField()
-    plucked = serializers.SerializerMethodField()
-    isolated = serializers.SerializerMethodField()
+    is_marked = serializers.SerializerMethodField()
+    is_plucked = serializers.SerializerMethodField()
+    is_isolated = serializers.SerializerMethodField()
+    internal_note = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -123,9 +124,10 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "analysis_orders",
             "project",
             "isolation_method",
-            "marked",
-            "plucked",
-            "isolated",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+            "internal_note",
         ]
 
     def get_fish_id(self, obj: Sample) -> str:
@@ -148,14 +150,19 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     def _flag(self, value: bool) -> str:
         return "x" if value else ""
 
-    def get_marked(self, obj: Sample) -> str:
+    def get_is_marked(self, obj: Sample) -> str:
         return self._flag(obj.is_marked)
 
-    def get_plucked(self, obj: Sample) -> str:
+    def get_is_plucked(self, obj: Sample) -> str:
         return self._flag(obj.is_plucked)
 
-    def get_isolated(self, obj: Sample) -> str:
+    def get_is_isolated(self, obj: Sample) -> str:
         return self._flag(obj.is_isolated)
+
+    def get_internal_note(self, obj: Sample) -> str:
+        if obj.internal_note:
+            return obj.internal_note
+        return ""
 
 
 class SampleUpdateSerializer(serializers.ModelSerializer):

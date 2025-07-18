@@ -282,12 +282,12 @@ class Order(PolymorphicModel):
     )
     contact_person = models.CharField(
         null=True,
-        blank=True,
+        blank=False,
         help_text="Person to contact with questions about this order",
     )
     contact_email = models.EmailField(
         null=True,
-        blank=True,
+        blank=False,
         help_text="Email to contact with questions about this order",
     )
     responsible_staff = models.ManyToManyField(

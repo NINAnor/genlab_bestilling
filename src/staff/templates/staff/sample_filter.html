@@ -29,6 +29,7 @@
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
     <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
+    <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear Filters</a>
     </div>
   </form>
 

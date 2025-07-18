@@ -1,3 +1,4 @@
+import re
 import uuid
 
 from django.db import transaction
@@ -92,30 +93,64 @@ class SampleViewset(ModelViewSet):
         "length": "Length",
         "weight": "Weight",
         "classification": "Classification",
-        "year": "Date",
-        "notes": "Remarks",
-        "project": "Projectnumber",
+        "year": "Year",
+        "notes": "Notes",
+        "project": "Project Number",
         "isolation_method": "Isolation Method",
         "qiagen_number": "Qiagen#",
         "is_marked": "Marked",
         "is_plucked": "Plucked",
         "is_isolated": "Isolated",
         "station": "Station",
-        "placement_in_fridge": "Placement in fridge",
-        "delivered_to_lab": "Delivered to lab",
+        "placement_in_fridge": "Placement in Fridge",
+        "delivered_to_lab": "Delivered to Lab",
+        "fluidigm#": "Fluidigm#",
+        "laksov_species": "LaksOV + Species",
+        "species_date": "Species Date",
+        "pcr": "PCR",
+        "fluidigm": "Fluidigm",
+        "output": "Output",
+        "analysis_note": "Analysis Note",
+        "rerun": "Rerun",
+        "rerun_qiagen": "Rerun Qiagen",
+        "river": "River",
+        "str_date": "STR Date",
+        "rerun_date": "Rerun Date",
+        "watercourse_number": "Watercourse Number",
+        "under_locality": "Sub-locality",
+        "county": "County",
+        "snp_assay_1": "SNP Assay 1",
+        "snp_assay_2": "SNP Assay 2",
+        "str_mixab": "STR Mix AB",
+        "str_mixc": "STR Mix C",
+        "str_mixy": "STR Mix Y",
+        "internal_note": "Internal Note",
+        "bb#": "BB#",
+        "output_bb": "Output",
+        "bba2#": "BBA2#",
+        "output_bba2": "Output",
+        "mixab": "Mix AB",
+        "ab_rep#": "AB Rep#",
+        "mixc": "Mix C",
+        "c_rep#": "C Rep#",
+        "re_extracted_date": "Re-extracted Date",
+        "re_extracted_qiagen#": "Re-extracted Qiagen#",
+        "weight_g_for_diet_analysis": "Weight (g) for Diet Analysis",
+        "position": "Position",
     }
 
     # NOTE: This can be modified to include more fields based on species or area.
     CSV_FIELDS_BY_AREA: dict[str, list[str]] = {
         "Akvatisk": [
+            "name",
             "genlab_id",
             "fish_id",
             "guid",
             "order",
             "analysis_orders",
             "location.name",
+            "watercourse_number",
             "pop_id",
-            "name",
             "species.name",
             "gender",
             "length",
@@ -127,32 +162,52 @@ class SampleViewset(ModelViewSet):
             "type.name",
             "isolation_method",
             "qiagen_number",
+            "fluidigm#",
+            "laksov_species",
+            "species_date",
             "is_marked",
             "is_plucked",
             "is_isolated",
+            "pcr",
+            "fluidigm",
+            "output",
+            "analysis_note",
+            "rerun",
+            "rerun_date",
         ],
         "Elvemusling": [
+            "name",
             "genlab_id",
             "fish_id",
             "guid",
+            "river",
             "location.name",
+            "under_locality",
+            "watercourse_number",
+            "county",
             "year",
-            "name",
             "station",
             "type.name",
             "length",
             "notes",
             "isolation_method",
             "qiagen_number",
+            "position",
             "placement_in_fridge",
             "is_marked",
             "is_plucked",
             "is_isolated",
+            "pcr",
+            "str_date",
+            "output",
+            "analysis_note",
+            "rerun",
+            "rerun_date",
         ],
         "Terrestrisk": [
+            "name",
             "genlab_id",
             "guid",
-            "name",
             "type.name",
             "species.name",
             "location.name",
@@ -160,13 +215,29 @@ class SampleViewset(ModelViewSet):
             "order",
             "analysis_orders",
             "notes",
+            "snp_assay_1",
+            "snp_assay_2",
+            "str_mixab",
+            "str_mixc",
+            "str_mixy",
             "is_marked",
             "is_plucked",
             "is_isolated",
             "isolation_method",
             "qiagen_number",
+            "internal_note",
+            "bb#",
+            "output_bb",
+            "bba2#",
+            "output_bba2",
+            "mixab",
+            "ab_rep#",
+            "mixc",
+            "c_rep#",
+            "re_extracted_date",
+            "re_extracted_qiagen#",
+            "weight_g_for_diet_analysis",
         ],
-        # Same as "Terrestrisk" for now, can be modified later if needed.
         "default": [
             "genlab_id",
             "guid",
@@ -174,7 +245,6 @@ class SampleViewset(ModelViewSet):
             "type.name",
             "species.name",
             "location.name",
-            "delivered_to_lab",
             "order",
             "analysis_orders",
             "notes",
@@ -239,19 +309,40 @@ class SampleViewset(ModelViewSet):
         return obj
 
     def build_csv_data(
-        self, serialized_data: list[dict], fields: list[str]
+        self, serialized_data: list[dict], fields: list[str], area_name: str
     ) -> list[dict[str, str]]:
-        return [
-            {
-                self.CSV_FIELD_LABELS[f]: (
-                    ", ".join(v)
-                    if isinstance(v := self.get_nested(item, f), list)
-                    else v or ""
-                )
-                for f in fields
-            }
-            for item in serialized_data
-        ]
+        rows = []
+
+        for item in serialized_data:
+            row = {}
+
+            for f in fields:
+                if area_name in {"Akvatisk", "Elvemusling"} and f == "location.name":
+                    full_location = self.get_nested(item, "location.name")
+
+                    if (
+                        full_location
+                        and re.search(r"\d+", full_location)
+                        and " " in full_location
+                    ):
+                        watercourse, location = full_location.split(" ", 1)
+                    else:
+                        watercourse, location = "", full_location or ""
+
+                    row[self.CSV_FIELD_LABELS["watercourse_number"]] = watercourse
+                    row[self.CSV_FIELD_LABELS["location.name"]] = location
+
+                # We skip "watercourse_number" because it is handled above.
+                elif f != "watercourse_number":
+                    value = self.get_nested(item, f)
+                    if isinstance(value, list):
+                        row[self.CSV_FIELD_LABELS[f]] = ", ".join(value)
+                    else:
+                        row[self.CSV_FIELD_LABELS[f]] = value or ""
+
+            rows.append(row)
+
+        return rows
 
     @action(
         methods=["GET"],
@@ -269,7 +360,7 @@ class SampleViewset(ModelViewSet):
         )
 
         fields, headers = self.get_csv_fields_and_labels(area_name, queryset)
-        data = self.build_csv_data(serializer.data, fields)
+        data = self.build_csv_data(serializer.data, fields, area_name)
 
         csv_data = CSVRenderer().render(
             data,

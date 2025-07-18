@@ -328,21 +328,6 @@ class OrderAnalysisSampleTable(tables.Table):
         return ""
 
 
-class SampleTable(SampleBaseTable):
-    genlab_id = tables.Column(
-        linkify=("staff:samples-detail", {"pk": tables.A("id")}),
-        orderable=False,
-        empty_values=(),
-    )
-
-    class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields + [
-            "order",
-            "order__status",
-            "order__genrequest__project",
-        ]
-
-
 class PlateTable(tables.Table):
     id = tables.Column(
         linkify=("staff:plates-detail", {"pk": tables.A("id")}),
@@ -386,6 +371,126 @@ class StatusMixinTable(tables.Table):
         return mark_safe(  # noqa: S308
             f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
         )
+
+
+class StatusMixinTableSamples(tables.Table):
+    sample_status = tables.Column(
+        verbose_name="Sample Status", empty_values=(), orderable=True
+    )
+
+    order__status = tables.Column(
+        verbose_name="Order Status", empty_values=(), orderable=True
+    )
+
+    def render_order__status(self, value: Order.OrderStatus, record: Order) -> str:
+        status_colors = {
+            "Processing": "bg-yellow-100 text-yellow-800",
+            "Completed": "bg-green-100 text-green-800",
+            "Delivered": "bg-red-100 text-red-800",
+        }
+        status_text = {
+            "Processing": "Processing",
+            "Completed": "Completed",
+            "Delivered": "Not started",
+        }
+        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
+        status_text = status_text.get(value, "Unknown")
+        return mark_safe(  # noqa: S308
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status_text}</span>'  # noqa: E501
+        )
+
+    def render_sample_status(self, value: Any, record: Sample) -> str:
+        order = record.order
+
+        # Determine status label
+        if isinstance(order, ExtractionOrder):
+            if record.is_isolated:
+                status = "Isolated"
+            elif record.is_plucked:
+                status = "Plucked"
+            elif record.is_marked:
+                status = "Marked"
+            else:
+                status = "Not started"
+        else:
+            status = getattr(order, "sample_status", "Unknown")
+
+        # Define color map
+        status_colors = {
+            "Marked": "bg-orange-100 text-orange-800",
+            "Plucked": "bg-yellow-100 text-yellow-800",
+            "Isolated": "bg-green-100 text-green-800",
+            "Not started": "bg-red-100 text-red-800",
+            "Unknown": "bg-gray-100 text-gray-800",
+        }
+
+        # Use computed status, not value
+        color_class = status_colors.get(status, "bg-gray-100 text-gray-800")
+
+        return mark_safe(  # noqa: S308
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status}</span>'  # noqa: E501
+        )
+
+
+class SampleTable(SampleBaseTable, StatusMixinTableSamples):
+    STATUS_PRIORITY = {
+        "Not started": 0,
+        "Marked": 1,
+        "Plucked": 2,
+        "Isolated": 3,
+    }
+
+    genlab_id = tables.Column(
+        linkify=("staff:samples-detail", {"pk": tables.A("id")}),
+        orderable=False,
+        empty_values=(),
+    )
+
+    sample_status = tables.Column(
+        verbose_name="Sample Status", empty_values=(), orderable=True
+    )
+
+    order__status = tables.Column(
+        verbose_name="Order Status", empty_values=(), orderable=True
+    )
+
+    class Meta(SampleBaseTable.Meta):
+        fields = SampleBaseTable.Meta.fields + [
+            "order",
+            "order__status",
+            "order__genrequest__project",
+            "order__responsible_staff",
+        ]
+        sequence = SampleBaseTable.Meta.sequence + (
+            "sample_status",
+            "order",
+            "order__status",
+            "order__responsible_staff",
+            "notes",
+        )
+        exclude = ("guid", "plate_positions", "checked", "is_prioritised")
+
+    def order_sample_status(
+        self, records: Sequence[Any], is_descending: bool
+    ) -> tuple[list[Any], bool]:
+        def get_status_value(record: Any) -> int:
+            if isinstance(record.order, ExtractionOrder):
+                if record.is_isolated:
+                    return self.STATUS_PRIORITY["Isolated"]
+                elif record.is_plucked:
+                    return self.STATUS_PRIORITY["Plucked"]
+                elif record.is_marked:
+                    return self.STATUS_PRIORITY["Marked"]
+                else:
+                    return self.STATUS_PRIORITY["Not started"]
+            else:
+                # fallback for other types of orders
+                return self.STATUS_PRIORITY.get(
+                    getattr(record.order, "sample_status", ""), -1
+                )
+
+        sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
+        return (sorted_records, True)
 
 
 class StaffIDMixinTable(tables.Table):

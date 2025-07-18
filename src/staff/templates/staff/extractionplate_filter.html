@@ -16,6 +16,7 @@ Extraction plates
         {{ filter.form | crispy }}
     </div>
     <button class="btn custom_order_button_blue" type="submit">Search</button>
+    <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear Filters</a>
 </form>
 
 {% render_table table %}

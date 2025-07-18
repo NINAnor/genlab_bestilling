@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.http import HttpRequest, JsonResponse
 
 from .models import (
     AnalysisOrder,
@@ -16,6 +17,17 @@ from .models import (
 
 class AreaAutocomplete(autocomplete.Select2QuerySetView):
     model = Area
+
+
+class StatusAutocomplete(autocomplete.Select2QuerySetView):
+    def get(self, request: "HttpRequest", *args, **kwargs) -> JsonResponse:
+        term = request.GET.get("q", "").lower()
+        results = [
+            {"id": choice[0], "text": choice[1]}
+            for choice in Order.OrderStatus.choices
+            if term in choice[1].lower()
+        ]
+        return JsonResponse({"results": results})
 
 
 class SpeciesAutocomplete(autocomplete.Select2QuerySetView):

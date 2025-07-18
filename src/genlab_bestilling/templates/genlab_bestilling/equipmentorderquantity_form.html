@@ -4,7 +4,7 @@
 {% block content %}
     <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
     <div class="flex gap-5 mb-5">
-        <a class="btn bg-primary" href="{% url 'genrequest-equipment-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> back</a>
+        <a class="btn custom_order_button" href="{% url 'genrequest-equipment-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
     {% formset endpoint=request.path csrf_token=csrf_token form_collection=form_collection %}
 {% endblock %}

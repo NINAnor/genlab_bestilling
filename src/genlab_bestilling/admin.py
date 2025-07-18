@@ -19,10 +19,10 @@ from .models import (
     Location,
     LocationType,
     Marker,
+    Order,
     Organization,
     Sample,
     SampleMarkerAnalysis,
-    SampleStatusAssignment,
     SampleType,
     Species,
 )
@@ -46,6 +46,13 @@ class AreaAdmin(ModelAdmin):
     ]
     list_filter_submit = True
     list_filter_sheet = False
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["id", "name"]
 
 
 @admin.register(LocationType)
@@ -524,10 +531,6 @@ class AnalysisResultAdmin(ModelAdmin):
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
-
-
-@admin.register(SampleStatusAssignment)
-class SampleStatusAssignmentAdmin(ModelAdmin): ...
 
 
 @admin.register(IsolationMethod)

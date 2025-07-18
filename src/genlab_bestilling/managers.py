@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from django.db import models, transaction
 from django.db.models import QuerySet
-from django.db.models.expressions import RawSQL
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 from capps.users.models import User
@@ -54,9 +53,6 @@ class EquipmentOrderQuantityQuerySet(models.QuerySet):
         )
 
 
-DEFAULT_SORTING_FIELDS = ["name_as_int", "name"]
-
-
 class SampleQuerySet(models.QuerySet):
     def filter_allowed(self, user: User) -> QuerySet:
         """
@@ -76,7 +72,6 @@ class SampleQuerySet(models.QuerySet):
     def generate_genlab_ids(
         self,
         order_id: int,
-        sorting_order: list[str] | None = DEFAULT_SORTING_FIELDS,
         selected_samples: list[int] | None = None,
     ) -> None:
         """
@@ -84,28 +79,23 @@ class SampleQuerySet(models.QuerySet):
 
         """
 
-        # Lock the samples
-        samples = (
-            self.select_related("species")
-            .filter(order_id=order_id, genlab_id__isnull=True)
-            .select_for_update()
+        selected_sample_ids = [int(s) for s in selected_samples]
+
+        samples = list(
+            (
+                self.select_related("species")
+                .filter(
+                    order_id=order_id,
+                    genlab_id__isnull=True,
+                    id__in=selected_sample_ids,
+                )
+                .select_for_update()
+            ).all()
         )
 
-        if selected_samples:
-            samples = samples.filter(id__in=selected_samples)
-
-        if sorting_order == DEFAULT_SORTING_FIELDS:
-            # create an annotation containg all integer values
-            # of "name", so that it's possible to sort numerically and alphabetically
-            samples = samples.annotate(
-                name_as_int=RawSQL(
-                    r"substring(%s from '^\d+$')::int",
-                    params=["name"],
-                    output_field=models.IntegerField(),
-                )
-            ).order_by(*sorting_order)
-        else:
-            samples = samples.order_by(*sorting_order)
+        # Sort samples in the order of selected_samples
+        id_pos = {id_: i for i, id_ in enumerate(selected_sample_ids)}
+        samples.sort(key=lambda sample: id_pos.get(sample.id, 99999))  # Safe fallback
 
         updates = []
         for sample in samples:

@@ -1,0 +1,25 @@
+<thead {{ table.attrs.thead.as_html }}>
+    <tr>
+    {% for column in table.columns %}
+        <th {{ column.attrs.th.as_html }}>
+            {% if column.orderable %}
+                <a href="?{{ column.ext.next }}"
+                   class="inline-flex items-center gap-1">
+                    {{ column.header }}
+                    {% if column.is_ordered %}
+                        {% if "-" in column.order_by_alias %}
+                            <i class="fa-solid fa-sort-down text-gray-500"></i>
+                        {% else %}
+                            <i class="fa-solid fa-sort-up text-gray-500"></i>
+                        {% endif %}
+                    {% else %}
+                        <i class="fa-solid fa-sort text-gray-400 hover:text-black"></i>
+                    {% endif %}
+                </a>
+            {% else %}
+                {{ column.header }}
+            {% endif %}
+        </th>
+    {% endfor %}
+    </tr>
+</thead>

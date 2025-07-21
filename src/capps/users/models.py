@@ -6,9 +6,10 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from capps.users.managers import UserManager
+from shared.mixins import CleanSaveMixin
 
 
-class User(AbstractUser):
+class User(CleanSaveMixin, AbstractUser):
     """Default custom user model."""
 
     email = EmailField(_("email address"), unique=True)

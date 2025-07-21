@@ -11,6 +11,7 @@ from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
+from shared.base_models import CustomModel
 from shared.db import assert_is_in_atomic_block
 
 if TYPE_CHECKING:
@@ -22,7 +23,7 @@ from .libs.helpers import position_to_coordinates
 an = "genlab_bestilling"  # Short alias for app name.
 
 
-class Organization(models.Model):
+class Organization(CustomModel):
     name = models.CharField(max_length=255)
 
     # TODO: unique name
@@ -33,7 +34,7 @@ class Organization(models.Model):
         ordering = ["name"]
 
 
-class Area(models.Model):
+class Area(CustomModel):
     name = models.CharField(max_length=255)
     location_mandatory = models.BooleanField(default=False)
 
@@ -45,7 +46,7 @@ class Area(models.Model):
         ordering = ["name"]
 
 
-class Marker(models.Model):
+class Marker(CustomModel):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
 
@@ -56,7 +57,7 @@ class Marker(models.Model):
         ordering = ["name"]
 
 
-class Species(models.Model):
+class Species(CustomModel):
     name = models.CharField(max_length=255)
     area = models.ForeignKey(f"{an}.Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField(f"{an}.Marker", related_name="species")
@@ -80,7 +81,7 @@ class Species(models.Model):
         ]
 
 
-class SampleType(models.Model):
+class SampleType(CustomModel):
     name = models.CharField(max_length=255, null=True, blank=True)
     areas = models.ManyToManyField(f"{an}.Area", blank=True)
 
@@ -99,7 +100,7 @@ class SampleType(models.Model):
         ordering = ["name"]
 
 
-class AnalysisType(models.Model):
+class AnalysisType(CustomModel):
     name = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self) -> str:
@@ -117,14 +118,14 @@ class AnalysisType(models.Model):
         ordering = ["name"]
 
 
-class LocationType(models.Model):
+class LocationType(CustomModel):
     name = models.CharField(max_length=250)
 
     def __str__(self) -> str:
         return self.name
 
 
-class Location(models.Model):
+class Location(CustomModel):
     name = models.CharField(max_length=250)
     types = models.ManyToManyField(
         f"{an}.LocationType",
@@ -153,7 +154,7 @@ class Location(models.Model):
         return self.name
 
 
-class Genrequest(models.Model):  # type: ignore[django-manager-missing]
+class Genrequest(CustomModel):  # type: ignore[django-manager-missing]
     """
     A GenLab genrequest, multiple GenLab requests can have the same NINA project number
     """
@@ -362,7 +363,7 @@ class Order(PolymorphicModel):
         return f"#ORD_{self.id}"
 
 
-class EquipmentType(models.Model):
+class EquipmentType(CustomModel):
     name = models.CharField(max_length=255, null=True, blank=True)
     unit = models.CharField(max_length=50)
 
@@ -370,7 +371,7 @@ class EquipmentType(models.Model):
         return f"{self.name} ({self.unit})" if self.unit else f"{self.name}"
 
 
-class EquipmentBuffer(models.Model):
+class EquipmentBuffer(CustomModel):
     name = models.CharField(max_length=255, null=True, blank=True)
     unit = models.CharField(max_length=50)
 
@@ -378,7 +379,7 @@ class EquipmentBuffer(models.Model):
         return f"{self.name} ({self.unit or 'uL'})"
 
 
-class EquimentOrderQuantity(models.Model):
+class EquimentOrderQuantity(CustomModel):
     equipment = models.ForeignKey(
         f"{an}.EquipmentType",
         on_delete=models.CASCADE,
@@ -602,7 +603,7 @@ class AnalysisOrder(Order):
             self.sample_markers.exclude(transaction=transaction_code).delete()
 
 
-class SampleMarkerAnalysis(models.Model):
+class SampleMarkerAnalysis(CustomModel):
     sample = models.ForeignKey(f"{an}.Sample", on_delete=models.CASCADE)
     order = models.ForeignKey(
         f"{an}.AnalysisOrder",
@@ -627,7 +628,7 @@ class SampleMarkerAnalysis(models.Model):
         return f"{str(self.sample)} {str(self.marker)} @ {str(self.order)}"
 
 
-class Sample(models.Model):
+class Sample(CustomModel):
     order = models.ForeignKey(
         f"{an}.ExtractionOrder",
         on_delete=models.CASCADE,
@@ -771,7 +772,7 @@ class Sample(models.Model):
         return self.genlab_id
 
 
-# class Analysis(models.Model):
+# class Analysis(CustomModel):
 # type =
 # sample =
 # plate
@@ -781,7 +782,7 @@ class Sample(models.Model):
 # assignee (one or plus?)
 
 
-class SampleIsolationMethod(models.Model):
+class SampleIsolationMethod(CustomModel):
     sample = models.ForeignKey(
         f"{an}.Sample",
         on_delete=models.CASCADE,
@@ -797,7 +798,7 @@ class SampleIsolationMethod(models.Model):
         unique_together = ("sample", "isolation_method")
 
 
-class IsolationMethod(models.Model):
+class IsolationMethod(CustomModel):
     name = models.CharField(max_length=255, unique=False)
     species = models.ForeignKey(
         f"{an}.Species",
@@ -812,7 +813,7 @@ class IsolationMethod(models.Model):
 
 
 # Some extracts can be placed in multiple wells
-class ExtractPlatePosition(models.Model):
+class ExtractPlatePosition(CustomModel):
     plate = models.ForeignKey(
         f"{an}.ExtractionPlate",
         on_delete=models.DO_NOTHING,
@@ -840,7 +841,7 @@ class ExtractPlatePosition(models.Model):
         return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
 
 
-class ExtractionPlate(models.Model):
+class ExtractionPlate(CustomModel):
     name = models.CharField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
@@ -851,7 +852,7 @@ class ExtractionPlate(models.Model):
         return f"#P{self.id}" + f" - {self.name}" if self.name else ""
 
 
-class AnalysisResult(models.Model):
+class AnalysisResult(CustomModel):
     name = models.CharField()
     analysis_date = models.DateTimeField(null=True, blank=True)
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
@@ -871,7 +872,7 @@ class AnalysisResult(models.Model):
         return f"{self.name}"
 
 
-class GIDSequence(models.Model):
+class GIDSequence(CustomModel):
     """
     Represents a sequence of IDs
     This table provides a way to atomically update

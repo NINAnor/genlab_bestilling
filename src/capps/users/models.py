@@ -1,7 +1,7 @@
 from typing import Self
 
 from django.contrib.auth.models import AbstractUser
-from django.db.models import CharField, EmailField
+from django.db.models import EmailField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -14,8 +14,6 @@ class User(CleanSaveMixin, AbstractUser):
 
     email = EmailField(_("email address"), unique=True)
     username = None  # type: ignore
-    first_name = CharField(max_length=200)
-    last_name = CharField(max_length=200)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

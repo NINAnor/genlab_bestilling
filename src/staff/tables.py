@@ -87,7 +87,6 @@ class OrderTable(StatusMixinTable):
     priority = tables.TemplateColumn(
         orderable=True,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -554,7 +553,6 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -631,7 +629,6 @@ class NewSeenOrderTable(StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -684,7 +681,6 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -716,7 +712,6 @@ class DraftOrderTable(StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 

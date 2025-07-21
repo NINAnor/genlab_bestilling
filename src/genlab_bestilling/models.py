@@ -11,6 +11,8 @@ from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
+from shared.db import assert_is_in_atomic_block
+
 if TYPE_CHECKING:
     from .models import Sample
 
@@ -744,8 +746,9 @@ class Sample(models.Model):
 
         return False
 
-    @transaction.atomic
     def generate_genlab_id(self, commit: bool = True) -> str:
+        assert_is_in_atomic_block()
+
         if self.genlab_id:
             return self.genlab_id
         species = self.species
@@ -898,11 +901,11 @@ class GIDSequence(models.Model):
 
     objects = managers.GIDSequenceQuerySet.as_manager()
 
-    @transaction.atomic()
     def next_value(self) -> str:
         """
         Update the last_value transactionally and return the corresponding genlab_id
         """
+        assert_is_in_atomic_block()
         self.last_value += 1
         self.save(update_fields=["last_value"])
         return f"{self.id}{self.last_value:05d}"

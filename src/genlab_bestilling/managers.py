@@ -7,6 +7,7 @@ from django.db.models import QuerySet
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 from capps.users.models import User
+from shared.db import assert_is_in_atomic_block
 
 if TYPE_CHECKING:
     from .models import GIDSequence, Species
@@ -78,17 +79,19 @@ class SampleQuerySet(models.QuerySet):
         genlab ids given a certain order_id, sorting order and sample ids
 
         """
+        assert_is_in_atomic_block()
 
         selected_sample_ids = [int(s) for s in selected_samples]
 
         samples = list(
             (
-                self.select_related("species")
+                self.select_related("species", "order")
                 .filter(
                     order_id=order_id,
                     genlab_id__isnull=True,
                     id__in=selected_sample_ids,
                 )
+                .only("id", "genlab_id", "order__confirmed_at", "species__code")
                 .select_for_update()
             ).all()
         )

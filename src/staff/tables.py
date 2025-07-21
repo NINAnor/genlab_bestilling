@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
+from django.db import models
+from django.db.models.query import QuerySet
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -16,6 +18,46 @@ from genlab_bestilling.models import (
     SampleMarkerAnalysis,
 )
 from nina.models import Project
+
+
+class StatusMixinTable(tables.Table):
+    status = tables.Column(
+        orderable=True,
+        verbose_name="Status",
+    )
+
+    def order_status(
+        self, queryset: QuerySet[Order], is_descending: bool
+    ) -> tuple[QuerySet[Order], bool]:
+        prefix = "-" if is_descending else ""
+        sorted_by_status = queryset.annotate(
+            status_order=models.Case(
+                models.When(status=Order.OrderStatus.DELIVERED, then=0),
+                models.When(status=Order.OrderStatus.DRAFT, then=1),
+                models.When(status=Order.OrderStatus.PROCESSING, then=2),
+                models.When(status=Order.OrderStatus.COMPLETED, then=3),
+            )
+        ).order_by(f"{prefix}status_order")
+
+        return (sorted_by_status, True)
+
+    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
+        status_colors = {
+            "Processing": "bg-yellow-100 text-yellow-800",
+            "Completed": "bg-green-100 text-green-800",
+            "Delivered": "bg-red-100 text-red-800",
+        }
+        status_text = {
+            "Processing": "Processing",
+            "Completed": "Completed",
+            "Delivered": "Not started",
+            "Draft": "Draft",
+        }
+        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
+        status_text = status_text.get(value, "Unknown")
+        return mark_safe(  # noqa: S308
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
+        )
 
 
 class ProjectTable(tables.Table):
@@ -31,67 +73,54 @@ class ProjectTable(tables.Table):
         fields = ("number", "name", "active", "verified_at")
 
 
-class OrderTable(tables.Table):
+class OrderTable(StatusMixinTable):
     id = tables.Column(
         linkify=True,
         orderable=False,
         empty_values=(),
+        verbose_name="Order ID",
     )
-
-    is_urgent = tables.Column(
-        orderable=True,
-        visible=True,
-        verbose_name="",
-    )
-
-    status = tables.Column(
-        verbose_name="Status",
-        orderable=False,
-    )
-
-    is_seen = tables.Column(
-        orderable=False,
-        visible=True,
-        verbose_name="",
-    )
-
-    class Meta:
-        fields = [
-            "name",
-            "status",
-            "genrequest",
-            "genrequest__name",
-            "genrequest__project",
-            "genrequest__area",
-            "genrequest__samples_owner",
-            "created_at",
-            "last_modified_at",
-            "is_urgent",
-            "is_seen",
-        ]
-        sequence = ("is_seen", "is_urgent", "status", "id", "name")
-        empty_text = "No Orders"
-        order_by = ("-is_urgent", "last_modified_at", "created_at")
 
     def render_id(self, record: Any) -> str:
         return str(record)
 
-    def render_is_urgent(self, value: bool) -> str:
-        html_exclaimation_mark = (
-            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
-        )
-        if value:
-            return mark_safe(html_exclaimation_mark)  # noqa: S308
-        else:
-            return ""
+    priority = tables.TemplateColumn(
+        orderable=True,
+        verbose_name="Priority",
+        template_name="staff/components/priority_column.html",
+    )
 
-    def render_is_seen(self, value: bool) -> str:
-        if not value:
-            return mark_safe(
-                '<i class="fa-solid fa-bell text-yellow-500" '
-                'title="New within 24h"></i>'
-            )
-        return ""
+    area = tables.Column(
+        accessor="genrequest__area__name",
+        verbose_name="Area",
+        orderable=True,
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=True,
+    )
+
+    responsible_staff = tables.ManyToManyColumn(
+        accessor="responsible_staff",
+        verbose_name="Assigned staff",
+        orderable=False,
+        transform=lambda x: x.first_name + " " + x.last_name,
+    )
+
+    class Meta:
+        fields = [
+            "priority",
+            "id",
+            "status",
+            "area",
+            "description",
+            "total_samples",
+            "responsible_staff",
+        ]
+        empty_text = "No Orders"
+        order_by = ("-is_urgent",)
 
 
 class AnalysisOrderTable(OrderTable):
@@ -101,9 +130,35 @@ class AnalysisOrderTable(OrderTable):
         empty_values=(),
     )
 
+    markers = tables.ManyToManyColumn(
+        accessor="markers",
+        verbose_name="Markers",
+        orderable=False,
+        transform=lambda x: x.name,
+    )
+
+    expected_delivery_date = tables.DateColumn(
+        accessor="expected_delivery_date",
+        verbose_name="Delivery date",
+        format="d/m/Y",
+        orderable=True,
+        empty_values=(),
+    )
+
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
-        fields = OrderTable.Meta.fields + ["return_samples"]
+        fields = OrderTable.Meta.fields + ["markers", "expected_delivery_date"]
+        sequence = (
+            "priority",
+            "id",
+            "status",
+            "area",
+            "description",
+            "total_samples",
+            "markers",
+            "responsible_staff",
+            "expected_delivery_date",
+        )
 
 
 class ExtractionOrderTable(OrderTable):
@@ -113,26 +168,37 @@ class ExtractionOrderTable(OrderTable):
         empty_values=(),
     )
 
-    sample_count = tables.Column(
-        accessor="sample_count",
-        verbose_name="Sample Count",
-        orderable=False,
+    def render_total_samples(self, record: ExtractionOrder) -> str:
+        return record.total_samples or "0"
+
+    def render_total_samples_isolated(self, record: ExtractionOrder) -> str:
+        return record.total_samples_isolated or "0"
+
+    confirmed_at = tables.DateColumn(
+        accessor="confirmed_at",
+        verbose_name="Confirmed at",
+        format="d/m/Y",
+        orderable=True,
+        empty_values=(),
     )
 
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
         fields = OrderTable.Meta.fields + [
-            "species",
-            "sample_types",
-            "internal_status",
-            "needs_guid",
-            "return_samples",
-            "pre_isolated",
+            "total_samples_isolated",
+            "confirmed_at",
         ]
-        sequence = OrderTable.Meta.sequence + ("sample_count",)
-
-    def render_sample_count(self, record: Any) -> str:
-        return record.sample_count or "0"
+        sequence = (
+            "priority",
+            "id",
+            "status",
+            "area",
+            "description",
+            "total_samples",
+            "total_samples_isolated",
+            "responsible_staff",
+            "confirmed_at",
+        )
 
 
 class EquipmentOrderTable(OrderTable):
@@ -349,30 +415,6 @@ class PlateTable(tables.Table):
         empty_text = "No Plates"
 
 
-class StatusMixinTable(tables.Table):
-    status = tables.Column(
-        orderable=False,
-        verbose_name="Status",
-    )
-
-    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
-        status_colors = {
-            "Processing": "bg-yellow-100 text-yellow-800",
-            "Completed": "bg-green-100 text-green-800",
-            "Delivered": "bg-red-100 text-red-800",
-        }
-        status_text = {
-            "Processing": "Processing",
-            "Completed": "Completed",
-            "Delivered": "Not started",
-        }
-        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
-        status_text = status_text.get(value, "Unknown")
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
-        )
-
-
 class StatusMixinTableSamples(tables.Table):
     sample_status = tables.Column(
         verbose_name="Sample Status", empty_values=(), orderable=True
@@ -511,7 +553,6 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -588,7 +629,6 @@ class NewSeenOrderTable(StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -641,7 +681,6 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 
@@ -673,7 +712,6 @@ class DraftOrderTable(StaffIDMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
-        accessor="priority",
         template_name="staff/components/priority_column.html",
     )
 

@@ -1,6 +1,5 @@
 import re
 from collections.abc import Sequence
-from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
@@ -562,15 +561,12 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
         orderable=False,
     )
 
-    delivery_date = tables.Column(
+    delivery_date = tables.DateColumn(
         verbose_name="Delivery date",
         orderable=False,
+        format="d/m/Y",
+        empty_values=(),
     )
-
-    def render_delivery_date(self, value: datetime | None) -> str:
-        if value:
-            return value.strftime("%d/%m/%Y")
-        return "-"
 
     class Meta:
         model = Order
@@ -593,15 +589,12 @@ class NewUnseenOrderTable(StaffIDMixinTable):
         orderable=False,
     )
 
-    delivery_date = tables.Column(
+    delivery_date = tables.DateColumn(
         verbose_name="Delivery date",
         orderable=False,
+        format="d/m/Y",
+        empty_values=(),
     )
-
-    def render_delivery_date(self, value: datetime | None) -> str:
-        if value:
-            return value.strftime("%d/%m/%Y")
-        return "-"
 
     samples = tables.Column(
         accessor="sample_count",
@@ -638,15 +631,12 @@ class NewSeenOrderTable(StaffIDMixinTable):
         orderable=False,
     )
 
-    delivery_date = tables.Column(
+    delivery_date = tables.DateColumn(
         verbose_name="Delivery date",
         orderable=False,
+        format="d/m/Y",
+        empty_values=(),
     )
-
-    def render_delivery_date(self, value: datetime | None) -> str:
-        if value:
-            return value.strftime("%d/%m/%Y")
-        return "-"
 
     samples = tables.Column(
         accessor="sample_count",
@@ -721,15 +711,12 @@ class DraftOrderTable(StaffIDMixinTable):
         orderable=False,
     )
 
-    delivery_date = tables.Column(
+    delivery_date = tables.DateColumn(
         verbose_name="Delivery date",
         orderable=False,
+        format="d/m/Y",
+        empty_values=(),
     )
-
-    def render_delivery_date(self, value: datetime | None) -> str:
-        if value:
-            return value.strftime("%d/%m/%Y")
-        return "-"
 
     samples = tables.Column(
         accessor="sample_count",

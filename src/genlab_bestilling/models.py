@@ -308,6 +308,8 @@ class Order(PolymorphicModel):
     def confirm_order(self) -> None:
         self.status = Order.OrderStatus.DELIVERED
         self.confirmed_at = timezone.now()
+        if self.is_urgent:
+            self.is_seen = True
         self.save()
 
     def clone(self) -> None:

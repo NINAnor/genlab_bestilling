@@ -30,6 +30,7 @@ from genlab_bestilling.models import (
     SampleMarkerAnalysis,
 )
 from nina.models import Project
+from shared.sentry import report_errors
 from shared.views import ActionView
 
 from .filters import (
@@ -204,6 +205,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
             order.toggle_seen()
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:
+            report_errors(e)
             messages.error(request, f"Error: {str(e)}")
 
         return_to = request.POST.get("return_to")
@@ -582,6 +584,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
                 _("The order was converted back to a draft"),
             )
         except Exception as e:
+            report_errors(e)
             messages.add_message(
                 self.request,
                 messages.ERROR,
@@ -617,6 +620,7 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
                 _(f"The order status changed to {self.object.get_status_display()}"),
             )
         except Exception as e:
+            report_errors(e)
             messages.add_message(
                 self.request,
                 messages.ERROR,
@@ -661,6 +665,7 @@ class GenerateGenlabIDsView(
                 _(f"Genlab IDs generated for {len(selected_ids)} samples."),
             )
         except Exception as e:
+            report_errors(e)
             messages.add_message(
                 request,
                 messages.ERROR,
@@ -712,6 +717,7 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
                 _("The sample was replicated"),
             )
         except Exception as e:
+            report_errors(e)
             messages.add_message(
                 self.request,
                 messages.ERROR,

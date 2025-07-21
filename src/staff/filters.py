@@ -18,6 +18,17 @@ from genlab_bestilling.models import (
 
 
 class AnalysisOrderFilter(filters.FilterSet):
+    status = ChoiceFilter(
+        field_name="status",
+        label="Status",
+        choices=Order.OrderStatus.choices,
+        widget=forms.Select(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+            },
+        ),
+    )
+
     class Meta:
         model = AnalysisOrder
         fields = ["id", "status", "genrequest__area", "responsible_staff"]
@@ -31,15 +42,6 @@ class AnalysisOrderFilter(filters.FilterSet):
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
                 "placeholder": "Enter Order ID",
             }
-        )
-
-        self.filters["status"].field.label = "Order Status"
-        self.filters["status"].field.choices = Order.OrderStatus.choices
-        self.filters["status"].field.widget = autocomplete.ListSelect2(
-            url="autocomplete:order-status",
-            attrs={
-                "class": "w-full",
-            },
         )
 
         self.filters["genrequest__area"].field.label = "Area"
@@ -62,6 +64,17 @@ class AnalysisOrderFilter(filters.FilterSet):
 
 
 class ExtractionOrderFilter(filters.FilterSet):
+    status = ChoiceFilter(
+        field_name="status",
+        label="Status",
+        choices=Order.OrderStatus.choices,
+        widget=forms.Select(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+            },
+        ),
+    )
+
     class Meta:
         model = ExtractionOrder
         fields = [
@@ -80,15 +93,6 @@ class ExtractionOrderFilter(filters.FilterSet):
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
                 "placeholder": "Enter Order ID",
             }
-        )
-
-        self.filters["status"].field.label = "Order Status"
-        self.filters["status"].field.choices = Order.OrderStatus.choices
-        self.filters["status"].field.widget = autocomplete.ListSelect2(
-            url="autocomplete:order-status",
-            attrs={
-                "class": "w-full",
-            },
         )
 
         self.filters["genrequest__area"].field.label = "Area"

@@ -9,6 +9,7 @@ from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView, TemplateView
@@ -108,6 +109,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
+            .annotate(total_samples=Count("samples"))
         )
 
 
@@ -128,7 +130,12 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types")
-            .annotate(sample_count=Count("samples"))
+            .annotate(
+                total_samples=Count("samples"),
+                total_samples_isolated=models.Count(
+                    "samples", filter=models.Q(samples__is_isolated=True)
+                ),
+            )
         )
 
 
@@ -791,13 +798,20 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
 
 class OrderPrioritizedAdminView(StaffMixin, ActionView):
+    def get_success_url(self) -> str:
+        next_url = self.request.POST.get("next")
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return next_url
+
+        return reverse("staff:dashboard")
+
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         pk = kwargs.get("pk")
         order = Order.objects.get(pk=pk)
         order.toggle_prioritized()
 
-        return HttpResponseRedirect(
-            reverse(
-                "staff:dashboard",
-            )
-        )
+        return redirect(self.get_success_url())

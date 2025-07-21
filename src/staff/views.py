@@ -108,6 +108,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
+            .annotate(total_samples=Count("samples"))
         )
 
 
@@ -128,7 +129,12 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types")
-            .annotate(sample_count=Count("samples"))
+            .annotate(
+                total_samples=Count("samples"),
+                total_samples_isolated=models.Count(
+                    "samples", filter=models.Q(samples__is_isolated=True)
+                ),
+            )
         )
 
 

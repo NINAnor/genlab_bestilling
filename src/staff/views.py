@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, TemplateView
+from django.views.generic import CreateView, DetailView, TemplateView, View
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -639,9 +639,7 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class GenerateGenlabIDsView(
-    SingleObjectMixin, StaffMixin, SingleTableMixin, FilterView
-):
+class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, View):
     model = ExtractionOrder
 
     def get_object(self) -> ExtractionOrder:

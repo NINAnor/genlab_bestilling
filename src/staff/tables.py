@@ -576,6 +576,8 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
 
 
 class NewUnseenOrderTable(StaffIDMixinTable):
+    sticky_header = True
+
     seen = tables.TemplateColumn(
         verbose_name="",
         orderable=False,
@@ -619,6 +621,8 @@ class NewUnseenOrderTable(StaffIDMixinTable):
 
 
 class NewSeenOrderTable(StaffIDMixinTable):
+    sticky_header = True
+
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
@@ -668,6 +672,8 @@ class NewSeenOrderTable(StaffIDMixinTable):
 
 
 class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
+    sticky_header = True
+
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
@@ -699,6 +705,8 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
 
 
 class DraftOrderTable(StaffIDMixinTable):
+    sticky_header = True
+
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",

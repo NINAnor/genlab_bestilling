@@ -1,8 +1,8 @@
 import uuid
-from typing import Any
 
 from django.db import transaction
 from django.db.models import QuerySet
+from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
@@ -77,6 +77,115 @@ class SampleViewset(ModelViewSet):
     pagination_class = IDCursorPagination
     permission_classes = [AllowSampleDraft, IsAuthenticated]
 
+    CSV_FIELD_LABELS: dict[str, str] = {
+        "genlab_id": "Genlab ID",
+        "fish_id": "Old Genlab ID",
+        "guid": "GUID",
+        "name": "Name",
+        "species.name": "Species",
+        "location.name": "Location",
+        "order": "EXT_order",
+        "analysis_orders": "ANL_order",
+        "pop_id": "PopID",
+        "type.name": "Sample Type",
+        "gender": "Gender",
+        "length": "Length",
+        "weight": "Weight",
+        "classification": "Classification",
+        "year": "Date",
+        "notes": "Remarks",
+        "project": "Projectnumber",
+        "isolation_method": "Isolation Method",
+        "qiagen_number": "Qiagen#",
+        "is_marked": "Marked",
+        "is_plucked": "Plucked",
+        "is_isolated": "Isolated",
+        "station": "Station",
+        "placement_in_fridge": "Placement in fridge",
+        "delivered_to_lab": "Delivered to lab",
+    }
+
+    # NOTE: This can be modified to include more fields based on species or area.
+    CSV_FIELDS_BY_AREA: dict[str, list[str]] = {
+        "Akvatisk": [
+            "genlab_id",
+            "fish_id",
+            "guid",
+            "order",
+            "analysis_orders",
+            "location.name",
+            "pop_id",
+            "name",
+            "species.name",
+            "gender",
+            "length",
+            "weight",
+            "classification",
+            "year",
+            "notes",
+            "project",
+            "type.name",
+            "isolation_method",
+            "qiagen_number",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+        ],
+        "Elvemusling": [
+            "genlab_id",
+            "fish_id",
+            "guid",
+            "location.name",
+            "year",
+            "name",
+            "station",
+            "type.name",
+            "length",
+            "notes",
+            "isolation_method",
+            "qiagen_number",
+            "placement_in_fridge",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+        ],
+        "Terrestrisk": [
+            "genlab_id",
+            "guid",
+            "name",
+            "type.name",
+            "species.name",
+            "location.name",
+            "delivered_to_lab",
+            "order",
+            "analysis_orders",
+            "notes",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+            "isolation_method",
+            "qiagen_number",
+        ],
+        # Same as "Terrestrisk" for now, can be modified later if needed.
+        "default": [
+            "genlab_id",
+            "guid",
+            "name",
+            "type.name",
+            "species.name",
+            "location.name",
+            "delivered_to_lab",
+            "order",
+            "analysis_orders",
+            "notes",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+            "isolation_method",
+            "qiagen_number",
+        ],
+    }
+
     def get_queryset(self) -> QuerySet:
         return (
             super()
@@ -89,7 +198,7 @@ class SampleViewset(ModelViewSet):
                 "order__genrequest__area",
                 "location",
             )
-            .order_by("id")
+            .order_by("genlab_id", "type")
         )
 
     def get_serializer_class(self) -> type[BaseSerializer]:
@@ -99,21 +208,78 @@ class SampleViewset(ModelViewSet):
             return SampleCSVSerializer
         return super().get_serializer_class()
 
-    def get_serializer_context(self, *args, **kwargs) -> dict[str, Any]:
-        context = super().get_serializer_context(*args, **kwargs)
-        queryset = self.filter_queryset(self.get_queryset())
-        is_aquatic = queryset.filter(order__genrequest__area__name="Akvatisk").exists()
-        context["include_fish_id"] = is_aquatic
-        return context
+    def get_area_name(self, queryset: QuerySet) -> str:
+        return (
+            queryset.values_list("order__genrequest__area__name", flat=True).first()
+            or "default"
+        )
+
+    # NOTE: If the headers differ from species to species, we can add more headers
+    # to the CSV_FIELDS_BY_AREA dict, and then use the species name to determine
+    # which headers to use.
+    def get_csv_fields_and_labels(
+        self, area_name: str, queryset: QuerySet
+    ) -> tuple[list[str], list[str]]:
+        get_fields = area_name
+        if area_name == "Akvatisk":
+            species = queryset.values_list("species__name", flat=True).distinct()
+            if species.first() == "Elvemusling":
+                get_fields = "Elvemusling"
+
+        fields = self.CSV_FIELDS_BY_AREA.get(
+            get_fields, self.CSV_FIELDS_BY_AREA["default"]
+        )
+        labels = [self.CSV_FIELD_LABELS.get(f, f) for f in fields]
+        return fields, labels
+
+    # Helper function to get nested values from a dict using dotted notation.
+    def get_nested(self, obj: dict, dotted: str) -> str | None:
+        for part in dotted.split("."):
+            obj = obj.get(part) if isinstance(obj, dict) else None
+        return obj
+
+    def build_csv_data(
+        self, serialized_data: list[dict], fields: list[str]
+    ) -> list[dict[str, str]]:
+        return [
+            {
+                self.CSV_FIELD_LABELS[f]: (
+                    ", ".join(v)
+                    if isinstance(v := self.get_nested(item, f), list)
+                    else v or ""
+                )
+                for f in fields
+            }
+            for item in serialized_data
+        ]
 
     @action(
-        methods=["GET"], url_path="csv", detail=False, renderer_classes=[CSVRenderer]
+        methods=["GET"],
+        url_path="csv",
+        detail=False,
+        renderer_classes=[CSVRenderer],
     )
-    def csv(self, request: Request) -> Response:
+    def csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(
-            serializer.data,
+        area_name = self.get_area_name(queryset)
+
+        serializer = self.get_serializer(
+            queryset,
+            many=True,
+        )
+
+        fields, headers = self.get_csv_fields_and_labels(area_name, queryset)
+        data = self.build_csv_data(serializer.data, fields)
+
+        csv_data = CSVRenderer().render(
+            data,
+            media_type="text/csv",
+            renderer_context={"header": headers},
+        )
+
+        return HttpResponse(
+            csv_data,
+            content_type="text/csv; charset=utf-8",
             headers={"Content-Disposition": "attachment; filename=samples.csv"},
         )
 

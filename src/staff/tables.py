@@ -1,8 +1,9 @@
+import re
+from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 
 import django_tables2 as tables
-from django.db.models import IntegerField
-from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -166,7 +167,7 @@ class SampleBaseTable(tables.Table):
         empty_values=(),
     )
 
-    name = tables.Column(order_by=("name_as_int",))
+    name = tables.Column()
 
     class Meta:
         model = Sample
@@ -192,22 +193,9 @@ class SampleBaseTable(tables.Table):
             "species",
             "type",
         )
-        order_by = (
-            "-is_prioritised",
-            "species",
-            "genlab_id",
-            "name_as_int",
-        )
+        order_by = ("-is_prioritised", "species", "genlab_id")
 
         empty_text = "No Samples"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        if hasattr(self.data, "data"):
-            self.data.data = self.data.data.annotate(
-                name_as_int=Cast("name", output_field=IntegerField())
-            )
 
     def render_plate_positions(self, value: Any) -> str:
         if value:
@@ -217,6 +205,24 @@ class SampleBaseTable(tables.Table):
 
     def render_checked(self, record: Any) -> str:
         return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
+
+    def order_name(
+        self, records: Sequence[Any], is_descending: bool
+    ) -> tuple[list[Any], bool]:
+        def natural_sort_key(record: Any) -> list[str]:
+            name = record.name or ""
+            parts = re.findall(r"\d+|\D+", name)
+            key = []
+            for part in parts:
+                if part.isdigit():
+                    # Pad numbers with zeros for proper string compare, e.g., '000012' > '000001'  # noqa: E501
+                    key.append(f"{int(part):010d}")
+                else:
+                    key.append(part.lower())
+            return key
+
+        sorted_records = sorted(records, key=natural_sort_key, reverse=is_descending)
+        return (sorted_records, True)
 
 
 class SampleStatusTable(tables.Table):
@@ -250,18 +256,21 @@ class SampleStatusTable(tables.Table):
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_marked",
     )
     plucked = tables.BooleanColumn(
         verbose_name="Plucked",
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_plucked",
     )
     isolated = tables.BooleanColumn(
         verbose_name="Isolated",
         orderable=True,
         yesno="✔,-",
         default=False,
+        accessor="is_isolated",
     )
 
     class Meta:
@@ -269,6 +278,9 @@ class SampleStatusTable(tables.Table):
         fields = [
             "checked",
             "genlab_id",
+            "marked",
+            "plucked",
+            "isolated",
             "internal_note",
             "isolation_method",
             "type",
@@ -283,11 +295,17 @@ class SampleStatusTable(tables.Table):
             "internal_note",
             "isolation_method",
         ]
+        order_by = ()
+
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(  # noqa: S308
+            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        )
 
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields
+        exclude = ("pop_id", "guid", "plate_positions")
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -366,7 +384,7 @@ class StatusMixinTable(tables.Table):
         color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
         status_text = status_text.get(value, "Unknown")
         return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full {color_class}">{status_text}</span>'  # noqa: E501
+            f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
         )
 
 
@@ -385,6 +403,13 @@ class StaffIDMixinTable(tables.Table):
 
 
 class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        accessor="priority",
+        template_name="staff/components/priority_column.html",
+    )
+
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
@@ -392,29 +417,28 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
 
     class Meta:
         model = Order
-        fields = ["id", "description", "delivery_date", "status"]
+        fields = ["priority", "id", "description", "delivery_date", "status"]
         empty_text = "No urgent orders"
         template_name = "django_tables2/tailwind_inner.html"
 
 
 class NewUnseenOrderTable(StaffIDMixinTable):
     seen = tables.TemplateColumn(
+        verbose_name="",
         orderable=False,
-        verbose_name="Seen",
-        template_name="staff/components/seen_column.html",
         empty_values=(),
+        template_name="staff/components/seen_column.html",
     )
 
     description = tables.Column(
@@ -424,12 +448,11 @@ class NewUnseenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
@@ -471,12 +494,11 @@ class NewSeenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"
@@ -530,9 +552,9 @@ class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
         orderable=False,
     )
 
-    def render_samples_completed(self, value: int) -> str:
+    def render_samples_completed(self, value: int, record: Order) -> str:
         if value > 0:
-            return "- / " + str(value)
+            return str(record.isolated_sample_count) + " / " + str(value)
         return "-"
 
     class Meta:
@@ -557,12 +579,11 @@ class DraftOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.Column(
-        accessor="genrequest__expected_samples_delivery_date",
         verbose_name="Delivery date",
         orderable=False,
     )
 
-    def render_delivery_date(self, value: Any) -> str:
+    def render_delivery_date(self, value: datetime | None) -> str:
         if value:
             return value.strftime("%d/%m/%Y")
         return "-"

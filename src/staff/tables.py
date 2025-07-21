@@ -423,22 +423,52 @@ class StatusMixinTableSamples(tables.Table):
         verbose_name="Order Status", empty_values=(), orderable=True
     )
 
-    def render_order__status(self, value: Order.OrderStatus, record: Order) -> str:
-        status_colors = {
-            "Processing": "bg-yellow-100 text-yellow-800",
-            "Completed": "bg-green-100 text-green-800",
-            "Delivered": "bg-red-100 text-red-800",
-        }
-        status_text = {
-            "Processing": "Processing",
-            "Completed": "Completed",
-            "Delivered": "Not started",
-        }
-        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
-        status_text = status_text.get(value, "Unknown")
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status_text}</span>'  # noqa: E501
-        )
+    def render_order__status(self, record: Order) -> str:
+        return render_status_helper(record)
+
+
+def render_boolean(value: bool) -> str:
+    if value:
+        return mark_safe('<i class="fa-solid fa-check text-green-500 fa-xl"></i>')
+    return mark_safe('<i class="fa-solid fa-xmark text-red-500 fa-xl"></i>')
+
+
+def generate_order_links(orders: list) -> str:
+    if not orders:
+        return "-"
+    links = [
+        f'<a href="{order.get_absolute_staff_url()}">{order}</a>' for order in orders
+    ]
+    return mark_safe(", ".join(links))  # noqa: S308
+
+
+def render_status_helper(record: Order) -> str:
+    status_colors = {
+        Order.OrderStatus.PROCESSING: "bg-yellow-100 text-yellow-800",
+        Order.OrderStatus.COMPLETED: "bg-green-100 text-green-800",
+        Order.OrderStatus.DELIVERED: "bg-red-100 text-red-800",
+    }
+    status_text = {
+        Order.OrderStatus.PROCESSING: "Processing",
+        Order.OrderStatus.COMPLETED: "Completed",
+        Order.OrderStatus.DELIVERED: "Not started",
+        Order.OrderStatus.DRAFT: "Draft",
+    }
+    color_class = status_colors.get(record.status, "bg-gray-100 text-gray-800")
+    status_text = status_text.get(record.status, "Unknown")
+    return mark_safe(  # noqa: S308
+        f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
+    )
+
+
+class StatusMixinTable(tables.Table):
+    status = tables.Column(
+        orderable=False,
+        verbose_name="Status",
+    )
+
+    def render_status(self, record: Order) -> str:
+        return render_status_helper(record)
 
     def render_sample_status(self, value: Any, record: Sample) -> str:
         order = record.order

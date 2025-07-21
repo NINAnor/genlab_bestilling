@@ -7,6 +7,7 @@ from .models import (
     EquipmentOrder,
     ExtractionOrder,
     Genrequest,
+    IsolationMethod,
     Location,
     Marker,
     Order,
@@ -64,3 +65,7 @@ class AnalysisOrderAutocomplete(autocomplete.Select2QuerySetView):
 
 class ExtractionOrderAutocomplete(autocomplete.Select2QuerySetView):
     model = ExtractionOrder
+
+
+class IsolationMethodAutocomplete(autocomplete.Select2QuerySetView):
+    model = IsolationMethod

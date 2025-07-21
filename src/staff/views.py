@@ -9,6 +9,7 @@ from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
 from django.views.generic import CreateView, DetailView, TemplateView
@@ -278,7 +279,9 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             sample.save()
 
         next_url = request.POST.get("next")
-        if next_url:
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts=request.get_host()
+        ):
             return redirect(next_url)
 
         return self.get(

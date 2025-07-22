@@ -200,16 +200,70 @@ class ExtractionOrderTable(OrderTable):
         )
 
 
-class EquipmentOrderTable(OrderTable):
+class EquipmentOrderTable(tables.Table):
     id = tables.Column(
         linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),
         orderable=False,
         empty_values=(),
     )
 
+    is_urgent = tables.Column(
+        orderable=True,
+        visible=True,
+        verbose_name="",
+    )
+
+    status = tables.Column(
+        verbose_name="Status",
+        orderable=False,
+    )
+
+    is_seen = tables.Column(
+        orderable=False,
+        visible=True,
+        verbose_name="",
+    )
+
     class Meta(OrderTable.Meta):
         model = EquipmentOrder
-        fields = OrderTable.Meta.fields + ["needs_guid", "sample_types"]
+        fields = [
+            "name",
+            "status",
+            "genrequest",
+            "genrequest__name",
+            "genrequest__project",
+            "genrequest__area",
+            "genrequest__samples_owner",
+            "created_at",
+            "last_modified_at",
+            "is_urgent",
+            "is_seen",
+            "needs_guid",
+            "sample_types",
+        ]
+        sequence = ("is_seen", "is_urgent", "status", "id", "name")
+        empty_text = "No Orders"
+        order_by = ("-is_urgent", "last_modified_at", "created_at")
+
+    def render_id(self, record: Any) -> str:
+        return str(record)
+
+    def render_is_urgent(self, value: bool) -> str:
+        html_exclaimation_mark = (
+            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
+        )
+        if value:
+            return mark_safe(html_exclaimation_mark)  # noqa: S308
+        else:
+            return ""
+
+    def render_is_seen(self, value: bool) -> str:
+        if not value:
+            return mark_safe(
+                '<i class="fa-solid fa-bell text-yellow-500" '
+                'title="New within 24h"></i>'
+            )
+        return ""
 
 
 class SampleBaseTable(tables.Table):

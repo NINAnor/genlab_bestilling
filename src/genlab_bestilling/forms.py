@@ -204,6 +204,7 @@ class EquipmentQuantityCollection(ContextFormCollection):
                     buffer_quantity=equipments.get("buffer_quantity"),
                     quantity=equipments.get("quantity"),
                 )
+        return None
 
     def update_holder_instances(self, name: str, holder: Any) -> None:
         if name == "equipments":

@@ -121,7 +121,7 @@ def test_equipment_flow(page, live_server_url):
     page.get_by_role("button", name="Add equipment").click()
     page.locator(
         "django-form-collection:nth-child(3) > .dj-form > div:nth-child(3)"
-        + " > .shadow-wrapper > .ts-wrapper > .ts-control"
+        " > .shadow-wrapper > .ts-wrapper > .ts-control"
     ).click()
     page.locator('[id="id_2\\.equipments\\.equipment-opt-7"]').click()
     page.locator('[id="id_2\\.equipments\\.quantity"]').click()

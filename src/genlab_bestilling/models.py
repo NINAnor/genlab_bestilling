@@ -495,7 +495,7 @@ class ExtractionOrder(Order):
             for sample in self.samples.all():
                 try:
                     sample.has_error  # noqa: B018
-                except ValidationError:
+                except ValidationError:  # noqa: PERF203
                     invalid += 1
 
             if invalid > 0:

@@ -133,7 +133,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = EquipmentOrder
-        fields = (
+        fields = [
             "name",
             "needs_guid",
             # "species",
@@ -143,7 +143,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        )
+        ]
         widgets = {
             # "species": DualSortableSelector(
             #     search_lookup="name_icontains",
@@ -174,7 +174,7 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
 
     class Meta:
         model = EquimentOrderQuantity
-        fields = ("id", "equipment", "buffer", "buffer_quantity", "quantity")
+        fields = ["id", "equipment", "buffer", "buffer_quantity", "quantity"]
         widgets = {
             "equipment": Selectize(search_lookup="name_icontains"),
             "buffer": Selectize(search_lookup="name_icontains"),
@@ -204,6 +204,7 @@ class EquipmentQuantityCollection(ContextFormCollection):
                     buffer_quantity=equipments.get("buffer_quantity"),
                     quantity=equipments.get("quantity"),
                 )
+        return None
 
     def update_holder_instances(self, name: str, holder: Any) -> None:
         if name == "equipments":
@@ -263,7 +264,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = ExtractionOrder
-        fields = (
+        fields = [
             "name",
             "needs_guid",
             "species",
@@ -275,7 +276,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        )
+        ]
         widgets = {
             "species": DualSortableSelector(
                 search_lookup="name_icontains",

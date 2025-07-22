@@ -27,7 +27,7 @@ class ProjectMembershipForm(forms.ModelForm):
 
     class Meta:
         model = ProjectMembership
-        fields = ("id", "user", "role")
+        fields = ["id", "user", "role"]
 
 
 class ProjectMembershipCollection(ContextFormCollection):
@@ -91,7 +91,7 @@ class ProjectCreateForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ("number", "name")
+        fields = ["number", "name"]
 
 
 class ProjectUpdateForm(forms.ModelForm):
@@ -99,4 +99,4 @@ class ProjectUpdateForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ("name",)
+        fields = ["name"]

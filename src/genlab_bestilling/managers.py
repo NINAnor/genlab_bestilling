@@ -79,10 +79,10 @@ class SampleQuerySet(models.QuerySet):
     ) -> None:
         """
         genlab ids given a certain order_id, sorting order and sample ids
-
         """
         assert_is_in_atomic_block()
 
+        selected_samples = selected_samples or []
         selected_sample_ids = [int(s) for s in selected_samples]
 
         samples = list(

@@ -31,19 +31,19 @@ class KoncivSerializer(EnumSerializer):
 class MarkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marker
-        fields = ("name",)
+        fields = ["name"]
 
 
 class SampleTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleType
-        fields = ("id", "name")
+        fields = ["id", "name"]
 
 
 class SpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Species
-        fields = ("id", "name")
+        fields = ["id", "name"]
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -51,7 +51,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ("id", "name")
+        fields = ["id", "name"]
 
     def get_name(self, obj: Location) -> str:
         return str(obj)
@@ -60,7 +60,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class LocationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ("id", "name")
+        fields = ["id", "name"]
 
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -77,7 +77,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = (
+        fields = [
             "id",
             "order",
             "guid",
@@ -91,7 +91,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "type",
             "has_error",
             "genlab_id",
-        )
+        ]
 
 
 class SampleCSVSerializer(serializers.ModelSerializer):
@@ -190,7 +190,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = (
+        fields = [
             "id",
             "order",
             "guid",
@@ -202,7 +202,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
             "location",
             "type",
             "has_error",
-        )
+        ]
 
 
 class SampleBulkSerializer(serializers.ModelSerializer):
@@ -219,7 +219,7 @@ class SampleBulkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = (
+        fields = [
             "order",
             "species",
             "year",
@@ -229,23 +229,23 @@ class SampleBulkSerializer(serializers.ModelSerializer):
             "type",
             "location",
             "quantity",
-        )
+        ]
 
 
 class SampleDeleteBulkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = ("order",)
+        fields = ["order"]
 
 
 class GenrequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genrequest
-        fields = (
+        fields = [
             "id",
             "project",
             "area",
-        )
+        ]
 
 
 class ExtractionSerializer(serializers.ModelSerializer):
@@ -255,7 +255,7 @@ class ExtractionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExtractionOrder
-        fields = ("id", "genrequest", "species", "sample_types", "needs_guid")
+        fields = ["id", "genrequest", "species", "sample_types", "needs_guid"]
 
 
 class AnalysisSerializer(serializers.ModelSerializer):
@@ -264,7 +264,7 @@ class AnalysisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnalysisOrder
-        fields = ("id", "genrequest", "markers")
+        fields = ["id", "genrequest", "markers"]
 
 
 class SampleMarkerAnalysisSerializer(serializers.ModelSerializer):
@@ -272,7 +272,7 @@ class SampleMarkerAnalysisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ("id", "order", "sample", "marker")
+        fields = ["id", "order", "sample", "marker"]
 
 
 class SampleMarkerAnalysisBulkSerializer(serializers.ModelSerializer):
@@ -285,7 +285,7 @@ class SampleMarkerAnalysisBulkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ("order", "samples", "markers")
+        fields = ["order", "samples", "markers"]
 
 
 class SampleMarkerAnalysisBulkDeleteSerializer(serializers.Serializer):

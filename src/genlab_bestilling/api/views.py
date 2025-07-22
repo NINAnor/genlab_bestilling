@@ -20,7 +20,6 @@ from rest_framework.viewsets import (  # type: ignore[attr-defined]
 from rest_framework_csv.renderers import CSVRenderer
 
 from genlab_bestilling.api.constants import (
-    LABEL_CSV_FIELD_LABELS,
     LABEL_CSV_FIELDS_BY_AREA,
     SAMPLE_CSV_FIELD_LABELS,
     SAMPLE_CSV_FIELDS_BY_AREA,
@@ -80,6 +79,8 @@ class AllowSampleDraft(BasePermission):
 
 
 class SampleCSVExportMixin:
+    FIELD_LABELS = SAMPLE_CSV_FIELD_LABELS
+
     def get_area_name(self, queryset: QuerySet) -> str:
         return (
             queryset.values_list("order__genrequest__area__name", flat=True).first()
@@ -90,7 +91,6 @@ class SampleCSVExportMixin:
         self,
         area_name: str,
         queryset: QuerySet,
-        field_labels: dict[str, str],
         fields_by_area: dict[str, list[str]],
     ) -> tuple[list[str], list[str]]:
         get_fields = area_name
@@ -100,7 +100,7 @@ class SampleCSVExportMixin:
                 get_fields = "Elvemusling"
 
         fields = fields_by_area.get(get_fields, fields_by_area["default"])
-        labels = [field_labels.get(f, f) for f in fields]
+        labels = [self.FIELD_LABELS.get(f, f) for f in fields]
         return fields, labels
 
     def get_nested(self, obj: dict, dotted: str) -> str | None:
@@ -113,7 +113,6 @@ class SampleCSVExportMixin:
         serialized_data: list[dict],
         fields: list[str],
         area_name: str,
-        field_labels: dict[str, str],
     ) -> list[dict[str, str]]:
         rows = []
 
@@ -132,11 +131,11 @@ class SampleCSVExportMixin:
                     else:
                         watercourse, location = "", full_location or ""
 
-                    row[field_labels["watercourse_number"]] = watercourse
-                    row[field_labels["location.name"]] = location
+                    row[self.FIELD_LABELS["watercourse_number"]] = watercourse
+                    row[self.FIELD_LABELS["location.name"]] = location
                 elif f != "watercourse_number":
                     value = self.get_nested(item, f)
-                    label = field_labels.get(f, f)
+                    label = self.FIELD_LABELS.get(f, f)
                     row[label] = (
                         ", ".join(value) if isinstance(value, list) else (value or "")
                     )
@@ -149,16 +148,15 @@ class SampleCSVExportMixin:
         self,
         queryset: QuerySet,
         serializer_class: type[BaseSerializer],
-        field_labels: dict[str, str],
         fields_by_area: dict[str, list[str]],
         filename: str = "export.csv",
     ) -> HttpResponse:
         area_name = self.get_area_name(queryset)
         serializer = serializer_class(queryset, many=True)
         fields, headers = self.get_csv_fields_and_labels(
-            area_name, queryset, field_labels, fields_by_area
+            area_name, queryset, fields_by_area
         )
-        data = self.build_csv_data(serializer.data, fields, area_name, field_labels)
+        data = self.build_csv_data(serializer.data, fields, area_name)
 
         csv_data = CSVRenderer().render(
             data, media_type="text/csv", renderer_context={"header": headers}
@@ -213,7 +211,6 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
         return self.render_csv_response(
             queryset,
             serializer_class=SampleCSVSerializer,
-            field_labels=SAMPLE_CSV_FIELD_LABELS,
             fields_by_area=SAMPLE_CSV_FIELDS_BY_AREA,
             filename="samples.csv",
         )
@@ -229,7 +226,6 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
         return self.render_csv_response(
             queryset,
             serializer_class=LabelCSVSerializer,
-            field_labels=LABEL_CSV_FIELD_LABELS,
             fields_by_area=LABEL_CSV_FIELDS_BY_AREA,
             filename="sample_labels.csv",
         )

@@ -175,16 +175,10 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
     ],
 }
 
-LABEL_CSV_FIELD_LABELS = {
-    "genlab_id": "Genlab ID",
-    "fish_id": "Old Genlab ID",
-    "guid": "GUID",
-    "name": "Name",
-}
-
 LABEL_CSV_FIELDS_BY_AREA = {
-    "Akvatisk": ["fish_id", "genlab_id", "guid", "name"],
-    "Elvemusling": ["fish_id", "genlab_id", "guid", "name"],
+    "Akvatisk": ["fish_id", "genlab_id", "guid"],
+    "Elvemusling": ["fish_id", "genlab_id", "guid"],
     "Terrestrisk": ["genlab_id", "guid", "name"],
+    "MiljøDNA": ["genlab_id", "guid", "name", "location.name"],
     "default": ["genlab_id", "guid", "name"],
 }

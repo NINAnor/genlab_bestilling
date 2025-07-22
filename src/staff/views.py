@@ -560,12 +560,9 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
         return Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
-        species_ids = (
-            self.get_queryset().values_list("species_id", flat=True).distinct()
-        )
-
+        types = self.get_queryset().values_list("type", flat=True).distinct()
         return (
-            IsolationMethod.objects.filter(species_id__in=species_ids)
+            IsolationMethod.objects.filter(type__in=types)
             .values_list("name", flat=True)
             .distinct()
         )

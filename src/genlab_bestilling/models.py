@@ -615,6 +615,11 @@ class SampleMarkerAnalysis(models.Model):
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.PROTECT)
     transaction = models.UUIDField(blank=True, null=True)
 
+    # NEW FIELDS for status tracking
+    has_pcr = models.BooleanField(default=False)
+    is_analysed = models.BooleanField(default=False)
+    is_outputted = models.BooleanField(default=False)
+
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     class Meta:
@@ -674,31 +679,6 @@ class Sample(models.Model):
     is_prioritised = models.BooleanField(
         default=False,
         help_text="Check this box if the sample is prioritised for processing",
-    )
-    objects = managers.SampleQuerySet.as_manager()
-
-    has_pcr = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name="PCR",
-        default=False,
-        help_text="Check this box if the sample has been processed by PCR",
-    )
-
-    is_analysed = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name="Analysed",
-        default=False,
-        help_text="Check this box if the sample has been analysed",
-    )
-
-    is_outputed = models.BooleanField(
-        blank=True,
-        null=True,
-        verbose_name="Output",
-        default=False,
-        help_text="Check this box if the sample has an output file",
     )
     objects = managers.SampleQuerySet.as_manager()
 

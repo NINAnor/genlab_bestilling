@@ -437,10 +437,6 @@ class OrderExtractionSampleTable(SampleBaseTable):
 
 
 class OrderAnalysisSampleTable(tables.Table):
-    sample__plate_positions = tables.Column(
-        empty_values=(), orderable=False, verbose_name="Extraction position"
-    )
-
     checked = tables.CheckBoxColumn(
         accessor="pk",
         orderable=False,
@@ -460,29 +456,22 @@ class OrderAnalysisSampleTable(tables.Table):
         model = SampleMarkerAnalysis
         fields = [
             "checked",
-            "sample__genlab_id",
-            "sample__type",
+            "sample.genlab_id",
+            "sample.type",
             "marker",
-            "sample__plate_positions",
-            "sample__isolation_method",
-            # "sample__pcr",
-            # "sample__analysis",
-            # "sample__output",
-            "sample__notes",
-            "sample__order",
+            "has_pcr",
+            "is_analysed",
+            "is_outputted",
+            "sample.internal_note",
+            "sample.order",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
-    def render_sample__plate_positions(self, value: Any) -> str:
-        if value:
-            return ", ".join([str(v) for v in value.all()])
-
-        return ""
-
     def render_checked(self, record: Any) -> str:
+        order_pk = getattr(self, "order_pk", None)
         return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+            f'<input type="checkbox" name="checked-analysis-{order_pk}" value="{record.id}">'  # noqa: E501
         )
 
 

@@ -1,6 +1,6 @@
 import uuid
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
@@ -13,9 +13,6 @@ from taggit.managers import TaggableManager
 
 from shared.db import assert_is_in_atomic_block
 
-if TYPE_CHECKING:
-    from .models import Sample
-
 from . import managers
 from .libs.helpers import position_to_coordinates
 
@@ -23,37 +20,37 @@ an = "genlab_bestilling"  # Short alias for app name.
 
 
 class Organization(models.Model):
-    name = models.CharField(max_length=255)
-
     # TODO: unique name
-    def __str__(self) -> str:
-        return self.name
+    name = models.CharField(max_length=255)
 
     class Meta:
         ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Area(models.Model):
     name = models.CharField(max_length=255)
     location_mandatory = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ["name"]
+
     # TODO: unique name
     def __str__(self) -> str:
         return self.name
-
-    class Meta:
-        ordering = ["name"]
 
 
 class Marker(models.Model):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
 
 
 class Species(models.Model):
@@ -69,9 +66,6 @@ class Species(models.Model):
     )
     code = models.CharField(null=True, blank=True)
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
         verbose_name_plural = "Species"
         ordering = ["name"]
@@ -79,10 +73,16 @@ class Species(models.Model):
             models.UniqueConstraint(name="unique species code", fields=["code"])
         ]
 
+    def __str__(self) -> str:
+        return self.name
+
 
 class SampleType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     areas = models.ManyToManyField(f"{an}.Area", blank=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self) -> str:
         return self.name or ""
@@ -95,12 +95,12 @@ class SampleType(models.Model):
     def konciv_type(self) -> str:
         return "SAMPLE_TYPE"
 
-    class Meta:
-        ordering = ["name"]
-
 
 class AnalysisType(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self) -> str:
         return self.name or ""
@@ -112,9 +112,6 @@ class AnalysisType(models.Model):
     @property
     def konciv_type(self) -> str:
         return "ANALYSIS_TYPE"
-
-    class Meta:
-        ordering = ["name"]
 
 
 class LocationType(models.Model):
@@ -216,17 +213,20 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     objects = managers.GenrequestQuerySet.as_manager()
     tags = TaggableManager(blank=True)
 
+    class Meta:
+        verbose_name = "Genetic Project"
+
     def __str__(self):
         return f"#GEN_{self.id} ({self.project})"
-
-    def display_id(self) -> str:
-        return f"#GEN_{self.id}"
 
     def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-detail",
             kwargs={"pk": self.pk},
         )
+
+    def display_id(self) -> str:
+        return f"#GEN_{self.id}"
 
     def get_type(self) -> str:
         return "genrequest"
@@ -236,9 +236,6 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         return (
             self.expected_analysis_delivery_date - self.expected_samples_delivery_date
         ) < timedelta(days=30)
-
-    class Meta:
-        verbose_name = "Genetic Project"
 
 
 class Order(PolymorphicModel):
@@ -415,6 +412,9 @@ class EquimentOrderQuantity(models.Model):
 
     class Meta:
         verbose_name_plural = "Equipment order quantities"
+
+    def __str__(self) -> str:
+        return f"{self.quantity}"
 
 
 class EquipmentOrder(Order):
@@ -615,6 +615,8 @@ class SampleMarkerAnalysis(models.Model):
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.PROTECT)
     transaction = models.UUIDField(blank=True, null=True)
 
+    objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
+
     class Meta:
         verbose_name_plural = "Sample marker analyses"
         constraints = [
@@ -623,8 +625,6 @@ class SampleMarkerAnalysis(models.Model):
                 name="unique_sample_per_analysis",
             )
         ]
-
-    objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     def __str__(self):
         return f"{str(self.sample)} {str(self.marker)} @ {str(self.order)}"
@@ -671,19 +671,19 @@ class Sample(models.Model):
         help_text="The isolation method used for this sample",
     )
 
-    objects = managers.SampleQuerySet.as_manager()
     is_prioritised = models.BooleanField(
         default=False,
         help_text="Check this box if the sample is prioritised for processing",
     )
-
-    def __str__(self) -> str:
-        return self.genlab_id or f"#SMP_{self.id}"
+    objects = managers.SampleQuerySet.as_manager()
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["genlab_id"], name="unique_genlab_id")
         ]
+
+    def __str__(self) -> str:
+        return self.genlab_id or f"#SMP_{self.id}"
 
     def create_replica(self) -> None:
         pk = self.id
@@ -797,6 +797,9 @@ class SampleIsolationMethod(models.Model):
     class Meta:
         unique_together = ("sample", "isolation_method")
 
+    def __str__(self) -> str:
+        return f"{self.sample} - {self.isolation_method}"
+
 
 class IsolationMethod(models.Model):
     name = models.CharField(max_length=255, unique=False)
@@ -896,8 +899,7 @@ class GIDSequence(models.Model):
         related_name="replica_sequence",
     )
 
-    def __str__(self):
-        return f"{self.id}@{self.last_value}"
+    objects = managers.GIDSequenceQuerySet.as_manager()
 
     class Meta:
         constraints = [
@@ -906,7 +908,8 @@ class GIDSequence(models.Model):
             ),
         ]
 
-    objects = managers.GIDSequenceQuerySet.as_manager()
+    def __str__(self):
+        return f"{self.id}@{self.last_value}"
 
     def next_value(self) -> str:
         """

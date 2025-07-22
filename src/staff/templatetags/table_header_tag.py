@@ -47,7 +47,7 @@ class Url:
         first_sort = True
         descending = True
 
-        if self.sort_key_name in lookups.keys():
+        if self.sort_key_name in lookups:
             current_order = lookups.getlist(self.sort_key_name, [])
             removed_order = current_order.copy()
             position = self.contains_field(current_order, field)

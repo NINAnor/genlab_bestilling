@@ -40,6 +40,7 @@ from .filters import (
     ExtractionPlateFilter,
     OrderSampleFilter,
     SampleFilter,
+    SampleLabFilter,
     SampleMarkerOrderFilter,
 )
 from .forms import ExtractionPlateForm, OrderStaffForm
@@ -242,18 +243,8 @@ class MarkAsSeenView(StaffMixin, DetailView):
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
             order = self.get_object()
-
-            if not order.genrequest.responsible_staff.filter(
-                id=request.user.id
-            ).exists():
-                messages.error(
-                    request, _("You are not authorized to mark this order as seen.")
-                )
-                return HttpResponseRedirect(
-                    self.get_return_url(request.POST.get("return_to"))
-                )
-
             order.toggle_seen()
+
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:
             report_errors(e)
@@ -436,6 +427,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
     disable_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
+    filterset_class = SampleLabFilter
 
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
@@ -471,10 +463,22 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = self.get_order()
-        context["statuses"] = self.get_base_fields()
-        context["isolation_methods"] = self.get_isolation_methods()
+        order = self.get_order()
+        samples = self.get_table_data()
 
+        # Instantiate the filter with the current GET parameters
+        filterset = self.filterset_class(self.request.GET, queryset=samples)
+        table = self.table_class(filterset.qs, request=self.request)
+
+        context.update(
+            {
+                "order": order,
+                "statuses": self.get_base_fields(),
+                "isolation_methods": self.get_isolation_methods(),
+                "filter": filterset,
+                "table": table,
+            }
+        )
         return context
 
     def get_success_url(self) -> str:

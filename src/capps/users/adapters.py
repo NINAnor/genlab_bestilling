@@ -17,7 +17,7 @@ def report(e: Exception | None, error: Any) -> None:
         set_context("oauth error", {"error": str(error)})
         capture_exception(e)
     except Exception:
-        logging.error(traceback.format_exc())  # noqa: LOG015
+        logging.exception(traceback.format_exc())  # noqa: LOG015
 
 
 class AccountAdapter(DefaultAccountAdapter):

@@ -221,14 +221,14 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
     needs_guid = forms.TypedChoiceField(
         label="I need to generate GUID",
         help_text="Choose yes if your samples don't have already a GUID, "
-        + "the system will generate a new GUID",
+        "the system will generate a new GUID",
         coerce=lambda x: x == "True",
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
     pre_isolated = forms.TypedChoiceField(
         label="The samples I'm delivering are already isolated"
-        + " (but not stored in the new database)",
+        " (but not stored in the new database)",
         coerce=lambda x: x == "True",
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
@@ -246,7 +246,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["name"].help_text = (
             "You can provide a descriptive name "
-            + "for this order to help you find it later"
+            "for this order to help you find it later"
         )
 
         self.fields["species"].queryset = genrequest.species.all()
@@ -291,8 +291,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
     use_all_samples = forms.TypedChoiceField(
         label="Analyze all samples in an extraction order",
-        help_text="Select <<No>> if you want to select markers individually"  # noqa: S608
-        + " for each sample, or search for DNA-extracts from the Biobank",
+        help_text="Select <<No>> if you want to select markers individually"
+        " for each sample, or search for DNA-extracts from the Biobank",
         coerce=lambda x: x == "True",
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
@@ -304,7 +304,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["name"].help_text = (
             "You can provide a descriptive name "
-            + "for this order to help you find it later"
+            "for this order to help you find it later"
         )
 
         self.fields["markers"].queryset = Marker.objects.filter(
@@ -317,9 +317,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             ).exclude(status=Order.OrderStatus.DRAFT)
             self.fields["from_order"].help_text = (
                 "If Yes: all samples will be included in the analysis, "
-                + " choose the markers below."
-                + " If No: choose markers below and continue"
-                + " with the sample selection by pressing Submit"
+                " choose the markers below."
+                " If No: choose markers below and continue"
+                " with the sample selection by pressing Submit"
             )
 
     def save(self, commit: bool = True) -> Model:

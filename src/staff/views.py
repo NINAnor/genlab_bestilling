@@ -355,11 +355,19 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 
 class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
-    table_pagination = False
+    PCR = "pcr"
+    ANALYSED = "analysed"
+    OUTPUT = "output"
+    VALID_STATUSES = [PCR, ANALYSED, OUTPUT]
 
+    table_pagination = False
     model = SampleMarkerAnalysis
     table_class = OrderAnalysisSampleTable
     filterset_class = SampleMarkerOrderFilter
+    template_name = "staff/samplemarkeranalysis_filter.html"
+
+    def get_order(self) -> AnalysisOrder:
+        return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
         return (
@@ -377,11 +385,133 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "sample__name",
             )
         )
+        return qs
+
+    def get_table_data(self) -> list[Sample]:
+        order = self.get_order()
+        return SampleMarkerAnalysis.objects.filter(order=order).select_related(
+            "sample__type", "sample__location", "sample__species", "marker"
+        )
+
+    def get_table(self, **kwargs) -> Any:
+        table = super().get_table(**kwargs)
+        table.order_pk = self.kwargs["pk"]  # Inject the pk into the table
+        return table
+
+    def get_base_fields(self) -> list[str]:
+        return self.VALID_STATUSES
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["order"] = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        order = self.get_order()
+        samples = self.get_table_data()
+
+        # Instantiate the filter with the current GET parameters
+        filterset = self.filterset_class(self.request.GET, queryset=samples)
+        self.object_list = filterset.qs  # Ensures get_table uses the filtered queryset
+        table = self.get_table()
+
+        context.update(
+            {
+                "order": order,
+                "statuses": self.get_base_fields(),
+                "filter": filterset,
+                "table": table,
+            }
+        )
         return context
+
+    def get_success_url(self) -> str:
+        return reverse(
+            "staff:order-analysis-samples", kwargs={"pk": self.get_order().pk}
+        )
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        status_name = request.POST.get("status")
+        selected_ids = request.POST.getlist(f"checked-analysis-{self.get_order().pk}")
+
+        if not selected_ids:
+            messages.error(request, "No samples selected.")
+            return HttpResponseRedirect(self.get_success_url())
+
+        order = self.get_order()
+
+        # Get the selected samples
+        analyses = SampleMarkerAnalysis.objects.filter(id__in=selected_ids)
+
+        if status_name:
+            self.assign_status_to_samples(analyses, status_name, request)
+            if status_name == self.OUTPUT:
+                self.check_all_output(SampleMarkerAnalysis.objects.filter(order=order))
+            else:
+                self.get_order().to_processing()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
+        index = self.VALID_STATUSES.index(status_name)
+        return self.VALID_STATUSES[: index + 1]
+
+    def assign_status_to_samples(
+        self,
+        analyses: models.QuerySet,
+        status_name: str,
+        request: HttpRequest,
+    ) -> None:
+        if status_name not in self.VALID_STATUSES:
+            messages.error(request, f"Status '{status_name}' is not valid.")
+            return
+
+        statuses_to_turn_on = self.statuses_with_lower_or_equal_priority(status_name)
+
+        if status_name == self.PCR:
+            field_name = "has_pcr"
+        elif status_name == self.ANALYSED:
+            field_name = "is_analysed"
+        else:
+            field_name = "is_outputted"
+
+        samples_to_turn_off_ids = list(
+            analyses.filter(**{field_name: True}).values_list("id", flat=True)
+        )
+        samples_to_turn_on_ids = list(
+            analyses.filter(**{field_name: False}).values_list("id", flat=True)
+        )
+
+        SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_off_ids).update(
+            **{field_name: False}
+        )
+
+        update_dict = {}
+        if self.PCR in statuses_to_turn_on:
+            update_dict["has_pcr"] = True
+        if self.ANALYSED in statuses_to_turn_on:
+            update_dict["is_analysed"] = True
+        if self.OUTPUT in statuses_to_turn_on:
+            update_dict["is_outputted"] = True
+
+        SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_on_ids).update(
+            **update_dict
+        )
+        messages.success(
+            request,
+            f"Set statuses {', '.join(statuses_to_turn_on)} for {analyses.count()} analyses.",  # noqa: E501
+        )
+
+    # Checks if all samples in the order have output
+    # If they are, it updates the order status to completed
+    def check_all_output(self, analyses: models.QuerySet) -> None:
+        if not analyses.filter(is_outputted=False).exists():
+            self.get_order().to_next_status()
+            messages.success(
+                self.request,
+                "All samples have an output. The order status is updated to completed.",
+            )
+        elif self.get_order().status == Order.OrderStatus.COMPLETED:
+            self.get_order().to_processing()
+            messages.success(
+                self.request,
+                "Not all samples have output. The order status is updated to processing.",  # noqa: E501
+            )
 
 
 class SamplesListView(StaffMixin, SingleTableMixin, FilterView):

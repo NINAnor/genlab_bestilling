@@ -255,8 +255,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
     def get_return_url(self, return_to: str | None) -> str:
         if return_to == "dashboard":
             return reverse("staff:dashboard")
-        else:
-            return self.get_object().get_absolute_staff_url()
+        return self.get_object().get_absolute_staff_url()
 
 
 class ExtractionOrderDetailView(StaffMixin, DetailView):

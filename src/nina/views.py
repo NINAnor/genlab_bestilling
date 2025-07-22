@@ -78,7 +78,7 @@ class ProjectMembershipUpdateView(
         initial = collection_class(
             context={"project": self.kwargs["pk"]}
         ).models_to_list(queryset)
-        return initial
+        return initial  # noqa: RET504
 
 
 class ProjectCreateView(FormsetCreateView):

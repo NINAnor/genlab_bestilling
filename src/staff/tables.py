@@ -101,6 +101,14 @@ class OrderTable(StatusMixinTable):
         orderable=True,
     )
 
+    genetic_project = tables.Column(
+        verbose_name="Genetic Project",
+        accessor="genrequest__id",
+    )
+
+    def render_genetic_project(self, record: Order) -> str:
+        return record.genrequest.display_id()
+
     responsible_staff = tables.ManyToManyColumn(
         accessor="responsible_staff",
         verbose_name="Assigned staff",
@@ -115,6 +123,7 @@ class OrderTable(StatusMixinTable):
             "status",
             "area",
             "description",
+            "genetic_project",
             "total_samples",
             "responsible_staff",
         ]

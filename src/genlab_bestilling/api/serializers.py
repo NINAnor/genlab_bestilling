@@ -165,6 +165,20 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         return ""
 
 
+class LabelCSVSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sample
+        fields = [
+            "genlab_id",
+            "guid",
+            "name",
+            "fish_id",
+        ]
+
+    def get_fish_id(self, obj: Sample) -> str:
+        return obj.fish_id or "-"
+
+
 class SampleUpdateSerializer(serializers.ModelSerializer):
     has_error = serializers.SerializerMethodField()
 

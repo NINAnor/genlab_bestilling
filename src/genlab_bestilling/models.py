@@ -499,9 +499,8 @@ class ExtractionOrder(Order):
                     invalid += 1
 
             if invalid > 0:
-                raise Order.CannotConfirm(
-                    f"Found {invalid} invalid or incompleted samples"
-                )
+                msg = f"Found {invalid} invalid or incompleted samples"
+                raise Order.CannotConfirm(msg)
 
             if persist:
                 super().confirm_order()
@@ -727,29 +726,29 @@ class Sample(models.Model):
                 self.year,
             ]
         ):
-            raise ValidationError(
-                "GUID, Sample Name, Sample Type, Species and Year are required"
-            )
+            msg = "GUID, Sample Name, Sample Type, Species and Year are required"
+            raise ValidationError(msg)
 
         if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
             if not self.location_id:
-                raise ValidationError("Location is required")
+                msg = "Location is required"
+                raise ValidationError(msg)
             # ensure that location is correct for the selected species
             elif (
                 self.species.location_type
                 and self.species.location_type_id
                 not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
             ):
-                raise ValidationError("Invalid location for the selected species")
+                msg = "Invalid location for the selected species"
+                raise ValidationError(msg)
         elif self.location_id and self.species.location_type_id:
             # if the location is optional, but it's provided,
             # check it is compatible with the species
             if self.species.location_type_id not in self.location.types.values_list(
                 "id", flat=True
             ):
-                raise ValidationError(
-                    "Selected location not compatible with the selected species"
-                )
+                msg = "Selected location not compatible with the selected species"
+                raise ValidationError(msg)
 
         return False
 

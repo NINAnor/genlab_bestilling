@@ -8,7 +8,7 @@ def report_errors(err: Exception, app_name: str = __name__) -> None:
     logger = logging.getLogger(app_name)
 
     if settings.SENTRY_DSN:
-        from sentry_sdk import capture_exception
+        from sentry_sdk import capture_exception  # noqa: PLC0415
 
         capture_exception(err)
 

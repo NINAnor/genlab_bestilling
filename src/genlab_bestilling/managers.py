@@ -133,10 +133,7 @@ class GIDSequenceQuerySet(models.QuerySet):
         """
         Get or creates an ID sequence based on the sample year and species
         """
-        if lock:
-            s = self.select_for_update()
-        else:
-            s = self
+        s = self.select_for_update() if lock else self
 
         sequence_id, _ = s.get_or_create(
             year=year,

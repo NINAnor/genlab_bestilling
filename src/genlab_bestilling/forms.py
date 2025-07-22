@@ -341,12 +341,11 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             return obj
 
     def clean(self) -> None:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
 
-        if "use_all_samples" in cleaned_data and "from_order" in cleaned_data:
-            if cleaned_data["use_all_samples"] and not cleaned_data["from_order"]:
-                msg = "An extraction order must be selected"
-                raise ValidationError(msg)
+        if cleaned_data.get("use_all_samples") and not cleaned_data.get("from_order"):
+            msg = "An extraction order must be selected"
+            raise ValidationError(msg)
 
     field_order = [
         "name",

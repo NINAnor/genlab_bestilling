@@ -1,3 +1,4 @@
+import contextlib
 from typing import Self
 
 from django.apps import AppConfig
@@ -9,7 +10,7 @@ class UsersConfig(AppConfig):
     verbose_name = _("Users")
 
     def ready(self: Self) -> None:
-        try:
-            import capps.users.signals  # noqa: F401
-        except ImportError:
-            pass
+        # Ensure that the signals are imported when the app is ready
+        # This is necessary to ensure that the signals are connected.
+        with contextlib.suppress(ImportError):
+            import capps.users.signals  # noqa: F401, PLC0415

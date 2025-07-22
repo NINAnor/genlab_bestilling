@@ -127,7 +127,7 @@ ignore = [
   "ANN204",  # Too strict for introduction of ANN. # https://docs.astral.sh/ruff/rules/missing-return-type-special-method/
   "ANN401"  # Too strict and too many errors atm. Consider enabling later after more typing is added. Search for `Any` to find unknown types. # https://docs.astral.sh/ruff/rules/any-type/
 ]
-select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF", "ANN", "PIE"]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF", "ANN", "PIE", "TC"]
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true  # https://docs.astral.sh/ruff/settings/#lint_flake8-annotations_mypy-init-return

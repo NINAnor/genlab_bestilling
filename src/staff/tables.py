@@ -501,6 +501,8 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
         verbose_name="Genlab ID",
     )
 
+    guid = tables.Column(verbose_name="GUID")
+
     order__status = tables.Column(
         verbose_name="Order Status", empty_values=(), orderable=True
     )
@@ -532,7 +534,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__responsible_staff",
             "notes",
         ]
-        exclude = ["guid", "plate_positions", "checked", "is_prioritised"]
+        exclude = ["plate_positions", "checked", "is_prioritised"]
 
 
 class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):

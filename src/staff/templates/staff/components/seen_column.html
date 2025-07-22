@@ -1,11 +1,7 @@
 {% load order_tags %}
 
-{% if record.genrequest.responsible_staff.all|is_responsible:request.user %}
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
-  <input type="hidden" name="return_to" value="dashboard">
-  <button class="btn custom_order_button" style="background-color: darkgoldenrod; height: auto;" type="submit">
-    Mark as seen
-  </button>
+  <input type="hidden" name="return_to" value="dashboard" />
+  <button class="btn custom_order_button" style="background-color: darkgoldenrod; height: auto;" type="submit">Mark as seen</button>
 </form>
-{% endif %}

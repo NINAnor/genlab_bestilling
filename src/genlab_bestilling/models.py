@@ -188,7 +188,7 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         null=True,
         blank=True,
         help_text="This helps the Lab estimating the workload, "
-        + "provide how many samples you're going to deliver",
+        "provide how many samples you're going to deliver",
     )
     species = models.ManyToManyField(
         f"{an}.Species", blank=True, related_name="genrequests"
@@ -197,7 +197,7 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         f"{an}.SampleType",
         blank=True,
         help_text="samples you plan to deliver, you can choose more than one. "
-        + "ONLY sample types selected here will be available later",
+        "ONLY sample types selected here will be available later",
     )
     responsible_staff = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

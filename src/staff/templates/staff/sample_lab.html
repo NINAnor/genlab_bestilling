@@ -9,13 +9,13 @@
         <a class="btn custom_order_button" href="./"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
 
-    {% comment %} <form method="get" class="py-3 px-4 border mb-3 ">
+    <form method="get" class="py-3 px-4 border mb-3 ">
         <div class="flex flex-wrap gap-4">
             {{ filter.form | crispy }}
         <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
         <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear Filters</a>
         </div>
-    </form> {% endcomment %}
+    </form>
 
     <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
         {% csrf_token %}

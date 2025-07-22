@@ -378,10 +378,35 @@ class OrderAnalysisSampleTable(tables.Table):
         empty_values=(), orderable=False, verbose_name="Extraction position"
     )
 
+    checked = tables.CheckBoxColumn(
+        accessor="pk",
+        orderable=False,
+        attrs={
+            "th__input": {
+                "id": "select-all-checkbox",
+            },
+            "td__input": {
+                "name": "checked",
+            },
+        },
+        empty_values=(),
+        verbose_name="Mark",
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ("marker",) + tuple(
-            "sample__" + f for f in SampleBaseTable.Meta.fields
+        fields = (
+            "checked",
+            "sample__genlab_id",
+            "sample__type",
+            "marker",
+            "sample__plate_positions",
+            "sample__isolation_method",
+            # "sample__pcr",
+            # "sample__analysis",
+            # "sample__output",
+            "sample__notes",
+            "sample__order",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
@@ -391,6 +416,11 @@ class OrderAnalysisSampleTable(tables.Table):
             return ", ".join([str(v) for v in value.all()])
 
         return ""
+
+    def render_checked(self, record: Any) -> str:
+        return mark_safe(  # noqa: S308
+            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        )
 
 
 class PlateTable(tables.Table):

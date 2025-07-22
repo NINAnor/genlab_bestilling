@@ -219,6 +219,9 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
     def __str__(self):
         return f"#GEN_{self.id} ({self.project})"
 
+    def display_id(self) -> str:
+        return f"#GEN_{self.id}"
+
     def get_absolute_url(self) -> str:
         return reverse(
             "genrequest-detail",

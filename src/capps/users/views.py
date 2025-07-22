@@ -10,6 +10,7 @@ from django.views.generic import DetailView, RedirectView, UpdateView
 
 from capps.ui.views import UIDetailView, UIListView, UIUpdateView
 
+from .exceptions import NotAuthenticated
 from .filters import UserFilterSet
 from .tables import UserTable
 
@@ -32,7 +33,7 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_success_url(self: Self) -> str:
         if not self.request.user.is_authenticated:
-            raise Exception("User is not authenticated")
+            raise NotAuthenticated
         return self.request.user.get_absolute_url()
 
     def get_object(self, queryset: QuerySet | None = None) -> Any:

@@ -263,8 +263,7 @@ class EquipmentOrderTable(tables.Table):
         )
         if value:
             return mark_safe(html_exclaimation_mark)  # noqa: S308
-        else:
-            return ""
+        return ""
 
     def render_is_seen(self, value: bool) -> str:
         if not value:
@@ -641,17 +640,15 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples):
             if isinstance(record.order, ExtractionOrder):
                 if record.is_isolated:
                     return self.STATUS_PRIORITY["Isolated"]
-                elif record.is_plucked:
+                if record.is_plucked:
                     return self.STATUS_PRIORITY["Plucked"]
-                elif record.is_marked:
+                if record.is_marked:
                     return self.STATUS_PRIORITY["Marked"]
-                else:
-                    return self.STATUS_PRIORITY["Not started"]
-            else:
-                # fallback for other types of orders
-                return self.STATUS_PRIORITY.get(
-                    getattr(record.order, "sample_status", ""), -1
-                )
+                return self.STATUS_PRIORITY["Not started"]
+            # fallback for other types of orders
+            return self.STATUS_PRIORITY.get(
+                getattr(record.order, "sample_status", ""), -1
+            )
 
         sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
         return (sorted_records, True)

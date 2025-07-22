@@ -734,7 +734,7 @@ class Sample(models.Model):
                 msg = "Location is required"
                 raise ValidationError(msg)
             # ensure that location is correct for the selected species
-            elif (
+            if (
                 self.species.location_type
                 and self.species.location_type_id
                 not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.

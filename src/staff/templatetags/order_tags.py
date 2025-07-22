@@ -1,5 +1,8 @@
+from collections import Counter
+
 from django import template
 from django.db import models
+from django.utils.safestring import mark_safe
 
 from capps.users.models import User
 from genlab_bestilling.models import Area, Order
@@ -10,6 +13,9 @@ from ..tables import (
     NewSeenOrderTable,
     NewUnseenOrderTable,
     UrgentOrderTable,
+    generate_order_links,
+    render_boolean,
+    render_status_helper,
 )
 
 register = template.Library()
@@ -246,4 +252,92 @@ def draft_orders_table(context: dict, area: Area) -> dict:
         "table": DraftOrderTable(draft_orders),
         "count": draft_orders.count(),
         "request": context.get("request"),
+    }
+
+
+@register.inclusion_tag("../templates/components/order-detail.html")
+def extraction_order_detail_table(order: Order) -> dict:
+    fields = {
+        "Order ID": order.id,
+        "Genetic Project": order.genrequest,
+        "Species": order.species.name,
+        "Status": render_status_helper(order),
+        "Name": order.name,
+        "Notes": "-" if order.notes == "" else order.notes,
+        "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")
+        if order.confirmed_at
+        else "Not confirmed",
+    }
+    return {"fields": fields, "header": "Order"}
+
+
+@register.inclusion_tag("../templates/components/order-detail.html")
+def extraction_order_samples_detail_table(order: Order, analysis_orders: list) -> dict:
+    sample_types = dict(Counter(order.samples.values_list("type__name", flat=True)))
+
+    fields = {
+        "Delivered samples": order.samples.count(),
+        "Sample types": ", ".join(f"{t} ({c})" for t, c in sample_types.items()),
+        "Return samples": render_boolean(order.return_samples),
+        "Needs GUID": render_boolean(order.needs_guid),
+        "Are samples already isolated?": render_boolean(order.pre_isolated),
+        "Connected to analysis orders": generate_order_links(analysis_orders),
+    }
+    return {
+        "fields": fields,
+        "header": "Samples",
+    }
+
+
+@register.inclusion_tag("../templates/components/order-detail.html")
+def analysis_order_detail_table(order: Order) -> dict:
+    fields = {
+        "Order ID": order.id,
+        "Genetic Project": order.genrequest,
+        "Status": render_status_helper(order),
+        "Name": order.name,
+        "Notes": "-" if order.notes == "" else order.notes,
+        "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")
+        if order.confirmed_at
+        else "Not confirmed",
+        "Expected delivery date": order.expected_delivery_date.strftime("%d.%m.%Y")
+        if order.expected_delivery_date
+        else "Not specified",
+    }
+    return {"fields": fields, "header": "Order"}
+
+
+@register.inclusion_tag("../templates/components/order-detail.html")
+def analysis_order_samples_detail_table(order: Order, extraction_orders: dict) -> dict:
+    # Generate links for extraction orders with sample counts
+    extraction_order_links = [
+        f"{generate_order_links([extraction_order])} ({count} sample{'s' if count != 1 else ''})"  # noqa: E501
+        for extraction_order, count in extraction_orders.items()
+    ]
+
+    fields = {
+        "Number of samples": order.samples.count(),
+        "Markers": ", ".join(marker.name for marker in order.markers.all())
+        if order.markers.exists()
+        else "No markers",
+        "Samples from extraction order": mark_safe("<br>".join(extraction_order_links))  # noqa: S308
+        if extraction_order_links
+        else "-",
+    }
+    return {
+        "fields": fields,
+        "header": "Samples",
+    }
+
+
+@register.inclusion_tag("../templates/components/order-detail.html")
+def contact_detail_table(order: Order) -> dict:
+    fields = {
+        "Samples owner of genetic project": order.genrequest.samples_owner,
+        "Contact person": order.contact_person,
+        "Contact Email": order.contact_email,
+    }
+    return {
+        "fields": fields,
+        "header": "Contact",
     }

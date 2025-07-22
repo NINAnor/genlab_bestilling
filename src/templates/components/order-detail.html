@@ -1,0 +1,21 @@
+{% load core %}
+
+{% var fields=fields %}
+{% var header=header%}
+
+{% fragment as headers %}
+    {% #table-cell header=True %}{{ header }}{% /table-cell %}
+    {% #table-cell header=True %}{% /table-cell %}
+{% endfragment %}
+
+
+<div class="flex flex-col gap-8">
+    {% #table headers=headers %}
+    {% for f, v in fields.items %}
+    <tr>
+        {% #table-cell %}{{ f }}{% /table-cell %}
+        {% #table-cell %}{{ v }}{% /table-cell %}
+    </tr>
+    {% endfor %}
+    {% /table %}
+</div>

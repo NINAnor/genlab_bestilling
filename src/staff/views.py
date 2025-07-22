@@ -178,10 +178,54 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class AnalysisOrderDetailView(StaffMixin, DetailView):
     model = AnalysisOrder
 
+    # Retrieves extraction orders associated with the samples in the analysis order
+    def get_extraction_orders_for_samples(
+        self, samples: models.QuerySet[Sample]
+    ) -> models.QuerySet[ExtractionOrder]:
+        return ExtractionOrder.objects.filter(samples__in=samples).distinct()
+
+    # Retrieves the sample counts for each extraction order
+    # This is used to display the number of samples from each extraction order
+    # that are part of the analysis order
+    def get_extraction_order_sample_counts(
+        self,
+        extraction_orders: models.QuerySet[ExtractionOrder],
+        samples: models.QuerySet[Sample],
+    ) -> dict[ExtractionOrder, int]:
+        sample_ids = samples.values_list("id", flat=True)
+        return {
+            eo: eo.samples.filter(id__in=sample_ids).count() for eo in extraction_orders
+        }
+
+    # Checks if the extraction order has multiple analysis orders
+    # This is used to determine which type of link to show in the template
+    def extraction_has_multiple_analysis_orders(
+        self, extraction_orders: models.QuerySet[ExtractionOrder]
+    ) -> bool:
+        if len(extraction_orders) == 1:
+            extraction_order = get_object_or_404(
+                ExtractionOrder, pk=extraction_orders.first()
+            )
+            analysis_orders = extraction_order.analysis_orders.all()
+            return analysis_orders.count() > 1
+        return False
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+
         analysis_order = self.object
-        context["extraction_order"] = analysis_order.from_order
+        samples = analysis_order.samples.all()
+        extraction_orders = self.get_extraction_orders_for_samples(samples)
+        extraction_order_sample_counts = self.get_extraction_order_sample_counts(
+            extraction_orders, samples
+        )
+
+        context["extraction_order_sample_counts"] = extraction_order_sample_counts
+        context["extraction_orders"] = extraction_orders
+        context["extraction_has_multiple_analysis_orders"] = (
+            self.extraction_has_multiple_analysis_orders(extraction_orders)
+        )
+
         return context
 
 
@@ -228,10 +272,36 @@ class MarkAsSeenView(StaffMixin, DetailView):
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
 
+    # Retrieves analysis orders associated with the samples in the extraction order
+    def get_analysis_orders_for_samples(
+        self, samples: models.QuerySet[Sample]
+    ) -> models.QuerySet[AnalysisOrder]:
+        return AnalysisOrder.objects.filter(samples__in=samples).distinct()
+
+    # Checks if the analysis orders have multiple extraction orders
+    # This is used to determine which type of link to show in the template
+    def analysis_has_multiple_extraction_orders(
+        self, analysis_orders: models.QuerySet[AnalysisOrder]
+    ) -> bool:
+        if len(analysis_orders) == 1:
+            analysis_order = get_object_or_404(
+                AnalysisOrder, pk=analysis_orders.first().id
+            )
+            extraction_order_ids = analysis_order.samples.values_list(
+                "order_id", flat=True
+            ).distinct()
+            return extraction_order_ids.count() > 1
+        return False
+
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         extraction_order = self.object
-        context["analysis_orders"] = extraction_order.analysis_orders.all()
+        samples = extraction_order.samples.all()
+        analysis_orders = self.get_analysis_orders_for_samples(samples)
+        context["analysis_orders"] = analysis_orders
+        context["analysis_has_multiple_extraction_orders"] = (
+            self.analysis_has_multiple_extraction_orders(analysis_orders)
+        )
         return context
 
 

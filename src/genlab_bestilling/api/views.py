@@ -1,3 +1,4 @@
+import contextlib
 import re
 import uuid
 
@@ -265,10 +266,8 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
 
                 for li in lists:
                     if li in lists_data:
-                        try:
+                        with contextlib.suppress(IndexError):
                             extra[li] = lists_data[li][i]
-                        except IndexError:
-                            pass
 
                 samples.append(Sample(**extra, **serializer.validated_data))
 

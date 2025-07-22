@@ -12,7 +12,7 @@ def report(e: Exception | None, error: Any) -> None:
     logging.error(str(e))  # noqa: LOG015
     logging.error(str(error))  # noqa: LOG015
     try:
-        from sentry_sdk import capture_exception, set_context
+        from sentry_sdk import capture_exception, set_context  # noqa: PLC0415
 
         set_context("oauth error", {"error": str(error)})
         capture_exception(e)

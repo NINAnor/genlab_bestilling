@@ -11,32 +11,10 @@
     <div class="flex gap-5 my-5">
         <a class="btn custom_order_button" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
         <a class="btn custom_order_button" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
-        {% if analysis_orders|length > 1 %}
-        <div class="relative inline-block text-left">
-            <button type="button"
-              onclick="document.getElementById('dropdown-menu').classList.toggle('hidden')"
-              class="btn custom_order_button_blue"
-            >
-              Go to Analysis Order
-              <i class="fa-solid fa-chevron-down"></i>
-            </button>
 
-            <div id="dropdown-menu"
-                 class="absolute z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg hidden"
-                 role="menu" aria-orientation="vertical" aria-labelledby="dropdownMenuButton">
-              {% for ao in analysis_orders %}
-                <a href="{% url 'staff:order-analysis-detail' pk=ao.id %}"
-                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                   role="menuitem">
-                   {{ ao }}
-                </a>
-              {% endfor %}
-            </div>
-          </div>
-        {% elif analysis_orders|length == 1 %}
+        {% if analysis_orders|length == 1 and not analysis_has_multiple_extraction_orders %}
             <a class="btn custom_order_button_blue" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
         {% endif %}
-
         <div class="ml-auto"></div>
 
         {% if object.genrequest.responsible_staff.all|is_responsible:request.user and not object.is_seen %}
@@ -62,20 +40,10 @@
         <a class="btn custom_order_button" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
     </div>
 
-    {% fragment as table_header %}
-    {% #table-cell header=True %}GUID{% /table-cell %}
-    {% #table-cell header=True %}Type{% /table-cell %}
-    {% #table-cell header=True %}Species{% /table-cell %}
-    {% #table-cell header=True %}Markers{% /table-cell %}
-    {% #table-cell header=True %}Location{% /table-cell %}
-    {% #table-cell header=True %}Date{% /table-cell %}
-    {% #table-cell header=True %}Volume{% /table-cell %}
-    {% endfragment %}
 
-    {% object-detail object=object %}
-
-    <h5 class="text-2xl my-5">Delivered Samples</h5>
-    <div class="bg-white p-4">
-        <p>{{ object.samples.count }} samples were delivered</p>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+      {% extraction_order_detail_table order=object %}
+      {% extraction_order_samples_detail_table order=object analysis_orders=analysis_orders %}
+      {% contact_detail_table order=object %}
     </div>
 {% endblock %}

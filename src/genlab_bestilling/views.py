@@ -787,9 +787,8 @@ class AnalysisOrderCreateView(
                 initial["use_all_samples"] = True
                 initial["name"] = order.name + " - Analysis" if order.name else ""
             except ExtractionOrder.DoesNotExist as err:
-                raise Http404(
-                    f"Order {self.request.GET['from_order']} not found"
-                ) from err
+                msg = f"Order {self.request.GET['from_order']} not found"
+                raise Http404(msg) from err
 
         return initial
 

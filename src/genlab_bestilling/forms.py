@@ -170,7 +170,8 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
         cleaned_data = super().clean()
 
         if not cleaned_data["equipment"] and not cleaned_data["buffer"]:
-            raise ValidationError("Equipment and/or Buffer should be filled")
+            msg = "Equipment and/or Buffer should be filled"
+            raise ValidationError(msg)
 
     class Meta:
         model = EquimentOrderQuantity
@@ -323,7 +324,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
     def save(self, commit: bool = True) -> Model:
         if not commit:
-            raise NotImplementedError("This form is always committed")
+            msg = "This form is always committed"
+            raise NotImplementedError(msg)
         with transaction.atomic():
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
@@ -343,7 +345,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
         if "use_all_samples" in cleaned_data and "from_order" in cleaned_data:
             if cleaned_data["use_all_samples"] and not cleaned_data["from_order"]:
-                raise ValidationError("An extraction order must be selected")
+                msg = "An extraction order must be selected"
+                raise ValidationError(msg)
 
     field_order = [
         "name",

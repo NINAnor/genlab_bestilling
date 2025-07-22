@@ -1,0 +1,15 @@
+<div class="flex items-center w-full min-w-0 mb-5">
+    <div role="tablist" class="tabs tabs-box rounded-md border">
+        <a role="tab"
+            class="tab {% if active_tab == 'ordered' %}tab-active bg-blue-400/40 rounded-md{% endif %}"
+            href="{% url 'staff:order-extraction-samples' pk=order.id %}">
+            Ordered extraction
+        </a>
+        <a role="tab"
+            class="tab {% if active_tab == 'lab' %}tab-active bg-blue-400/40 rounded-md{% endif %}"
+            href="{% url 'staff:order-extraction-samples-lab' pk=order.id %}">
+            Lab extraction
+        </a>
+    </div>
+    <a class="btn custom_order_button_green ml-auto" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Download complete sheet</a>
+</div>

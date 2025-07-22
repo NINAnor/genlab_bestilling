@@ -82,9 +82,8 @@ class ProjectCreateForm(forms.ModelForm):
                 ]
             )
 
-            raise ValidationError(
-                f"Project already exists, please contact {contacts} to be added to the project"  # noqa: E501
-            )
+            msg = f"Project already exists, please contact {contacts} to be added to the project"  # noqa: E501
+            raise ValidationError(msg)
         except Project.DoesNotExist:
             pass
         return number

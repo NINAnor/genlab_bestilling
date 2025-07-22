@@ -16,16 +16,13 @@
 
 {% block page-inner %}
 {% if order %}
-  <div class="flex gap-5 mb-5">
-      <a class="btn custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
-      <a class="btn custom_order_button" href="{% url 'staff:order-extraction-samples-lab' order.pk %}"><i class="fas fa-flask"></i> Lab</a>
-      {% if order.status == order.OrderStatus.DELIVERED and order.internal_status == "checked" %}
-        {% url 'staff:order-to-next-status' pk=order.pk as to_next_status_url %}
-        {% action-button action=to_next_status_url class="bg-secondary text-white" submit_text="Set as processing" csrf_token=csrf_token %}
-      {% endif %}
+  <div class="flex gap-5 mb-10 items-center w-full">
+    <a class="btn btn-sm font-normal" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
   </div>
 
-  <form method="get" class="py-3 px-4 border mb-3 ">
+  {% include "staff/components/extraction_tabs.html" with order=order active_tab="ordered" %}
+
+  <form method="get" class="py-3 px-4 border mb-5 ">
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
     <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
@@ -40,7 +37,7 @@
         <button class="btn custom_order_button_green" type="submit" name="generate_genlab_ids">
             <i class="fa-solid fa-id-badge"></i> Generate genlab IDs
         </button>
-        <a class="btn custom_order_button_blue" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Download CSV</a>
+        <a class="btn custom_order_button_blue" href="{% url 'samples-labels-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Export to genlabID printer</a>
 
         <div class="ml-auto text-right w-full max-w-xs">
           <div class="mb-1 font-medium text-sm">

@@ -59,8 +59,7 @@ from .tables import (
 
 class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
     def get_template_names(self) -> list[str]:
-        # type: ignore[misc] # TODO: This doesn't look right, fix later.
-        names = super().get_template_names()
+        names = super().get_template_names()  # type: ignore[misc]
         return [
             name.replace("genlab_bestilling", "staff").replace("nina", "staff")
             for name in names
@@ -253,7 +252,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
         return_to = request.POST.get("return_to")
         return HttpResponseRedirect(self.get_return_url(return_to))
 
-    def get_return_url(self, return_to: str) -> str:
+    def get_return_url(self, return_to: str | None) -> str:
         if return_to == "dashboard":
             return reverse("staff:dashboard")
         else:

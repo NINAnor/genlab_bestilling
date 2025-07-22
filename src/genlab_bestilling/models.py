@@ -674,6 +674,30 @@ class Sample(models.Model):
         help_text="Check this box if the sample is prioritised for processing",
     )
 
+    has_pcr = models.BooleanField(
+        blank=True,
+        null=True,
+        verbose_name="PCR",
+        default=False,
+        help_text="Check this box if the sample has been processed by PCR",
+    )
+
+    is_analysed = models.BooleanField(
+        blank=True,
+        null=True,
+        verbose_name="Analysed",
+        default=False,
+        help_text="Check this box if the sample has been analysed",
+    )
+
+    is_outputed = models.BooleanField(
+        blank=True,
+        null=True,
+        verbose_name="Output",
+        default=False,
+        help_text="Check this box if the sample has an output file",
+    )
+
     def __str__(self) -> str:
         return self.genlab_id or f"#SMP_{self.id}"
 

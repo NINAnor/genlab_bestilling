@@ -9,7 +9,7 @@ from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
 class ExtractionPlateForm(ModelForm):
     class Meta:
         model = ExtractionPlate
-        fields = ("name",)
+        fields = ["name"]
 
 
 class OrderStaffForm(forms.Form):

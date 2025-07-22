@@ -69,7 +69,7 @@ class ProjectTable(tables.Table):
 
     class Meta:
         model = Project
-        fields = ("number", "name", "active", "verified_at")
+        fields = ["number", "name", "active", "verified_at"]
 
 
 class OrderTable(StatusMixinTable):
@@ -119,7 +119,7 @@ class OrderTable(StatusMixinTable):
             "responsible_staff",
         ]
         empty_text = "No Orders"
-        order_by = ("-is_urgent",)
+        order_by = ["-is_urgent"]
 
 
 class AnalysisOrderTable(OrderTable):
@@ -147,7 +147,7 @@ class AnalysisOrderTable(OrderTable):
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
         fields = OrderTable.Meta.fields + ["markers", "expected_delivery_date"]
-        sequence = (
+        sequence = [
             "priority",
             "id",
             "status",
@@ -157,7 +157,7 @@ class AnalysisOrderTable(OrderTable):
             "markers",
             "responsible_staff",
             "expected_delivery_date",
-        )
+        ]
 
 
 class ExtractionOrderTable(OrderTable):
@@ -187,7 +187,7 @@ class ExtractionOrderTable(OrderTable):
             "total_samples_isolated",
             "confirmed_at",
         ]
-        sequence = (
+        sequence = [
             "priority",
             "id",
             "status",
@@ -197,7 +197,7 @@ class ExtractionOrderTable(OrderTable):
             "total_samples_isolated",
             "responsible_staff",
             "confirmed_at",
-        )
+        ]
 
 
 class EquipmentOrderTable(OrderTable):
@@ -249,7 +249,7 @@ class SampleBaseTable(tables.Table):
             "plate_positions",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-        sequence = (
+        sequence = [
             "checked",
             "is_prioritised",
             "genlab_id",
@@ -257,8 +257,8 @@ class SampleBaseTable(tables.Table):
             "name",
             "species",
             "type",
-        )
-        order_by = ("-is_prioritised", "species", "genlab_id")
+        ]
+        order_by = ["-is_prioritised", "species", "genlab_id"]
 
         empty_text = "No Samples"
 
@@ -360,7 +360,7 @@ class SampleStatusTable(tables.Table):
             "internal_note",
             "isolation_method",
         ]
-        order_by = ("genlab_id",)
+        order_by = ["genlab_id"]
 
     def render_checked(self, record: Any) -> str:
         return mark_safe(  # noqa: S308
@@ -370,7 +370,7 @@ class SampleStatusTable(tables.Table):
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        exclude = ("pop_id", "guid", "plate_positions")
+        exclude = ["pop_id", "guid", "plate_positions"]
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -395,7 +395,7 @@ class OrderAnalysisSampleTable(tables.Table):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = (
+        fields = [
             "checked",
             "sample__genlab_id",
             "sample__type",
@@ -407,7 +407,7 @@ class OrderAnalysisSampleTable(tables.Table):
             # "sample__output",
             "sample__notes",
             "sample__order",
-        )
+        ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
@@ -432,13 +432,13 @@ class PlateTable(tables.Table):
 
     class Meta:
         model = ExtractionPlate
-        fields = (
+        fields = [
             "id",
             "name",
             "created_at",
             "last_updated_at",
             "samples_count",
-        )
+        ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Plates"
@@ -562,14 +562,14 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples):
             "order__genrequest__project",
             "order__responsible_staff",
         ]
-        sequence = SampleBaseTable.Meta.sequence + (
+        sequence = SampleBaseTable.Meta.sequence + [
             "sample_status",
             "order",
             "order__status",
             "order__responsible_staff",
             "notes",
-        )
-        exclude = ("guid", "plate_positions", "checked", "is_prioritised")
+        ]
+        exclude = ["guid", "plate_positions", "checked", "is_prioritised"]
 
     def order_sample_status(
         self, records: Sequence[Any], is_descending: bool

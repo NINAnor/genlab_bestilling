@@ -619,7 +619,7 @@ class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView)
                     "genrequest_id": self.object.genrequest_id,
                 },
             )
-        elif order_type == "equipment":
+        if order_type == "equipment":
             return reverse(
                 "genrequest-equipment-quantity-update",
                 kwargs={
@@ -816,14 +816,13 @@ class AnalysisOrderCreateView(
                     "pk": obj.id,
                 },
             )
-        else:
-            return reverse(
-                "genrequest-analysis-samples-edit",
-                kwargs={
-                    "genrequest_id": self.genrequest.id,
-                    "pk": self.object.id,  # type: ignore[union-attr]
-                },
-            )
+        return reverse(
+            "genrequest-analysis-samples-edit",
+            kwargs={
+                "genrequest_id": self.genrequest.id,
+                "pk": self.object.id,  # type: ignore[union-attr]
+            },
+        )
 
 
 class ExtractionOrderCreateView(
@@ -908,7 +907,7 @@ class EquipmentOrderQuantityUpdateView(GenrequestNestedMixin, BulkEditCollection
         initial = collection_class(
             context={"order_id": self.kwargs["pk"]}
         ).models_to_list(queryset)
-        return initial
+        return initial  # noqa: RET504
 
 
 class SamplesFrontendView(GenrequestNestedMixin, DetailView):

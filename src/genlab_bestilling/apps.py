@@ -1,3 +1,4 @@
+import contextlib
 from typing import Self
 
 from django.apps import AppConfig as DjangoAppConfig
@@ -9,7 +10,5 @@ class AppConfig(DjangoAppConfig):
     verbose_name = _("GenLab")
 
     def ready(self: Self) -> None:
-        try:
-            import genlab_bestilling.signals  # noqa: F401
-        except ImportError:
-            pass
+        with contextlib.suppress(ImportError):
+            import genlab_bestilling.signals  # noqa: F401, PLC0415

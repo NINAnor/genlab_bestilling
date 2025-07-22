@@ -129,7 +129,7 @@ ignore = [
   "TRY003",  # This doesn't seem too bad. # https://docs.astral.sh/ruff/rules/raise-vanilla-args/
   "DJ001"  # Nullable string fields does is used a lot in this project. Maybe enable later? # https://docs.astral.sh/ruff/rules/django-nullable-model-string-field/
 ]
-select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF", "ANN", "PIE", "TC", "TRY", "DJ", "EM", "ISC", "RET"]
+select = ["E", "W", "I", "F", "UP", "S", "B", "A", "COM", "LOG", "PTH", "Q", "PL", "RUF", "ANN", "PIE", "TC", "TRY", "DJ", "EM", "ISC", "RET", "SIM"]
 
 [tool.ruff.lint.flake8-annotations]
 mypy-init-return = true  # https://docs.astral.sh/ruff/settings/#lint_flake8-annotations_mypy-init-return

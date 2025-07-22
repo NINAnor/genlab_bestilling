@@ -100,25 +100,22 @@ def test_gid_sequence_rollback(extraction):
     gid = GIDSequence.objects.get_sequence_for_species_year(
         year=extraction.confirmed_at.year, species=sample.species
     )
-    with pytest.raises(IntegrityError):
-        with transaction.atomic():
-            gid = GIDSequence.objects.select_for_update().get(id=gid.id)
-            assert (
-                gid.id == f"G{extraction.confirmed_at.year % 100}{sample.species.code}"
-            )
-            assert gid.last_value == 0
-            assert (
-                gid.next_value()
-                == f"G{extraction.confirmed_at.year % 100}{sample.species.code}00001"
-            )
-            assert gid.last_value == 1
+    with pytest.raises(IntegrityError), transaction.atomic():
+        gid = GIDSequence.objects.select_for_update().get(id=gid.id)
+        assert gid.id == f"G{extraction.confirmed_at.year % 100}{sample.species.code}"
+        assert gid.last_value == 0
+        assert (
+            gid.next_value()
+            == f"G{extraction.confirmed_at.year % 100}{sample.species.code}00001"
+        )
+        assert gid.last_value == 1
 
-            # Expect an error here
-            GIDSequence.objects.create(
-                id=gid.id,
-                year=gid.year,
-                species=gid.species,
-            )
+        # Expect an error here
+        GIDSequence.objects.create(
+            id=gid.id,
+            year=gid.year,
+            species=gid.species,
+        )
 
     gid.refresh_from_db()
     assert gid.last_value == 0

@@ -267,7 +267,7 @@ class SampleLabFilter(filters.FilterSet):
                 ("false", "No"),
             ),
             attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
             },
         ),
     )
@@ -282,7 +282,7 @@ class SampleLabFilter(filters.FilterSet):
                 ("false", "No"),
             ),
             attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
             },
         ),
     )
@@ -297,7 +297,7 @@ class SampleLabFilter(filters.FilterSet):
                 ("false", "No"),
             ),
             attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
             },
         ),
     )

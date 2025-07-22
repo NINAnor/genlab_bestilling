@@ -3,13 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import QuerySet
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
-from capps.users.models import User
 from shared.db import assert_is_in_atomic_block
 
 if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
+    from capps.users.models import User
+
     from .models import GIDSequence, Species
 
 

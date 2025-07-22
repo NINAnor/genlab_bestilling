@@ -23,4 +23,18 @@
 
 {% render_table table %}
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectAll = document.getElementById('select-all-checkbox');
+        const noteInputs = document.querySelectorAll('.internal_note-input');
+
+        selectAll?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll(`input[name="checked-{{ order.pk }}"]`);
+            checkboxes.forEach((cb) => {
+                cb.checked = selectAll.checked;
+            })
+        });
+    })
+</script>
+
 {% endblock page-inner %}

@@ -160,58 +160,13 @@ class OrderSampleFilter(filters.FilterSet):
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
-    sample__is_marked = BooleanFilter(
-        label="Marked",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),  # Blank option
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
+    sample__genlab_id = CharFilter(
+        label="GenlabID",
+        widget=forms.TextInput(
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
-            },
+                "placeholder": "Type here",
+            }
         ),
-    )
-
-    sample__is_plucked = BooleanFilter(
-        label="Plucked",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
-            },
-        ),
-    )
-
-    sample__is_isolated = BooleanFilter(
-        label="Isolated",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
-            },
-        ),
-    )
-
-    genlab_id_min = ChoiceFilter(
-        label="Genlab ID (From)",
-        method="filter_genlab_id_range",
-        empty_label="Select lower bound",
-    )
-
-    genlab_id_max = ChoiceFilter(
-        label="Genlab ID (To)",
-        method="filter_genlab_id_range",
-        empty_label="Select upper bound",
     )
 
     def __init__(
@@ -224,23 +179,8 @@ class SampleMarkerOrderFilter(filters.FilterSet):
     ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
 
-        # Get all unique genlab IDs from current queryset, ordered
-        genlab_ids = (
-            SampleMarkerAnalysis.objects.values_list("sample__genlab_id", flat=True)
-            .distinct()
-            .order_by("sample__genlab_id")
-        )
-
-        genlab_choices = [(gid, gid) for gid in genlab_ids]
-
-        self.filters["genlab_id_min"].field.choices = genlab_choices
-        self.filters["genlab_id_min"].field.widget.attrs.update(
-            {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
-        )
-
-        self.filters["genlab_id_max"].field.choices = genlab_choices
-        self.filters["genlab_id_max"].field.widget.attrs.update(
-            {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
+        self.filters["sample__type"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:sample-type"
         )
 
         self.filters["sample__isolation_method"].field.label = "Isolation method"
@@ -264,36 +204,14 @@ class SampleMarkerOrderFilter(filters.FilterSet):
     class Meta:
         model = SampleMarkerAnalysis
         fields = [
-            "genlab_id_min",
-            "genlab_id_max",
-            "sample__is_marked",
-            "sample__is_plucked",
-            "sample__is_isolated",
+            "sample__genlab_id",
+            "sample__type",
             "sample__extractions",
             "sample__isolation_method",
+            # "PCR",
             # "fluidigm",
             # "output",
         ]
-
-    def filter_genlab_id_range(
-        self, queryset: QuerySet, name: str, value: Any
-    ) -> QuerySet:
-        # This method is a placeholder; we apply the range in 'filter_queryset'
-        # Don't remove it as it is needed for the filter to work correctly
-        return queryset
-
-    def filter_queryset(self, queryset: QuerySet) -> QuerySet:
-        queryset = super().filter_queryset(queryset)
-
-        genlab_min = self.data.get("genlab_id_min")
-        genlab_max = self.data.get("genlab_id_max")
-
-        if genlab_min:
-            queryset = queryset.filter(sample__genlab_id__gte=genlab_min)
-        if genlab_max:
-            queryset = queryset.filter(sample__genlab_id__lte=genlab_max)
-
-        return queryset
 
 
 class SampleFilter(filters.FilterSet):
@@ -336,3 +254,153 @@ class ExtractionPlateFilter(filters.FilterSet):
         fields = [
             "id",
         ]
+
+
+class SampleLabFilter(filters.FilterSet):
+    is_marked = BooleanFilter(
+        label="Marked",
+        method="filter_boolean",
+        widget=forms.Select(
+            choices=(
+                ("", "---------"),
+                ("true", "Yes"),
+                ("false", "No"),
+            ),
+            attrs={
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+            },
+        ),
+    )
+
+    is_plucked = BooleanFilter(
+        label="Plucked",
+        method="filter_boolean",
+        widget=forms.Select(
+            choices=(
+                ("", "---------"),
+                ("true", "Yes"),
+                ("false", "No"),
+            ),
+            attrs={
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+            },
+        ),
+    )
+
+    is_isolated = BooleanFilter(
+        label="Isolated",
+        method="filter_boolean",
+        widget=forms.Select(
+            choices=(
+                ("", "---------"),
+                ("true", "Yes"),
+                ("false", "No"),
+            ),
+            attrs={
+                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",
+            },
+        ),
+    )
+
+    genlab_id_min = ChoiceFilter(
+        label="Genlab ID (From)",
+        method="filter_genlab_id_range",
+        empty_label="Select lower bound",
+    )
+
+    genlab_id_max = ChoiceFilter(
+        label="Genlab ID (To)",
+        method="filter_genlab_id_range",
+        empty_label="Select upper bound",
+    )
+
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        super().__init__(data, queryset, request=request, prefix=prefix)
+
+        # Get all unique genlab IDs from current queryset, ordered
+        genlab_ids = (
+            queryset.values_list("genlab_id", flat=True)
+            .distinct()
+            .order_by("genlab_id")
+            if queryset is not None
+            else []
+        )
+
+        genlab_choices = [(gid, gid) for gid in genlab_ids]
+
+        self.filters["genlab_id_min"].field.choices = genlab_choices
+        self.filters["genlab_id_min"].field.widget.attrs.update(
+            {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
+        )
+
+        self.filters["genlab_id_max"].field.choices = genlab_choices
+        self.filters["genlab_id_max"].field.widget.attrs.update(
+            {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
+        )
+
+        self.filters["isolation_method"].field.label = "Isolation method"
+        self.filters["isolation_method"].field.widget = autocomplete.ModelSelect2(
+            url="autocomplete:isolation-method",
+            attrs={
+                "class": "w-full",
+            },
+        )
+
+        self.filters["extractions"].field.label = "Qiagen ID"
+        self.filters["extractions"].field.widget = forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "placeholder": "Enter Quiagen ID",
+            }
+        )
+
+    class Meta:
+        model = Sample
+        fields = [
+            "genlab_id_min",
+            "genlab_id_max",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
+            "extractions",
+            "isolation_method",
+            # "fluidigm",
+            # "output",
+        ]
+
+    def filter_genlab_id_range(
+        self, queryset: QuerySet, name: str, value: Any
+    ) -> QuerySet:
+        # This method is a placeholder; we apply the range in 'filter_queryset'
+        # Don't remove it as it is needed for the filter to work correctly
+        return queryset
+
+    def filter_boolean(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
+        val = self.data.get(name)
+        if str(val) == "true":
+            return queryset.filter(**{name: True})
+        if str(val) == "false":
+            return queryset.filter(**{name: False})
+
+        return queryset
+
+    def filter_queryset(self, queryset: QuerySet) -> QuerySet:
+        queryset = super().filter_queryset(queryset)
+
+        genlab_min = self.data.get("genlab_id_min")
+        genlab_max = self.data.get("genlab_id_max")
+
+        if genlab_min:
+            queryset = queryset.filter(genlab_id__gte=genlab_min)
+
+        if genlab_max:
+            queryset = queryset.filter(genlab_id__lte=genlab_max)
+
+        return queryset

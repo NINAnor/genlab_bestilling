@@ -19,6 +19,12 @@ from rest_framework.viewsets import (  # type: ignore[attr-defined]
 )
 from rest_framework_csv.renderers import CSVRenderer
 
+from genlab_bestilling.api.constants import (
+    LABEL_CSV_FIELDS_BY_AREA,
+    SAMPLE_CSV_FIELD_LABELS,
+    SAMPLE_CSV_FIELDS_BY_AREA,
+)
+
 from ..filters import (
     LocationFilter,
     MarkerFilter,
@@ -41,6 +47,7 @@ from .serializers import (
     EnumSerializer,
     ExtractionSerializer,
     KoncivSerializer,
+    LabelCSVSerializer,
     LocationCreateSerializer,
     LocationSerializer,
     MarkerSerializer,
@@ -71,190 +78,103 @@ class AllowSampleDraft(BasePermission):
         return True
 
 
-class SampleViewset(ModelViewSet):
+class SampleCSVExportMixin:
+    FIELD_LABELS = SAMPLE_CSV_FIELD_LABELS
+
+    def get_area_name(self, queryset: QuerySet) -> str:
+        return (
+            queryset.values_list("order__genrequest__area__name", flat=True).first()
+            or "default"
+        )
+
+    def get_csv_fields_and_labels(
+        self,
+        area_name: str,
+        queryset: QuerySet,
+        fields_by_area: dict[str, list[str]],
+    ) -> tuple[list[str], list[str]]:
+        get_fields = area_name
+        if area_name == "Akvatisk":
+            species = queryset.values_list("species__name", flat=True).distinct()
+            if species.first() == "Elvemusling":
+                get_fields = "Elvemusling"
+
+        fields = fields_by_area.get(get_fields, fields_by_area["default"])
+        labels = [self.FIELD_LABELS.get(f, f) for f in fields]
+        return fields, labels
+
+    def get_nested(self, obj: dict, dotted: str) -> str | None:
+        for part in dotted.split("."):
+            obj = obj.get(part) if isinstance(obj, dict) else None
+        return obj
+
+    def build_csv_data(
+        self,
+        serialized_data: list[dict],
+        fields: list[str],
+        area_name: str,
+    ) -> list[dict[str, str]]:
+        rows = []
+
+        for item in serialized_data:
+            row = {}
+
+            for f in fields:
+                if area_name in {"Akvatisk", "Elvemusling"} and f == "location.name":
+                    full_location = self.get_nested(item, "location.name")
+                    if (
+                        full_location
+                        and re.search(r"\d+", full_location)
+                        and " " in full_location
+                    ):
+                        watercourse, location = full_location.split(" ", 1)
+                    else:
+                        watercourse, location = "", full_location or ""
+
+                    row[self.FIELD_LABELS["watercourse_number"]] = watercourse
+                    row[self.FIELD_LABELS["location.name"]] = location
+                elif f != "watercourse_number":
+                    value = self.get_nested(item, f)
+                    label = self.FIELD_LABELS.get(f, f)
+                    row[label] = (
+                        ", ".join(value) if isinstance(value, list) else (value or "")
+                    )
+
+            rows.append(row)
+
+        return rows
+
+    def render_csv_response(
+        self,
+        queryset: QuerySet,
+        serializer_class: type[BaseSerializer],
+        fields_by_area: dict[str, list[str]],
+        filename: str = "export.csv",
+    ) -> HttpResponse:
+        area_name = self.get_area_name(queryset)
+        serializer = serializer_class(queryset, many=True)
+        fields, headers = self.get_csv_fields_and_labels(
+            area_name, queryset, fields_by_area
+        )
+        data = self.build_csv_data(serializer.data, fields, area_name)
+
+        csv_data = CSVRenderer().render(
+            data, media_type="text/csv", renderer_context={"header": headers}
+        )
+
+        return HttpResponse(
+            csv_data,
+            content_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+
+
+class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
     filterset_class = SampleFilter
     pagination_class = IDCursorPagination
     permission_classes = [AllowSampleDraft, IsAuthenticated]
-
-    CSV_FIELD_LABELS: dict[str, str] = {
-        "genlab_id": "Genlab ID",
-        "fish_id": "Old Genlab ID",
-        "guid": "GUID",
-        "name": "Name",
-        "species.name": "Species",
-        "location.name": "Location",
-        "order": "EXT_order",
-        "analysis_orders": "ANL_order",
-        "pop_id": "PopID",
-        "type.name": "Sample Type",
-        "gender": "Gender",
-        "length": "Length",
-        "weight": "Weight",
-        "classification": "Classification",
-        "year": "Year",
-        "notes": "Notes",
-        "project": "Project Number",
-        "isolation_method": "Isolation Method",
-        "qiagen_number": "Qiagen#",
-        "is_marked": "Marked",
-        "is_plucked": "Plucked",
-        "is_isolated": "Isolated",
-        "station": "Station",
-        "placement_in_fridge": "Placement in Fridge",
-        "delivered_to_lab": "Delivered to Lab",
-        "fluidigm#": "Fluidigm#",
-        "laksov_species": "LaksOV + Species",
-        "species_date": "Species Date",
-        "pcr": "PCR",
-        "fluidigm": "Fluidigm",
-        "output": "Output",
-        "analysis_note": "Analysis Note",
-        "rerun": "Rerun",
-        "rerun_qiagen": "Rerun Qiagen",
-        "river": "River",
-        "str_date": "STR Date",
-        "rerun_date": "Rerun Date",
-        "watercourse_number": "Watercourse Number",
-        "under_locality": "Sub-locality",
-        "county": "County",
-        "snp_assay_1": "SNP Assay 1",
-        "snp_assay_2": "SNP Assay 2",
-        "str_mixab": "STR Mix AB",
-        "str_mixc": "STR Mix C",
-        "str_mixy": "STR Mix Y",
-        "internal_note": "Internal Note",
-        "bb#": "BB#",
-        "output_bb": "Output",
-        "bba2#": "BBA2#",
-        "output_bba2": "Output",
-        "mixab": "Mix AB",
-        "ab_rep#": "AB Rep#",
-        "mixc": "Mix C",
-        "c_rep#": "C Rep#",
-        "re_extracted_date": "Re-extracted Date",
-        "re_extracted_qiagen#": "Re-extracted Qiagen#",
-        "weight_g_for_diet_analysis": "Weight (g) for Diet Analysis",
-        "position": "Position",
-    }
-
-    # NOTE: This can be modified to include more fields based on species or area.
-    CSV_FIELDS_BY_AREA: dict[str, list[str]] = {
-        "Akvatisk": [
-            "name",
-            "genlab_id",
-            "fish_id",
-            "guid",
-            "order",
-            "analysis_orders",
-            "location.name",
-            "watercourse_number",
-            "pop_id",
-            "species.name",
-            "gender",
-            "length",
-            "weight",
-            "classification",
-            "year",
-            "notes",
-            "project",
-            "type.name",
-            "isolation_method",
-            "qiagen_number",
-            "fluidigm#",
-            "laksov_species",
-            "species_date",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
-            "pcr",
-            "fluidigm",
-            "output",
-            "analysis_note",
-            "rerun",
-            "rerun_date",
-        ],
-        "Elvemusling": [
-            "name",
-            "genlab_id",
-            "fish_id",
-            "guid",
-            "river",
-            "location.name",
-            "under_locality",
-            "watercourse_number",
-            "county",
-            "year",
-            "station",
-            "type.name",
-            "length",
-            "notes",
-            "isolation_method",
-            "qiagen_number",
-            "position",
-            "placement_in_fridge",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
-            "pcr",
-            "str_date",
-            "output",
-            "analysis_note",
-            "rerun",
-            "rerun_date",
-        ],
-        "Terrestrisk": [
-            "name",
-            "genlab_id",
-            "guid",
-            "type.name",
-            "species.name",
-            "location.name",
-            "delivered_to_lab",
-            "order",
-            "analysis_orders",
-            "notes",
-            "snp_assay_1",
-            "snp_assay_2",
-            "str_mixab",
-            "str_mixc",
-            "str_mixy",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
-            "isolation_method",
-            "qiagen_number",
-            "internal_note",
-            "bb#",
-            "output_bb",
-            "bba2#",
-            "output_bba2",
-            "mixab",
-            "ab_rep#",
-            "mixc",
-            "c_rep#",
-            "re_extracted_date",
-            "re_extracted_qiagen#",
-            "weight_g_for_diet_analysis",
-        ],
-        "default": [
-            "genlab_id",
-            "guid",
-            "name",
-            "type.name",
-            "species.name",
-            "location.name",
-            "order",
-            "analysis_orders",
-            "notes",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
-            "isolation_method",
-            "qiagen_number",
-        ],
-    }
 
     def get_queryset(self) -> QuerySet:
         return (
@@ -272,77 +192,13 @@ class SampleViewset(ModelViewSet):
         )
 
     def get_serializer_class(self) -> type[BaseSerializer]:
+        if self.action == "csv":
+            return SampleCSVSerializer
+        if self.action == "labels-csv":
+            return LabelCSVSerializer
         if self.action in ["update", "partial_update"]:
             return SampleUpdateSerializer
-        if self.action in ["csv"]:
-            return SampleCSVSerializer
         return super().get_serializer_class()
-
-    def get_area_name(self, queryset: QuerySet) -> str:
-        return (
-            queryset.values_list("order__genrequest__area__name", flat=True).first()
-            or "default"
-        )
-
-    # NOTE: If the headers differ from species to species, we can add more headers
-    # to the CSV_FIELDS_BY_AREA dict, and then use the species name to determine
-    # which headers to use.
-    def get_csv_fields_and_labels(
-        self, area_name: str, queryset: QuerySet
-    ) -> tuple[list[str], list[str]]:
-        get_fields = area_name
-        if area_name == "Akvatisk":
-            species = queryset.values_list("species__name", flat=True).distinct()
-            if species.first() == "Elvemusling":
-                get_fields = "Elvemusling"
-
-        fields = self.CSV_FIELDS_BY_AREA.get(
-            get_fields, self.CSV_FIELDS_BY_AREA["default"]
-        )
-        labels = [self.CSV_FIELD_LABELS.get(f, f) for f in fields]
-        return fields, labels
-
-    # Helper function to get nested values from a dict using dotted notation.
-    def get_nested(self, obj: dict, dotted: str) -> str | None:
-        for part in dotted.split("."):
-            obj = obj.get(part) if isinstance(obj, dict) else None
-        return obj
-
-    def build_csv_data(
-        self, serialized_data: list[dict], fields: list[str], area_name: str
-    ) -> list[dict[str, str]]:
-        rows = []
-
-        for item in serialized_data:
-            row = {}
-
-            for f in fields:
-                if area_name in {"Akvatisk", "Elvemusling"} and f == "location.name":
-                    full_location = self.get_nested(item, "location.name")
-
-                    if (
-                        full_location
-                        and re.search(r"\d+", full_location)
-                        and " " in full_location
-                    ):
-                        watercourse, location = full_location.split(" ", 1)
-                    else:
-                        watercourse, location = "", full_location or ""
-
-                    row[self.CSV_FIELD_LABELS["watercourse_number"]] = watercourse
-                    row[self.CSV_FIELD_LABELS["location.name"]] = location
-
-                # We skip "watercourse_number" because it is handled above.
-                elif f != "watercourse_number":
-                    value = self.get_nested(item, f)
-                    if isinstance(value, list):
-                        row[self.CSV_FIELD_LABELS[f]] = ", ".join(value)
-                    else:
-                        row[self.CSV_FIELD_LABELS[f]] = value or ""
-
-            rows.append(row)
-
-        return rows
 
     @action(
         methods=["GET"],
@@ -352,26 +208,26 @@ class SampleViewset(ModelViewSet):
     )
     def csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
-        area_name = self.get_area_name(queryset)
-
-        serializer = self.get_serializer(
+        return self.render_csv_response(
             queryset,
-            many=True,
+            serializer_class=SampleCSVSerializer,
+            fields_by_area=SAMPLE_CSV_FIELDS_BY_AREA,
+            filename="samples.csv",
         )
 
-        fields, headers = self.get_csv_fields_and_labels(area_name, queryset)
-        data = self.build_csv_data(serializer.data, fields, area_name)
-
-        csv_data = CSVRenderer().render(
-            data,
-            media_type="text/csv",
-            renderer_context={"header": headers},
-        )
-
-        return HttpResponse(
-            csv_data,
-            content_type="text/csv; charset=utf-8",
-            headers={"Content-Disposition": "attachment; filename=samples.csv"},
+    @action(
+        methods=["GET"],
+        url_path="labels-csv",
+        detail=False,
+        renderer_classes=[CSVRenderer],
+    )
+    def labels_csv(self, request: Request) -> HttpResponse:
+        queryset = self.filter_queryset(self.get_queryset())
+        return self.render_csv_response(
+            queryset,
+            serializer_class=LabelCSVSerializer,
+            fields_by_area=LABEL_CSV_FIELDS_BY_AREA,
+            filename="sample_labels.csv",
         )
 
     @extend_schema(

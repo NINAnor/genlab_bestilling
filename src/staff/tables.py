@@ -138,7 +138,7 @@ class AnalysisOrderTable(OrderTable):
 
     expected_delivery_date = tables.DateColumn(
         accessor="expected_delivery_date",
-        verbose_name="Delivery date",
+        verbose_name="Deadline",
         format="d/m/Y",
         orderable=True,
         empty_values=(),
@@ -622,7 +622,7 @@ class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
     )
 
     delivery_date = tables.DateColumn(
-        verbose_name="Delivery date",
+        verbose_name="Deadline",
         orderable=False,
         format="d/m/Y",
         empty_values=(),
@@ -652,7 +652,7 @@ class NewUnseenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.DateColumn(
-        verbose_name="Delivery date",
+        verbose_name="Deadline",
         orderable=False,
         format="d/m/Y",
         empty_values=(),
@@ -696,7 +696,7 @@ class NewSeenOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.DateColumn(
-        verbose_name="Delivery date",
+        verbose_name="Deadline",
         orderable=False,
         format="d/m/Y",
         empty_values=(),
@@ -780,7 +780,7 @@ class DraftOrderTable(StaffIDMixinTable):
     )
 
     delivery_date = tables.DateColumn(
-        verbose_name="Delivery date",
+        verbose_name="Deadline",
         orderable=False,
         format="d/m/Y",
         empty_values=(),

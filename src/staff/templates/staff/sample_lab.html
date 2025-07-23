@@ -83,13 +83,23 @@
                 formData.append("field_value", value);
                 formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
 
+                const spinner = document.getElementById(`internal_note-spinner-${sampleId}`);
+                const checkIcon = document.getElementById(`internal_note-check-${sampleId}`);
+                checkIcon.style.visibility = "hidden";
+                spinner.style.visibility = "visible";
+
                 clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(function () {
                     fetch("{% url 'staff:update-internal-note' %}", {
                         method: "POST",
                         body: formData
                     });
-                }, 500);
+                    spinner.style.visibility = "hidden";
+                    checkIcon.style.visibility = "visible";
+                    setTimeout(function () {
+                        checkIcon.style.visibility = "hidden";
+                    }, 5000);
+                }, 1500);
             });
         });
     });

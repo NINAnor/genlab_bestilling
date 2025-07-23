@@ -614,6 +614,11 @@ class SampleMarkerAnalysis(models.Model):
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.PROTECT)
     transaction = models.UUIDField(blank=True, null=True)
 
+    # Fields for status tracking
+    has_pcr = models.BooleanField(default=False)
+    is_analysed = models.BooleanField(default=False)
+    is_outputted = models.BooleanField(default=False)
+
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     class Meta:

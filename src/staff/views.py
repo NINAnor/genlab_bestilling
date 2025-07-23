@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Case, Count, IntegerField, Value, When
+from django.db.models import Case, Count, IntegerField, QuerySet, Value, When
 from django.db.models.functions import Cast
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
@@ -81,7 +81,7 @@ class DashboardView(StaffMixin, TemplateView):
                 return None
         return None
 
-    def get_areas(self) -> models.QuerySet[Area]:
+    def get_areas(self) -> QuerySet[Area]:
         return Area.objects.all().order_by("name")
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
@@ -99,7 +99,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = AnalysisOrderTable
     filterset_class = AnalysisOrderFilter
 
-    def get_queryset(self) -> models.QuerySet[AnalysisOrder]:
+    def get_queryset(self) -> QuerySet[AnalysisOrder]:
         return (
             super()
             .get_queryset()
@@ -119,7 +119,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = ExtractionOrderTable
     filterset_class = ExtractionOrderFilter
 
-    def get_queryset(self) -> models.QuerySet[ExtractionOrder]:
+    def get_queryset(self) -> QuerySet[ExtractionOrder]:
         return (
             super()
             .get_queryset()
@@ -145,7 +145,7 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = PlateTable
     filterset_class = ExtractionPlateFilter
 
-    def get_queryset(self) -> models.QuerySet[ExtractionPlate]:
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
         return (
             super()
             .get_queryset()
@@ -160,7 +160,7 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = EquipmentOrderTable
     filterset_class = AnalysisOrderFilter
 
-    def get_queryset(self) -> models.QuerySet[EquipmentOrder]:
+    def get_queryset(self) -> QuerySet[EquipmentOrder]:
         return (
             super()
             .get_queryset()
@@ -180,8 +180,8 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
 
     # Retrieves extraction orders associated with the samples in the analysis order
     def get_extraction_orders_for_samples(
-        self, samples: models.QuerySet[Sample]
-    ) -> models.QuerySet[ExtractionOrder]:
+        self, samples: QuerySet[Sample]
+    ) -> QuerySet[ExtractionOrder]:
         return ExtractionOrder.objects.filter(samples__in=samples).distinct()
 
     # Retrieves the sample counts for each extraction order
@@ -189,8 +189,8 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
     # that are part of the analysis order
     def get_extraction_order_sample_counts(
         self,
-        extraction_orders: models.QuerySet[ExtractionOrder],
-        samples: models.QuerySet[Sample],
+        extraction_orders: QuerySet[ExtractionOrder],
+        samples: QuerySet[Sample],
     ) -> dict[ExtractionOrder, int]:
         sample_ids = samples.values_list("id", flat=True)
         return {
@@ -200,7 +200,7 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
     # Checks if the extraction order has multiple analysis orders
     # This is used to determine which type of link to show in the template
     def extraction_has_multiple_analysis_orders(
-        self, extraction_orders: models.QuerySet[ExtractionOrder]
+        self, extraction_orders: QuerySet[ExtractionOrder]
     ) -> bool:
         if len(extraction_orders) == 1:
             extraction_order = get_object_or_404(
@@ -263,14 +263,14 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
 
     # Retrieves analysis orders associated with the samples in the extraction order
     def get_analysis_orders_for_samples(
-        self, samples: models.QuerySet[Sample]
-    ) -> models.QuerySet[AnalysisOrder]:
+        self, samples: QuerySet[Sample]
+    ) -> QuerySet[AnalysisOrder]:
         return AnalysisOrder.objects.filter(samples__in=samples).distinct()
 
     # Checks if the analysis orders have multiple extraction orders
     # This is used to determine which type of link to show in the template
     def analysis_has_multiple_extraction_orders(
-        self, analysis_orders: models.QuerySet[AnalysisOrder]
+        self, analysis_orders: QuerySet[AnalysisOrder]
     ) -> bool:
         if len(analysis_orders) == 1:
             analysis_order = get_object_or_404(
@@ -301,7 +301,7 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = OrderExtractionSampleTable
     filterset_class = OrderSampleFilter
 
-    def get_queryset(self) -> models.QuerySet[Sample]:
+    def get_queryset(self) -> QuerySet[Sample]:
         queryset = (
             super()
             .get_queryset()
@@ -361,7 +361,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = OrderAnalysisSampleTable
     filterset_class = SampleMarkerOrderFilter
 
-    def get_queryset(self) -> models.QuerySet[SampleMarkerAnalysis]:
+    def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
         return (
             super()
             .get_queryset()
@@ -391,7 +391,7 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = SampleTable
     filterset_class = SampleFilter
 
-    def get_queryset(self) -> models.QuerySet[Sample]:
+    def get_queryset(self) -> QuerySet[Sample]:
         return (
             super()
             .get_queryset()
@@ -432,7 +432,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
         return self._order
 
-    def get_table_data(self) -> list[Sample]:
+    def get_table_data(self) -> QuerySet[Sample]:
         order = self.get_order()
         samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
 
@@ -514,7 +514,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
 
     def assign_status_to_samples(
         self,
-        samples: models.QuerySet,
+        samples: QuerySet,
         status_name: str,
         request: HttpRequest,
     ) -> None:
@@ -543,7 +543,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
 
     # Checks if all samples in the order are isolated
     # If they are, it updates the order status to completed
-    def check_all_isolated(self, samples: models.QuerySet) -> None:
+    def check_all_isolated(self, samples: QuerySet) -> None:
         if not samples.filter(is_isolated=False).exists():
             self.get_order().to_next_status()
             messages.success(
@@ -558,7 +558,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             )
 
     def update_isolation_methods(
-        self, samples: models.QuerySet, isolation_method: str, request: HttpRequest
+        self, samples: QuerySet, isolation_method: str, request: HttpRequest
     ) -> None:
         selected_isolation_method = IsolationMethod.objects.filter(
             name=isolation_method
@@ -612,7 +612,7 @@ class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
     form_class = OrderStaffForm
     template_name = "staff/order_staff_edit.html"
 
-    def get_queryset(self) -> models.QuerySet[Order] | models.QuerySet[Genrequest]:
+    def get_queryset(self) -> QuerySet[Order] | QuerySet[Genrequest]:
         model_type = self._get_model_type()
         if model_type == "genrequest":
             return Genrequest.objects.all()
@@ -668,7 +668,7 @@ class StaffEditView(StaffMixin, SingleObjectMixin, TemplateView):
 class OrderToDraftActionView(SingleObjectMixin, ActionView):
     model = Order
 
-    def get_queryset(self) -> models.QuerySet[Order]:
+    def get_queryset(self) -> QuerySet[Order]:
         return super().get_queryset()
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -704,7 +704,7 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
 class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
     model = Order
 
-    def get_queryset(self) -> models.QuerySet[Order]:
+    def get_queryset(self) -> QuerySet[Order]:
         return Order.objects.all()
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -794,7 +794,7 @@ class ExtractionPlateDetailView(StaffMixin, DetailView):
 class SampleReplicaActionView(SingleObjectMixin, ActionView):
     model = Sample
 
-    def get_queryset(self) -> models.QuerySet[Sample]:
+    def get_queryset(self) -> QuerySet[Sample]:
         return (
             super()
             .get_queryset()
@@ -850,7 +850,7 @@ class ProjectDetailView(StaffMixin, DetailView):
 class ProjectValidateActionView(SingleObjectMixin, ActionView):
     model = Project
 
-    def get_queryset(self) -> models.QuerySet[Project]:
+    def get_queryset(self) -> QuerySet[Project]:
         return super().get_queryset().filter(verified_at=None)
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:

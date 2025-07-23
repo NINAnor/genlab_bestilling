@@ -385,7 +385,6 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "sample__name",
             )
         )
-        return qs
 
     def get_table_data(self) -> list[Sample]:
         order = self.get_order()

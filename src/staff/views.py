@@ -373,58 +373,27 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     model = SampleMarkerAnalysis
     table_class = OrderAnalysisSampleTable
     filterset_class = SampleMarkerOrderFilter
-    template_name = "staff/samplemarkeranalysis_filter.html"
 
     def get_order(self) -> AnalysisOrder:
         return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "sample__type", "sample__location", "sample__species", "marker"
-            )
-            .filter(order=self.kwargs["pk"])
-            .prefetch_related("sample__plate_positions")
-            .order_by(
-                "sample__species__name",
-                "sample__year",
-                "sample__location__name",
-                "sample__name",
-            )
-        )
-
-    def get_table_data(self) -> QuerySet[SampleMarkerAnalysis]:
-        order = self.get_order()
-        return SampleMarkerAnalysis.objects.filter(order=order).select_related(
+        return SampleMarkerAnalysis.objects.filter(
+            order=self.get_order()
+        ).select_related(
             "sample__type", "sample__location", "sample__species", "marker"
         )
-
-    def get_table(self, **kwargs) -> Any:
-        table = super().get_table(**kwargs)
-        table.order_pk = self.kwargs["pk"]  # Inject the pk into the table
-        return table
 
     def get_base_fields(self) -> list[str]:
         return self.VALID_STATUSES
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        order = self.get_order()
-        samples = self.get_table_data()
-
-        # Instantiate the filter with the current GET parameters
-        filterset = self.filterset_class(self.request.GET, queryset=samples)
-        self.object_list = filterset.qs  # Ensures get_table uses the filtered queryset
-        table = self.get_table()
 
         context.update(
             {
-                "order": order,
+                "order": self.get_order(),
                 "statuses": self.get_base_fields(),
-                "filter": filterset,
-                "table": table,
             }
         )
         return context
@@ -554,13 +523,13 @@ class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
 
-class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
+class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
     MARKED = "marked"
     PLUCKED = "plucked"
     ISOLATED = "isolated"
     VALID_STATUSES = [MARKED, PLUCKED, ISOLATED]
 
-    disable_pagination = False
+    table_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
     filterset_class = SampleLabFilter

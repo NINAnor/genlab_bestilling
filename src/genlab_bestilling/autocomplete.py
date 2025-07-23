@@ -21,8 +21,11 @@ class AreaAutocomplete(autocomplete.Select2QuerySetView):
 
 
 class StatusAutocomplete(autocomplete.Select2QuerySetView):
+    class Params:
+        q = "q"
+
     def get(self, request: "HttpRequest", *args, **kwargs) -> JsonResponse:
-        term = request.GET.get("q", "").lower()
+        term = request.GET.get(self.Params.q, "").lower()
         results = [
             {"id": choice[0], "text": choice[1]}
             for choice in Order.OrderStatus.choices

@@ -72,8 +72,11 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
 class DashboardView(StaffMixin, TemplateView):
     template_name = "staff/dashboard.html"
 
+    class Params:
+        area = "area"
+
     def get_area_from_query(self) -> Area | None:
-        area_id = self.request.GET.get("area")
+        area_id = self.request.GET.get(self.Params.area)
         if area_id:
             try:
                 return Area.objects.get(pk=area_id)
@@ -239,6 +242,9 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
 class MarkAsSeenView(StaffMixin, DetailView):
     model = Order
 
+    class Params:
+        return_to = "return_to"
+
     def get_object(self) -> Order:
         return Order.objects.get(pk=self.kwargs["pk"])
 
@@ -252,7 +258,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
             report_errors(e)
             messages.error(request, f"Error: {str(e)}")
 
-        return_to = request.POST.get("return_to")
+        return_to = request.POST.get(self.Params.return_to)
         return HttpResponseRedirect(self.get_return_url(return_to))
 
     def get_return_url(self, return_to: str | None) -> str:
@@ -310,6 +316,10 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     table_class = OrderExtractionSampleTable
     filterset_class = OrderSampleFilter
 
+    class Params:
+        sample_id = "sample_id"
+        next = "next"
+
     def get_queryset(self) -> QuerySet[Sample]:
         queryset = (
             super()
@@ -345,14 +355,14 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         return context
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        sample_id = request.POST.get("sample_id")
+        sample_id = request.POST.get(self.Params.sample_id)
 
         if sample_id:
             sample = get_object_or_404(Sample, pk=sample_id)
             sample.is_prioritised = not sample.is_prioritised
             sample.save()
 
-        next_url = request.POST.get("next")
+        next_url = request.POST.get(self.Params.next)
         if next_url and url_has_allowed_host_and_scheme(
             next_url, allowed_hosts=request.get_host()
         ):
@@ -373,6 +383,9 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
     model = SampleMarkerAnalysis
     table_class = OrderAnalysisSampleTable
     filterset_class = SampleMarkerOrderFilter
+
+    class Params:
+        status = "status"
 
     def get_order(self) -> AnalysisOrder:
         return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
@@ -404,7 +417,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        status_name = request.POST.get("status")
+        status_name = request.POST.get(self.Params.status)
         selected_ids = request.POST.getlist(f"checked-analysis-{self.get_order().pk}")
 
         if not selected_ids:
@@ -534,6 +547,10 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
     table_class = SampleStatusTable
     filterset_class = SampleLabFilter
 
+    class Params:
+        status = "status"
+        isolation_method = "isolation_method"
+
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
             self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
@@ -575,9 +592,9 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        status_name = request.POST.get("status")
+        status_name = request.POST.get(self.Params.status)
         selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
-        isolation_method = request.POST.get("isolation_method")
+        isolation_method = request.POST.get(self.Params.isolation_method)
 
         if not selected_ids:
             messages.error(request, "No samples selected.")
@@ -676,10 +693,15 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
 
 
 class UpdateInternalNote(StaffMixin, ActionView):
+    class Params:
+        sample_id = "sample_id"
+        field_name = "field_name"
+        field_value = "field_value"
+
     def post(self, request: HttpRequest, *args, **kwargs) -> JsonResponse:
-        sample_id = request.POST.get("sample_id")
-        field_name = request.POST.get("field_name")
-        field_value = request.POST.get("field_value")
+        sample_id = request.POST.get(self.Params.sample_id)
+        field_name = request.POST.get(self.Params.field_name)
+        field_value = request.POST.get(self.Params.field_value)
 
         if not sample_id or not field_name or field_value is None:
             return JsonResponse({"error": "Invalid input"}, status=400)
@@ -964,8 +986,11 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
 
 
 class OrderPrioritizedAdminView(StaffMixin, ActionView):
+    class Params:
+        next = "next"
+
     def get_success_url(self) -> str:
-        next_url = self.request.POST.get("next")
+        next_url = self.request.POST.get(self.Params.next)
         if next_url and url_has_allowed_host_and_scheme(
             next_url,
             allowed_hosts={self.request.get_host()},

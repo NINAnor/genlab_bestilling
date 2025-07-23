@@ -50,6 +50,9 @@ module.exports = {
      */
     "../../**/*.py",
   ],
+  safelist: [
+    "select2-selection--multiple", // ensure Tailwind keeps this
+  ],
   theme: {
     extend: {
       colors: {

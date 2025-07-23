@@ -27,11 +27,18 @@ class AnalysisOrderFilter(filters.FilterSet):
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
             },
         ),
+        empty_label="",
     )
 
     class Meta:
         model = AnalysisOrder
-        fields = ["id", "status", "genrequest__area", "responsible_staff"]
+        fields = [
+            "id",
+            "status",
+            "genrequest__area",
+            "responsible_staff",
+            "genrequest",
+        ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -73,6 +80,7 @@ class ExtractionOrderFilter(filters.FilterSet):
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
             },
         ),
+        empty_label="",
     )
 
     class Meta:
@@ -82,6 +90,7 @@ class ExtractionOrderFilter(filters.FilterSet):
             "status",
             "genrequest__area",
             "responsible_staff",
+            "genrequest",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -108,9 +117,7 @@ class ExtractionOrderFilter(filters.FilterSet):
             "responsible_staff"
         ].field.widget = autocomplete.ModelSelect2Multiple(
             url="autocomplete:staff-user",
-            attrs={
-                "class": "w-full",
-            },
+            attrs={"class": "select2-adjusted"},
         )
 
 

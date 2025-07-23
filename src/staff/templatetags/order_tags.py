@@ -12,12 +12,25 @@ from ..tables import (
     NewSeenOrderTable,
     NewUnseenOrderTable,
     UrgentOrderTable,
-    generate_order_links,
-    render_boolean,
     render_status_helper,
 )
 
 register = template.Library()
+
+
+def generate_order_links(orders: list) -> str:
+    if not orders:
+        return "-"
+    links = [
+        f'<a href="{order.get_absolute_staff_url()}">{order}</a>' for order in orders
+    ]
+    return mark_safe(", ".join(links))  # noqa: S308
+
+
+def render_boolean(value: bool) -> str:
+    if value:
+        return mark_safe('<i class="fa-solid fa-check text-green-500 fa-xl"></i>')
+    return mark_safe('<i class="fa-solid fa-xmark text-red-500 fa-xl"></i>')
 
 
 @register.inclusion_tag("staff/components/order_table.html", takes_context=True)

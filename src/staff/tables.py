@@ -3,8 +3,6 @@ from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
-from django.db import models
-from django.db.models.query import QuerySet
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -18,45 +16,12 @@ from genlab_bestilling.models import (
 )
 from nina.models import Project
 
-
-class StatusMixinTable(tables.Table):
-    status = tables.Column(
-        orderable=True,
-        verbose_name="Status",
-    )
-
-    def order_status(
-        self, queryset: QuerySet[Order], is_descending: bool
-    ) -> tuple[QuerySet[Order], bool]:
-        prefix = "-" if is_descending else ""
-        sorted_by_status = queryset.annotate(
-            status_order=models.Case(
-                models.When(status=Order.OrderStatus.DELIVERED, then=0),
-                models.When(status=Order.OrderStatus.DRAFT, then=1),
-                models.When(status=Order.OrderStatus.PROCESSING, then=2),
-                models.When(status=Order.OrderStatus.COMPLETED, then=3),
-            )
-        ).order_by(f"{prefix}status_order")
-
-        return (sorted_by_status, True)
-
-    def render_status(self, value: Order.OrderStatus, record: Order) -> str:
-        status_colors = {
-            "Processing": "bg-yellow-100 text-yellow-800",
-            "Completed": "bg-green-100 text-green-800",
-            "Delivered": "bg-red-100 text-red-800",
-        }
-        status_text = {
-            "Processing": "Processing",
-            "Completed": "Completed",
-            "Delivered": "Not started",
-            "Draft": "Draft",
-        }
-        color_class = status_colors.get(value, "bg-gray-100 text-gray-800")
-        status_text = status_text.get(value, "Unknown")
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
-        )
+from .mixins import (
+    OrderStatusMixinTable,
+    SampleStatusMixinTable,
+    StaffIDMixinTable,
+    render_status_helper,
+)
 
 
 class ProjectTable(tables.Table):
@@ -72,7 +37,7 @@ class ProjectTable(tables.Table):
         fields = ["number", "name", "active", "verified_at"]
 
 
-class OrderTable(StatusMixinTable):
+class OrderTable(OrderStatusMixinTable):
     id = tables.Column(
         linkify=True,
         orderable=False,
@@ -80,7 +45,7 @@ class OrderTable(StatusMixinTable):
         verbose_name="Order ID",
     )
 
-    def render_id(self, record: Any) -> str:
+    def render_id(self, record: Order) -> str:
         return str(record)
 
     priority = tables.TemplateColumn(
@@ -515,87 +480,13 @@ class StatusMixinTableSamples(tables.Table):
         verbose_name="Order Status", empty_values=(), orderable=True
     )
 
-    def render_order__status(self, record: Order) -> str:
-        return render_status_helper(record)
-
-
-def render_boolean(value: bool) -> str:
-    if value:
-        return mark_safe('<i class="fa-solid fa-check text-green-500 fa-xl"></i>')
-    return mark_safe('<i class="fa-solid fa-xmark text-red-500 fa-xl"></i>')
-
-
-def generate_order_links(orders: list) -> str:
-    if not orders:
+    def render_order__status(self, record: Sample) -> str:
+        if record.order and record.order.status:
+            return render_status_helper(record.order.status)
         return "-"
-    links = [
-        f'<a href="{order.get_absolute_staff_url()}">{order}</a>' for order in orders
-    ]
-    return mark_safe(", ".join(links))  # noqa: S308
 
 
-def render_status_helper(record: Order) -> str:
-    status_colors = {
-        Order.OrderStatus.PROCESSING: "bg-yellow-100 text-yellow-800",
-        Order.OrderStatus.COMPLETED: "bg-green-100 text-green-800",
-        Order.OrderStatus.DELIVERED: "bg-red-100 text-red-800",
-    }
-    status_text = {
-        Order.OrderStatus.PROCESSING: "Processing",
-        Order.OrderStatus.COMPLETED: "Completed",
-        Order.OrderStatus.DELIVERED: "Not started",
-        Order.OrderStatus.DRAFT: "Draft",
-    }
-    color_class = status_colors.get(record.status, "bg-gray-100 text-gray-800")
-    status_text = status_text.get(record.status, "Unknown")
-    return mark_safe(  # noqa: S308
-        f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {color_class}">{status_text}</span>'  # noqa: E501
-    )
-
-
-class StatusMixinTable(tables.Table):
-    status = tables.Column(
-        orderable=False,
-        verbose_name="Status",
-    )
-
-    def render_status(self, record: Order) -> str:
-        return render_status_helper(record)
-
-    def render_sample_status(self, value: Any, record: Sample) -> str:
-        order = record.order
-
-        # Determine status label
-        if isinstance(order, ExtractionOrder):
-            if record.is_isolated:
-                status = "Isolated"
-            elif record.is_plucked:
-                status = "Plucked"
-            elif record.is_marked:
-                status = "Marked"
-            else:
-                status = "Not started"
-        else:
-            status = getattr(order, "sample_status", "Unknown")
-
-        # Define color map
-        status_colors = {
-            "Marked": "bg-orange-100 text-orange-800",
-            "Plucked": "bg-yellow-100 text-yellow-800",
-            "Isolated": "bg-green-100 text-green-800",
-            "Not started": "bg-red-100 text-red-800",
-            "Unknown": "bg-gray-100 text-gray-800",
-        }
-
-        # Use computed status, not value
-        color_class = status_colors.get(status, "bg-gray-100 text-gray-800")
-
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status}</span>'  # noqa: E501
-        )
-
-
-class SampleTable(SampleBaseTable, StatusMixinTableSamples):
+class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTable):
     STATUS_PRIORITY = {
         "Not started": 0,
         "Marked": 1,
@@ -606,69 +497,47 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples):
     genlab_id = tables.Column(
         linkify=("staff:samples-detail", {"pk": tables.A("id")}),
         orderable=False,
-        empty_values=(),
+        empty_values=(None,),
+        verbose_name="Genlab ID",
     )
 
-    sample_status = tables.Column(
-        verbose_name="Sample Status", empty_values=(), orderable=True
-    )
+    guid = tables.Column(verbose_name="GUID")
 
     order__status = tables.Column(
         verbose_name="Order Status", empty_values=(), orderable=True
     )
 
+    def get_order_id_link(record: Sample) -> str:
+        if record.order:
+            return record.order.get_absolute_staff_url()
+        return ""
+
+    order__id = tables.Column(
+        linkify=get_order_id_link,
+        verbose_name="Order ID",
+    )
+
+    def render_order__id(self, value: int, record: Sample) -> str:
+        return str(record.order)
+
     class Meta(SampleBaseTable.Meta):
         fields = SampleBaseTable.Meta.fields + [
-            "order",
+            "order__id",
             "order__status",
             "order__genrequest__project",
             "order__responsible_staff",
         ]
         sequence = SampleBaseTable.Meta.sequence + [
             "sample_status",
-            "order",
+            "order__id",
             "order__status",
             "order__responsible_staff",
             "notes",
         ]
-        exclude = ["guid", "plate_positions", "checked", "is_prioritised"]
-
-    def order_sample_status(
-        self, records: Sequence[Any], is_descending: bool
-    ) -> tuple[list[Any], bool]:
-        def get_status_value(record: Any) -> int:
-            if isinstance(record.order, ExtractionOrder):
-                if record.is_isolated:
-                    return self.STATUS_PRIORITY["Isolated"]
-                if record.is_plucked:
-                    return self.STATUS_PRIORITY["Plucked"]
-                if record.is_marked:
-                    return self.STATUS_PRIORITY["Marked"]
-                return self.STATUS_PRIORITY["Not started"]
-            # fallback for other types of orders
-            return self.STATUS_PRIORITY.get(
-                getattr(record.order, "sample_status", ""), -1
-            )
-
-        sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
-        return (sorted_records, True)
+        exclude = ["plate_positions", "checked", "is_prioritised"]
 
 
-class StaffIDMixinTable(tables.Table):
-    id = tables.Column(
-        orderable=False,
-        empty_values=(),
-    )
-
-    def render_id(
-        self, record: ExtractionOrder | AnalysisOrder | EquipmentOrder
-    ) -> str:
-        url = record.get_absolute_staff_url()
-
-        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
-
-
-class UrgentOrderTable(StaffIDMixinTable, StatusMixinTable):
+class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
     priority = tables.TemplateColumn(
         orderable=False,
         verbose_name="Priority",
@@ -791,7 +660,7 @@ class NewSeenOrderTable(StaffIDMixinTable):
         template_name = "django_tables2/tailwind_inner.html"
 
 
-class AssignedOrderTable(StatusMixinTable, StaffIDMixinTable):
+class AssignedOrderTable(OrderStatusMixinTable, StaffIDMixinTable):
     sticky_header = True
 
     priority = tables.TemplateColumn(

@@ -239,6 +239,12 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
+    is_urgent = forms.TypedChoiceField(
+        label="Is the order urgent?",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+    )
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, **kwargs)

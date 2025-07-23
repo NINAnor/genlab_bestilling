@@ -212,6 +212,10 @@ class EquipmentQuantityCollection(ContextFormCollection):
             holder.reinit(self.context)
 
 
+class CustomCheckboxInput(forms.CheckboxInput):
+    template_name = "genlab_bestilling/widgets/custom_checkbox.html"
+
+
 YES_NO_CHOICES = ((False, "No"), (True, "Yes"))
 
 
@@ -239,11 +243,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
-    is_urgent = forms.TypedChoiceField(
-        label="Is the order urgent?",
-        coerce=lambda x: x == "True",
-        choices=YES_NO_CHOICES,
-        widget=forms.RadioSelect,
+    is_urgent = forms.BooleanField(
+        label="Is the order urgent?", required=False, widget=CustomCheckboxInput
     )
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):

@@ -40,7 +40,12 @@ class ProjectAdmin(ModelAdmin):
 
 @admin.register(ProjectMembership)
 class ProjectMembershipAdmin(ModelAdmin):
-    search_fields = ["project__number", "project__name", "user__email"]
-    list_filter = ["role"]
-    list_display = ["project", "user", "role"]
-    autocomplete_fields = ["project", "user"]
+    M = ProjectMembership
+    search_fields = [
+        f"{M.project.field.name}__{Project.number.field.name}",
+        f"{M.project.field.name}__{Project.name.field.name}",
+        f"{M.user.field.name}__email",
+    ]
+    list_filter = [M.role.field.name]
+    list_display = [M.project.field.name, M.user.field.name, M.role.field.name]
+    autocomplete_fields = [M.project.field.name, M.user.field.name]

@@ -340,7 +340,13 @@ class SampleStatusTable(tables.Table):
     )
 
     internal_note = tables.TemplateColumn(
-        template_name="staff/note_input_column.html", orderable=False
+        template_name="staff/note_input_column.html",
+        orderable=False,
+        attrs={
+            "td": {
+                "class": "relative",
+            },
+        },
     )
 
     marked = tables.BooleanColumn(

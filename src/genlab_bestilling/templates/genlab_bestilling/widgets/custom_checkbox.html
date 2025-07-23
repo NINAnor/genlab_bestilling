@@ -1,0 +1,12 @@
+<div class="flex items-center space-x-2">
+    <input type="checkbox"
+           name="{{ widget.name }}"
+           {% if widget.value %}checked{% endif %}
+           id="{{ widget.attrs.id }}"
+           class="custom-checkbox-input"
+           {% include "django/forms/widgets/attrs.html" %}>
+    <label for="{{ widget.attrs.id }}" class="bg-gray-600">
+        {{ widget.label }}
+    </label>
+    <label for="{{ widget.attrs.id }}" class="custom-checkbox-label">Is urgent</label>
+</div>

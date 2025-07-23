@@ -78,7 +78,6 @@ class OrderTable(OrderStatusMixinTable):
         accessor="responsible_staff",
         verbose_name="Assigned staff",
         orderable=False,
-        transform=lambda x: x.first_name + " " + x.last_name,
     )
 
     class Meta:

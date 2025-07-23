@@ -37,6 +37,6 @@ class OrderStaffForm(forms.Form):
 
     def get_all_staff(self) -> list[tuple[int, str]]:
         return [
-            (user.id, f"{user.first_name} {user.last_name}")
+            (user.id, f"{user}")
             for user in User.objects.filter(groups__name="genlab").all()
         ]

@@ -98,6 +98,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = AnalysisOrder
     table_class = AnalysisOrderTable
     filterset_class = AnalysisOrderFilter
+    table_pagination = {"per_page": 20}
 
     def get_queryset(self) -> QuerySet[AnalysisOrder]:
         return (
@@ -118,6 +119,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
     filterset_class = ExtractionOrderFilter
+    table_pagination = {"per_page": 20}
 
     def get_queryset(self) -> QuerySet[ExtractionOrder]:
         return (
@@ -159,6 +161,7 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = EquipmentOrder
     table_class = EquipmentOrderTable
     filterset_class = AnalysisOrderFilter
+    table_pagination = {"per_page": 20}
 
     def get_queryset(self) -> QuerySet[EquipmentOrder]:
         return (
@@ -520,7 +523,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 
 class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
-    table_pagination = False
+    table_pagination = {"per_page": 50}
 
     model = Sample
     table_class = SampleTable

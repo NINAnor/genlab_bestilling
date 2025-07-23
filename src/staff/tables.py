@@ -66,13 +66,9 @@ class OrderTable(OrderStatusMixinTable):
         orderable=True,
     )
 
-    genetic_project = tables.Column(
-        verbose_name="Genetic Project",
-        accessor="genrequest__id",
+    species = tables.ManyToManyColumn(
+        verbose_name="Species",
     )
-
-    def render_genetic_project(self, record: Order) -> str:
-        return record.genrequest.display_id()
 
     responsible_staff = tables.ManyToManyColumn(
         accessor="responsible_staff",
@@ -87,7 +83,7 @@ class OrderTable(OrderStatusMixinTable):
             "status",
             "area",
             "description",
-            "genetic_project",
+            "species",
             "total_samples",
             "responsible_staff",
         ]
@@ -126,6 +122,7 @@ class AnalysisOrderTable(OrderTable):
             "status",
             "area",
             "description",
+            "species",
             "total_samples",
             "markers",
             "responsible_staff",
@@ -166,6 +163,7 @@ class ExtractionOrderTable(OrderTable):
             "status",
             "area",
             "description",
+            "species",
             "total_samples",
             "total_samples_isolated",
             "responsible_staff",

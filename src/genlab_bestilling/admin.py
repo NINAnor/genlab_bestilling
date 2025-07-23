@@ -50,9 +50,15 @@ class AreaAdmin(ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "name", "status", "created_at"]
-    list_filter = ["status"]
-    search_fields = ["id", "name"]
+    M = Order
+    list_display = [
+        M.id.field.name,  # type: ignore[attr-defined]
+        M.name.field.name,
+        M.status.field.name,
+        M.created_at.field.name,
+    ]
+    list_filter = [M.status.field.name]
+    search_fields = [M.id.field.name, M.name.field.name]  # type: ignore[attr-defined]
 
 
 @admin.register(LocationType)

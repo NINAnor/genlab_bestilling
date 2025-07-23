@@ -155,6 +155,9 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
 
     add_home = False
 
+    class Params:
+        project = "project"
+
     @cached_property
     def crumbs(self) -> list[tuple]:
         return [
@@ -168,10 +171,8 @@ class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
     def get_form_kwargs(self) -> dict[str, Any]:
         kwargs = super().get_form_kwargs()
         kwargs["user"] = self.request.user
-        if self.request.GET.get("project"):
-            kwargs["project"] = Project.objects.filter(
-                pk=self.request.GET.get("project")
-            ).first()
+        if project := self.request.GET.get(self.Params.project):
+            kwargs["project"] = Project.objects.filter(pk=project).first()
         return kwargs
 
     def get_success_url(self) -> str:

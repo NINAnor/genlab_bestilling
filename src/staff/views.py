@@ -561,23 +561,13 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
         return self._order
 
-    def get_table_data(self) -> QuerySet[Sample]:
-        order = self.get_order()
-        samples = Sample.objects.filter(order=order, genlab_id__isnull=False)
-
-        for sample in samples:
-            sample.selected_isolation_method = (
-                sample.isolation_method.first()
-                if sample.isolation_method.exists()
-                else None
-            )
-
-        return samples
+    def get_queryset(self) -> QuerySet[Sample]:
+        return Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
-        order = self.get_order()
-        samples = Sample.objects.filter(order=order)
-        species_ids = samples.values_list("species_id", flat=True).distinct()
+        species_ids = (
+            self.get_queryset().values_list("species_id", flat=True).distinct()
+        )
 
         return (
             IsolationMethod.objects.filter(species_id__in=species_ids)
@@ -591,19 +581,12 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
-        samples = self.get_table_data()
-
-        # Instantiate the filter with the current GET parameters
-        filterset = self.filterset_class(self.request.GET, queryset=samples)
-        table = self.table_class(filterset.qs, request=self.request)
 
         context.update(
             {
                 "order": order,
                 "statuses": self.get_base_fields(),
                 "isolation_methods": self.get_isolation_methods(),
-                "filter": filterset,
-                "table": table,
             }
         )
         return context

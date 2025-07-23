@@ -685,46 +685,31 @@ class AssignedOrderTable(OrderStatusMixinTable, StaffIDMixinTable):
 class DraftOrderTable(StaffIDMixinTable):
     sticky_header = True
 
-    priority = tables.TemplateColumn(
-        orderable=False,
-        verbose_name="Priority",
-        template_name="staff/components/priority_column.html",
-    )
-
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
         orderable=False,
     )
 
-    delivery_date = tables.DateColumn(
-        verbose_name="Deadline",
-        orderable=False,
-        format="d/m/Y",
-        empty_values=(),
-    )
-
-    samples = tables.Column(
-        accessor="sample_count",
-        verbose_name="Samples",
+    contact_person = tables.Column(
+        accessor="contact_person",
+        verbose_name="Contact Person",
         orderable=False,
     )
 
-    markers = tables.ManyToManyColumn(
-        transform=lambda x: x.name,
-        verbose_name="Markers",
+    contact_email = tables.Column(
+        accessor="contact_email",
+        verbose_name="Contact Email",
         orderable=False,
     )
 
     class Meta:
         model = Order
         fields = [
-            "priority",
             "id",
             "description",
-            "delivery_date",
-            "markers",
-            "samples",
+            "contact_person",
+            "contact_email",
         ]
         empty_text = "No draft orders"
         template_name = "django_tables2/tailwind_inner.html"

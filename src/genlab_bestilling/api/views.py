@@ -1,6 +1,7 @@
 import contextlib
 import re
 import uuid
+from typing import Any
 
 from django.db import transaction
 from django.db.models import QuerySet
@@ -104,7 +105,7 @@ class SampleCSVExportMixin:
         labels = [self.FIELD_LABELS.get(f, f) for f in fields]
         return fields, labels
 
-    def get_nested(self, obj: dict, dotted: str) -> str | None:
+    def get_nested(self, obj: Any, dotted: str) -> Any:
         for part in dotted.split("."):
             obj = obj.get(part) if isinstance(obj, dict) else None
         return obj

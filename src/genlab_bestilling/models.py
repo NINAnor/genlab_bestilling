@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Sequence
 from datetime import timedelta
 from typing import Any
 
@@ -508,7 +509,7 @@ class ExtractionOrder(Order):
     @transaction.atomic
     def order_selected_checked(
         self,
-        selected_samples: list[int] | None = None,
+        selected_samples: Sequence[int | str] | None = None,
     ) -> None:
         """
         Partially set the order as checked by the lab staff,
@@ -522,7 +523,7 @@ class ExtractionOrder(Order):
             return
 
         Sample.objects.generate_genlab_ids(
-            order_id=self.id,
+            order_id=self.id,  # type: ignore[arg-type] # `self` has been saved first, so id is known to exists.
             selected_samples=selected_samples,
         )
 
@@ -746,7 +747,7 @@ class Sample(models.Model):
             ):
                 msg = "Invalid location for the selected species"
                 raise ValidationError(msg)
-        elif self.location_id and self.species.location_type_id:
+        elif self.species.location_type_id and self.location:
             # if the location is optional, but it's provided,
             # check it is compatible with the species
             if self.species.location_type_id not in self.location.types.values_list(
@@ -757,12 +758,21 @@ class Sample(models.Model):
 
         return False
 
+    class MissingOrder(Exception):
+        """
+        Exception raised when trying to generate a genlab_id without an ExtractionOrder.
+        """
+
     def generate_genlab_id(self, commit: bool = True) -> str:
         assert_is_in_atomic_block()
 
         if self.genlab_id:
             return self.genlab_id
         species = self.species
+
+        if not self.order:
+            raise self.MissingOrder
+
         year = self.order.confirmed_at.year
 
         sequence = GIDSequence.objects.get_sequence_for_species_year(

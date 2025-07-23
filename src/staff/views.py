@@ -66,7 +66,7 @@ class StaffMixin(LoginRequiredMixin, UserPassesTestMixin):
         ]
 
     def test_func(self) -> bool:
-        return self.request.user.is_superuser or self.request.user.is_genlab_staff()
+        return self.request.user.is_superuser or self.request.user.is_genlab_staff()  # type: ignore[attr-defined]
 
 
 class DashboardView(StaffMixin, TemplateView):
@@ -261,35 +261,41 @@ class MarkAsSeenView(StaffMixin, DetailView):
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
 
-    # Retrieves analysis orders associated with the samples in the extraction order
     def get_analysis_orders_for_samples(
         self, samples: QuerySet[Sample]
     ) -> QuerySet[AnalysisOrder]:
+        """
+        Retrieves analysis orders associated with the samples in the extraction order.
+        """
         return AnalysisOrder.objects.filter(samples__in=samples).distinct()
 
-    # Checks if the analysis orders have multiple extraction orders
-    # This is used to determine which type of link to show in the template
     def analysis_has_multiple_extraction_orders(
-        self, analysis_orders: QuerySet[AnalysisOrder]
+        self, *, analysis_orders: QuerySet[AnalysisOrder]
     ) -> bool:
-        if len(analysis_orders) == 1:
-            analysis_order = get_object_or_404(
-                AnalysisOrder, pk=analysis_orders.first().id
-            )
-            extraction_order_ids = analysis_order.samples.values_list(
-                "order_id", flat=True
-            ).distinct()
-            return extraction_order_ids.count() > 1
-        return False
+        """
+        Checks if the analysis orders have multiple extraction orders.
+        This is used to determine which type of link to show in the template.
+        """
+        if analysis_orders.count() != 1:
+            return False
+
+        analysis_order = analysis_orders.first()
+
+        extraction_order_ids = analysis_order.samples.values_list(  # type: ignore[union-attr] # We have already checked for existance.
+            "order_id", flat=True
+        ).distinct()
+        return extraction_order_ids.count() > 1
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         extraction_order = self.object
         samples = extraction_order.samples.all()
-        analysis_orders = self.get_analysis_orders_for_samples(samples)
+        analysis_orders = self.get_analysis_orders_for_samples(samples=samples)
         context["analysis_orders"] = analysis_orders
         context["analysis_has_multiple_extraction_orders"] = (
-            self.analysis_has_multiple_extraction_orders(analysis_orders)
+            self.analysis_has_multiple_extraction_orders(
+                analysis_orders=analysis_orders
+            )
         )
         return context
 

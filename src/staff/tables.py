@@ -215,9 +215,9 @@ class EquipmentOrderTable(tables.Table):
             "needs_guid",
             "sample_types",
         ]
-        sequence = ("is_seen", "is_urgent", "status", "id", "name")
+        sequence = ["is_seen", "is_urgent", "status", "id", "name"]
         empty_text = "No Orders"
-        order_by = ("-is_urgent", "last_modified_at", "created_at")
+        order_by = ["-is_urgent", "last_modified_at", "created_at"]
 
     def render_id(self, record: Any) -> str:
         return str(record)

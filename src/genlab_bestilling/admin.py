@@ -279,7 +279,7 @@ class EquipmentOrderAdmin(ModelAdmin):
     search_help_text = "Search for equipment name or id"
     search_fields = [
         EO.name.field.name,
-        EO.id.field.name,
+        EO.id.field.name,  # type: ignore[attr-defined]
     ]
     list_filter = [
         (EO.sample_types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
@@ -320,7 +320,7 @@ class ExtractionOrderAdmin(ModelAdmin):
     search_help_text = "Search for extraction name or id"
     search_fields = [
         EO.name.field.name,
-        EO.id.field.name,
+        EO.id.field.name,  # type: ignore[attr-defined]
     ]
     list_filter = [
         (EO.species.field.name, unfold_filters.AutocompleteSelectMultipleFilter),

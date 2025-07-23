@@ -8,6 +8,8 @@ from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 from shared.db import assert_is_in_atomic_block
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from django.db.models import QuerySet
 
     from capps.users.models import User
@@ -75,7 +77,7 @@ class SampleQuerySet(models.QuerySet):
     def generate_genlab_ids(
         self,
         order_id: int,
-        selected_samples: list[int] | None = None,
+        selected_samples: Sequence[int | str] | None = None,
     ) -> None:
         """
         genlab ids given a certain order_id, sorting order and sample ids

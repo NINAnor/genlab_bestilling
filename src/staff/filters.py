@@ -7,18 +7,32 @@ from django.db.models import QuerySet
 from django.http import HttpRequest
 from django_filters import BooleanFilter, CharFilter, ChoiceFilter
 
+from capps.users.models import User
 from genlab_bestilling.models import (
     AnalysisOrder,
+    Area,
     ExtractionOrder,
     ExtractionPlate,
     Order,
     Sample,
     SampleMarkerAnalysis,
+    Species,
 )
 
 
 class AnalysisOrderFilter(filters.FilterSet):
-    status = ChoiceFilter(
+    id = filters.CharFilter(
+        field_name="id",
+        label="Order ID",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "placeholder": "Enter Order ID",
+            }
+        ),
+    )
+
+    status = filters.ChoiceFilter(
         field_name="status",
         label="Status",
         choices=Order.OrderStatus.choices,
@@ -28,6 +42,36 @@ class AnalysisOrderFilter(filters.FilterSet):
             },
         ),
         empty_label="",
+    )
+
+    genrequest__area = filters.ModelChoiceFilter(
+        field_name="genrequest__area",
+        label="Area",
+        queryset=Area.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url="autocomplete:area",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    responsible_staff = filters.ModelMultipleChoiceFilter(
+        field_name="responsible_staff",
+        label="Assigned Staff",
+        queryset=User.objects.filter(groups__name="genlab"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:staff-user",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    genrequest__species = filters.ModelChoiceFilter(
+        field_name="genrequest__species",
+        label="Species",
+        queryset=Species.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url="autocomplete:species",
+            attrs={"class": "w-full"},
+        ),
     )
 
     class Meta:
@@ -37,40 +81,22 @@ class AnalysisOrderFilter(filters.FilterSet):
             "status",
             "genrequest__area",
             "responsible_staff",
-            "genrequest",
+            "genrequest__species",
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
-        self.filters["id"].field.label = "Order ID"
-        self.filters["id"].field.widget = forms.TextInput(
+class ExtractionOrderFilter(filters.FilterSet):
+    id = CharFilter(
+        field_name="id",
+        label="Order ID",
+        widget=forms.TextInput(
             attrs={
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
                 "placeholder": "Enter Order ID",
             }
-        )
+        ),
+    )
 
-        self.filters["genrequest__area"].field.label = "Area"
-        self.filters["genrequest__area"].field.widget = autocomplete.ModelSelect2(
-            url="autocomplete:area",
-            attrs={
-                "class": "w-full",
-            },
-        )
-
-        self.filters["responsible_staff"].field.label = "Assigned Staff"
-        self.filters[
-            "responsible_staff"
-        ].field.widget = autocomplete.ModelSelect2Multiple(
-            url="autocomplete:staff-user",
-            attrs={
-                "class": "w-full",
-            },
-        )
-
-
-class ExtractionOrderFilter(filters.FilterSet):
     status = ChoiceFilter(
         field_name="status",
         label="Status",
@@ -83,6 +109,36 @@ class ExtractionOrderFilter(filters.FilterSet):
         empty_label="",
     )
 
+    genrequest__area = filters.ModelChoiceFilter(
+        field_name="genrequest__area",
+        label="Area",
+        queryset=Area.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url="autocomplete:area",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    responsible_staff = filters.ModelMultipleChoiceFilter(
+        field_name="responsible_staff",
+        label="Assigned Staff",
+        queryset=User.objects.filter(groups__name="genlab"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:staff-user",
+            attrs={"class": "select2-adjusted"},
+        ),
+    )
+
+    genrequest__species = filters.ModelChoiceFilter(
+        field_name="genrequest__species",
+        label="Species",
+        queryset=Species.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url="autocomplete:species",
+            attrs={"class": "w-full"},
+        ),
+    )
+
     class Meta:
         model = ExtractionOrder
         fields = [
@@ -90,35 +146,8 @@ class ExtractionOrderFilter(filters.FilterSet):
             "status",
             "genrequest__area",
             "responsible_staff",
-            "genrequest",
+            "genrequest__species",
         ]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.filters["id"].field.label = "Order ID"
-        self.filters["id"].field.widget = forms.TextInput(
-            attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
-                "placeholder": "Enter Order ID",
-            }
-        )
-
-        self.filters["genrequest__area"].field.label = "Area"
-        self.filters["genrequest__area"].field.widget = autocomplete.ModelSelect2(
-            url="autocomplete:area",
-            attrs={
-                "class": "w-full",
-            },
-        )
-
-        self.filters["responsible_staff"].field.label = "Assigned Staff"
-        self.filters[
-            "responsible_staff"
-        ].field.widget = autocomplete.ModelSelect2Multiple(
-            url="autocomplete:staff-user",
-            attrs={"class": "select2-adjusted"},
-        )
 
 
 class OrderSampleFilter(filters.FilterSet):

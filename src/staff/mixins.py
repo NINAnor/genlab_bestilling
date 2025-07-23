@@ -72,7 +72,7 @@ class OrderStatusMixinTable(tables.Table):
         return (sorted_by_status, True)
 
     def render_status(self, value: Order.OrderStatus, record: Order) -> str:
-        return render_status_helper(record)
+        return render_status_helper(record.status)
 
 
 class SampleStatusMixinTable(tables.Table):

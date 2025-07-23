@@ -693,14 +693,10 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             name=isolation_method
         ).first()
 
-        try:
-            im = IsolationMethod.objects.filter(
-                name=selected_isolation_method.name
-            ).first()
-        except IsolationMethod.DoesNotExist:
+        if selected_isolation_method is None:
             messages.error(
                 request,
-                f"Isolation method '{selected_isolation_method.name}' not found.",
+                f"Isolation method '{isolation_method}' not found.",
             )
             return
 
@@ -709,7 +705,9 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
             SampleIsolationMethod.objects.filter(sample=sample).delete()
 
             # Add the new one
-            SampleIsolationMethod.objects.create(sample=sample, isolation_method=im)
+            SampleIsolationMethod.objects.create(
+                sample=sample, isolation_method=selected_isolation_method
+            )
         messages.success(
             request,
             f"{samples.count()} samples updated with isolation method '{isolation_method}'.",  # noqa: E501

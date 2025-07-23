@@ -392,7 +392,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
             )
         )
 
-    def get_table_data(self) -> list[Sample]:
+    def get_table_data(self) -> QuerySet[SampleMarkerAnalysis]:
         order = self.get_order()
         return SampleMarkerAnalysis.objects.filter(order=order).select_related(
             "sample__type", "sample__location", "sample__species", "marker"

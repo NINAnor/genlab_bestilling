@@ -268,7 +268,7 @@ def extraction_order_detail_table(order: Order) -> dict:
         "Order ID": order.id,
         "Genetic Project": order.genrequest,
         "Species": order.species.name,
-        "Status": render_status_helper(order),
+        "Status": render_status_helper(order.status),
         "Name": order.name,
         "Notes": "-" if order.notes == "" else order.notes,
         "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")
@@ -301,7 +301,7 @@ def analysis_order_detail_table(order: Order) -> dict:
     fields = {
         "Order ID": order.id,
         "Genetic Project": order.genrequest,
-        "Status": render_status_helper(order),
+        "Status": render_status_helper(order.status),
         "Name": order.name,
         "Notes": "-" if order.notes == "" else order.notes,
         "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")

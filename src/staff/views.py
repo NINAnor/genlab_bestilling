@@ -445,7 +445,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, TemplateView):
 
         return samples
 
-    def get_isolation_methods(self) -> list[str]:
+    def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
         order = self.get_order()
         samples = Sample.objects.filter(order=order)
         species_ids = samples.values_list("species_id", flat=True).distinct()

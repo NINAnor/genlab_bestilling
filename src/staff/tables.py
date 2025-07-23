@@ -325,7 +325,6 @@ class SampleStatusTable(tables.Table):
     """
 
     checked = tables.CheckBoxColumn(
-        accessor="pk",
         orderable=False,
         attrs={
             "th__input": {
@@ -408,7 +407,6 @@ class OrderExtractionSampleTable(SampleBaseTable):
 
 class OrderAnalysisSampleTable(tables.Table):
     checked = tables.CheckBoxColumn(
-        accessor="pk",
         orderable=False,
         attrs={
             "th__input": {
@@ -422,26 +420,48 @@ class OrderAnalysisSampleTable(tables.Table):
         verbose_name="Mark",
     )
 
+    has_pcr = tables.BooleanColumn(
+        verbose_name="Has PCR",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="has_pcr",
+    )
+
+    is_analysed = tables.BooleanColumn(
+        verbose_name="Analysed",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_analysed",
+    )
+    is_outputted = tables.BooleanColumn(
+        verbose_name="Is Outputted",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_outputted",
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
         fields = [
             "checked",
-            "sample.genlab_id",
-            "sample.type",
+            "sample__genlab_id",
+            "sample__type",
             "marker",
             "has_pcr",
             "is_analysed",
             "is_outputted",
-            "sample.internal_note",
-            "sample.order",
+            "sample__internal_note",
+            "sample__order",
         ]
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
-    def render_checked(self, record: Any) -> str:
-        order_pk = getattr(self, "order_pk", None)
+    def render_checked(self, record: SampleMarkerAnalysis) -> str:
         return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-analysis-{order_pk}" value="{record.id}">'  # noqa: E501
+            f'<input type="checkbox" name="checked-analysis-{record.order.id}" value="{record.id}">'  # noqa: E501
         )
 
 

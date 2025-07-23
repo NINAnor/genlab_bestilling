@@ -25,7 +25,7 @@ class OrderStaffForm(forms.Form):
     def __init__(self, *args, order: Order | Genrequest | None = None, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields["responsible_staff"].choices = self.get_all_staff()
+        self.fields["responsible_staff"].choices = self.get_all_staff()  # type: ignore[attr-defined]
 
         if order:
             self.fields["responsible_staff"].initial = [

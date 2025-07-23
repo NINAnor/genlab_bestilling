@@ -30,7 +30,7 @@ class ActionForm(forms.Form):
         bound_field_class=None,
         **kwargs,
     ) -> None:
-        super().__init__(
+        super().__init__(  # type: ignore[call-arg]
             data=data,
             files=files,
             auto_id=auto_id,

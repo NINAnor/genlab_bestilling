@@ -73,7 +73,7 @@ class SampleSerializer(serializers.ModelSerializer):
         try:
             return obj.has_error
         except exceptions.ValidationError as e:
-            return e.detail[0]
+            return e.detail[0]  # type: ignore[return-value,index]  # TODO: check if this is actually bool.
 
     class Meta:
         model = Sample
@@ -186,7 +186,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
         try:
             return obj.has_error
         except exceptions.ValidationError as e:
-            return e.detail[0]
+            return e.detail[0]  # type: ignore[return-value,index] # TODO: check if this is actually bool.
 
     class Meta:
         model = Sample

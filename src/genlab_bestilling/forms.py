@@ -35,7 +35,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
         self.user = user
 
         if "project" in self.fields:
-            self.fields[
+            self.fields[  # type: ignore[attr-defined]
                 "project"
             ].queryset = Project.objects.filter_selectable().filter(
                 memberships=user,
@@ -121,7 +121,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
         self.genrequest = genrequest
 
         # self.fields["species"].queryset = genrequest.species.all()
-        self.fields["sample_types"].queryset = genrequest.sample_types.all()
+        self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
 
     def save(self, commit: bool = True) -> EquipmentOrder:
         obj = super().save(commit=False)
@@ -167,9 +167,9 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
         return obj
 
     def clean(self) -> None:
-        cleaned_data = super().clean()
+        cleaned_data = super().clean() or {}
 
-        if not cleaned_data["equipment"] and not cleaned_data["buffer"]:
+        if not cleaned_data.get("equipment") and not cleaned_data.get("buffer"):
             msg = "Equipment and/or Buffer should be filled"
             raise ValidationError(msg)
 
@@ -249,8 +249,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "for this order to help you find it later"
         )
 
-        self.fields["species"].queryset = genrequest.species.all()
-        self.fields["sample_types"].queryset = genrequest.sample_types.all()
+        self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
+        self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
         # self.fields["markers"].queryset = Marker.objects.filter(
         #     species__genrequests__id=genrequest.id
         # ).distinct()
@@ -307,12 +307,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "for this order to help you find it later"
         )
 
-        self.fields["markers"].queryset = Marker.objects.filter(
+        self.fields["markers"].queryset = Marker.objects.filter(  # type: ignore[attr-defined]
             genrequest__id=genrequest.id
         ).distinct()
         self.fields["markers"].required = True
         if "from_order" in self.fields:
-            self.fields["from_order"].queryset = ExtractionOrder.objects.filter(
+            self.fields["from_order"].queryset = ExtractionOrder.objects.filter(  # type: ignore[attr-defined]
                 genrequest_id=genrequest.id,
             ).exclude(status=Order.OrderStatus.DRAFT)
             self.fields["from_order"].help_text = (

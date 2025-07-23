@@ -93,7 +93,7 @@ class ProjectCreateView(FormsetCreateView):
     def get_success_url(self) -> str:
         return reverse(
             "nina:project-detail",
-            kwargs={"pk": self.object.pk},
+            kwargs={"pk": self.object.pk},  # type: ignore[union-attr]
         )
 
 

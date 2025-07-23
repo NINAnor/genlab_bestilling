@@ -27,6 +27,8 @@ def isolate(order_id: int | str) -> None:
                     position = 0
 
                 ExtractPlatePosition.objects.create(
-                    plate=plate, sample=sample, position=position
+                    plate=plate,
+                    sample=sample,
+                    position=position,  # type: ignore[misc]
                 )
                 position += 1

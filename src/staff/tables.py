@@ -525,7 +525,6 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             .select_related("marker")
             .distinct("marker__name")
         )
-        print(marker_qs)
         if not marker_qs.exists():
             return "-"
         return ", ".join([sma.marker.name for sma in marker_qs])

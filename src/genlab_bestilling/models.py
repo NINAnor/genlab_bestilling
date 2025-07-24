@@ -816,13 +816,12 @@ class SampleIsolationMethod(models.Model):
 
 
 class IsolationMethod(models.Model):
-    name = models.CharField(max_length=255, unique=False)
-    species = models.ForeignKey(
-        f"{an}.Species",
+    name = models.CharField(max_length=255)
+    type = models.ForeignKey(
+        f"{an}.SampleType",
         on_delete=models.CASCADE,
-        related_name="species_isolation_methods",
-        help_text="The species this isolation method is related to.",
-        default=None,
+        related_name="type_isolation_methods",
+        help_text="The sample type this isolation method is related to.",
     )
 
     def __str__(self) -> str:

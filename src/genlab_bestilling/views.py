@@ -852,7 +852,6 @@ class AnalysisOrderCreateView(
         )
 
     # Override form_invalid to show errors in the form
-    # instead of just redirecting to the success URL.
     def form_invalid(self, form: Form) -> HttpResponse:
         for field, errors in form.errors.items():
             field_obj = form.fields.get(field)

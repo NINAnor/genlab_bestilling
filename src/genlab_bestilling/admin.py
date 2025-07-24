@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db.models import QuerySet
+from django.http import HttpRequest
 from unfold.admin import ModelAdmin
 from unfold.contrib.filters import admin as unfold_filters
 
@@ -542,20 +544,25 @@ class AnalysisResultAdmin(ModelAdmin):
 @admin.register(IsolationMethod)
 class IsolationMethodAdmin(ModelAdmin):
     M = IsolationMethod
+
     list_display = [
         M.name.field.name,
-        M.type.field.name,
+        "get_sample_types",
     ]
 
-    search_help_text = "Search for isolation method name or species name"
-    search_fields = [
-        M.name.field.name,
-        f"{M.type.field.name}__{Species.name.field.name}",
-    ]
+    search_help_text = "Search for isolation method name"
+    search_fields = [M.name.field.name]
     list_filter = [
         (M.name.field.name, unfold_filters.FieldTextFilter),
-        (M.type.field.name, unfold_filters.AutocompleteSelectFilter),
+        (M.sample_types.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
     ]
-    autocomplete_fields = [M.type.field.name]
+    autocomplete_fields = [M.sample_types.field.name]
+    filter_horizontal = [M.sample_types.field.name]
     list_filter_submit = True
     list_filter_sheet = False
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[IsolationMethod]:
+        return super().get_queryset(request).prefetch_related("sample_types")
+
+    def get_sample_types(self, obj: IsolationMethod) -> str:
+        return ", ".join([sample_type.name for sample_type in obj.sample_types.all()])

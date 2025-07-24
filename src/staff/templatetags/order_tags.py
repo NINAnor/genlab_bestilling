@@ -2,7 +2,7 @@ from collections import Counter
 
 from django import template
 from django.db import models
-from django.utils.html import format_html
+from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -356,16 +356,11 @@ def contact_detail_table(order: Order) -> dict:
             .distinct()
         )
         if result_contacts:
-            contact_rows = []
-            for name, email in result_contacts:
-                html = format_html(
-                    '<div>{} — <a href="mailto:{}" class="text-blue-700 underline !text-blue-700">{}</a></div>',  # noqa: E501
-                    name,
-                    email,
-                    email,
-                )
-                contact_rows.append(html)
-            result_contacts_html = mark_safe("".join(contact_rows))  # noqa: S308
+            result_contacts_html = format_html_join(
+                "\n",
+                '<div>{} — <a href="mailto:{}" class="text-blue-700 underline !text-blue-700">{}</a></div>',  # noqa: E501
+                [(name, email, email) for name, email in result_contacts],
+            )
 
     fields = {
         "Samples owner of genetic project": order.genrequest.samples_owner,

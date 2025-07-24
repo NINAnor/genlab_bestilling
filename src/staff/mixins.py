@@ -132,3 +132,27 @@ class SampleStatusMixinTable(tables.Table):
 
         sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
         return (sorted_records, True)
+
+
+class PriorityMixinTable(tables.Table):
+    priority = tables.TemplateColumn(
+        orderable=True,
+        verbose_name="Priority",
+        template_name="staff/components/priority_column.html",
+    )
+
+    def order_priority(
+        self, queryset: QuerySet[Order], is_descending: bool
+    ) -> tuple[QuerySet[Order], bool]:
+        prefix = "-" if is_descending else ""
+        queryset = queryset.annotate(
+            priority_order=models.Case(
+                models.When(is_urgent=True, then=2),
+                models.When(is_prioritized=True, then=1),
+                default=0,
+                output_field=models.IntegerField(),
+            )
+        )
+        sorted_by_priority = queryset.order_by(f"{prefix}priority_order")
+
+        return (sorted_by_priority, True)

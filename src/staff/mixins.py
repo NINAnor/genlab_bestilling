@@ -4,7 +4,9 @@ from typing import Any
 import django_tables2 as tables
 from django.db import models
 from django.db.models.query import QuerySet
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
+from django.views.generic import View
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -156,3 +158,43 @@ class PriorityMixinTable(tables.Table):
         sorted_by_priority = queryset.order_by(f"{prefix}priority_order")
 
         return (sorted_by_priority, True)
+
+
+class SafeRedirectMixin(View):
+    """Mixin to provide safe redirection after a successful form submission.
+    This mixin checks for a 'next' parameter in the request and validates it
+    to ensure it is a safe URL before redirecting. If no valid 'next' URL is found,
+    it falls back to a method that must be implemented in the view to define
+    a default redirect URL.
+    """
+
+    next_param = "next"
+
+    def get_fallback_url(self) -> str:
+        msg = "You must override get_fallback_url()"
+        raise NotImplementedError(msg)
+
+    def has_next_url(self) -> bool:
+        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
+            self.next_param
+        )
+        return bool(
+            next_url
+            and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={self.request.get_host()},
+                require_https=self.request.is_secure(),
+            )
+        )
+
+    def get_next_url(self) -> str:
+        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
+            self.next_param
+        )
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return next_url
+        return self.get_fallback_url()

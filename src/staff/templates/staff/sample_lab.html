@@ -1,6 +1,7 @@
 {% extends "staff/base.html" %}
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags static %}
+{% load next_input %}
 
 {% block content %}
 <h3 class="text-4xl mb-5">{% block page-title %}{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}{% endblock page-title %}</h3>
@@ -21,7 +22,7 @@
 
     <form method="post" action="{% url 'staff:order-extraction-samples-lab' order.pk %}">
         {% csrf_token %}
-        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        {% next_url_input %}
         {% for status in statuses %}
             <button class="btn custom_order_button_green" type="submit" name="status" value="{{ status }}">
                 {{ status|capfirst }}

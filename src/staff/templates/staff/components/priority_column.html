@@ -1,10 +1,12 @@
+{% load next_input %}
+
 {% if record.is_urgent %}
   <i class="fa-solid fa-exclamation fa-lg text-red-500" title="Urgent"></i>
 {% else %}
   <form method="post" action="{% url 'staff:order-priority' pk=record.pk %}">
     {% csrf_token %}
 
-    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+    {% next_url_input %}
 
     {% comment %}Outlined flag icon does not work using the <i></i> tag, so also using the SVG for the filled flag icon for consistency. If it can be fixed in the future it should.{% endcomment %}
 

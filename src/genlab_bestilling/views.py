@@ -831,6 +831,9 @@ class AnalysisOrderCreateView(
         ]
 
     def get_success_url(self) -> str:
+        # Clear any leftover error messages before redirect
+        list(messages.get_messages(self.request))
+
         obj: AnalysisOrder = self.object  # type: ignore[assignment] # Possibly None
         if obj.from_order:
             return reverse(
@@ -847,6 +850,15 @@ class AnalysisOrderCreateView(
                 "pk": self.object.id,  # type: ignore[union-attr]
             },
         )
+
+    # Override form_invalid to show errors in the form
+    # instead of just redirecting to the success URL.
+    def form_invalid(self, form: Form) -> HttpResponse:
+        for field, errors in form.errors.items():
+            label = form.fields.get(field).label if field in form.fields else field
+            for error in errors:
+                messages.error(self.request, f"{label}: {error}")
+        return super().form_invalid(form)
 
 
 class ExtractionOrderCreateView(

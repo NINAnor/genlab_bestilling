@@ -3,8 +3,11 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as CoreValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Model
+from django.utils.html import strip_tags
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DualSortableSelector, Selectize, TextInput
@@ -338,6 +341,29 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         self.fields["contact_person"].label = "Responsible genetic researcher"
         self.fields["contact_email"].label = "Responsible genetic researcher email"
 
+    def clean_contact_email_results(self) -> str:
+        emails_raw = self.cleaned_data.get("contact_email_results", "")
+        emails = [e.strip() for e in emails_raw.split(",") if e.strip()]
+
+        try:
+            for email in emails:
+                validate_email(email)
+        except CoreValidationError:
+            msg = f"Invalid email: {email}"
+            raise forms.ValidationError(msg) from CoreValidationError(msg)
+        return ", ".join(emails)
+
+    def clean_contact_person_results(self) -> str:
+        names_raw = self.cleaned_data.get("contact_person_results", "")
+        names = [n.strip() for n in names_raw.split(",") if n.strip()]
+
+        for name in names:
+            # Optionally allow hyphens and apostrophes in names
+            if not all(c.isalpha() or c.isspace() or c in "-'" for c in name):
+                msg = f"Invalid name: {name}"
+                raise forms.ValidationError(msg) from CoreValidationError(msg)
+        return ", ".join(names)
+
     def save(self, commit: bool = True) -> Model:
         if not commit:
             msg = "This form is always committed"
@@ -362,13 +388,13 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             obj.results_contacts.all().delete()
 
             names = [
-                n.strip()
-                for n in self.cleaned_data.get("contact_person_results", "").split(",")
+                strip_tags(n.strip())
+                for n in self.cleaned_data["contact_person_results"].split(",")
                 if n.strip()
             ]
             emails = [
-                e.strip()
-                for e in self.cleaned_data.get("contact_email_results", "").split(",")
+                strip_tags(e.strip())
+                for e in self.cleaned_data["contact_email_results"].split(",")
                 if e.strip()
             ]
 

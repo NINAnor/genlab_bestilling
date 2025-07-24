@@ -18,6 +18,7 @@ from nina.models import Project
 
 from .mixins import (
     OrderStatusMixinTable,
+    PriorityMixinTable,
     SampleStatusMixinTable,
     StaffIDMixinTable,
     render_status_helper,
@@ -37,7 +38,7 @@ class ProjectTable(tables.Table):
         fields = ["number", "name", "active", "verified_at"]
 
 
-class OrderTable(OrderStatusMixinTable):
+class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
     id = tables.Column(
         linkify=True,
         orderable=False,
@@ -47,12 +48,6 @@ class OrderTable(OrderStatusMixinTable):
 
     def render_id(self, record: Order) -> str:
         return str(record)
-
-    priority = tables.TemplateColumn(
-        orderable=True,
-        verbose_name="Priority",
-        template_name="staff/components/priority_column.html",
-    )
 
     area = tables.Column(
         accessor="genrequest__area__name",
@@ -88,7 +83,7 @@ class OrderTable(OrderStatusMixinTable):
             "responsible_staff",
         ]
         empty_text = "No Orders"
-        order_by = ["-is_urgent"]
+        order_by = ["-priority", "status"]
 
 
 class AnalysisOrderTable(OrderTable):
@@ -553,14 +548,12 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__id",
             "order__status",
             "order__genrequest__project",
-            "order__responsible_staff",
         ]
         sequence = SampleBaseTable.Meta.sequence + [
             "sample_status",
             "analysis_markers",
             "order__id",
             "order__status",
-            "order__responsible_staff",
             "notes",
         ]
         exclude = ["plate_positions", "checked", "is_prioritised"]

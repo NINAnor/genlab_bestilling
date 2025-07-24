@@ -5,24 +5,55 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('genlab_bestilling', '0032_alter_isolationmethod_remove_species_add_type_20250722_1226'),
+        (
+            "genlab_bestilling",
+            "0032_alter_isolationmethod_remove_species_add_type_20250722_1226",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='order',
-            name='contact_person',
-            field=models.CharField(help_text='Responsible for genetic bioinformatics analysis', null=True),
+            model_name="order",
+            name="contact_person",
+            field=models.CharField(
+                help_text="Responsible for genetic bioinformatics analysis", null=True
+            ),
         ),
         migrations.CreateModel(
-            name='AnalysisOrderResultsCommunication',
+            name="AnalysisOrderResultsCommunication",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('contact_person_results', models.CharField(help_text='Person to contact for analysis resuls', null=True)),
-                ('contact_email_results', models.EmailField(help_text='Email to send analysis results', max_length=254, null=True)),
-                ('analysis_order', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='results_contacts', to='genlab_bestilling.analysisorder')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "contact_person_results",
+                    models.CharField(
+                        help_text="Person to contact for analysis resuls", null=True
+                    ),
+                ),
+                (
+                    "contact_email_results",
+                    models.EmailField(
+                        help_text="Email to send analysis results",
+                        max_length=254,
+                        null=True,
+                    ),
+                ),
+                (
+                    "analysis_order",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="results_contacts",
+                        to="genlab_bestilling.analysisorder",
+                    ),
+                ),
             ],
         ),
     ]

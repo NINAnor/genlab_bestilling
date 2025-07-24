@@ -467,6 +467,11 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
             (str(self.object), ""),
         ]
 
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["results_contacts"] = self.object.results_contacts.all()
+        return context
+
     def get_queryset(self) -> QuerySet:
         return (
             super()

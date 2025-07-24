@@ -704,13 +704,13 @@ class DraftOrderTable(StaffIDMixinTable):
 
     contact_person = tables.Column(
         accessor="contact_person",
-        verbose_name="Contact Person",
+        verbose_name="Responsible genetic researcher",
         orderable=False,
     )
 
     contact_email = tables.Column(
         accessor="contact_email",
-        verbose_name="Contact Email",
+        verbose_name="Responsible genetic researcher email",
         orderable=False,
     )
 

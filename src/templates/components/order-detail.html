@@ -14,7 +14,7 @@
     {% for f, v in fields.items %}
     <tr>
         {% #table-cell %}{{ f }}{% /table-cell %}
-        {% #table-cell %}{{ v }}{% /table-cell %}
+        {% #table-cell %}{{ v|safe }}{% /table-cell %}
     </tr>
     {% endfor %}
     {% /table %}

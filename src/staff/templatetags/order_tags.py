@@ -2,9 +2,15 @@ from collections import Counter
 
 from django import template
 from django.db import models
+from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
-from genlab_bestilling.models import Area, Order
+from genlab_bestilling.models import (
+    AnalysisOrder,
+    AnalysisOrderResultsCommunication,
+    Area,
+    Order,
+)
 
 from ..tables import (
     AssignedOrderTable,
@@ -339,11 +345,32 @@ def analysis_order_samples_detail_table(order: Order, extraction_orders: dict) -
 
 @register.inclusion_tag("../templates/components/order-detail.html")
 def contact_detail_table(order: Order) -> dict:
+    # Default values
+    result_contacts_html = "—"
+
+    # Only fetch contacts if it's an AnalysisOrder instance
+    if isinstance(order, AnalysisOrder):
+        result_contacts = (
+            AnalysisOrderResultsCommunication.objects.filter(analysis_order=order)
+            .values_list("contact_person_results", "contact_email_results")
+            .distinct()
+        )
+        if result_contacts:
+            result_contacts_html = mark_safe(  # noqa: S308
+                format_html_join(
+                    "",
+                    '<div>{} — <a href="mailto:{}" class="text-blue-700 underline !text-blue-700">{}</a></div>',  # noqa: E501
+                    [(name, email, email) for name, email in result_contacts],
+                )
+            )
+
     fields = {
         "Samples owner of genetic project": order.genrequest.samples_owner,
         "Contact person": order.contact_person,
         "Contact Email": order.contact_email,
+        "Contacts for analysis results": result_contacts_html,
     }
+
     return {
         "fields": fields,
         "header": "Contact",

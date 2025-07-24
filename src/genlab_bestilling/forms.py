@@ -14,6 +14,7 @@ from nina.models import Project
 from .libs.formset import ContextFormCollection
 from .models import (
     AnalysisOrder,
+    AnalysisOrderResultsCommunication,
     EquimentOrderQuantity,
     EquipmentOrder,
     ExtractionOrder,
@@ -122,6 +123,12 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 
         # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
+        self.fields[
+            "contact_person"
+        ].help_text = "Person to contact with questions about this order"
+        self.fields[
+            "contact_email"
+        ].help_text = "Email to contact with questions about this order"
 
     def save(self, commit: bool = True) -> EquipmentOrder:
         obj = super().save(commit=False)
@@ -258,9 +265,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
-        # self.fields["markers"].queryset = Marker.objects.filter(
-        #     species__genrequests__id=genrequest.id
-        # ).distinct()
+        self.fields["contact_person"].label = "Responsible genetic researcher"
+        self.fields["contact_email"].label = "Responsible genetic researcher email"
 
     def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)
@@ -329,10 +335,14 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 " with the sample selection by pressing Submit"
             )
 
+        self.fields["contact_person"].label = "Responsible genetic researcher"
+        self.fields["contact_email"].label = "Responsible genetic researcher email"
+
     def save(self, commit: bool = True) -> Model:
         if not commit:
             msg = "This form is always committed"
             raise NotImplementedError(msg)
+
         with transaction.atomic():
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
@@ -342,9 +352,39 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
             if obj.from_order and not obj.name and obj.from_order.name:
                 obj.name = obj.from_order.name + " - Analysis"
+
             obj.save()
             self.save_m2m()
             obj.populate_from_order()
+
+            # Save AnalysisOrderResultsCommunication objects
+            # Delete old entries first (in case of resubmission)
+            obj.results_contacts.all().delete()
+
+            names = [
+                n.strip()
+                for n in self.cleaned_data.get("contact_person_results", "").split(",")
+                if n.strip()
+            ]
+            emails = [
+                e.strip()
+                for e in self.cleaned_data.get("contact_email_results", "").split(",")
+                if e.strip()
+            ]
+
+            if names or emails:
+                if len(names) != len(emails):
+                    raise ValidationError(
+                        "The number of names must match the number of emails."  # noqa: EM101
+                    )
+
+                for name, email in zip(names, emails, strict=False):
+                    AnalysisOrderResultsCommunication.objects.create(
+                        analysis_order=obj,
+                        contact_person_results=name,
+                        contact_email_results=email,
+                    )
+
             return obj
 
     def clean(self) -> None:
@@ -353,6 +393,18 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         if cleaned_data.get("use_all_samples") and not cleaned_data.get("from_order"):
             msg = "An extraction order must be selected"
             raise ValidationError(msg)
+
+    contact_person_results = forms.CharField(
+        label="Contact person(s) for results",
+        help_text="Comma-separated list of names to contact with results",
+        required=False,
+    )
+
+    contact_email_results = forms.CharField(
+        label="Contact email(s) for results",
+        help_text="Comma-separated list of emails to contact with results (must match order of names)",  # noqa: E501
+        required=False,
+    )
 
     field_order = [
         "name",

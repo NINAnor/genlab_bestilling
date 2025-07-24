@@ -1,8 +1,7 @@
-from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
-from django.db import models
+from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query import QuerySet
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.safestring import mark_safe
@@ -63,11 +62,13 @@ class OrderStatusMixinTable(tables.Table):
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
         sorted_by_status = queryset.annotate(
-            status_order=models.Case(
-                models.When(status=Order.OrderStatus.DELIVERED, then=0),
-                models.When(status=Order.OrderStatus.DRAFT, then=1),
-                models.When(status=Order.OrderStatus.PROCESSING, then=2),
-                models.When(status=Order.OrderStatus.COMPLETED, then=3),
+            status_order=Case(
+                When(status=Order.OrderStatus.DELIVERED, then=0),
+                When(status=Order.OrderStatus.DRAFT, then=1),
+                When(status=Order.OrderStatus.PROCESSING, then=2),
+                When(status=Order.OrderStatus.COMPLETED, then=3),
+                default=Value(4),
+                output_field=IntegerField(),
             )
         ).order_by(f"{prefix}status_order")
 
@@ -84,9 +85,9 @@ class SampleStatusMixinTable(tables.Table):
 
     def render_sample_status(self, value: Any, record: Sample) -> str:
         order = record.order
+        status = "Unknown"
 
-        # Determine status label
-        if isinstance(order, ExtractionOrder):
+        if order:
             if record.is_isolated:
                 status = "Isolated"
             elif record.is_plucked:
@@ -95,8 +96,6 @@ class SampleStatusMixinTable(tables.Table):
                 status = "Marked"
             else:
                 status = "Not started"
-        else:
-            status = getattr(order, "sample_status", "Unknown")
 
         # Define color map
         status_colors = {
@@ -115,25 +114,19 @@ class SampleStatusMixinTable(tables.Table):
         )
 
     def order_sample_status(
-        self, records: Sequence[Any], is_descending: bool
-    ) -> tuple[list[Any], bool]:
-        def get_status_value(record: Any) -> int:
-            if isinstance(record.order, ExtractionOrder):
-                if record.is_isolated:
-                    return self.STATUS_PRIORITY["Isolated"]
-                if record.is_plucked:
-                    return self.STATUS_PRIORITY["Plucked"]
-                if record.is_marked:
-                    return self.STATUS_PRIORITY["Marked"]
-                return self.STATUS_PRIORITY["Not started"]
-
-            # fallback for other types of orders
-            return self.STATUS_PRIORITY.get(
-                getattr(record.order, "sample_status", ""), -1
-            )
-
-        sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
-        return (sorted_records, True)
+        self, queryset: QuerySet[Sample], is_descending: bool
+    ) -> tuple[QuerySet[Sample], bool]:
+        prefix = "-" if is_descending else ""
+        status_order = Case(
+            When(is_isolated=True, then=Value(3)),
+            When(is_plucked=True, then=Value(2)),
+            When(is_marked=True, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+        annotated_queryset = queryset.annotate(sample_status_order=status_order)
+        sorted_queryset = annotated_queryset.order_by(f"{prefix}sample_status_order")
+        return (sorted_queryset, True)
 
 
 class PriorityMixinTable(tables.Table):
@@ -148,11 +141,11 @@ class PriorityMixinTable(tables.Table):
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
         queryset = queryset.annotate(
-            priority_order=models.Case(
-                models.When(is_urgent=True, then=2),
-                models.When(is_prioritized=True, then=1),
+            priority_order=Case(
+                When(is_urgent=True, then=2),
+                When(is_prioritized=True, then=1),
                 default=0,
-                output_field=models.IntegerField(),
+                output_field=IntegerField(),
             )
         )
         sorted_by_priority = queryset.order_by(f"{prefix}priority_order")

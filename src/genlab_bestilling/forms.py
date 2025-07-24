@@ -3,7 +3,7 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ValidationError as CoreValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Model
@@ -348,9 +348,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         try:
             for email in emails:
                 validate_email(email)
-        except CoreValidationError:
+        except DjangoValidationError:
             msg = f"Invalid email: {email}"
-            raise forms.ValidationError(msg) from CoreValidationError(msg)
+            raise forms.ValidationError(msg) from DjangoValidationError(msg)
         return ", ".join(emails)
 
     def clean_contact_person_results(self) -> str:
@@ -361,7 +361,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             # Optionally allow hyphens and apostrophes in names
             if not all(c.isalpha() or c.isspace() or c in "-'" for c in name):
                 msg = f"Invalid name: {name}"
-                raise forms.ValidationError(msg) from CoreValidationError(msg)
+                raise forms.ValidationError(msg) from DjangoValidationError(msg)
         return ", ".join(names)
 
     def save(self, commit: bool = True) -> Model:
@@ -400,9 +400,8 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
             if names or emails:
                 if len(names) != len(emails):
-                    raise ValidationError(
-                        "The number of names must match the number of emails."  # noqa: EM101
-                    )
+                    msg = "The number of names must match the number of emails."
+                    raise ValidationError(msg)
 
                 for name, email in zip(names, emails, strict=False):
                     AnalysisOrderResultsCommunication.objects.create(

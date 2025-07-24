@@ -863,6 +863,12 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, View):
             messages.error(request, "No samples were selected.")
             return HttpResponseRedirect(self.get_return_url())
 
+        if not self.object.confirmed_at:
+            messages.error(
+                request, "Order needs to be confirmed before generating genlab IDs"
+            )
+            return HttpResponseRedirect(self.get_return_url())
+
         try:
             self.object.order_selected_checked(selected_samples=selected_ids)
             messages.add_message(

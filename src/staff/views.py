@@ -3,8 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Case, Count, IntegerField, QuerySet, Value, When
-from django.db.models.functions import Cast
+from django.db.models import Count, QuerySet
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -322,24 +321,13 @@ class OrderExtractionSamplesListView(
         sample_id = "sample_id"
 
     def get_queryset(self) -> QuerySet[Sample]:
-        queryset = (
+        return (
             super()
             .get_queryset()
             .select_related("type", "location", "species")
             .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
-        )
-
-        # added to sort based on type (int/str)
-        return queryset.annotate(
-            name_as_int=Case(
-                When(
-                    name__regex=r"^\d+$",
-                    then=Cast("name", IntegerField()),
-                ),
-                default=Value(None),
-                output_field=IntegerField(),
-            )
+            .annotate_numeric_name()
         )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:

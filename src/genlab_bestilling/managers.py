@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
+from django.db.models import BigIntegerField, Case, QuerySet, Value, When
+from django.db.models.functions import Cast
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 from shared.db import assert_is_in_atomic_block
@@ -71,6 +73,24 @@ class SampleQuerySet(models.QuerySet):
         """
         return self.select_related("order").filter(
             order__status=self.model.OrderStatus.DRAFT
+        )
+
+    def annotate_numeric_name(self) -> QuerySet:
+        """
+        Create a new column with the numeric version of the name.
+        Only if the name is a valid integer, and up to 18 digits, so it fit in a
+        BigIntegerField.
+        """
+
+        return self.annotate(
+            name_as_int=Case(
+                When(
+                    name__regex=r"^\d{,18}$",
+                    then=Cast("name", BigIntegerField()),
+                ),
+                default=Value(None),
+                output_field=BigIntegerField(),
+            )
         )
 
     @transaction.atomic

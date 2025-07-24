@@ -542,6 +542,12 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
     def render_order__id(self, value: int, record: Sample) -> str:
         return str(record.order)
 
+    makers = tables.ManyToManyColumn(
+        accessor="markers",
+        verbose_name="Markers",
+        orderable=False,
+    )
+
     class Meta(SampleBaseTable.Meta):
         fields = SampleBaseTable.Meta.fields + (
             "order__id",
@@ -550,6 +556,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
         )  # type: ignore[assignment]
         sequence = SampleBaseTable.Meta.sequence + (
             "sample_status",
+            "markers",
             "order__id",
             "order__status",
             "notes",

@@ -521,10 +521,7 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "order__genrequest",
                 "order__genrequest__project",
             )
-            .prefetch_related(
-                "plate_positions",
-                "order__responsible_staff",
-            )
+            .prefetch_related("plate_positions", "order__responsible_staff", "markers")
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .order_by("species__name", "year", "location__name", "name")
         )

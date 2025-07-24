@@ -855,7 +855,8 @@ class AnalysisOrderCreateView(
     # instead of just redirecting to the success URL.
     def form_invalid(self, form: Form) -> HttpResponse:
         for field, errors in form.errors.items():
-            label = form.fields.get(field).label if field in form.fields else field
+            field_obj = form.fields.get(field)
+            label = field_obj.label if field_obj is not None else field
             for error in errors:
                 messages.error(self.request, f"{label}: {error}")
         return super().form_invalid(form)

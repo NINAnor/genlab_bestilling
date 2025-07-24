@@ -57,6 +57,8 @@ SAMPLE_CSV_FIELD_LABELS = {
     "re_extracted_qiagen#": "Re-extracted Qiagen#",
     "weight_g_for_diet_analysis": "Weight (g) for Diet Analysis",
     "position": "Position",
+    "genlab_sample_id": "Genlab_sample_ID",
+    "dna_extract_guid": "DNAextract_GUID",
 }
 
 SAMPLE_CSV_FIELDS_BY_AREA = {
@@ -156,6 +158,25 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
         "re_extracted_date",
         "re_extracted_qiagen#",
         "weight_g_for_diet_analysis",
+    ],
+    "MiljøDNA": [
+        "genlab_id",
+        "genlab_sample_id",
+        "guid",
+        "dna_extract_guid",
+        "name",
+        "type.name",
+        "species.name",
+        "location.name",
+        "delivered_to_lab",
+        "order",
+        "analysis_orders",
+        "notes",
+        "is_marked",
+        "is_plucked",
+        "is_isolated",
+        "isolation_method",
+        "qiagen_number",
     ],
     "default": [
         "genlab_id",

@@ -9,10 +9,9 @@ from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, TemplateView, View
+from django.views.generic import CreateView, DetailView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -33,6 +32,7 @@ from genlab_bestilling.models import (
 from nina.models import Project
 from shared.sentry import report_errors
 from shared.views import ActionView
+from staff.mixins import SafeRedirectMixin
 
 from .filters import (
     AnalysisOrderFilter,
@@ -309,7 +309,9 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
         return context
 
 
-class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
+class OrderExtractionSamplesListView(
+    StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
+):
     table_pagination = False
 
     model = Sample
@@ -318,7 +320,6 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     class Params:
         sample_id = "sample_id"
-        next = "next"
 
     def get_queryset(self) -> QuerySet[Sample]:
         queryset = (
@@ -354,26 +355,29 @@ class OrderExtractionSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         )
         return context
 
+    def get_fallback_url(self) -> str:
+        return reverse(
+            "staff:order-extraction-samples", kwargs={"pk": self.kwargs["pk"]}
+        )
+
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         sample_id = request.POST.get(self.Params.sample_id)
-
         if sample_id:
             sample = get_object_or_404(Sample, pk=sample_id)
             sample.is_prioritised = not sample.is_prioritised
             sample.save()
 
-        next_url = request.POST.get(self.Params.next)
-        if next_url and url_has_allowed_host_and_scheme(
-            next_url, allowed_hosts=request.get_host()
-        ):
-            return redirect(next_url)
+        if self.has_next_url():
+            return HttpResponseRedirect(self.get_next_url())
 
         return self.get(
             request, *args, **kwargs
         )  # Re-render the view with updated data
 
 
-class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
+class OrderAnalysisSamplesListView(
+    StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
+):
     PCR = "pcr"
     ANALYSED = "analysed"
     OUTPUT = "output"
@@ -411,7 +415,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         )
         return context
 
-    def get_success_url(self) -> str:
+    def get_fallback_url(self) -> str:
         return reverse(
             "staff:order-analysis-samples", kwargs={"pk": self.get_order().pk}
         )
@@ -422,7 +426,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
         if not selected_ids:
             messages.error(request, "No samples selected.")
-            return HttpResponseRedirect(self.get_success_url())
+            return HttpResponseRedirect(self.get_next_url())
 
         order = self.get_order()
 
@@ -435,7 +439,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 self.check_all_output(SampleMarkerAnalysis.objects.filter(order=order))
             else:
                 self.get_order().to_processing()
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
         index = self.VALID_STATUSES.index(status_name)
@@ -536,7 +540,7 @@ class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
 
-class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
+class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView):
     MARKED = "marked"
     PLUCKED = "plucked"
     ISOLATED = "isolated"
@@ -583,7 +587,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
         )
         return context
 
-    def get_success_url(self) -> str:
+    def get_fallback_url(self) -> str:
         return reverse(
             "staff:order-extraction-samples-lab", kwargs={"pk": self.get_order().pk}
         )
@@ -595,7 +599,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
 
         if not selected_ids:
             messages.error(request, "No samples selected.")
-            return HttpResponseRedirect(self.get_success_url())
+            return HttpResponseRedirect(self.get_next_url())
 
         order = self.get_order()
 
@@ -610,7 +614,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
                 self.check_all_isolated(Sample.objects.filter(order=order))
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
-        return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
         index = self.VALID_STATUSES.index(status_name)
@@ -847,11 +851,16 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, View):
+class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
     model = ExtractionOrder
 
     def get_object(self) -> ExtractionOrder:
         return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+
+    def get_fallback_url(self) -> str:
+        return reverse_lazy(
+            "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
+        )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         self.object = self.get_object()
@@ -861,13 +870,13 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, View):
 
         if not selected_ids:
             messages.error(request, "No samples were selected.")
-            return HttpResponseRedirect(self.get_return_url())
+            return HttpResponseRedirect(self.get_next_url())
 
         if not self.object.confirmed_at:
             messages.error(
                 request, "Order needs to be confirmed before generating genlab IDs"
             )
-            return HttpResponseRedirect(self.get_return_url())
+            return HttpResponseRedirect(self.get_next_url())
 
         try:
             self.object.order_selected_checked(selected_samples=selected_ids)
@@ -884,12 +893,7 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, View):
                 f"Error: {str(e)}",
             )
 
-        return HttpResponseRedirect(self.get_return_url())
-
-    def get_return_url(self) -> str:
-        return reverse_lazy(
-            "staff:order-extraction-samples", kwargs={"pk": self.object.pk}
-        )
+        return HttpResponseRedirect(self.get_next_url())
 
 
 class ExtractionPlateCreateView(StaffMixin, CreateView):
@@ -988,19 +992,8 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
         return HttpResponseRedirect(self.get_success_url())
 
 
-class OrderPrioritizedAdminView(StaffMixin, ActionView):
-    class Params:
-        next = "next"
-
-    def get_success_url(self) -> str:
-        next_url = self.request.POST.get(self.Params.next)
-        if next_url and url_has_allowed_host_and_scheme(
-            next_url,
-            allowed_hosts={self.request.get_host()},
-            require_https=self.request.is_secure(),
-        ):
-            return next_url
-
+class OrderPrioritizedAdminView(StaffMixin, SafeRedirectMixin, ActionView):
+    def get_fallback_url(self) -> str:
         return reverse("staff:dashboard")
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
@@ -1008,4 +1001,4 @@ class OrderPrioritizedAdminView(StaffMixin, ActionView):
         order = Order.objects.get(pk=pk)
         order.toggle_prioritized()
 
-        return redirect(self.get_success_url())
+        return redirect(self.get_next_url())

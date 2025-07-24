@@ -93,8 +93,8 @@ class SampleCSVExportMixin:
         self,
         area_name: str,
         queryset: QuerySet,
-        fields_by_area: dict[str, list[str]],
-    ) -> tuple[list[str], list[str]]:
+        fields_by_area: dict[str, tuple[str, ...]],
+    ) -> tuple[tuple[str, ...], list[str]]:
         get_fields = area_name
         if area_name == "Akvatisk":
             species = queryset.values_list("species__name", flat=True).distinct()
@@ -113,7 +113,7 @@ class SampleCSVExportMixin:
     def build_csv_data(
         self,
         serialized_data: list[dict],
-        fields: list[str],
+        fields: tuple[str, ...],
         area_name: str,
     ) -> list[dict[str, str]]:
         rows = []
@@ -150,7 +150,7 @@ class SampleCSVExportMixin:
         self,
         queryset: QuerySet,
         serializer_class: type[BaseSerializer],
-        fields_by_area: dict[str, list[str]],
+        fields_by_area: dict[str, tuple[str, ...]],
         filename: str = "export.csv",
     ) -> HttpResponse:
         area_name = self.get_area_name(queryset)

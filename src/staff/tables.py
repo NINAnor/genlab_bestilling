@@ -519,6 +519,22 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
         verbose_name="Order Status", empty_values=(), orderable=True
     )
 
+    def render_analysis_markers(self, record: Sample) -> str:
+        marker_qs = (
+            SampleMarkerAnalysis.objects.filter(sample=record)
+            .select_related("marker")
+            .distinct("marker__name")
+        )
+        if not marker_qs.exists():
+            return "-"
+        return ", ".join([sma.marker.name for sma in marker_qs])
+
+    analysis_markers = tables.Column(
+        verbose_name="Analysis Markers",
+        accessor="pk",
+        orderable=False,
+    )
+
     def get_order_id_link(record: Sample) -> str:
         if record.order:
             return record.order.get_absolute_staff_url()
@@ -541,6 +557,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
         ]
         sequence = SampleBaseTable.Meta.sequence + [
             "sample_status",
+            "analysis_markers",
             "order__id",
             "order__status",
             "order__responsible_staff",

@@ -665,14 +665,8 @@ class NewSeenOrderTable(StaffIDMixinTable):
         template_name = "django_tables2/tailwind_inner.html"
 
 
-class AssignedOrderTable(OrderStatusMixinTable, StaffIDMixinTable):
+class AssignedOrderTable(OrderStatusMixinTable, PriorityMixinTable, StaffIDMixinTable):
     sticky_header = True
-
-    priority = tables.TemplateColumn(
-        orderable=False,
-        verbose_name="Priority",
-        template_name="staff/components/priority_column.html",
-    )
 
     description = tables.Column(
         accessor="genrequest__name",
@@ -695,6 +689,7 @@ class AssignedOrderTable(OrderStatusMixinTable, StaffIDMixinTable):
         model = Order
         fields = ["priority", "id", "description", "samples_completed", "status"]
         empty_text = "No assigned orders"
+        order_by = ["-priority", "status"]
         template_name = "django_tables2/tailwind_inner.html"
 
 

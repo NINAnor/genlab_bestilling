@@ -58,7 +58,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = Genrequest
-        fields = [
+        fields = (
             "project",
             "name",
             "area",
@@ -69,7 +69,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "expected_total_samples",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
-        ]
+        )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
             "samples_owner": Selectize(search_lookup="name_icontains"),
@@ -101,7 +101,7 @@ class GenrequestEditForm(GenrequestForm):
         )
 
     class Meta(GenrequestForm.Meta):
-        fields = [
+        fields = (
             "area",
             "name",
             "species",
@@ -110,7 +110,7 @@ class GenrequestEditForm(GenrequestForm):
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
             "expected_total_samples",
-        ]
+        )  # type: ignore[assignment]
 
 
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
@@ -133,7 +133,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = EquipmentOrder
-        fields = [
+        fields = (
             "name",
             "needs_guid",
             # "species",
@@ -143,7 +143,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             # "species": DualSortableSelector(
             #     search_lookup="name_icontains",
@@ -175,7 +175,7 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
 
     class Meta:
         model = EquimentOrderQuantity
-        fields = ["id", "equipment", "buffer", "buffer_quantity", "quantity"]
+        fields = ("id", "equipment", "buffer", "buffer_quantity", "quantity")
         widgets = {
             "equipment": Selectize(search_lookup="name_icontains"),
             "buffer": Selectize(search_lookup="name_icontains"),
@@ -272,7 +272,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = ExtractionOrder
-        fields = [
+        fields = (
             "name",
             "needs_guid",
             "species",
@@ -284,7 +284,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             "species": DualSortableSelector(
                 search_lookup="name_icontains",
@@ -365,7 +365,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = AnalysisOrder
-        fields = [
+        fields = (
             "name",
             "from_order",
             "markers",
@@ -375,7 +375,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             "name": TextInput(
                 attrs={"df-show": ".from_order==''||.use_all_samples=='False'"}
@@ -393,7 +393,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
 class AnalysisOrderUpdateForm(AnalysisOrderForm):
     class Meta(AnalysisOrderForm.Meta):
-        fields = [
+        fields = (
             "name",
             "markers",
             # "from_order",
@@ -403,7 +403,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )  # type: ignore[assignment]
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)

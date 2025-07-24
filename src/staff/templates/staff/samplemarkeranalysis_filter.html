@@ -23,6 +23,7 @@
 
 <form method="post" action="{% url 'staff:order-analysis-samples' order.pk %}">
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
     {% for status in statuses %}
         <button class="btn custom_order_button_green" type="submit" name="status" value="{{ status }}">
             {% if status == "pcr" %}

@@ -386,6 +386,7 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
     class Params:
         status = "status"
+        next = "next"
 
     def get_order(self) -> AnalysisOrder:
         return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
@@ -411,7 +412,15 @@ class OrderAnalysisSamplesListView(StaffMixin, SingleTableMixin, FilterView):
         )
         return context
 
+    # Get full url to keep sorting after page reload
     def get_success_url(self) -> str:
+        next_url = self.request.POST.get(self.Params.next)
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return next_url
         return reverse(
             "staff:order-analysis-samples", kwargs={"pk": self.get_order().pk}
         )
@@ -550,6 +559,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
     class Params:
         status = "status"
         isolation_method = "isolation_method"
+        next = "next"
 
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
@@ -583,7 +593,15 @@ class SampleLabView(StaffMixin, SingleTableMixin, FilterView):
         )
         return context
 
+    # Get full url to keep sorting after page reload
     def get_success_url(self) -> str:
+        next_url = self.request.POST.get(self.Params.next)
+        if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            return next_url
         return reverse(
             "staff:order-extraction-samples-lab", kwargs={"pk": self.get_order().pk}
         )

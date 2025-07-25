@@ -425,7 +425,7 @@ class OrderAnalysisSampleTable(tables.Table):
     )
 
     has_pcr = tables.BooleanColumn(
-        verbose_name="Has PCR",
+        verbose_name="PCR",
         orderable=True,
         yesno="✔,-",
         default=False,
@@ -440,11 +440,21 @@ class OrderAnalysisSampleTable(tables.Table):
         accessor="is_analysed",
     )
     is_outputted = tables.BooleanColumn(
-        verbose_name="Is Outputted",
+        verbose_name="Output",
         orderable=True,
         yesno="✔,-",
         default=False,
         accessor="is_outputted",
+    )
+
+    sample__internal_note = tables.TemplateColumn(
+        template_name="staff/note_input_column.html",
+        orderable=False,
+        attrs={
+            "td": {
+                "class": "relative",
+            },
+        },
     )
 
     class Meta:

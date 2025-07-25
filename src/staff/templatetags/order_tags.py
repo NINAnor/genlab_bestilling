@@ -11,6 +11,7 @@ from genlab_bestilling.models import (
     Area,
     Order,
 )
+from staff.forms import ResponsibleStaffForm
 
 from ..tables import (
     AssignedOrderTable,
@@ -22,6 +23,16 @@ from ..tables import (
 )
 
 register = template.Library()
+
+
+@register.inclusion_tag("staff/components/responsible_staff_multiselect.html")
+def responsible_staff_multiselect(order: Order | None = None) -> dict:
+    form = ResponsibleStaffForm(order=order)
+    return {
+        "form": form,
+        "order": order,
+        "media": form.media,
+    }
 
 
 def generate_order_links(orders: list) -> str:

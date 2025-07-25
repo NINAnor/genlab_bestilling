@@ -1,0 +1,30 @@
+{% block css %}
+  {{ media.css }}
+  <style>
+    .select2-container {
+      width: 200px !important;
+    }
+    .select2-container--default .select2-selection--multiple {
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      padding: 0.25rem;
+      min-height: 2.5rem;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+      color: white;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+    }
+  </style>
+{% endblock %}
+
+{% block head_javascript %}
+  {{ media.js }}
+{% endblock %}
+
+<form class="responsible-staff-form" data-update-url="{% url 'staff:order-assign-staff' pk=order.id %}">
+  {% csrf_token %}
+  {{ form }}
+</form>

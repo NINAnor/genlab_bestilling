@@ -114,6 +114,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
+            .prefetch_related("samples__species")
             .annotate(total_samples=Count("samples"))
         )
 
@@ -269,6 +270,10 @@ class MarkAsSeenView(StaffMixin, DetailView):
 
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
+
+    # Prefetch species to avoid N+1 queries when accessing species in the template
+    def get_queryset(self) -> QuerySet[ExtractionOrder]:
+        return super().get_queryset().prefetch_related("species")
 
     def get_analysis_orders_for_samples(
         self, samples: QuerySet[Sample]

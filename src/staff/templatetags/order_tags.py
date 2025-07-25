@@ -273,7 +273,7 @@ def extraction_order_detail_table(order: Order) -> dict:
     fields = {
         "Order ID": order.id,
         "Genetic Project": order.genrequest,
-        "Species": order.species.name,
+        "Species": ", ".join(str(s) for s in order.species.all()),
         "Status": render_status_helper(order.status),
         "Name": order.name,
         "Notes": "-" if order.notes == "" else order.notes,

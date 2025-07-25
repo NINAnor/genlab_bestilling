@@ -167,10 +167,13 @@ class SafeRedirectMixin(View):
         msg = "You must override get_fallback_url()"
         raise NotImplementedError(msg)
 
-    def has_next_url(self) -> bool:
-        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
+    def get_next_url_from_request(self) -> str | None:
+        return self.request.POST.get(self.next_param) or self.request.GET.get(
             self.next_param
         )
+
+    def has_next_url(self) -> bool:
+        next_url = self.get_next_url_from_request()
         return bool(
             next_url
             and url_has_allowed_host_and_scheme(
@@ -181,13 +184,7 @@ class SafeRedirectMixin(View):
         )
 
     def get_next_url(self) -> str:
-        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
-            self.next_param
-        )
-        if next_url and url_has_allowed_host_and_scheme(
-            next_url,
-            allowed_hosts={self.request.get_host()},
-            require_https=self.request.is_secure(),
-        ):
+        next_url = self.get_next_url_from_request()
+        if next_url and self.has_next_url():
             return next_url
         return self.get_fallback_url()

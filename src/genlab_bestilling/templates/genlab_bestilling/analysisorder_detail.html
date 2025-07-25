@@ -44,7 +44,9 @@
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}
         {% action-button action=confirm_order_url class="btn custom_order_button" submit_text="Deliver order" csrf_token=csrf_token %}
         {% action-button action=clone_order_url class="btn custom_order_button" submit_text="Clone Order" csrf_token=csrf_token %}
+        {% if all_samples_have_no_genlab_id %}
         <a class="btn custom_order_button_red" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
+        {% endif %}
         {% elif object.status == object.OrderStatus.DELIVERED %}
         <a class="btn custom_order_button" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}

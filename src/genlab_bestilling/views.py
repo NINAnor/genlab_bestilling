@@ -467,6 +467,15 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
             (str(self.object), ""),
         ]
 
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        all_samples_have_no_genlab_id = not self.object.samples.exclude(
+            genlab_id__isnull=True
+        ).exists()
+        context["all_samples_have_no_genlab_id"] = all_samples_have_no_genlab_id
+        context["results_contacts"] = self.object.results_contacts.all()
+        return context
+
     def get_queryset(self) -> QuerySet:
         return (
             super()
@@ -498,6 +507,15 @@ class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):
             ),
             (str(self.object), ""),
         ]
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        order = self.object
+        all_samples_have_no_genlab_id = not order.samples.exclude(
+            genlab_id__isnull=True
+        ).exists()
+        context["all_samples_have_no_genlab_id"] = all_samples_have_no_genlab_id
+        return context
 
 
 class GenrequestOrderDeleteView(GenrequestNestedMixin, DeleteView):
@@ -808,6 +826,9 @@ class AnalysisOrderCreateView(
         ]
 
     def get_success_url(self) -> str:
+        # Clear any leftover error messages before redirect
+        list(messages.get_messages(self.request))
+
         obj: AnalysisOrder = self.object  # type: ignore[assignment] # Possibly None
         if obj.from_order:
             return reverse(
@@ -824,6 +845,15 @@ class AnalysisOrderCreateView(
                 "pk": self.object.id,  # type: ignore[union-attr]
             },
         )
+
+    # Override form_invalid to show errors in the form
+    def form_invalid(self, form: Form) -> HttpResponse:
+        for field, errors in form.errors.items():
+            field_obj = form.fields.get(field)
+            label = field_obj.label if field_obj is not None else field
+            for error in errors:
+                messages.error(self.request, f"{label}: {error}")
+        return super().form_invalid(form)
 
 
 class ExtractionOrderCreateView(

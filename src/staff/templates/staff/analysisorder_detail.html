@@ -19,7 +19,9 @@
         {% if not object.is_seen %}
             <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
                 {% csrf_token %}
-                <button class="btn bg-purple-50 text-purple-900 border border-purple-800 hover:bg-purple-300" type="submit">Mark as seen</button>
+                <button class="btn btn-sm bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
+                    <p><i class="fa-solid fa-circle-check"></i> Mark as seen</p>
+                </button>
             </form>
         {% endif %}
 

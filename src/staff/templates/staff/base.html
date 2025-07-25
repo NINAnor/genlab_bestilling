@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
 {% block main %}
-<main class="grid grid-cols-6">
-    <div class="px-2 py-2 min-w-72 bg-white">
+<main class="flex flex-col sm:flex-row">
+    <div class="flex flex-col sm:w-56 p-5 flex-shrink-0 bg-white">
         <h5 class="font-bold text-xl">Menu</h5>
         <ul class="flex flex-col gap-2 mt-2 text-lg px-4">
-            <li><a href="{% url 'staff:dashboard' %}">Dashboard</a></li>
-            <li><a href="{% url 'staff:projects-list' %}">Projects</a></li>
-            <li><a href="{% url 'staff:order-equipment-list' %}">Equipment Orders</a></li>
-            <li><a href="{% url 'staff:order-extraction-list' %}">Extraction Orders</a></li>
-            <li><a href="{% url 'staff:order-analysis-list' %}">Analysis Orders</a></li>
-            <li><a href="{% url 'staff:samples-list' %}">Samples</a></li>
-            <li><a href="{% url 'staff:plates-list' %}">Plates</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:dashboard' %}">Dashboard</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:projects-list' %}">Projects</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:order-equipment-list' %}">Equipment Orders</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:order-extraction-list' %}">Extraction Orders</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:order-analysis-list' %}">Analysis Orders</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:samples-list' %}">Samples</a></li>
+            <li><a class="hover:underline" href="{% url 'staff:plates-list' %}">Plates</a></li>
         </ul>
     </div>
-    <div class="p-4 md:p-6 2xl:p-10 col-span-5">
+    <div class="flex flex-col flex-1 p-5">
       {% if messages %}
         {% for message in messages %}
           <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}" x-data="{ show: true }" x-show="show">

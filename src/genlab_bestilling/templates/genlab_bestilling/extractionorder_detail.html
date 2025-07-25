@@ -24,8 +24,9 @@
 
             {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
             {% action-button action=confirm_order_url class="btn custom_order_button" submit_text="Deliver order" csrf_token=csrf_token %}
-
+            {% if all_samples_have_no_genlab_id %}
             <a class="btn custom_order_button_red" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
+            {% endif %}
         {% endif %}
 
         <a class="btn custom_order_button" href="{% url 'genrequest-extraction-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>

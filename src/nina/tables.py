@@ -9,10 +9,10 @@ class MyProjectsTable(tables.Table):
 
     class Meta:
         model = ProjectMembership
-        fields = ["project", "role", "project__active", "project__verified_at"]
+        fields = ("project", "role", "project__active", "project__verified_at")
 
 
 class MembersTable(tables.Table):
     class Meta:
         model = ProjectMembership
-        fields = ["user", "role"]
+        fields = ("user", "role")

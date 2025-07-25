@@ -540,4 +540,22 @@ class AnalysisResultAdmin(ModelAdmin):
 
 
 @admin.register(IsolationMethod)
-class IsolationMethodAdmin(ModelAdmin): ...
+class IsolationMethodAdmin(ModelAdmin):
+    M = IsolationMethod
+    list_display = [
+        M.name.field.name,
+        M.type.field.name,
+    ]
+
+    search_help_text = "Search for isolation method name or species name"
+    search_fields = [
+        M.name.field.name,
+        f"{M.type.field.name}__{Species.name.field.name}",
+    ]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.type.field.name, unfold_filters.AutocompleteSelectFilter),
+    ]
+    autocomplete_fields = [M.type.field.name]
+    list_filter_submit = True
+    list_filter_sheet = False

@@ -113,6 +113,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
+            .prefetch_related("samples__species")
             .annotate(total_samples=Count("samples"))
         )
 
@@ -268,6 +269,10 @@ class MarkAsSeenView(StaffMixin, DetailView):
 
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
+
+    # Prefetch species to avoid N+1 queries when accessing species in the template
+    def get_queryset(self) -> QuerySet[ExtractionOrder]:
+        return super().get_queryset().prefetch_related("species")
 
     def get_analysis_orders_for_samples(
         self, samples: QuerySet[Sample]
@@ -483,7 +488,7 @@ class OrderAnalysisSamplesListView(
     # If they are, it updates the order status to completed
     def check_all_output(self, analyses: models.QuerySet) -> None:
         if not analyses.filter(is_outputted=False).exists():
-            self.get_order().to_next_status()
+            self.get_order().to_completed()
             messages.success(
                 self.request,
                 "All samples have an output. The order status is updated to completed.",
@@ -641,7 +646,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     # If they are, it updates the order status to completed
     def check_all_isolated(self, samples: QuerySet) -> None:
         if not samples.filter(is_isolated=False).exists():
-            self.get_order().to_next_status()
+            self.get_order().to_completed()
             messages.success(
                 self.request,
                 "All samples are isolated. The order status is updated to completed.",

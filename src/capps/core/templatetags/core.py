@@ -30,7 +30,14 @@ def render(field: Any, instance: Model) -> tuple:
         return None, None
 
 
-IGNORED_FIELDS = ["tagged_items"]
+IGNORED_FIELDS = [
+    "tagged_items",
+    "is_seen",
+    "is_urgent",
+    "is_prioritized",
+    "responsible_staff",
+]
+IGNORED_FIELDS_STAFF = ["tagged_items"]
 
 
 @register.filter
@@ -43,5 +50,19 @@ def get_fields(instance: Model, fields: str | None = None) -> Any:
             if (not fields or field.name in fields.split(" "))
             and not isinstance(field, TaggableManager)
             and field.name not in IGNORED_FIELDS
+        ),
+    )
+
+
+@register.filter
+def get_fields_staff(instance: Model, fields: str | None = None) -> Any:
+    return filter(
+        lambda x: x[0],
+        (
+            render(field, instance)
+            for field in instance._meta.get_fields()
+            if (not fields or field.name in fields.split(" "))
+            and not isinstance(field, TaggableManager)
+            and field.name not in IGNORED_FIELDS_STAFF
         ),
     )

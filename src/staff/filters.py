@@ -5,7 +5,7 @@ from dal import autocomplete
 from django import forms
 from django.db.models import QuerySet
 from django.http import HttpRequest
-from django_filters import BooleanFilter, CharFilter, ChoiceFilter
+from django_filters import CharFilter, ChoiceFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -250,7 +250,27 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         ]
 
 
+class SampleStatusWidget(forms.Select):
+    def __init__(self, attrs: dict[str, Any] | None = None):
+        choices = (
+            ("", "---------"),
+            ("true", "Yes"),
+            ("false", "No"),
+        )
+        super().__init__(choices=choices, attrs=attrs)
+
+
 class SampleFilter(filters.FilterSet):
+    is_marked = filters.BooleanFilter(
+        label="Marked", method="filter_boolean", widget=SampleStatusWidget
+    )
+    is_plucked = filters.BooleanFilter(
+        label="Plucked", method="filter_boolean", widget=SampleStatusWidget
+    )
+    is_isolated = filters.BooleanFilter(
+        label="Isolated", method="filter_boolean", widget=SampleStatusWidget
+    )
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
@@ -280,8 +300,18 @@ class SampleFilter(filters.FilterSet):
             "year",
             "location",
             "pop_id",
-            "type",
+            "is_marked",
+            "is_plucked",
+            "is_isolated",
         ]
+
+    def filter_boolean(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
+        val = self.data.get(name)
+        if str(val) == "true":
+            return queryset.filter(**{name: True})
+        if str(val) == "false":
+            return queryset.filter(**{name: False})
+        return queryset
 
 
 class ExtractionPlateFilter(filters.FilterSet):
@@ -293,51 +323,15 @@ class ExtractionPlateFilter(filters.FilterSet):
 
 
 class SampleLabFilter(filters.FilterSet):
-    is_marked = BooleanFilter(
-        label="Marked",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
+    is_marked = filters.BooleanFilter(
+        label="Marked", method="filter_boolean", widget=SampleStatusWidget
     )
-
-    is_plucked = BooleanFilter(
-        label="Plucked",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
+    is_plucked = filters.BooleanFilter(
+        label="Plucked", method="filter_boolean", widget=SampleStatusWidget
     )
-
-    is_isolated = BooleanFilter(
-        label="Isolated",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
+    is_isolated = filters.BooleanFilter(
+        label="Isolated", method="filter_boolean", widget=SampleStatusWidget
     )
-
     genlab_id_min = ChoiceFilter(
         label="Genlab ID (From)",
         method="filter_genlab_id_range",

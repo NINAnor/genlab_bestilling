@@ -26,6 +26,27 @@
 
     {% object-detail object=object %}
 
+    {% if results_contacts %}
+    <h5 class="text-2xl my-5">Contacts for Analysis Results</h5>
+    <div class="bg-white p-4">
+        <ul class="list-disc pl-5">
+        {% for contact in results_contacts %}
+            <li>
+            {{ contact.contact_person_results }} —
+            <a href="mailto:{{ contact.contact_email_results }}" class="underline text-blue-700">
+                {{ contact.contact_email_results }}
+            </a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <h5 class="text-2xl my-5">Contacts for Analysis Results</h5>
+    <div class="bg-white p-4">
+        <p>No contacts provided for analysis results.</p>
+    </div>
+    {% endif %}
+
 
     <h5 class="text-2xl my-5">Samples to analyze</h5>
     <div class="bg-white p-4">
@@ -48,7 +69,7 @@
         <a class="btn custom_order_button_red" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
         {% endif %}
         {% elif object.status == object.OrderStatus.DELIVERED %}
-        <a class="btn custom_order_button" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
+            <a class="btn custom_order_button" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}
     </div>
 {% endblock %}

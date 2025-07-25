@@ -76,13 +76,13 @@ class AnalysisOrderFilter(filters.FilterSet):
 
     class Meta:
         model = AnalysisOrder
-        fields = [
+        fields = (
             "id",
             "status",
             "genrequest__area",
             "responsible_staff",
             "genrequest__species",
-        ]
+        )
 
 
 class ExtractionOrderFilter(filters.FilterSet):
@@ -141,13 +141,13 @@ class ExtractionOrderFilter(filters.FilterSet):
 
     class Meta:
         model = ExtractionOrder
-        fields = [
+        fields = (
             "id",
             "status",
             "genrequest__area",
             "responsible_staff",
             "genrequest__species",
-        ]
+        )
 
 
 class OrderSampleFilter(filters.FilterSet):
@@ -187,12 +187,12 @@ class OrderSampleFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id",
             "name",
             "species",
             "type",
-        ]
+        )
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
@@ -239,7 +239,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = [
+        fields = (
             "sample__genlab_id",
             "sample__type",
             "sample__extractions",
@@ -247,7 +247,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             # "PCR",
             # "fluidigm",
             # "output",
-        ]
+        )
 
 
 class SampleStatusWidget(forms.Select):
@@ -292,7 +292,7 @@ class SampleFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "name",
             "genlab_id",
             "species",
@@ -303,7 +303,7 @@ class SampleFilter(filters.FilterSet):
             "is_marked",
             "is_plucked",
             "is_isolated",
-        ]
+        )
 
     def filter_boolean(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         val = self.data.get(name)
@@ -317,9 +317,7 @@ class SampleFilter(filters.FilterSet):
 class ExtractionPlateFilter(filters.FilterSet):
     class Meta:
         model = ExtractionPlate
-        fields = [
-            "id",
-        ]
+        fields = ("id",)
 
 
 class SampleLabFilter(filters.FilterSet):
@@ -393,7 +391,7 @@ class SampleLabFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id_min",
             "genlab_id_max",
             "is_marked",
@@ -403,7 +401,7 @@ class SampleLabFilter(filters.FilterSet):
             "isolation_method",
             # "fluidigm",
             # "output",
-        ]
+        )
 
     def filter_genlab_id_range(
         self, queryset: QuerySet, name: str, value: Any

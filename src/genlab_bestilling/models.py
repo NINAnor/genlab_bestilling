@@ -284,7 +284,7 @@ class Order(PolymorphicModel):
     contact_person = models.CharField(
         null=True,
         blank=False,
-        help_text="Person to contact with questions about this order",
+        help_text="Responsible for genetic bioinformatics analysis",
     )
     contact_email = models.EmailField(
         null=True,
@@ -530,6 +530,27 @@ class ExtractionOrder(Order):
             order_id=self.id,  # type: ignore[arg-type] # `self` has been saved first, so id is known to exists.
             selected_samples=selected_samples,
         )
+
+
+class AnalysisOrderResultsCommunication(models.Model):
+    analysis_order = models.ForeignKey(
+        f"{an}.AnalysisOrder",
+        on_delete=models.CASCADE,
+        related_name="results_contacts",
+    )
+    contact_person_results = models.CharField(
+        null=True,
+        blank=False,
+        help_text="Person to contact for analysis resuls",
+    )
+    contact_email_results = models.EmailField(
+        null=True,
+        blank=False,
+        help_text="Email to send analysis results",
+    )
+
+    def __str__(self):
+        return f"{str(self.analysis_order)} {str(self.contact_person_results)} {str(self.contact_email_results)}"  # noqa: E501
 
 
 class AnalysisOrder(Order):

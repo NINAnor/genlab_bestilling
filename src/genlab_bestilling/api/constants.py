@@ -101,6 +101,8 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
         "genlab_id",
         "fish_id",
         "guid",
+        "order",
+        "analysis_orders",
         "river",
         "location.name",
         "under_locality",

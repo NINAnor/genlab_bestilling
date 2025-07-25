@@ -469,6 +469,10 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        all_samples_have_no_genlab_id = not self.object.samples.exclude(
+            genlab_id__isnull=True
+        ).exists()
+        context["all_samples_have_no_genlab_id"] = all_samples_have_no_genlab_id
         context["results_contacts"] = self.object.results_contacts.all()
         return context
 
@@ -479,15 +483,6 @@ class AnalysisOrderDetailView(GenrequestNestedMixin, DetailView):
             .select_related("genrequest", "from_order", "polymorphic_ctype")
             .prefetch_related("sample_markers", "markers")
         )
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        order = self.object
-        all_samples_have_no_genlab_id = not order.samples.exclude(
-            genlab_id__isnull=True
-        ).exists()
-        context["all_samples_have_no_genlab_id"] = all_samples_have_no_genlab_id
-        return context
 
 
 class ExtractionOrderDetailView(GenrequestNestedMixin, DetailView):

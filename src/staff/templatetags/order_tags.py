@@ -364,9 +364,9 @@ def contact_detail_table(order: Order) -> dict:
 
     fields = {
         "Samples owner of genetic project": order.genrequest.samples_owner,
-        "Contact person": order.contact_person,
-        "Contact Email": order.contact_email,
-        "Contacts for analysis results": result_contacts_html,
+        "Responsible genetic researcher": order.contact_person,
+        "Responsible genetic researcher email": order.contact_email,
+        "Contact name and email for analysis results": result_contacts_html,
     }
 
     return {

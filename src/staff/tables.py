@@ -89,7 +89,7 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
 class AnalysisOrderTable(OrderTable):
     id = tables.Column(
         linkify=("staff:order-analysis-detail", {"pk": tables.A("id")}),
-        orderable=False,
+        orderable=True,
         empty_values=(),
     )
 
@@ -108,6 +108,13 @@ class AnalysisOrderTable(OrderTable):
         empty_values=(),
     )
 
+    species = tables.Column(
+        verbose_name="Species",
+        accessor="samples",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
         fields = OrderTable.Meta.fields + ("markers", "expected_delivery_date")  # type: ignore[assignment]
@@ -122,6 +129,11 @@ class AnalysisOrderTable(OrderTable):
             "markers",
             "responsible_staff",
             "expected_delivery_date",
+        )
+
+    def render_species(self, value: Any) -> str:
+        return ", ".join(
+            sorted({sample.species.name for sample in value.all() if sample.species})
         )
 
 

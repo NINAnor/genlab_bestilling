@@ -17,17 +17,17 @@ class BaseOrderTable(tables.Table):
 
     class Meta:
         model = Order
-        fields = [
+        fields = (
             "name",
             "status",
             "created_at",
             "last_modified_at",
-        ]
-        sequence = [
+        )
+        sequence = (
             "id",
             "name",
             "status",
-        ]
+        )
         empty_text = "No Orders"
 
     def render_id(self, record: Any) -> str:
@@ -39,7 +39,7 @@ class OrderTable(BaseOrderTable):
 
     class Meta:
         model = Order
-        fields = [
+        fields = (
             "name",
             "status",
             "polymorphic_ctype",
@@ -47,13 +47,13 @@ class OrderTable(BaseOrderTable):
             "genrequest__project",
             "created_at",
             "last_modified_at",
-        ]
-        sequence = [
+        )
+        sequence = (
             "id",
             "name",
             "status",
             "polymorphic_ctype",
-        ]
+        )
         empty_text = "No Orders"
 
     def render_polymorphic_ctype(self, value: Any) -> str:
@@ -68,7 +68,7 @@ class GenrequestTable(tables.Table):
 
     class Meta:
         model = Genrequest
-        fields = [
+        fields = (
             "project_id",
             "name",
             "area",
@@ -77,7 +77,7 @@ class GenrequestTable(tables.Table):
             "expected_total_samples",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
-        ]
+        )
 
         empty_text = "No projects"
 
@@ -92,7 +92,7 @@ class SampleTable(tables.Table):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "guid",
             "name",
             "species",
@@ -103,7 +103,7 @@ class SampleTable(tables.Table):
             "notes",
             "genlab_id",
             "plate_positions",
-        ]
+        )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
@@ -120,7 +120,7 @@ class AnalysisSampleTable(tables.Table):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "sample__genlab_id",
             "markers_names",
             "sample__guid",
@@ -130,7 +130,7 @@ class AnalysisSampleTable(tables.Table):
             "sample__year",
             "sample__pop_id",
             "sample__location__name",
-        ]
+        )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
@@ -145,11 +145,11 @@ class AnalysisOrderTable(BaseOrderTable):
 
     class Meta(BaseOrderTable.Meta):
         model = AnalysisOrder
-        fields = BaseOrderTable.Meta.fields + [
+        fields = BaseOrderTable.Meta.fields + (
             "genrequest",
             "genrequest__project",
             "return_samples",
-        ]
+        )  # type: ignore[assignment]
 
 
 class ExtractionOrderTable(BaseOrderTable):
@@ -161,7 +161,7 @@ class ExtractionOrderTable(BaseOrderTable):
 
     class Meta(BaseOrderTable.Meta):
         model = ExtractionOrder
-        fields = BaseOrderTable.Meta.fields + [
+        fields = BaseOrderTable.Meta.fields + (
             "species",
             "sample_types",
             "internal_status",
@@ -170,7 +170,7 @@ class ExtractionOrderTable(BaseOrderTable):
             "pre_isolated",
             "genrequest",
             "genrequest__project",
-        ]
+        )  # type: ignore[assignment]
 
 
 class EquipmentOrderTable(BaseOrderTable):
@@ -182,4 +182,4 @@ class EquipmentOrderTable(BaseOrderTable):
 
     class Meta(BaseOrderTable.Meta):
         model = EquipmentOrder
-        fields = BaseOrderTable.Meta.fields + ["needs_guid", "sample_types"]
+        fields = BaseOrderTable.Meta.fields + ("needs_guid", "sample_types")  # type: ignore[assignment]

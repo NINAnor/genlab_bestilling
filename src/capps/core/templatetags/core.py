@@ -33,7 +33,6 @@ def render(field: Any, instance: Model) -> tuple:
 IGNORED_FIELDS = [
     "tagged_items",
     "is_seen",
-    "is_urgent",
     "is_prioritized",
     "responsible_staff",
 ]

@@ -3,7 +3,6 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Model
@@ -348,9 +347,9 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         try:
             for email in emails:
                 validate_email(email)
-        except DjangoValidationError:
+        except ValidationError:
             msg = f"Invalid email: {email}"
-            raise forms.ValidationError(msg) from DjangoValidationError(msg)
+            raise forms.ValidationError(msg) from ValidationError(msg)
         return ", ".join(emails)
 
     def clean_contact_person_results(self) -> str:
@@ -361,7 +360,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             # Optionally allow hyphens and apostrophes in names
             if not all(c.isalpha() or c.isspace() or c in "-'" for c in name):
                 msg = f"Invalid name: {name}"
-                raise forms.ValidationError(msg) from DjangoValidationError(msg)
+                raise forms.ValidationError(msg) from ValidationError(msg)
         return ", ".join(names)
 
     def save(self, commit: bool = True) -> Model:

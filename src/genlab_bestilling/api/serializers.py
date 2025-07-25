@@ -134,8 +134,15 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         return obj.fish_id or "-"
 
     def get_analysis_orders(self, obj: Sample) -> list[str]:
-        if obj.order and obj.order.analysis_orders.exists():
-            return [str(anl.id) for anl in obj.order.analysis_orders.all()]
+        if not obj.order:
+            return []
+
+        analysis_orders = obj.order.analysis_orders.all()
+        # Return all analysis order IDs as strings
+        # only if there is exactly one analysis order, else return empty list.
+        # This is to ensure no duplicate rows in staffs common sheet
+        if analysis_orders.count() == 1:
+            return [str(analysis_orders.first().id)]
         return []
 
     def get_project(self, obj: Sample) -> str:

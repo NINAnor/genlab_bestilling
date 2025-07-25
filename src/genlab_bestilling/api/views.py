@@ -4,7 +4,7 @@ import uuid
 from typing import Any
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -36,6 +36,7 @@ from ..filters import (
     SpeciesFilter,
 )
 from ..models import (
+    AnalysisOrder,
     AnalysisType,
     ExtractionOrder,
     Location,
@@ -189,6 +190,12 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
                 "order__genrequest",
                 "order__genrequest__area",
                 "location",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "order__analysis_orders",
+                    queryset=AnalysisOrder.objects.only("id"),
+                )
             )
             .order_by("genlab_id", "type")
         )

@@ -3,5 +3,5 @@
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
   <input type="hidden" name="return_to" value="dashboard" />
-  <button class="btn custom_order_button" style="background-color: darkgoldenrod; height: auto;" type="submit">Mark as seen</button>
+  <button class="btn bg-purple-50 text-purple-900 border border-purple-800 hover:bg-purple-300" style="height: auto;" type="submit">Mark as seen</button>
 </form>

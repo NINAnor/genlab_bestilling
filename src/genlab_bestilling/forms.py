@@ -397,7 +397,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 if e.strip()
             ]
 
-            if names or emails:
+            if names and emails:
                 if len(names) != len(emails):
                     msg = "The number of names must match the number of emails."
                     raise ValidationError(msg)
@@ -421,13 +421,13 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
     contact_person_results = forms.CharField(
         label="Contact person(s) for results",
         help_text="Comma-separated list of names to contact with results",
-        required=False,
+        required=True,
     )
 
     contact_email_results = forms.CharField(
         label="Contact email(s) for results",
         help_text="Comma-separated list of emails to contact with results (must match order of names)",  # noqa: E501
-        required=False,
+        required=True,
     )
 
     field_order = [

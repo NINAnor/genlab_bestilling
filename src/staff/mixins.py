@@ -168,23 +168,39 @@ class SafeRedirectMixin(View):
         raise NotImplementedError(msg)
 
     def get_next_url_from_request(self) -> str | None:
-        return self.request.POST.get(self.next_param) or self.request.GET.get(
-            self.next_param
-        )
+        """
+        Safely extract the next URL from POST and GET data.
+        Returns a stripped string if present and non-empty, else None.
+        """
+        next_url = self.request.POST.get(self.next_param)
+        if not next_url:
+            next_url = self.request.GET.get(self.next_param)
+        if isinstance(next_url, str):
+            next_url = next_url.strip()
+            if next_url:
+                return next_url
+        return None
 
-    def has_next_url(self) -> bool:
-        next_url = self.get_next_url_from_request()
-        return bool(
-            next_url
-            and url_has_allowed_host_and_scheme(
-                next_url,
-                allowed_hosts={self.request.get_host()},
-                require_https=self.request.is_secure(),
-            )
+    def has_next_url(self, next_url: str | None = None) -> bool:
+        """
+        Check if a valid and safe next URL is present in the request.
+        Optionally accepts a next_url to avoid duplicate extraction.
+        """
+        if next_url is None:
+            next_url = self.get_next_url_from_request()
+        if not next_url:
+            return False
+        return url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
         )
 
     def get_next_url(self) -> str:
+        """
+        Return a safe next URL if available, otherwise fallback URL.
+        """
         next_url = self.get_next_url_from_request()
-        if next_url and self.has_next_url():
+        if next_url and self.has_next_url(next_url):
             return next_url
         return self.get_fallback_url()

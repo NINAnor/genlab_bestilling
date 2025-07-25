@@ -313,7 +313,7 @@ def analysis_order_detail_table(order: Order) -> dict:
         "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")
         if order.confirmed_at
         else "Not confirmed",
-        "Expected delivery date": order.expected_delivery_date.strftime("%d.%m.%Y")
+        "Deadline": order.expected_delivery_date.strftime("%d.%m.%Y")
         if order.expected_delivery_date
         else "Not specified",
     }

@@ -1,19 +1,23 @@
-<textarea
-    id="internal_note-input-{{ record.pk }}"
-    class="internal_note-input w-52 pr-8 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg resize-none placeholder:text-gray-400 placeholder:italic"
-    data-sample-id="{{ record.pk }}"
-    placeholder="Write a note..."
-  >{{ record.internal_note|default:'' }}
-</textarea>
-
-<i
-    class="fa-solid fa-spinner absolute left-60 top-10 transform -translate-y-1/2 text-blue-600 pointer-events-none animate-spin duration-2000"
-    style="visibility: hidden;"
-    id="internal_note-spinner-{{ record.pk }}"
-></i>
-
-<i
-    class="fa-solid fa-check absolute left-60 top-1/2 transform -translate-y-1/2 text-green-600 pointer-events-none"
-    style="visibility: hidden;"
-    id="internal_note-check-{{ record.pk }}"
-></i>
+<div class="relative w-52">
+    <textarea
+      id="internal_note-input-{{ record.pk }}"
+      class="internal_note-input w-52 pr-8 px-2.5 py-1.5 text-sm border border-gray-300 rounded-lg resize-none placeholder:text-gray-400 placeholder:italic"
+      data-sample-id="{{ record.pk }}"
+      placeholder="Write a note..."
+    >{{ record.internal_note|default:'' }}</textarea>
+  
+    <!-- Spinner Icon -->
+    <i
+      id="internal_note-spinner-{{ record.pk }}"
+      class="fa-solid fa-spinner animate-spin text-blue-600 absolute right-2 top-1/3 -translate-y-1/2 text-sm pointer-events-none"
+      style="visibility: hidden;"
+    ></i>
+  
+    <!-- Check Icon -->
+    <i
+      id="internal_note-check-{{ record.pk }}"
+      class="fa-solid fa-check text-green-600 absolute right-2 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+      style="visibility: hidden;"
+    ></i>
+  </div>
+  

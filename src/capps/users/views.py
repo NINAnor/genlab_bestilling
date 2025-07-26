@@ -3,6 +3,7 @@ from typing import Any, Self
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -10,7 +11,6 @@ from django.views.generic import DetailView, RedirectView, UpdateView
 
 from capps.ui.views import UIDetailView, UIListView, UIUpdateView
 
-from .exceptions import NotAuthenticated
 from .filters import UserFilterSet
 from .tables import UserTable
 
@@ -33,7 +33,8 @@ class UserUpdateView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
 
     def get_success_url(self: Self) -> str:
         if not self.request.user.is_authenticated:
-            raise NotAuthenticated
+            msg = "User must be authenticated to update profile."
+            raise PermissionDenied(msg)
         return self.request.user.get_absolute_url()
 
     def get_object(self, queryset: QuerySet | None = None) -> Any:

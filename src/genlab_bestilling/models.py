@@ -351,6 +351,19 @@ class Order(PolymorphicModel):
     def get_type(self) -> str:
         return "order"
 
+    def update_status(self) -> None:
+        """
+        Checks if the order should be set to processing or completed
+        """
+        if isinstance(self, ExtractionOrder | AnalysisOrder):
+            if not self.samples.filter(is_isolated=False).exists():
+                self.to_completed()
+                return
+            if not self.samples.filter(genlab_id=None).exists():
+                self.to_processing()
+                return
+            return
+
     @property
     def filled_genlab_count(self) -> int:
         return self.samples.filter(genlab_id__isnull=False).count()

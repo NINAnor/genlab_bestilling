@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Prefetch, QuerySet
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -23,6 +23,7 @@ from genlab_bestilling.models import (
     ExtractionPlate,
     Genrequest,
     IsolationMethod,
+    Marker,
     Order,
     Sample,
     SampleIsolationMethod,
@@ -521,7 +522,13 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "order__genrequest",
                 "order__genrequest__project",
             )
-            .prefetch_related("plate_positions", "order__responsible_staff", "markers")
+            .prefetch_related(
+                "plate_positions",
+                "order__responsible_staff",
+                Prefetch(
+                    "markers", queryset=Marker.objects.order_by("name").distinct()
+                ),
+            )
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .order_by("species__name", "year", "location__name", "name")
         )

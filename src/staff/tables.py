@@ -542,7 +542,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
     def render_order__id(self, value: int, record: Sample) -> str:
         return str(record.order)
 
-    makers = tables.ManyToManyColumn(
+    markers = tables.ManyToManyColumn(
         accessor="markers",
         verbose_name="Markers",
         orderable=False,

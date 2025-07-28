@@ -273,26 +273,29 @@ class SampleStatusWidget(forms.Select):
         super().__init__(choices=choices, attrs=attrs)
 
 
+def filter_sample_status(
+    filter_set: Any, queryset: QuerySet, name: Any, value: str
+) -> QuerySet:
+    if value == "marked":
+        # Only marked, not plucked or isolated
+        return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
+    if value == "plucked":
+        # Plucked but not isolated
+        return queryset.filter(is_plucked=True, is_isolated=False)
+    if value == "isolated":
+        # All isolated samples, regardless of others
+        return queryset.filter(is_isolated=True)
+    return queryset
+
+
 class SampleFilter(filters.FilterSet):
+    filter_sample_status = filter_sample_status
+
     sample_status = filters.CharFilter(
         label="Sample Status",
         method="filter_sample_status",
         widget=SampleStatusWidget,
     )
-
-    def filter_sample_status(
-        self, queryset: QuerySet, name: Any, value: str
-    ) -> QuerySet:
-        if value == "marked":
-            # Only marked, not plucked or isolated
-            return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
-        if value == "plucked":
-            # Plucked but not isolated
-            return queryset.filter(is_plucked=True, is_isolated=False)
-        if value == "isolated":
-            # All isolated samples, regardless of others
-            return queryset.filter(is_isolated=True)
-        return queryset
 
     def __init__(
         self,
@@ -334,6 +337,8 @@ class ExtractionPlateFilter(filters.FilterSet):
 
 
 class SampleLabFilter(filters.FilterSet):
+    filter_sample_status = filter_sample_status
+
     genlab_id_min = ChoiceFilter(
         label="Genlab ID (From)",
         method="filter_genlab_id_range",
@@ -351,20 +356,6 @@ class SampleLabFilter(filters.FilterSet):
         method="filter_sample_status",
         widget=SampleStatusWidget,
     )
-
-    def filter_sample_status(
-        self, queryset: QuerySet, name: Any, value: str
-    ) -> QuerySet:
-        if value == "marked":
-            # Only marked, not plucked or isolated
-            return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
-        if value == "plucked":
-            # Plucked but not isolated
-            return queryset.filter(is_plucked=True, is_isolated=False)
-        if value == "isolated":
-            # All isolated samples, regardless of others
-            return queryset.filter(is_isolated=True)
-        return queryset
 
     def __init__(
         self,

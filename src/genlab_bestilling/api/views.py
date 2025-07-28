@@ -209,6 +209,14 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
             return SampleUpdateSerializer
         return super().get_serializer_class()
 
+    def get_order_id(self, queryset: QuerySet) -> str:
+        order_id = "unknown_order_id"
+        first_sample = queryset.first()
+        if first_sample and first_sample.order and first_sample.order.id:
+            order_id = str(first_sample.order.id)
+
+        return order_id
+
     @action(
         methods=["GET"],
         url_path="csv",
@@ -217,11 +225,14 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     )
     def csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
+
+        filename = f"Complete_sheet_EXT_{self.get_order_id(queryset)}.csv"
+
         return self.render_csv_response(
             queryset,
             serializer_class=SampleCSVSerializer,
             fields_by_area=SAMPLE_CSV_FIELDS_BY_AREA,
-            filename="samples.csv",
+            filename=filename,
         )
 
     @action(
@@ -232,11 +243,14 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     )
     def labels_csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
+
+        filename = f"EXT_{self.get_order_id(queryset)}.csv"
+
         return self.render_csv_response(
             queryset,
             serializer_class=LabelCSVSerializer,
             fields_by_area=LABEL_CSV_FIELDS_BY_AREA,
-            filename="sample_labels.csv",
+            filename=filename,
         )
 
     @extend_schema(

@@ -330,10 +330,14 @@ class Order(PolymorphicModel):
 
     def to_processing(self) -> None:
         self.status = Order.OrderStatus.PROCESSING
+        if not self.is_seen:
+            self.is_seen = True
         self.save()
 
     def to_completed(self) -> None:
         self.status = Order.OrderStatus.COMPLETED
+        if not self.is_seen:
+            self.is_seen = True
         self.save()
 
     def toggle_seen(self) -> None:

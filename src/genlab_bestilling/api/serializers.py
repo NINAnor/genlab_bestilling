@@ -94,6 +94,11 @@ class SampleSerializer(serializers.ModelSerializer):
         )
 
 
+class FlagField(serializers.Field):
+    def to_representation(self, value: bool) -> str:
+        return "x" if value else ""
+
+
 class SampleCSVSerializer(serializers.ModelSerializer):
     type = SampleTypeSerializer()
     species = SpeciesSerializer()
@@ -102,9 +107,9 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     analysis_orders = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     isolation_method = serializers.SerializerMethodField()
-    is_marked = serializers.SerializerMethodField()
-    is_plucked = serializers.SerializerMethodField()
-    is_isolated = serializers.SerializerMethodField()
+    is_marked = FlagField()
+    is_plucked = FlagField()
+    is_isolated = FlagField()
     internal_note = serializers.SerializerMethodField()
 
     class Meta:
@@ -153,18 +158,6 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     def get_isolation_method(self, obj: Sample) -> str:
         method = obj.isolation_method.first()
         return method.name if method else ""
-
-    def _flag(self, value: bool) -> str:
-        return "x" if value else ""
-
-    def get_is_marked(self, obj: Sample) -> str:
-        return self._flag(obj.is_marked)
-
-    def get_is_plucked(self, obj: Sample) -> str:
-        return self._flag(obj.is_plucked)
-
-    def get_is_isolated(self, obj: Sample) -> str:
-        return self._flag(obj.is_isolated)
 
     def get_internal_note(self, obj: Sample) -> str:
         if obj.internal_note:

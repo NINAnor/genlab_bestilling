@@ -355,14 +355,24 @@ class Order(PolymorphicModel):
         """
         Checks if the order should be set to processing or completed
         """
-        if isinstance(self, ExtractionOrder | AnalysisOrder):
+        if isinstance(self, ExtractionOrder):
             if not self.samples.filter(is_isolated=False).exists():
                 self.to_completed()
                 return
             if not self.samples.filter(genlab_id=None).exists():
                 self.to_processing()
                 return
-            return
+        if isinstance(self, AnalysisOrder):
+            if not self.samples.filter(is_outputted=False).exists():
+                self.to_completed()
+                return
+            if (
+                self.samples.filter(has_pcr=True).exists()
+                or self.samples.filter(is_analysed=True).exists()
+            ):
+                self.to_processing()
+                return
+        return
 
     @property
     def filled_genlab_count(self) -> int:

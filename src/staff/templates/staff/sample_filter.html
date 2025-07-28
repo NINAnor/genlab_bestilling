@@ -67,27 +67,4 @@
 
 {% render_table table %}
 {% endif %}
-
-<form id="prioritise-form" method="post" style="display:none;">
-  {% csrf_token %}
-  <input type="hidden" name="sample_id" id="prioritise-sample-id">
-  {% next_url_input %}
-</form>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-      document.querySelectorAll('.toggle-prioritise').forEach(btn => {
-        btn.addEventListener('click', function () {
-          const sampleId = this.dataset.sampleId;
-          const orderId = this.dataset.orderId;
-          const form = document.getElementById('prioritise-form');
-          const actionUrl = `/staff/orders/extraction/${orderId}/samples/`;
-          form.action = actionUrl;
-          form.querySelector('#prioritise-next-url').value = window.location.href;
-          form.querySelector('#prioritise-sample-id').value = sampleId;
-          form.submit();
-        });
-      });
-    });
-</script>
 {% endblock %}

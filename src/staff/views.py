@@ -249,24 +249,11 @@ class MarkAsSeenView(StaffMixin, DetailView):
     def get_object(self) -> Order:
         return Order.objects.get(pk=self.kwargs["pk"])
 
-    def check_status(self, order: Order) -> None:
-        """
-        Checks if the order should be set to processing or completed
-        """
-        if isinstance(order, ExtractionOrder | AnalysisOrder):
-            if not order.samples.filter(is_isolated=False).exists():
-                order.to_completed()
-                return
-            if not order.samples.filter(genlab_id=None).exists():
-                order.to_processing()
-                return
-            return
-
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
             order = self.get_object()
             order.toggle_seen()
-            self.check_status(order)
+            order.update_status()
 
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:

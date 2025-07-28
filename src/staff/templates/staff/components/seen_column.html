@@ -1,5 +1,3 @@
-{% load order_tags %}
-
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
   <input type="hidden" name="return_to" value="dashboard" />

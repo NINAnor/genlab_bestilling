@@ -577,6 +577,10 @@ class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
         empty_values=(),
     )
 
+    status = tables.Column(
+        orderable=False,
+    )
+
     class Meta:
         model = Order
         fields = ("priority", "id", "description", "delivery_date", "status")
@@ -683,6 +687,12 @@ class NewSeenOrderTable(StaffIDMixinTable):
 class AssignedOrderTable(OrderStatusMixinTable, PriorityMixinTable, StaffIDMixinTable):
     sticky_header = True
 
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        template_name="staff/components/priority_column.html",
+    )
+
     description = tables.Column(
         accessor="genrequest__name",
         verbose_name="Description",
@@ -699,6 +709,10 @@ class AssignedOrderTable(OrderStatusMixinTable, PriorityMixinTable, StaffIDMixin
         if value > 0:
             return str(record.isolated_sample_count) + " / " + str(value)
         return "-"
+
+    status = tables.Column(
+        orderable=False,
+    )
 
     class Meta:
         model = Order

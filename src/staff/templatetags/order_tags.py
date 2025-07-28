@@ -215,6 +215,7 @@ def assigned_orders_table(context: dict) -> dict:
             ),
         )
         .order_by(
+            "-priority",
             models.Case(
                 models.When(status=Order.OrderStatus.PROCESSING, then=0),
                 models.When(status=Order.OrderStatus.DELIVERED, then=1),
@@ -222,7 +223,6 @@ def assigned_orders_table(context: dict) -> dict:
                 default=3,
                 output_field=models.IntegerField(),
             ),
-            "-priority",
             "-created_at",
         )
     )

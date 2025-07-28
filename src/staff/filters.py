@@ -13,6 +13,7 @@ from genlab_bestilling.models import (
     Area,
     ExtractionOrder,
     ExtractionPlate,
+    Marker,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -74,6 +75,16 @@ class AnalysisOrderFilter(filters.FilterSet):
         ),
     )
 
+    markers = filters.ModelMultipleChoiceFilter(
+        field_name="markers",
+        label="Markers",
+        queryset=Marker.objects.all(),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:analysis-marker",
+            attrs={"class": "w-full"},
+        ),
+    )
+
     class Meta:
         model = AnalysisOrder
         fields = (
@@ -82,6 +93,7 @@ class AnalysisOrderFilter(filters.FilterSet):
             "genrequest__area",
             "responsible_staff",
             "genrequest__species",
+            "markers",
         )
 
 

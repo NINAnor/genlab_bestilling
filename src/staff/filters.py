@@ -283,7 +283,6 @@ class SampleFilter(filters.FilterSet):
     def filter_sample_status(
         self, queryset: QuerySet, name: Any, value: str
     ) -> QuerySet:
-        print("Filtering by sample_status:", value)
         if value == "marked":
             # Only marked, not plucked or isolated
             return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
@@ -356,7 +355,6 @@ class SampleLabFilter(filters.FilterSet):
     def filter_sample_status(
         self, queryset: QuerySet, name: Any, value: str
     ) -> QuerySet:
-        print("Filtering by sample_status:", value)
         if value == "marked":
             # Only marked, not plucked or isolated
             return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)

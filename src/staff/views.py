@@ -571,7 +571,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
         types = self.get_queryset().values_list("type", flat=True).distinct()
         return (
-            IsolationMethod.objects.filter(type__in=types)
+            IsolationMethod.objects.filter(sample_types__in=types)
             .values_list("name", flat=True)
             .distinct()
         )

@@ -718,6 +718,14 @@ class Sample(models.Model):
         help_text="The isolation method used for this sample",
     )
 
+    markers = models.ManyToManyField(
+        f"{an}.Marker",
+        through="SampleMarkerAnalysis",
+        related_name="samples",
+        blank=True,
+        help_text="Markers that are relevant for this sample",
+    )
+
     is_prioritised = models.BooleanField(
         default=False,
         help_text="Check this box if the sample is prioritised for processing",

@@ -2,6 +2,7 @@ from django.urls import path
 
 from capps.users.autocomplete import StaffUserAutocomplete, UserAutocomplete
 from genlab_bestilling.autocomplete import (
+    AnalysisMarkerAutocomplete,
     AnalysisOrderAutocomplete,
     AreaAutocomplete,
     EquipmentAutocomplete,
@@ -41,5 +42,10 @@ urlpatterns = [
         "isolation-method/",
         IsolationMethodAutocomplete.as_view(),
         name="isolation-method",
+    ),
+    path(
+        "analysis-marker/",
+        AnalysisMarkerAutocomplete.as_view(),
+        name="analysis-marker",
     ),
 ]

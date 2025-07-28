@@ -253,6 +253,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
         try:
             order = self.get_object()
             order.toggle_seen()
+            order.update_status()
 
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:

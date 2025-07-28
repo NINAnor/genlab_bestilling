@@ -41,10 +41,11 @@ def responsible_staff_multiselect(order: Order | None = None) -> dict:
 def generate_order_links(orders: list) -> str:
     if not orders:
         return "-"
-    links = [
-        f'<a href="{order.get_absolute_staff_url()}">{order}</a>' for order in orders
-    ]
-    return mark_safe(", ".join(links))  # noqa: S308
+    return format_html_join(
+        ", ",
+        "<a href='{}'>{}</a>",
+        ((order.get_absolute_staff_url(), str(order)) for order in orders),
+    )
 
 
 def render_boolean(value: bool) -> str:
@@ -336,21 +337,26 @@ def analysis_order_detail_table(order: Order) -> dict:
 
 @register.inclusion_tag("../templates/components/order-detail.html")
 def analysis_order_samples_detail_table(order: Order, extraction_orders: dict) -> dict:
-    # Generate links for extraction orders with sample counts
-    extraction_order_links = [
-        f"{generate_order_links([extraction_order])} ({count} sample{'s' if count != 1 else ''})"  # noqa: E501
-        for extraction_order, count in extraction_orders.items()
-    ]
+    extraction_order_links = format_html_join(
+        "<br>",
+        "{} ({})",
+        (
+            (
+                generate_order_links([extraction_order]),
+                f"{count} sample{'s' if count > 1 else ''}",
+            )
+            for extraction_order, count in extraction_orders.items()
+        ),
+    )
 
     fields = {
         "Number of samples": order.samples.count(),
         "Markers": ", ".join(marker.name for marker in order.markers.all())
         if order.markers.exists()
         else "No markers",
-        "Samples from extraction order": mark_safe("<br>".join(extraction_order_links))  # noqa: S308
-        if extraction_order_links
-        else "-",
+        "Samples from extraction order": extraction_order_links or "-",
     }
+
     return {
         "fields": fields,
         "header": "Samples",

@@ -3,8 +3,8 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query import QuerySet
+from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.safestring import mark_safe
 from django.views.generic import View
 
 from genlab_bestilling.models import (
@@ -27,7 +27,7 @@ class StaffIDMixinTable(tables.Table):
     ) -> str:
         url = record.get_absolute_staff_url()
 
-        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
+        return format_html('<a href="{}">{}</a>', url, str(record))
 
 
 def render_status_helper(status: Order.OrderStatus) -> str:
@@ -46,8 +46,10 @@ def render_status_helper(status: Order.OrderStatus) -> str:
     classes = status_colors.get(status, "bg-gray-100 text-gray-800")
     text = status_text.get(status, "Unknown")
 
-    return mark_safe(  # noqa: S308
-        f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {classes}">{text}</span>'  # noqa: E501
+    return format_html(
+        '<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {}">{}</span>',  # noqa: E501
+        classes,
+        text,
     )
 
 
@@ -109,8 +111,10 @@ class SampleStatusMixinTable(tables.Table):
         # Use computed status, not value
         color_class = status_colors.get(status, "bg-gray-100 text-gray-800")
 
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status}</span>'  # noqa: E501
+        return format_html(
+            '<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {}">{}</span>',  # noqa: E501
+            color_class,
+            status,
         )
 
     def order_sample_status(

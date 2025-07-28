@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -241,18 +242,16 @@ class EquipmentOrderTable(tables.Table):
         return str(record)
 
     def render_is_urgent(self, value: bool) -> str:
-        html_exclaimation_mark = (
-            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
-        )
         if value:
-            return mark_safe(html_exclaimation_mark)  # noqa: S308
+            return mark_safe(
+                "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"  # noqa: E501
+            )
         return ""
 
     def render_is_seen(self, value: bool) -> str:
         if not value:
             return mark_safe(
-                '<i class="fa-solid fa-bell text-yellow-500" '
-                'title="New within 24h"></i>'
+                '<i class="fa-solid fa-bell text-yellow-500" title="New within 24h"></i>'  # noqa: E501
             )
         return ""
 
@@ -307,7 +306,9 @@ class SampleBaseTable(tables.Table):
         return ""
 
     def render_checked(self, record: Any) -> str:
-        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
+        return format_html(
+            '<input type="checkbox" name="checked" value="{}">', record.id
+        )
 
     def order_name(
         self, records: Sequence[Any], is_descending: bool
@@ -406,8 +407,10 @@ class SampleStatusTable(tables.Table):
         order_by = ("genlab_id",)
 
     def render_checked(self, record: Any) -> str:
-        return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        return format_html(
+            '<input type="checkbox" name="checked-{}" value="{}">',
+            record.order.id,
+            record.id,
         )
 
 
@@ -481,8 +484,10 @@ class OrderAnalysisSampleTable(tables.Table):
         empty_text = "No Samples"
 
     def render_checked(self, record: SampleMarkerAnalysis) -> str:
-        return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-analysis-{record.order.id}" value="{record.id}">'  # noqa: E501
+        return format_html(
+            '<input type="checkbox" name="checked-analysis-{}" value="{}">',
+            record.order.id,
+            record.id,
         )
 
 

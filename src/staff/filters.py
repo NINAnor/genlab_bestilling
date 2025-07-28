@@ -254,22 +254,34 @@ class SampleStatusWidget(forms.Select):
     def __init__(self, attrs: dict[str, Any] | None = None):
         choices = (
             ("", "---------"),
-            ("true", "Yes"),
-            ("false", "No"),
+            ("marked", "Marked"),
+            ("plucked", "Plucked"),
+            ("isolated", "Isolated"),
         )
         super().__init__(choices=choices, attrs=attrs)
 
 
 class SampleFilter(filters.FilterSet):
-    is_marked = filters.BooleanFilter(
-        label="Marked", method="filter_boolean", widget=SampleStatusWidget
+    sample_status = filters.CharFilter(
+        label="Sample Status",
+        method="filter_sample_status",
+        widget=SampleStatusWidget,
     )
-    is_plucked = filters.BooleanFilter(
-        label="Plucked", method="filter_boolean", widget=SampleStatusWidget
-    )
-    is_isolated = filters.BooleanFilter(
-        label="Isolated", method="filter_boolean", widget=SampleStatusWidget
-    )
+
+    def filter_sample_status(
+        self, queryset: QuerySet, name: Any, value: str
+    ) -> QuerySet:
+        print("Filtering by sample_status:", value)
+        if value == "marked":
+            # Only marked, not plucked or isolated
+            return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
+        if value == "plucked":
+            # Plucked but not isolated
+            return queryset.filter(is_plucked=True, is_isolated=False)
+        if value == "isolated":
+            # All isolated samples, regardless of others
+            return queryset.filter(is_isolated=True)
+        return queryset
 
     def __init__(
         self,
@@ -300,18 +312,8 @@ class SampleFilter(filters.FilterSet):
             "year",
             "location",
             "pop_id",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
+            "sample_status",
         )
-
-    def filter_boolean(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
-        val = self.data.get(name)
-        if str(val) == "true":
-            return queryset.filter(**{name: True})
-        if str(val) == "false":
-            return queryset.filter(**{name: False})
-        return queryset
 
 
 class ExtractionPlateFilter(filters.FilterSet):
@@ -321,15 +323,6 @@ class ExtractionPlateFilter(filters.FilterSet):
 
 
 class SampleLabFilter(filters.FilterSet):
-    is_marked = filters.BooleanFilter(
-        label="Marked", method="filter_boolean", widget=SampleStatusWidget
-    )
-    is_plucked = filters.BooleanFilter(
-        label="Plucked", method="filter_boolean", widget=SampleStatusWidget
-    )
-    is_isolated = filters.BooleanFilter(
-        label="Isolated", method="filter_boolean", widget=SampleStatusWidget
-    )
     genlab_id_min = ChoiceFilter(
         label="Genlab ID (From)",
         method="filter_genlab_id_range",
@@ -341,6 +334,27 @@ class SampleLabFilter(filters.FilterSet):
         method="filter_genlab_id_range",
         empty_label="Select upper bound",
     )
+
+    sample_status = filters.CharFilter(
+        label="Sample Status",
+        method="filter_sample_status",
+        widget=SampleStatusWidget,
+    )
+
+    def filter_sample_status(
+        self, queryset: QuerySet, name: Any, value: str
+    ) -> QuerySet:
+        print("Filtering by sample_status:", value)
+        if value == "marked":
+            # Only marked, not plucked or isolated
+            return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
+        if value == "plucked":
+            # Plucked but not isolated
+            return queryset.filter(is_plucked=True, is_isolated=False)
+        if value == "isolated":
+            # All isolated samples, regardless of others
+            return queryset.filter(is_isolated=True)
+        return queryset
 
     def __init__(
         self,
@@ -394,9 +408,7 @@ class SampleLabFilter(filters.FilterSet):
         fields = (
             "genlab_id_min",
             "genlab_id_max",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
+            "sample_status",
             "extractions",
             "isolation_method",
             # "fluidigm",

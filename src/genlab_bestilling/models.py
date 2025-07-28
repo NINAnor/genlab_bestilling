@@ -846,11 +846,12 @@ class SampleIsolationMethod(models.Model):
 
 class IsolationMethod(models.Model):
     name = models.CharField(max_length=255)
-    type = models.ForeignKey(
+    sample_types = models.ManyToManyField(
         f"{an}.SampleType",
-        on_delete=models.CASCADE,
-        related_name="type_isolation_methods",
-        help_text="The sample type this isolation method is related to.",
+        related_name="isolation_methods",
+        verbose_name="Sample types",
+        blank=True,
+        help_text="Sample types that this isolation method can be used for",
     )
 
     def __str__(self) -> str:

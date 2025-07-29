@@ -28,6 +28,12 @@ CUSTOM_ORDER_STATUS_CHOICES = [
     ("completed", "Completed"),
 ]
 
+CUSTOM_ORDER_STATUS_CHOICES_ANALYSIS = [
+    ("marked", "Marked"),
+    ("plucked", "Plucked"),
+    ("isolated", "Isolated"),
+]
+
 
 class StaticModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
     def __init__(self, static_choices: list[tuple], *args: Any, **kwargs: Any) -> None:
@@ -66,9 +72,9 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
+        choices=CUSTOM_ORDER_STATUS_CHOICES_ANALYSIS,
         widget=StaticModelSelect2Multiple(
-            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES_ANALYSIS,
             attrs={
                 "data-placeholder": "Filter by status",
                 "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
@@ -148,7 +154,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
         widget=StaticModelSelect2Multiple(
             static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={

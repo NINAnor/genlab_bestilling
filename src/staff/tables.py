@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
+from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -243,9 +244,9 @@ class EquipmentOrderTable(tables.Table):
 
     def render_is_urgent(self, value: bool) -> str:
         if value:
-            return mark_safe(
-                "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"  # noqa: E501
-            )
+            icon_url = static("images/exclaimation_mark.svg")
+            html = f"<img src='{icon_url}' alt='Urgent' title='Urgent' class='w-5 h-5 inline' />"  # noqa: E501
+            return mark_safe(html)  # noqa: S308
         return ""
 
     def render_is_seen(self, value: bool) -> str:

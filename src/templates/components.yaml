@@ -5,3 +5,4 @@ components:
     object-detail: "components/object-detail.html"
     object-detail-staff: "components/object-detail-staff.html"
     action-button: "components/action-button.html"
+    filtering: "components/filtering.html"

@@ -33,7 +33,7 @@
         {% if object.status == object.OrderStatus.PROCESSING %}
             {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
             {% with "<i class='fa-solid fa-circle-check'></i> Set as "|add:object.next_status as btn_name %}
-                {% action-button action=to_next_status_url class="custom_order_button_green" submit_text=btn_name csrf_token=csrf_token %}
+                {% action-button action=to_next_status_url class="btn btn-success" submit_text=btn_name csrf_token=csrf_token %}
             {% endwith %}
         {% endif %}
     </div>
@@ -45,9 +45,9 @@
     {% #table headers=table_header %}
         {% for oq in object.equipments.all %}
             <tr>
-                {% #table-cell %}{{ oq.equipment.name }}{% /table-cell %}
-                {% #table-cell %}{{ oq.buffer.name }} {{ oq.buffer_quantity}} {{ oq.buffer.unit }}{% /table-cell %}
-                {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
+                {% #table-cell %}{{ oq.equipment.name }}{% /table-cell %}
+                {% #table-cell %}{{ oq.buffer.name }} {{ oq.buffer_quantity}} {{ oq.buffer.unit }}{% /table-cell %}
+                {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
             </tr>
         {% empty %}
             <tr>

@@ -66,7 +66,7 @@ export default function SearchApplyMarker() {
         {([canSubmit, isSubmitting, samples, markers]) => (
           <Button
             onClick={handleSubmit}
-            className="btn bg-primary block disabled:opacity-50"
+            className="btn bg-brand-primary block disabled:opacity-50"
             disabled={
               !canSubmit ||
               !Object.values(samples).some((_) => _) ||

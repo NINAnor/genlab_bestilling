@@ -17,26 +17,26 @@
     </div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> Back</a>
+        <a class="btn btn-tertiary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> Back</a>
         {% if object.status == 'draft' %}
-            <a class="btn custom_order_button" href="{% url 'genrequest-extraction-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit Order</a>
-            <a class="btn custom_order_button" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=object.genrequest_id pk=object.id %}">Edit Samples</a>
+            <a class="btn btn-tertiary" href="{% url 'genrequest-extraction-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit Order</a>
+            <a class="btn btn-tertiary" href="{% url 'genrequest-extraction-samples-edit' genrequest_id=object.genrequest_id pk=object.id %}">Edit Samples</a>
 
             {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
-            {% action-button action=confirm_order_url class="btn custom_order_button" submit_text="Deliver order" csrf_token=csrf_token %}
+            {% action-button action=confirm_order_url class="btn btn-tertiary" submit_text="Deliver order" csrf_token=csrf_token %}
             {% if all_samples_have_no_genlab_id %}
-            <a class="btn custom_order_button_red" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
+            <a class="btn btn-danger" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
             {% endif %}
         {% endif %}
 
-        <a class="btn custom_order_button" href="{% url 'genrequest-extraction-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
+        <a class="btn btn-tertiary" href="{% url 'genrequest-extraction-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
 
         {% if object.status != 'draft' %}
-            <a class="btn custom_order_button" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
+            <a class="btn btn-tertiary" href="{% url 'genrequest-analysis-create' genrequest_id=object.genrequest_id %}?from_order={{ view.kwargs.pk }}">Analyze these samples</a>
         {% endif %}
 
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}
-        {% action-button action=clone_order_url class="btn custom_order_button" submit_text="Clone Order" csrf_token=csrf_token %}
+        {% action-button action=clone_order_url class="btn btn-tertiary" submit_text="Clone Order" csrf_token=csrf_token %}
     </div>
 
     {% object-detail object=object %}

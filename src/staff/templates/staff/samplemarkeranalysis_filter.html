@@ -6,7 +6,7 @@
 {% block content %}
 {% if order %}
 <div class="flex gap-5 mb-5">
-    <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
+    <a class="btn btn-sm btn-tertiary" href="../"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 {% endif %}
 <h3 class="text-4xl mb-5">{% block page-title %}{% if order %}Samples {{ order }}{% else %}Samples{% endif %}{% endblock page-title %}</h3>
@@ -18,7 +18,7 @@
     {% csrf_token %}
     {% next_url_input %}
     {% for status in statuses %}
-        <button class="btn btn-sm custom_order_button_green" type="submit" name="status" value="{{ status }}">
+        <button class="btn btn-sm btn-success" type="submit" name="status" value="{{ status }}">
             {% if status == "pcr" %}
                 PCR
             {% else %}

@@ -166,6 +166,8 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
 
 class LabelCSVSerializer(serializers.ModelSerializer):
+    location = LocationSerializer(allow_null=True, required=False)
+
     class Meta:
         model = Sample
         fields = (
@@ -173,6 +175,8 @@ class LabelCSVSerializer(serializers.ModelSerializer):
             "guid",
             "name",
             "fish_id",
+            "order",
+            "location",
         )
 
     def get_fish_id(self, obj: Sample) -> str:

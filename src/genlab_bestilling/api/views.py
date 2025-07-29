@@ -211,10 +211,9 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
 
     def get_order_id(self, queryset: QuerySet) -> str:
         order_id = "unknown_order_id"
-        first_sample = queryset.first()
-        if first_sample and first_sample.order and first_sample.order.id:
-            order_id = str(first_sample.order.id)
-
+        order_id_value = queryset.values_list("order__id", flat=True).first()
+        if order_id_value:
+            order_id = str(order_id_value)
         return order_id
 
     @action(

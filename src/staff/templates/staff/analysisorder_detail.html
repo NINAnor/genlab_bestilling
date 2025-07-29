@@ -26,6 +26,9 @@
             </form>
         {% endif %}
     </div>
+    <div class="flex gap-5 my-5">
+        {% responsible_staff_multiselect order=object %}
+    </div>
 
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       {% analysis_order_detail_table order=object %}

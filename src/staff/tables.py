@@ -1,8 +1,7 @@
-import re
-from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
+from django.db.models import QuerySet
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -312,22 +311,11 @@ class SampleBaseTable(tables.Table):
         )
 
     def order_name(
-        self, records: Sequence[Any], is_descending: bool
-    ) -> tuple[list[Any], bool]:
-        def natural_sort_key(record: Any) -> list[str]:
-            name = record.name or ""
-            parts = re.findall(r"\d+|\D+", name)
-            key = []
-            for part in parts:
-                if part.isdigit():
-                    # Pad numbers with zeros for proper string compare, e.g., '000012' > '000001'  # noqa: E501
-                    key.append(f"{int(part):010d}")
-                else:
-                    key.append(part.lower())
-            return key
-
-        sorted_records = sorted(records, key=natural_sort_key, reverse=is_descending)
-        return (sorted_records, True)
+        self, queryset: QuerySet[Sample], is_descending: bool
+    ) -> tuple[QuerySet[Sample], bool]:
+        prefix = "-" if is_descending else ""
+        queryset = queryset.order_by(f"{prefix}name_as_int", "name")
+        return (queryset, True)
 
 
 class SampleStatusTable(tables.Table):

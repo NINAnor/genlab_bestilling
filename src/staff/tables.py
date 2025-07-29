@@ -483,6 +483,7 @@ class OrderAnalysisSampleTable(tables.Table):
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
+        order_by = ("marker",)
 
     def render_checked(self, record: SampleMarkerAnalysis) -> str:
         return format_html(

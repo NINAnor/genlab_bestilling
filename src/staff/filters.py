@@ -20,9 +20,32 @@ from genlab_bestilling.models import (
     Species,
 )
 from nina.models import Project
+from staff.mixins import HideStatusesByDefaultMixin
 
 
-class AnalysisOrderFilter(filters.FilterSet):
+class StaticModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
+    def __init__(self, static_choices: list[tuple], *args: Any, **kwargs: Any) -> None:
+        self.static_choices = static_choices or []
+        super().__init__(*args, **kwargs)
+
+    def filter_queryset(
+        self, request: HttpRequest, term: str, queryset: QuerySet
+    ) -> list:
+        # Override to use static choices instead of queryset
+        if term:
+            return [
+                choice
+                for choice in self.static_choices
+                if term.lower() in choice[1].lower()
+            ]
+        return self.static_choices
+
+    def get_queryset(self) -> QuerySet:
+        # Return empty queryset since we're using static data
+        return self.model.objects.none()
+
+
+class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = filters.CharFilter(
         field_name="id",
         label="Order ID",
@@ -34,16 +57,17 @@ class AnalysisOrderFilter(filters.FilterSet):
         ),
     )
 
-    status = filters.ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
         choices=Order.OrderStatus.choices,
-        widget=forms.Select(
+        widget=StaticModelSelect2Multiple(
+            static_choices=Order.OrderStatus.choices,
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+                "data-placeholder": "Filter by status",
+                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
             },
         ),
-        empty_label="",
     )
 
     genrequest__area = filters.ModelChoiceFilter(
@@ -86,6 +110,11 @@ class AnalysisOrderFilter(filters.FilterSet):
         ),
     )
 
+    @property
+    def qs(self) -> QuerySet:
+        queryset = super().qs
+        return self.exclude_hidden_statuses(queryset, self.data)
+
     class Meta:
         model = AnalysisOrder
         fields = (
@@ -98,7 +127,7 @@ class AnalysisOrderFilter(filters.FilterSet):
         )
 
 
-class ExtractionOrderFilter(filters.FilterSet):
+class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = CharFilter(
         field_name="id",
         label="Order ID",
@@ -110,16 +139,17 @@ class ExtractionOrderFilter(filters.FilterSet):
         ),
     )
 
-    status = ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
         choices=Order.OrderStatus.choices,
-        widget=forms.Select(
+        widget=StaticModelSelect2Multiple(
+            static_choices=Order.OrderStatus.choices,
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+                "data-placeholder": "Filter by status",
+                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
             },
         ),
-        empty_label="",
     )
 
     genrequest__area = filters.ModelChoiceFilter(
@@ -151,6 +181,11 @@ class ExtractionOrderFilter(filters.FilterSet):
             attrs={"class": "w-full"},
         ),
     )
+
+    @property
+    def qs(self) -> QuerySet:
+        queryset = super().qs
+        return self.exclude_hidden_statuses(queryset, self.data)
 
     class Meta:
         model = ExtractionOrder

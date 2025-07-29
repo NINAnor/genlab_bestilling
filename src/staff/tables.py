@@ -588,9 +588,23 @@ class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
         orderable=False,
     )
 
+    assigned_staff = tables.TemplateColumn(
+        template_name="staff/components/responsible_staff_column.html",
+        verbose_name="Assigned staff",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta:
         model = Order
-        fields = ("priority", "id", "description", "delivery_date", "status")
+        fields = (
+            "priority",
+            "id",
+            "description",
+            "delivery_date",
+            "status",
+            "assigned_staff",
+        )
         empty_text = "No urgent orders"
         template_name = "django_tables2/tailwind_inner.html"
 
@@ -677,6 +691,13 @@ class NewSeenOrderTable(StaffIDMixinTable):
         transform=lambda x: x.name,
     )
 
+    assigned_staff = tables.TemplateColumn(
+        template_name="staff/components/responsible_staff_column.html",
+        verbose_name="Assigned staff",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta:
         model = Order
         fields = (
@@ -686,6 +707,7 @@ class NewSeenOrderTable(StaffIDMixinTable):
             "delivery_date",
             "markers",
             "samples",
+            "assigned_staff",
         )
         empty_text = "No new seen orders"
         template_name = "django_tables2/tailwind_inner.html"

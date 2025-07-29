@@ -1,5 +1,7 @@
 from django.urls import path
 
+from staff.api import OrderAPIView
+
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
@@ -147,5 +149,10 @@ urlpatterns = [
         "orders/<int:pk>/priority/",
         OrderPrioritizedAdminView.as_view(),
         name="order-priority",
+    ),
+    path(
+        "orders/<int:pk>/assign-staff/",
+        OrderAPIView.as_view(),
+        name="order-assign-staff",
     ),
 ]

@@ -1,0 +1,12 @@
+{% load static %}
+
+{% block body_javascript %}
+  <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+  <script type="module" src="{% static 'staff/js/responsible-staff-form.js' %}"></script>
+  {{ form.media }}
+{% endblock %}
+
+<form class="responsible-staff-form" data-update-url="{% url 'staff:order-assign-staff' pk=order.id %}">
+  {% csrf_token %}
+  {{ form }}
+</form>

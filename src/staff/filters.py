@@ -59,7 +59,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         label="Order ID",
         widget=forms.TextInput(
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter Order ID",
             }
         ),
@@ -73,7 +73,6 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
             static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={
                 "data-placeholder": "Filter by status",
-                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
             },
         ),
     )
@@ -84,7 +83,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=Area.objects.all(),
         widget=autocomplete.ModelSelect2(
             url="autocomplete:area",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by area"},
         ),
     )
 
@@ -94,7 +93,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=User.objects.filter(groups__name="genlab"),
         widget=autocomplete.ModelSelect2Multiple(
             url="autocomplete:staff-user",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by staff"},
         ),
     )
 
@@ -104,7 +103,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=Species.objects.all(),
         widget=autocomplete.ModelSelect2(
             url="autocomplete:species",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by species"},
         ),
     )
 
@@ -114,7 +113,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=Marker.objects.all(),
         widget=autocomplete.ModelSelect2Multiple(
             url="autocomplete:analysis-marker",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by markers"},
         ),
     )
 
@@ -201,7 +200,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         label="Order ID",
         widget=forms.TextInput(
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter Order ID",
             }
         ),
@@ -226,7 +225,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=Area.objects.all(),
         widget=autocomplete.ModelSelect2(
             url="autocomplete:area",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by area"},
         ),
     )
 
@@ -236,7 +235,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=User.objects.filter(groups__name="genlab"),
         widget=autocomplete.ModelSelect2Multiple(
             url="autocomplete:staff-user",
-            attrs={"class": "select2-adjusted"},
+            attrs={"class": "select2-adjusted", "data-placeholder": "Filter by staff"},
         ),
     )
 
@@ -246,7 +245,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         queryset=Species.objects.all(),
         widget=autocomplete.ModelSelect2(
             url="autocomplete:species",
-            attrs={"class": "w-full"},
+            attrs={"class": "w-full", "data-placeholder": "Filter by species"},
         ),
     )
 
@@ -271,7 +270,8 @@ class OrderSampleFilter(filters.FilterSet):
         label="GenlabID",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Type here",
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter Genlab ID",
             }
         ),
     )
@@ -280,7 +280,8 @@ class OrderSampleFilter(filters.FilterSet):
         label="Name",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Type here",
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter name",
             }
         ),
     )
@@ -316,6 +317,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         label="GenlabID",
         widget=forms.TextInput(
             attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Type here",
             }
         ),
@@ -348,7 +350,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         self.filters["sample__extractions"].field.label = "Qiagen ID"
         self.filters["sample__extractions"].field.widget = forms.TextInput(
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter Quiagen ID",
             }
         )
@@ -399,6 +401,42 @@ class SampleFilter(filters.FilterSet):
         label="Sample Status",
         method="filter_sample_status",
         widget=SampleStatusWidget,
+    )
+    name = CharFilter(
+        label="Name",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter name",
+            }
+        ),
+    )
+    genlab_id = CharFilter(
+        label="Genlab ID",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter Genlab ID",
+            }
+        ),
+    )
+    year = CharFilter(
+        label="Year",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter year",
+            }
+        ),
+    )
+    pop_id = CharFilter(
+        label="Pop ID",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
+                "placeholder": "Enter Pop ID",
+            }
+        ),
     )
 
     def __init__(
@@ -505,7 +543,7 @@ class SampleLabFilter(filters.FilterSet):
         self.filters["extractions"].field.label = "Qiagen ID"
         self.filters["extractions"].field.widget = forms.TextInput(
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter Quiagen ID",
             }
         )
@@ -573,6 +611,7 @@ class ProjectFilter(filters.FilterSet):
         label="Project number starts with",
         widget=forms.TextInput(
             attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter project number",
             }
         ),
@@ -584,6 +623,7 @@ class ProjectFilter(filters.FilterSet):
         label="Project name starts with",
         widget=forms.TextInput(
             attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700 h-[3.313rem]",  # noqa: E501
                 "placeholder": "Enter project name",
             }
         ),

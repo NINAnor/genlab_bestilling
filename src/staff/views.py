@@ -36,6 +36,7 @@ from staff.mixins import SafeRedirectMixin
 
 from .filters import (
     AnalysisOrderFilter,
+    EquipmentOrderFilter,
     ExtractionOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
@@ -165,7 +166,7 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
 class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
     model = EquipmentOrder
     table_class = EquipmentOrderTable
-    filterset_class = AnalysisOrderFilter
+    filterset_class = EquipmentOrderFilter
     table_pagination = {"per_page": 20}
 
     def get_queryset(self) -> QuerySet[EquipmentOrder]:

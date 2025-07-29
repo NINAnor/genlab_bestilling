@@ -11,6 +11,7 @@ from capps.users.models import User
 from genlab_bestilling.models import (
     AnalysisOrder,
     Area,
+    EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
     Marker,
@@ -130,6 +131,66 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
             "responsible_staff",
             "genrequest__species",
             "markers",
+        )
+
+
+class EquipmentOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
+    id = filters.CharFilter(
+        field_name="id",
+        label="Order ID",
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+                "placeholder": "Enter Order ID",
+            }
+        ),
+    )
+
+    status = filters.MultipleChoiceFilter(
+        field_name="status",
+        label="Status",
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
+        widget=StaticModelSelect2Multiple(
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
+            attrs={
+                "data-placeholder": "Filter by status",
+                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
+            },
+        ),
+    )
+
+    genrequest__area = filters.ModelChoiceFilter(
+        field_name="genrequest__area",
+        label="Area",
+        queryset=Area.objects.all(),
+        widget=autocomplete.ModelSelect2(
+            url="autocomplete:area",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    responsible_staff = filters.ModelMultipleChoiceFilter(
+        field_name="responsible_staff",
+        label="Assigned Staff",
+        queryset=User.objects.filter(groups__name="genlab"),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:staff-user",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    @property
+    def qs(self) -> QuerySet:
+        queryset = super().qs
+        return self.exclude_hidden_statuses(queryset, self.data)
+
+    class Meta:
+        model = EquipmentOrder
+        fields = (
+            "id",
+            "status",
+            "genrequest__area",
+            "responsible_staff",
         )
 
 

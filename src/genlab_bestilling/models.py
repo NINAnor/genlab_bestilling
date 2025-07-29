@@ -363,12 +363,16 @@ class Order(PolymorphicModel):
                 self.to_processing()
                 return
         if isinstance(self, AnalysisOrder):
-            if not self.samples.filter(is_outputted=False).exists():
+            if not SampleMarkerAnalysis.objects.filter(
+                order=self, is_outputted=False
+            ).exists():
                 self.to_completed()
                 return
             if (
-                self.samples.filter(has_pcr=True).exists()
-                or self.samples.filter(is_analysed=True).exists()
+                SampleMarkerAnalysis.objects.filter(order=self, has_pcr=True).exists()
+                or SampleMarkerAnalysis.objects.filter(
+                    order=self, is_analysed=True
+                ).exists()
             ):
                 self.to_processing()
                 return

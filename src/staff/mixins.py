@@ -28,7 +28,7 @@ class StaffIDMixinTable(tables.Table):
     ) -> str:
         url = record.get_absolute_staff_url()
 
-        return format_html('<a href="{}">{}</a>', url, str(record))
+        return format_html('<a href="{}" class="underline">{}</a>', url, str(record))
 
 
 def render_status_helper(status: Order.OrderStatus) -> str:

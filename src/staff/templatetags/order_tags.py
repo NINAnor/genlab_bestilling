@@ -1,3 +1,4 @@
+import uuid
 from collections import Counter
 
 from django import template
@@ -11,6 +12,7 @@ from genlab_bestilling.models import (
     Area,
     Order,
 )
+from staff.forms import ResponsibleStaffForm
 
 from ..tables import (
     AssignedOrderTable,
@@ -22,6 +24,18 @@ from ..tables import (
 )
 
 register = template.Library()
+
+
+@register.inclusion_tag("staff/components/responsible_staff_multiselect.html")
+def responsible_staff_multiselect(order: Order | None = None) -> dict:
+    prefix = f"order_{order.id}" if order else f"new_{uuid.uuid4().hex[:8]}"
+
+    # Add prefix to the form to avoid conflicts with other forms on the page
+    form = ResponsibleStaffForm(order=order, prefix=prefix)
+    return {
+        "form": form,
+        "order": order,
+    }
 
 
 def generate_order_links(orders: list) -> str:

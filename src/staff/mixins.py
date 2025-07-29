@@ -3,6 +3,7 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query import QuerySet
+from django.http import QueryDict
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.generic import View
@@ -208,3 +209,15 @@ class SafeRedirectMixin(View):
         if next_url and self.has_next_url(next_url):
             return next_url
         return self.get_fallback_url()
+
+
+class HideStatusesByDefaultMixin:
+    HIDDEN_STATUSES = [Order.OrderStatus.DRAFT, Order.OrderStatus.COMPLETED]
+
+    # Hide statuses by default unless user specifically selects them
+    def exclude_hidden_statuses(self, queryset: QuerySet, data: QueryDict) -> QuerySet:
+        selected_statuses = data.getlist("status")
+        if not selected_statuses:  # No statuses selected by user
+            return queryset.exclude(status__in=self.HIDDEN_STATUSES)
+
+        return queryset

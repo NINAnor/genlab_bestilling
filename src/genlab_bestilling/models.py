@@ -5,6 +5,7 @@ from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -353,30 +354,10 @@ class Order(PolymorphicModel):
 
     def update_status(self) -> None:
         """
-        Checks if the order should be set to processing or completed
+        AnalysisOrder and ExtractionOrder should implement this method
         """
-        if isinstance(self, ExtractionOrder):
-            if not self.samples.filter(is_isolated=False).exists():
-                self.to_completed()
-                return
-            if not self.samples.filter(genlab_id=None).exists():
-                self.to_processing()
-                return
-        if isinstance(self, AnalysisOrder):
-            if not SampleMarkerAnalysis.objects.filter(
-                order=self, is_outputted=False
-            ).exists():
-                self.to_completed()
-                return
-            if (
-                SampleMarkerAnalysis.objects.filter(order=self, has_pcr=True).exists()
-                or SampleMarkerAnalysis.objects.filter(
-                    order=self, is_analysed=True
-                ).exists()
-            ):
-                self.to_processing()
-                return
-        return
+        msg = "Subclasses must implement update_status()"
+        raise NotImplementedError(msg)
 
     @property
     def filled_genlab_count(self) -> int:
@@ -474,6 +455,9 @@ class EquipmentOrder(Order):
             raise Order.CannotConfirm(_("No equipments found"))
         return super().confirm_order()
 
+    def update_status(self) -> None:
+        pass
+
     def get_type(self) -> str:
         return "equipment"
 
@@ -540,6 +524,14 @@ class ExtractionOrder(Order):
 
             if persist:
                 super().confirm_order()
+
+    def update_status(self) -> None:
+        if not self.samples.filter(is_isolated=False).exists():
+            super().to_completed()
+            return
+        if not self.samples.filter(genlab_id__isnull=True).exists():
+            super().to_processing()
+            return
 
     @transaction.atomic
     def order_selected_checked(
@@ -634,6 +626,21 @@ class AnalysisOrder(Order):
 
             if persist:
                 super().confirm_order()
+
+    def update_status(self) -> None:
+        if not SampleMarkerAnalysis.objects.filter(
+            order=self, is_outputted=False
+        ).exists():
+            super().to_completed()
+            return
+
+        if (
+            SampleMarkerAnalysis.objects.filter(order=self)
+            .filter(Q(has_pcr=True) | Q(is_analysed=True))
+            .exists()
+        ):
+            super().to_processing()
+            return
 
     def populate_from_order(self) -> None:
         """

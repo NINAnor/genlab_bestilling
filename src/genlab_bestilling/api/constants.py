@@ -128,9 +128,9 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
         "rerun_date",
     ),
     "Terrestrisk": (
-        "name",
         "genlab_id",
         "guid",
+        "name",
         "type.name",
         "species.name",
         "location.name",

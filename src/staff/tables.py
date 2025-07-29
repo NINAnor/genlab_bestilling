@@ -245,7 +245,7 @@ class EquipmentOrderTable(tables.Table):
     def render_is_urgent(self, value: bool) -> str:
         if value:
             icon_url = static("images/exclaimation_mark.svg")
-            html = f"<img src='{icon_url}' alt='Urgent' title='Urgent' class='w-5 h-5 inline' />"
+            html = f"<img src='{icon_url}' alt='Urgent' title='Urgent' class='w-5 h-5 inline' />"  # noqa: E501
             return mark_safe(html)  # noqa: S308
         return ""
 

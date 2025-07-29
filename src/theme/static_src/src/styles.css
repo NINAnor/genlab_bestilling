@@ -27,6 +27,10 @@
     @apply border-yellow-500 bg-yellow-300;
   }
 
+  .tailwind-table thead {
+    @apply z-20;
+  }
+
   .tailwind-table thead tr:first-child {
     @apply bg-gray-200 text-left;
   }

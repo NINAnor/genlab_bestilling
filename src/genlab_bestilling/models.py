@@ -561,11 +561,6 @@ class AnalysisOrderResultsCommunication(models.Model):
         on_delete=models.CASCADE,
         related_name="results_contacts",
     )
-    contact_person_results = models.CharField(
-        null=True,
-        blank=False,
-        help_text="Person to contact for analysis resuls",
-    )
     contact_email_results = models.EmailField(
         null=True,
         blank=False,
@@ -573,7 +568,7 @@ class AnalysisOrderResultsCommunication(models.Model):
     )
 
     def __str__(self):
-        return f"{str(self.analysis_order)} {str(self.contact_person_results)} {str(self.contact_email_results)}"  # noqa: E501
+        return f"{str(self.analysis_order)} {str(self.contact_email_results)}"
 
 
 class AnalysisOrder(Order):

@@ -372,21 +372,21 @@ def contact_detail_table(order: Order) -> dict:
     if isinstance(order, AnalysisOrder):
         result_contacts = (
             AnalysisOrderResultsCommunication.objects.filter(analysis_order=order)
-            .values_list("contact_person_results", "contact_email_results")
+            .values_list("contact_email_results")
             .distinct()
         )
         if result_contacts:
             result_contacts_html = format_html_join(
-                "\n",
-                '<div>{} — <a href="mailto:{}" class="text-primary underline !text-primary">{}</a></div>',  # noqa: E501
-                [(name, email, email) for name, email in result_contacts],
+                "; ",
+                '<a href="mailto:{}" class="text-primary underline !text-primary">{}</a>',  # noqa: E501
+                [(email[0], email[0]) for email in result_contacts],
             )
 
     fields = {
         "Samples owner of genetic project": order.genrequest.samples_owner,
         "Responsible genetic researcher": order.contact_person,
         "Responsible genetic researcher email": order.contact_email,
-        "Contact name and email for analysis results": result_contacts_html,
+        "Contact email for analysis results": result_contacts_html,
     }
 
     return {

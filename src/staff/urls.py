@@ -20,6 +20,7 @@ from .views import (
     OrderPrioritizedAdminView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
+    ProjectArchiveActionView,
     ProjectDetailView,
     ProjectListView,
     ProjectValidateActionView,
@@ -41,6 +42,11 @@ urlpatterns = [
         "projects/<str:pk>/verify/",
         ProjectValidateActionView.as_view(),
         name="projects-verify",
+    ),
+    path(
+        "projects/<str:pk>/archive/",
+        ProjectArchiveActionView.as_view(),
+        name="projects-archive",
     ),
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"

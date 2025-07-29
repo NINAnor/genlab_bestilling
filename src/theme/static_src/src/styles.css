@@ -313,7 +313,7 @@ ol.breadcrumb > li + ::before {
 }
 
 .select2-selection--multiple {
-  @apply h-[2.6rem] flex items-center px-3 overflow-hidden rounded-md border border-gray-300 bg-white text-sm text-gray-700 relative overflow-y-auto;
+  @apply h-[2.6rem] flex items-center px-3 overflow-hidden rounded-md border border-gray-300 bg-white text-sm text-gray-700 relative;
 }
 
 .select2-selection--multiple .select2-selection__rendered {
@@ -363,44 +363,33 @@ ol.breadcrumb > li + ::before {
 }
 
 .responsible-staff-form {
-  position: relative;
+  @apply relative;
 }
 
 .staff-status-indicator {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
+  @apply top-2 left-2 flex absolute items-center justify-center z-10;
 }
 
 .staff-status-indicator.spinner {
-  color: #6b7280;
+  @apply text-tertiary-500;
 }
 
 .staff-status-indicator.success {
-  color: #22c55e;
+  @apply text-success-500;
 }
 
 .staff-status-indicator.error {
-  color: #ef4444;
+  @apply text-danger-500;
 }
 
 .responsible-staff-form .select2-container.select2-container--default {
-  max-width: 11rem !important;
-  width: 11rem !important;
-  min-width: 11rem !important;
+  @apply !max-w-52 !w-full !min-w-52;
 }
 
 .responsible-staff-form .select2-dropdown {
-  max-width: 11rem !important;
-  width: 11rem !important;
+  @apply !max-w-52 !w-full;
 }
 
 .responsible-staff-form .select2-selection {
-  max-width: 11rem !important;
-  width: 11rem !important;
-  min-width: 11rem !important;
+  @apply !max-w-52 !w-full !min-w-52;
 }

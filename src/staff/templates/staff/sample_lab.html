@@ -11,21 +11,7 @@
 {% block page-inner %}
     {% include "staff/components/extraction_tabs.html" with order=order active_tab="lab" %}
 
-    <form method="get" class="py-3 px-4 border mb-5 ">
-        <div class="mb-2">
-            <span class="text-xl">Filters</span>
-        </div>
-        <div class="flex flex-wrap gap-4">
-            {{ filter.form | crispy }}
-            <div class="flex items-center gap-2">
-                <button class="btn btn-sm custom_order_button_blue" type="submit">
-                    <i class="fa-solid fa-filter"></i>
-                    Apply filters
-                </button>
-                <a href="{{ request.path }}" class="btn btn-sm custom_order_button">Clear all</a>
-            </div>
-        </div>
-    </form>
+    {% filtering filter=filter request=request %}
 
     <div class="mt-6"></div>
 

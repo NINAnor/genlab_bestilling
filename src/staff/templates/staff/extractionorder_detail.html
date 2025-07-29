@@ -38,7 +38,7 @@
         {% endif %}
     </div>
     <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
+      {% responsible_staff_multiselect order=object %}
     </div>
 
 

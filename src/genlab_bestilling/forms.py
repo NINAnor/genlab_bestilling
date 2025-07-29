@@ -352,17 +352,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             raise forms.ValidationError(msg) from ValidationError(msg)
         return ", ".join(emails)
 
-    def clean_contact_person_results(self) -> str:
-        names_raw = self.cleaned_data.get("contact_person_results", "")
-        names = [n.strip() for n in names_raw.split(",") if n.strip()]
-
-        for name in names:
-            # Optionally allow hyphens and apostrophes in names
-            if not all(c.isalpha() or c.isspace() or c in "-'" for c in name):
-                msg = f"Invalid name: {name}"
-                raise forms.ValidationError(msg) from ValidationError(msg)
-        return ", ".join(names)
-
     def save(self, commit: bool = True) -> Model:
         if not commit:
             msg = "This form is always committed"
@@ -386,26 +375,16 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             # Delete old entries first (in case of resubmission)
             obj.results_contacts.all().delete()
 
-            names = [
-                strip_tags(n.strip())
-                for n in self.cleaned_data["contact_person_results"].split(",")
-                if n.strip()
-            ]
             emails = [
                 strip_tags(e.strip())
                 for e in self.cleaned_data["contact_email_results"].split(",")
                 if e.strip()
             ]
 
-            if names and emails:
-                if len(names) != len(emails):
-                    msg = "The number of names must match the number of emails."
-                    raise ValidationError(msg)
-
-                for name, email in zip(names, emails, strict=False):
+            if emails:
+                for email in emails:
                     AnalysisOrderResultsCommunication.objects.create(
                         analysis_order=obj,
-                        contact_person_results=name,
                         contact_email_results=email,
                     )
 
@@ -417,12 +396,6 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         if cleaned_data.get("use_all_samples") and not cleaned_data.get("from_order"):
             msg = "An extraction order must be selected"
             raise ValidationError(msg)
-
-    contact_person_results = forms.CharField(
-        label="Contact person(s) for results",
-        help_text="Comma-separated list of names to contact with results",
-        required=True,
-    )
 
     contact_email_results = forms.CharField(
         label="Contact email(s) for results",

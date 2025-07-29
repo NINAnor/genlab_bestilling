@@ -194,7 +194,7 @@ class ExtractionOrderTable(OrderTable):
         )
 
 
-class EquipmentOrderTable(tables.Table):
+class EquipmentOrderTable(OrderTable):
     id = tables.Column(
         linkify=("staff:order-equipment-detail", {"pk": tables.A("id")}),
         orderable=False,

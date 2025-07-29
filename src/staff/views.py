@@ -39,6 +39,7 @@ from .filters import (
     ExtractionOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
+    ProjectFilter,
     SampleFilter,
     SampleLabFilter,
     SampleMarkerOrderFilter,
@@ -950,29 +951,21 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
 class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
     model = Project
     table_class = ProjectTable
-    filterset_fields = {
-        "number": ["startswith"],
-        "name": ["startswith"],
-        "verified_at": ["isnull"],
-        "active": ["exact"],
-    }
+    filterset_class = ProjectFilter
 
 
 class ProjectDetailView(StaffMixin, DetailView):
     model = Project
 
 
-class ProjectValidateActionView(SingleObjectMixin, ActionView):
+class ProjectValidateActionView(SingleObjectMixin, SafeRedirectMixin, ActionView):
     model = Project
 
     def get_queryset(self) -> QuerySet[Project]:
         return super().get_queryset().filter(verified_at=None)
 
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
     def form_valid(self, form: Form) -> HttpResponse:
+        self.object = self.get_object()
         self.object.verified_at = now()
         self.object.save()
         messages.add_message(
@@ -984,7 +977,39 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
-        return reverse_lazy("staff:projects-detail", kwargs={"pk": self.object.pk})
+        return self.get_next_url()
+
+    def get_fallback_url(self) -> str:
+        return self.request.GET.get("next", reverse("staff:projects-list"))
+
+    def form_invalid(self, form: Form) -> HttpResponse:
+        return HttpResponseRedirect(self.get_next_url())
+
+
+class ProjectArchiveActionView(SingleObjectMixin, ActionView):
+    model = Project
+
+    def get_queryset(self) -> QuerySet[Project]:
+        return Project.objects.all()
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Form) -> HttpResponse:
+        # Toggle the active state of the project
+        self.object.active = not self.object.active
+        self.object.save()
+        status = _("activated") if self.object.active else _("archived")
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            _(f"The project is {status}"),
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse("staff:projects-list")
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())

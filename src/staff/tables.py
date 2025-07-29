@@ -31,11 +31,25 @@ class ProjectTable(tables.Table):
         orderable=True,
         empty_values=(),
     )
-    verified_at = tables.BooleanColumn()
+    verified_at = tables.TemplateColumn(
+        template_name="staff/components/project_verified_column.html",
+        verbose_name="Verified",
+        orderable=True,
+        empty_values=(),
+    )
+
+    toggle_active = tables.TemplateColumn(
+        template_name="staff/components/activation_toggle_column.html",
+        verbose_name="Actions",
+        orderable=True,
+        empty_values=(),
+    )
 
     class Meta:
         model = Project
-        fields = ("number", "name", "active", "verified_at")
+        fields = ("number", "name", "verified_at")
+        sequence = ("number", "name", "toggle_active", "verified_at")
+        order_by = ("-verified_at",)
 
 
 class OrderTable(OrderStatusMixinTable, PriorityMixinTable):

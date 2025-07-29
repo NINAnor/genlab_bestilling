@@ -19,6 +19,7 @@ from genlab_bestilling.models import (
     SampleMarkerAnalysis,
     Species,
 )
+from nina.models import Project
 
 
 class AnalysisOrderFilter(filters.FilterSet):
@@ -445,3 +446,76 @@ class SampleLabFilter(filters.FilterSet):
             queryset = queryset.filter(genlab_id__lte=genlab_max)
 
         return queryset
+
+
+class ProjectFilter(filters.FilterSet):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        if not data or not any(data.values()):
+            data = {"active": "True"}
+
+        super().__init__(data, queryset, request=request, prefix=prefix)
+
+    number = CharFilter(
+        field_name="number",
+        lookup_expr="startswith",
+        label="Project number starts with",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter project number",
+            }
+        ),
+    )
+
+    name = CharFilter(
+        field_name="name",
+        lookup_expr="istartswith",
+        label="Project name starts with",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter project name",
+            }
+        ),
+    )
+
+    verified_at = filters.ChoiceFilter(
+        field_name="verified_at",
+        label="Verified",
+        choices=[
+            ("True", "Yes"),
+            ("False", "No"),
+        ],
+        method="filter_verified_at",
+        widget=forms.Select(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
+    )
+
+    active = filters.ChoiceFilter(
+        field_name="active",
+        label="Active",
+        choices=[
+            ("True", "Yes"),
+            ("False", "No"),
+        ],
+        widget=forms.Select(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
+    )
+
+    def filter_verified_at(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
+        return queryset.filter(verified_at__isnull=(value == "False"))
+
+    class Meta:
+        model = Project
+        fields = ()

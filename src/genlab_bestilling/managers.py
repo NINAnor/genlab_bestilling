@@ -85,7 +85,7 @@ class SampleQuerySet(models.QuerySet):
         return self.annotate(
             name_as_int=Case(
                 When(
-                    name__regex=r"^\d{,18}$",
+                    name__regex=r"^\d{1,18}$",
                     then=Cast("name", BigIntegerField()),
                 ),
                 default=Value(None),

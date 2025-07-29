@@ -14,13 +14,19 @@ from genlab_bestilling.models import (
     ExtractionOrder,
     ExtractionPlate,
     Marker,
-    Order,
     Sample,
     SampleMarkerAnalysis,
     Species,
 )
 from nina.models import Project
 from staff.mixins import HideStatusesByDefaultMixin
+
+CUSTOM_ORDER_STATUS_CHOICES = [
+    ("draft", "Draft"),
+    ("confirmed", "Not started"),
+    ("processing", "Processing"),
+    ("completed", "Completed"),
+]
 
 
 class StaticModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
@@ -60,9 +66,9 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
         widget=StaticModelSelect2Multiple(
-            static_choices=Order.OrderStatus.choices,
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={
                 "data-placeholder": "Filter by status",
                 "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
@@ -142,9 +148,9 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
         widget=StaticModelSelect2Multiple(
-            static_choices=Order.OrderStatus.choices,
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={
                 "data-placeholder": "Filter by status",
                 "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
@@ -301,7 +307,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 class SampleStatusWidget(forms.Select):
     def __init__(self, attrs: dict[str, Any] | None = None):
         choices = (
-            ("", "---------"),
+            ("", "Status"),
             ("marked", "Marked"),
             ("plucked", "Plucked"),
             ("isolated", "Isolated"),

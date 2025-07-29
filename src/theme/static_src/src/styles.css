@@ -313,7 +313,7 @@ ol.breadcrumb > li + ::before {
 }
 
 .select2-selection--multiple {
-  @apply h-[2.6rem] flex items-center px-3 overflow-hidden rounded-md border border-gray-300 bg-white text-sm text-gray-700 relative;
+  @apply h-[2.6rem] flex items-center px-3 overflow-hidden rounded-md border border-gray-300 bg-white text-sm text-gray-700 relative overflow-y-auto;
 }
 
 .select2-selection--multiple .select2-selection__rendered {

@@ -28,7 +28,7 @@
   }
 
   .tailwind-table thead tr:first-child {
-    @apply bg-gray-100 text-left;
+    @apply bg-gray-200 text-left;
   }
 
   .tailwind-table thead tr:first-child th {
@@ -40,7 +40,7 @@
   }
 
   .tailwind-table tbody tr td {
-    @apply border-b-2 border-[#eee] px-4 py-5;
+    @apply border-b-2 border-[#eee] p-4;
   }
 
   .tailwind-table.table-sm tbody tr td {

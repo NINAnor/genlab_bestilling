@@ -443,7 +443,7 @@ class OrderAnalysisSamplesListView(
 
     def assign_status_to_samples(
         self,
-        analyses: models.QuerySet,
+        analyses: QuerySet[SampleMarkerAnalysis],
         status_name: str,
         request: HttpRequest,
     ) -> None:
@@ -489,15 +489,17 @@ class OrderAnalysisSamplesListView(
 
     # Checks if all samples in the order have output
     # If they are, it updates the order status to completed
-    def check_all_output(self, analyses: models.QuerySet) -> None:
+    def check_all_output(self, analyses: QuerySet[SampleMarkerAnalysis]) -> None:
+        order = self.get_order()
+
         if not analyses.filter(is_outputted=False).exists():
-            self.get_order().to_completed()
+            order.to_completed()
             messages.success(
                 self.request,
                 "All samples have an output. The order status is updated to completed.",
             )
-        elif self.get_order().status == Order.OrderStatus.COMPLETED:
-            self.get_order().to_processing()
+        elif order.status in (Order.OrderStatus.COMPLETED, Order.OrderStatus.DELIVERED):
+            order.to_processing()
             messages.success(
                 self.request,
                 "Not all samples have output. The order status is updated to processing.",  # noqa: E501

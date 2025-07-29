@@ -1,0 +1,6 @@
+{% url 'staff:projects-archive' pk=record.pk as archive_url %}
+{% if record.active %}
+    {% action-button action=archive_url class="btn btn-sm bg-[#D2E4F5] w-[8rem]" submit_text="<i class='fa-solid fa-archive'></i> Archive" csrf_token=csrf_token %}
+{% else %}
+    {% action-button action=archive_url class="btn btn-sm bg-[#D2E4F5] w-[8rem]" submit_text="<i class='fa-solid fa-rotate-left'></i> Activate" csrf_token=csrf_token %}
+{% endif %}

@@ -43,6 +43,10 @@
     @apply border-b-2 border-[#eee] p-4;
   }
 
+  .tailwind-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
   .tailwind-table.table-sm tbody tr td {
     @apply py-1;
   }
@@ -280,9 +284,9 @@ ol.breadcrumb > li + ::before {
 }
 
 .custom_order_button {
-  background-color: #f2f2f2; /* Fill */
-  border: 1px solid #bababa; /* Stroke */
-  color: #4a4a4a; /* Text & icon color */
+  background-color: #F2F2F2; /* Fill */
+  border: 1px solid #BABABA; /* Stroke */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button:hover {
@@ -290,10 +294,20 @@ ol.breadcrumb > li + ::before {
   border: 1px solid #a0a0a0; /* Stroke */
 }
 
+.custom_order_button:active {
+  background-color: #D6D6D6; /* Optional: darker on hover */
+  border: 1px solid #8C8C8C; /* Stroke */
+}
+
+.custom_order_button:active {
+  background-color: #D6D6D6; /* Optional: darker on hover */
+  border: 1px solid #8C8C8C; /* Stroke */
+}
+
 .custom_order_button_blue {
-  background-color: #e6f0fa; /* Fill */
-  border: 1px solid #8ca5be; /* Stroke */
-  color: #0f3d6a; /* Text & icon color */
+  background-color: #E6F0FA; /* Fill */
+  border: 1px solid #8CA5BE; /* Stroke */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_blue:hover {
@@ -301,10 +315,52 @@ ol.breadcrumb > li + ::before {
   border: 1px solid #7792ab; /* Stroke */
 }
 
+.custom_order_button_blue:active {
+  background-color: #BFD8F0; /* Optional: darker on hover */
+  border: 1px solid #5F7D95; /* Stroke */
+}
+
+.custom_order_button_dark_blue {
+  background-color: #C9E4FF; /* Fill */
+  border: 1px solid #6891BA; /* Stroke */
+  color: #000000; /* Text & icon color */
+}
+
+.custom_order_button_dark_blue:hover {
+  background-color: #A7D3FF; /* Optional: darker on hover */
+  border: 1px solid #6891BA; /* Stroke */
+}
+
+.custom_order_button_dark_blue:active {
+  background-color: #91C8FF; /* Optional: darker on hover */
+  border: 1px solid #437AB2; /* Stroke */
+}
+
+.custom_order_button_blue:active {
+  background-color: #BFD8F0; /* Optional: darker on hover */
+  border: 1px solid #5F7D95; /* Stroke */
+}
+
+.custom_order_button_dark_blue {
+  background-color: #C9E4FF; /* Fill */
+  border: 1px solid #6891BA; /* Stroke */
+  color: #000000; /* Text & icon color */
+}
+
+.custom_order_button_dark_blue:hover {
+  background-color: #A7D3FF; /* Optional: darker on hover */
+  border: 1px solid #6891BA; /* Stroke */
+}
+
+.custom_order_button_dark_blue:active {
+  background-color: #91C8FF; /* Optional: darker on hover */
+  border: 1px solid #437AB2; /* Stroke */
+}
+
 .custom_order_button_green {
-  background-color: #dff7ca; /* Fill */
-  border: 1px solid #93ad7d; /* Stroke */
-  color: #001d3a; /* Text & icon color */
+  background-color: #DFF7CA; /* Fill */
+  border: 1px solid #93AD7D; /* Stroke */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_green:hover {
@@ -312,15 +368,30 @@ ol.breadcrumb > li + ::before {
   border: 1px solid #7f996c; /* Stroke */
 }
 
+.custom_order_button_green:active {
+  background-color: #B5DA9C; /* Optional: darker on hover */
+  border: 1px solid #6B855B; /* Stroke */
+}
+
+.custom_order_button_green:active {
+  background-color: #B5DA9C; /* Optional: darker on hover */
+  border: 1px solid #6B855B; /* Stroke */
+}
+
 .custom_order_button_red {
   background-color: #f7caca; /* Fill */
   border: 1px solid #ad7d7d; /* Stroke */
-  color: #3a0000; /* Text & icon color */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_red:hover {
   background-color: #ebb0b0; /* Optional: darker on hover */
   border: 1px solid #996c6c; /* Stroke */
+}
+
+.custom_order_button_red:active {
+  background-color: #FFA3A3; /* Optional: darker on hover */
+  border: 1px solid #B96363; /* Stroke */
 }
 
 .responsible-staff-form {
@@ -365,3 +436,4 @@ ol.breadcrumb > li + ::before {
   width: 11rem !important;
   min-width: 11rem !important;
 }
+

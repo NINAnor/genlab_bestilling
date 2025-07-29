@@ -1,32 +1,40 @@
-{% extends "staff/base_filter.html" %}
+{% extends "staff/base.html" %}
 {% load crispy_forms_tags static %}
 {% load render_table from django_tables2 %}
 {% load next_input %}
 
-{% block page-title %}
-{% if order %}{{ order }} - Samples{% else %}Samples{% endif %}
-{% endblock page-title %}
-
-{% block page-inner %}
+{% block content %}
 {% if order %}
 <div class="flex gap-5 mb-5">
-    <a class="btn custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
+    <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> Back</a>
 </div>
 {% endif %}
+<h3 class="text-4xl mb-5">{% block page-title %}{% if order %}Samples {{ order }}{% else %}Samples{% endif %}{% endblock page-title %}</h3>
+{% block page-inner %}
 
 <form method="get" class="py-3 px-4 border mb-3 ">
+    <div class="mb-2">
+        <span class="text-xl">Filters</span>
+    </div>
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
-        <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
-        <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear all</a>
+        <div class="flex items-center gap-2">
+            <button class="btn btn-sm custom_order_button_blue" type="submit">
+                <i class="fa-solid fa-filter"></i>
+                Apply filters
+            </button>
+            <a href="{{ request.path }}" class="btn btn-sm custom_order_button">Clear all</a>
+        </div>
     </div>
 </form>
+
+<div class="mt-6"></div>
 
 <form method="post" action="{% url 'staff:order-analysis-samples' order.pk %}">
     {% csrf_token %}
     {% next_url_input %}
     {% for status in statuses %}
-        <button class="btn custom_order_button_green" type="submit" name="status" value="{{ status }}">
+        <button class="btn btn-sm custom_order_button_green" type="submit" name="status" value="{{ status }}">
             {% if status == "pcr" %}
                 PCR
             {% else %}
@@ -34,9 +42,11 @@
             {% endif %}
         </button>
     {% endfor %}
-
-    {% render_table table %}
+    <div class="mt-3">
+        {% render_table table %}
+    </div>
 </form>
+{% endblock page-inner %}
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -82,5 +92,4 @@
         });
     });
 </script>
-
-{% endblock page-inner %}
+{% endblock content %}

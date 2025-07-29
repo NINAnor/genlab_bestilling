@@ -8,26 +8,24 @@
     <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" href="{% url 'staff:order-extraction-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
-        <a class="btn custom_order_button" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
-
+        <a class="btn custom_order_button" href="{% url 'staff:add-staff' pk=object.id model_type="extraction" %}">Assign staff</a>
+        <div class="ml-auto"></div>
+        {% if object.status != object.OrderStatus.DRAFT %}
+            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
+            {% action-button action=to_draft_url class="custom_order_button" submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
+        {% endif %}
         {% if analysis_orders|length == 1 and not analysis_has_multiple_extraction_orders %}
             <a class="btn custom_order_button_blue" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
         {% endif %}
-        <div class="ml-auto"></div>
+        <a class="btn custom_order_button_dark_blue" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
 
         {% if not object.is_seen %}
             <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
                 {% csrf_token %}
-                <button class="btn btn-sm bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
+                <button class="btn bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
                     <p><i class="fa-solid fa-circle-check"></i> Mark as seen</p>
                 </button>
             </form>
-        {% endif %}
-
-        {% if object.status != object.OrderStatus.DRAFT %}
-            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
-            {% action-button action=to_draft_url class="custom_order_button" submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
         {% endif %}
 
         {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == "checked" %}

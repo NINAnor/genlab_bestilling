@@ -12,11 +12,19 @@ Extraction plates
 </div>
 
 <form method="get" class="py-3 px-4 border mb-3 ">
+    <div class="mb-2">
+        <span class="text-xl">Filters</span>
+    </div>
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
+        <div class="flex items-center gap-2">
+            <button class="btn btn-sm custom_order_button_blue" type="submit">
+                <i class="fa-solid fa-filter"></i>
+                Apply filters
+            </button>
+            <a href="{{ request.path }}" class="btn btn-sm custom_order_button">Clear all</a>
+        </div>
     </div>
-    <button class="btn custom_order_button_blue" type="submit">Search</button>
-    <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear all</a>
 </form>
 
 {% render_table table %}

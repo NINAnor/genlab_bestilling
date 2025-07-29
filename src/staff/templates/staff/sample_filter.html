@@ -4,10 +4,13 @@
 {% load next_input %}
 
 {% block page-title %}
+<div class="flex gap-5 mb-10 items-center w-full">
+  <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
+</div>
 <div class="flex justify-between items-center w-full">
     <div>
         {% if order %}
-            {{ order }} - Samples
+        Samples {{ order }}
         {% else %}
             Samples
         {% endif %}
@@ -17,19 +20,25 @@
 
 {% block page-inner %}
 {% if order %}
-  <div class="flex gap-5 mb-10 items-center w-full">
-    <a class="btn btn-sm font-normal" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
-  </div>
-
   {% include "staff/components/extraction_tabs.html" with order=order active_tab="ordered" %}
 
   <form method="get" class="py-3 px-4 border mb-5 ">
+    <div class="mb-2">
+      <span class="text-xl">Filters</span>
+  </div>
     <div class="flex flex-wrap gap-4">
         {{ filter.form | crispy }}
-    <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
-    <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear all</a>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-sm custom_order_button_blue" type="submit">
+              <i class="fa-solid fa-filter"></i>
+              Apply filters
+          </button>
+          <a href="{{ request.path }}" class="btn btn-sm custom_order_button">Clear all</a>
+      </div>
     </div>
   </form>
+
+  <div class="mt-6"></div>
 
   <form method="post" action="{% url 'staff:generate-genlab-ids' pk=order.pk %}">
       {% csrf_token %}
@@ -46,7 +55,7 @@
             {{ order.filled_genlab_count }} / {{ order.samples.count }} samples with genlabID
           </div>
           <div class="w-full bg-gray-200 h-2 rounded">
-            <div class="bg-green-300 h-2 rounded" style="width:{{ progress_percent|default:0|floatformat:0 }}%;"></div>
+            <div class="bg-[#C9EBB0] h-2 rounded" style="width:{{ progress_percent|default:0|floatformat:0 }}%;"></div>
           </div>
         </div>
       </div>
@@ -57,10 +66,18 @@
 {% else %}
 
 <form method="get" class="py-3 px-4 border mb-3 ">
+  <div class="mb-2">
+    <span class="text-xl">Filters</span>
+</div>
   <div class="flex flex-wrap gap-4">
       {{ filter.form | crispy }}
-  <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
-  <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear all</a>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-sm custom_order_button_blue" type="submit">
+            <i class="fa-solid fa-filter"></i>
+            Apply filters
+        </button>
+        <a href="{{ request.path }}" class="btn btn-sm custom_order_button">Clear all</a>
+    </div>
   </div>
 </form>
 <input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}">

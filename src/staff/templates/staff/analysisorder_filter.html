@@ -2,11 +2,20 @@
 {% load crispy_forms_tags static %}
 {% load render_table from django_tables2 %}
 
+{% block page-upper %}
+  {% if user.is_staff %}
+      <div class="flex gap-5">
+        <div class="ml-auto"></div>
+        <a class="btn btn-sm btn-tertiary" href="{{ view.model.get_admin_changelist_url }}"><i class="fa-solid fa-shield-halved"></i> All analysis orders (admin)</a>
+      </div>
+  {% endif %}
+{% endblock page-upper %}
+
 {% block page-title %}
 Analysis Orders
 {% endblock page-title %}
 
 {% block page-inner %}
-{% filtering filter=filter request=request %}
-{% render_table table %}
+  {% filtering filter=filter request=request %}
+  {% render_table table %}
 {% endblock page-inner %}

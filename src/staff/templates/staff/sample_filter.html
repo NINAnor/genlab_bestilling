@@ -3,19 +3,35 @@
 {% load render_table from django_tables2 %}
 {% load next_input %}
 
-{% block page-title %}
-<div class="flex gap-5 mb-10 items-center w-full">
-  <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
-</div>
-<div class="flex justify-between items-center w-full">
-    <div>
-        {% if order %}
-        Samples {{ order }}
-        {% else %}
-            Samples
+{% block page-upper %}
+
+  <div class="flex gap-5 {% if order %}mb-5{% endif %}">
+
+    {% if order %}
+      <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
+    {% endif %}
+
+    <div class="ml-auto"></div>
+
+    {% if user.is_staff %}
+
+      {% if order %}
+        <a class="btn btn-sm btn-tertiary" href="{{ order.get_admin_samples_url }}"><i class="fa-solid fa-shield-halved"></i> Samples (admin)</a>
+        <a class="btn btn-sm btn-tertiary" href="{{ order.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Extraction order (admin)</a>
+      {% else %}
+        {% if view.model.get_admin_changelist_url %}
+          <a class="btn btn-sm btn-tertiary" href="{{ view.model.get_admin_changelist_url }}"><i class="fa-solid fa-shield-halved"></i> All samples (admin)</a>
         {% endif %}
-    </div>
-</div>
+      {% endif %}
+
+    {% endif %}
+
+  </div>
+{% endblock page-upper %}
+
+
+{% block page-title %}
+Samples {{ order }}
 {% endblock page-title %}
 
 {% block page-inner %}

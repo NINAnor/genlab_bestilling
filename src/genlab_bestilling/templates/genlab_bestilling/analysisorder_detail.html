@@ -2,8 +2,8 @@
 {% load neapolitan %}
 {% load i18n %}
 
-
 {% block content %}
+
     {% if object.short_timeframe %}
     <div class="px-4 alert alert-warning">
     <p>
@@ -20,9 +20,15 @@
     {% #table-cell header=True %}Date{% /table-cell %}
     {% #table-cell header=True %}Volume{% /table-cell %}
     {% endfragment %}
+
+    {% if user.is_staff %}
+      <div class="flex gap-5">
+        <div class="ml-auto"></div>
+        <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Edit (admin)</a>
+      </div>
+    {% endif %}
+
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
-    </div>
 
     {% object-detail object=object %}
 

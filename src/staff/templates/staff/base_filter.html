@@ -3,6 +3,7 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
+    {% block page-upper %}{% endblock page-upper %}
     <h3 class="text-4xl mb-5">{% block page-title %}{% endblock page-title %}</h3>
     {% block page-inner %}{% endblock page-inner %}
 {% endblock %}

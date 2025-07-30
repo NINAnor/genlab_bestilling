@@ -2,8 +2,10 @@ from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
 
+from shared.mixins import AdminUrlsMixin
 
-class ProjectMembership(models.Model):
+
+class ProjectMembership(AdminUrlsMixin, models.Model):
     class Role(models.TextChoices):
         OWNER = "owner", "Owner"
         MANAGER = "manager", "Manager"
@@ -39,7 +41,7 @@ class ProjectManager(models.Manager):
         return self.filter(active=True).exclude(verified_at=None)
 
 
-class Project(models.Model):
+class Project(AdminUrlsMixin, models.Model):
     number = models.CharField(primary_key=True)
     name = models.CharField(null=True, blank=True)
     memberships = models.ManyToManyField(

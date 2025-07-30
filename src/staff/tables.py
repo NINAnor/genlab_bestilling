@@ -13,6 +13,7 @@ from genlab_bestilling.models import (
     ExtractionPlate,
     Order,
     Sample,
+    SampleIsolationMethod,
     SampleMarkerAnalysis,
 )
 from nina.models import Project
@@ -456,6 +457,12 @@ class OrderAnalysisSampleTable(tables.Table):
         },
     )
 
+    isolation_method = tables.Column(
+        verbose_name="Isolation Method",
+        accessor="sample",  # needed to get `record.sample` instead of `None`
+        empty_values=(),
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
         fields = (
@@ -463,6 +470,7 @@ class OrderAnalysisSampleTable(tables.Table):
             "sample__genlab_id",
             "sample__type",
             "marker",
+            "isolation_method",
             "has_pcr",
             "is_analysed",
             "is_outputted",
@@ -479,6 +487,13 @@ class OrderAnalysisSampleTable(tables.Table):
             record.order.id,
             record.id,
         )
+
+    def render_isolation_method(self, record: SampleMarkerAnalysis) -> str:
+        print(record)
+        qs = SampleIsolationMethod.objects.filter(sample=record.sample).values_list(
+            "isolation_method__name", flat=True
+        )
+        return ", ".join(qs)
 
 
 class PlateTable(tables.Table):

@@ -368,6 +368,12 @@ def contact_detail_table(order: Order) -> dict:
     # Default values
     result_contacts_html = "—"
 
+    fields = {
+        "Samples owner of genetic project": order.genrequest.samples_owner,
+        "Responsible genetic researcher": order.contact_person,
+        "Responsible genetic researcher email": order.contact_email,
+    }
+
     # Only fetch contacts if it's an AnalysisOrder instance
     if isinstance(order, AnalysisOrder):
         result_contacts = (
@@ -382,12 +388,7 @@ def contact_detail_table(order: Order) -> dict:
                 [(email[0], email[0]) for email in result_contacts],
             )
 
-    fields = {
-        "Samples owner of genetic project": order.genrequest.samples_owner,
-        "Responsible genetic researcher": order.contact_person,
-        "Responsible genetic researcher email": order.contact_email,
-        "Contact email for analysis results": result_contacts_html,
-    }
+        fields["Contact email for analysis results"] = result_contacts_html
 
     return {
         "fields": fields,

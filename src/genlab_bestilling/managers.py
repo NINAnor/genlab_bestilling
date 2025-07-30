@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import BigIntegerField, Case, QuerySet, Value, When
+from django.db.models import BigIntegerField, Case, IntegerField, QuerySet, Value, When
 from django.db.models.functions import Cast
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
@@ -39,6 +39,23 @@ class OrderQuerySet(PolymorphicQuerySet):
         Get only orders in draft
         """
         return self.filter(status=self.model.OrderStatus.DRAFT)
+
+    def annotate_priority_order(self) -> QuerySet:
+        """
+        Annotate the queryset with a priority order based on urgency and prioritization.
+        Order should be: urgent > prioritized > normal.
+        """
+        return self.annotate(
+            priority_order=Case(
+                When(is_urgent=True, then=self.model.OrderPriority.URGENT),
+                When(
+                    is_prioritized=True,
+                    then=Value(self.model.OrderPriority.PRIORITIZED),
+                ),
+                default=Value(self.model.OrderPriority.NORMAL),
+                output_field=IntegerField(),
+            )
+        )
 
 
 OrderManager = PolymorphicManager.from_queryset(OrderQuerySet)

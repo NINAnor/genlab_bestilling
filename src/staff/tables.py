@@ -88,7 +88,7 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
 
     class Meta:
         fields = (
-            "priority",
+            "priority_order",
             "id",
             "status",
             "area",
@@ -98,7 +98,7 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
             "responsible_staff",
         )
         empty_text = "No Orders"
-        order_by = ("-priority", "status")
+        order_by = ("-priority_order", "status")
 
 
 class AnalysisOrderTable(OrderTable):
@@ -180,7 +180,7 @@ class ExtractionOrderTable(OrderTable):
             "confirmed_at",
         )  # type: ignore[assignment]
         sequence = (
-            "priority",
+            "priority_order",
             "id",
             "status",
             "area",

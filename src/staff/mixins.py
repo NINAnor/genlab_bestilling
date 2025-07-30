@@ -135,24 +135,16 @@ class SampleStatusMixinTable(tables.Table):
 
 
 class PriorityMixinTable(tables.Table):
-    priority = tables.TemplateColumn(
+    priority_order = tables.TemplateColumn(
         orderable=True,
         verbose_name="Priority",
         template_name="staff/components/priority_column.html",
     )
 
-    def order_priority(
+    def order_priority_order(
         self, queryset: QuerySet[Order], is_descending: bool
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
-        queryset = queryset.annotate(
-            priority_order=Case(
-                When(is_urgent=True, then=2),
-                When(is_prioritized=True, then=1),
-                default=0,
-                output_field=IntegerField(),
-            )
-        )
         sorted_by_priority = queryset.order_by(f"{prefix}priority_order")
 
         return (sorted_by_priority, True)

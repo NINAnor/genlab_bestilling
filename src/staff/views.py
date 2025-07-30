@@ -138,6 +138,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__area",
             )
             .prefetch_related("species", "sample_types")
+            .annotate_priority_order()
             .annotate(
                 total_samples=Count("samples"),
                 total_samples_isolated=models.Count(

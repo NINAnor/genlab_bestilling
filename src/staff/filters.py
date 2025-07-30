@@ -133,7 +133,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         )
 
 
-class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
+class ExtractionOrderFilter(filters.FilterSet):
     id = CharFilter(
         field_name="id",
         label="Order ID",
@@ -187,11 +187,6 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
             attrs={"class": "w-full"},
         ),
     )
-
-    @property
-    def qs(self) -> QuerySet:
-        queryset = super().qs
-        return self.exclude_hidden_statuses(queryset, self.data)
 
     class Meta:
         model = ExtractionOrder

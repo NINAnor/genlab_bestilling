@@ -143,6 +143,7 @@
   @apply text-sm text-gray-600;
 }
 
+.textinput,
 .formset-text-input,
 .formset-email-input,
 .formset-date-input,
@@ -152,7 +153,7 @@
 .formset-textarea,
 .formset-password-input,
 .formset-url-input {
-  @apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
+  @apply w-full px-3 py-2 !placeholder-tertiary-800 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 h-10;
 }
 
 .formset-dual-selector-select {
@@ -313,7 +314,7 @@ ol.breadcrumb > li + ::before {
 }
 
 .select-base {
-  @apply w-60 border border-gray-300 rounded-lg text-gray-400 h-auto !important;
+  @apply w-full px-3 py-2 !placeholder-gray-800 !border !border-gray-300 !rounded-lg focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 !h-10;
 }
 
 .select-icon::after {
@@ -325,38 +326,44 @@ ol.breadcrumb > li + ::before {
 }
 
 .select2-container--default .select2-selection--single {
-  @apply select-base flex items-center min-h-[53px] select-icon !important;
-  padding-right: 2.5rem !important;
+  @apply select-base !flex !items-center select-icon !pr-10;
 }
 
 .select2-container--default .select2-selection--multiple {
-  @apply select-base flex min-h-[53px] select-icon !important;
-  padding-right: 2.5rem !important;
+  @apply select-base select-icon !flex !items-end !pr-10;
 }
 
 .select2-selection__clear,
 .select2-selection__arrow {
-  @apply hidden !important;
+  @apply !hidden;
 }
 
-.select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field::placeholder {
-  @apply text-[#999] !important;
+.select2-container--default .select2-search--inline .select2-search__field{
+  @apply !placeholder-tertiary-800 !mt-0;
 }
 
-.select2-container--default .select2-search--inline .select2-search__field {
-  @apply flex items-center justify-center;
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  @apply !text-sm
+}
+
+.select2-container--default .select2-selection__placeholder {
+  @apply !text-tertiary-800;
+}
+
+.select2-container--default .select2-selection__rendered {
+  @apply !flex !flex-wrap !max-w-56 !max-h-8 !overflow-y-auto;
 }
 
 .select2-container {
-  @apply min-w-60 !important;
+  @apply !min-w-60;
 }
 
 .selection {
-  @apply w-60 block !important;
+  @apply !w-60 !flex !content-center;
 }
 
 select {
-  @apply select-base pr-8 min-h-[53px] items-center bg-no-repeat bg-right;
+  @apply select-base pr-10 !h-10 items-center bg-no-repeat bg-right;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 12a1 1 0 01-.7-.3l-3-3a1 1 0 011.4-1.4L10 9.6l2.3-2.3a1 1 0 011.4 1.4l-3 3a1 1 0 01-.7.3z' clip-rule='evenodd'/%3E%3C/svg%3E");
   background-size: 1rem 1rem;
 }
@@ -366,7 +373,7 @@ select {
 }
 
 .staff-status-indicator {
-  @apply top-2 left-2 flex absolute items-center justify-center z-10;
+  @apply top-2 left-2 flex absolute items-center justify-center z-10 pointer-events-none;
 }
 
 .staff-status-indicator.spinner {
@@ -389,6 +396,10 @@ select {
   @apply !max-w-52 !w-full;
 }
 
-.responsible-staff-form .select2-selection {
-  @apply !max-w-52 !w-full !min-w-52;
+.responsible-staff-form .select2-selection{
+  @apply !max-w-52 !w-full !min-w-52 !max-h-10;
+}
+
+.responsible-staff-form .select2-selection__rendered {
+  @apply !max-w-44 !w-full !min-w-44 !overflow-y-auto;
 }

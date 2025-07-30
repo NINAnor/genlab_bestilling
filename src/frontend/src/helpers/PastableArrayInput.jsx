@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 
 export default function PastableArrayInput({ state, handleChange }) {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   let [isOpen, setIsOpen] = useState(false);
 
   const arrayFromInput = () => {
@@ -21,9 +21,9 @@ export default function PastableArrayInput({ state, handleChange }) {
   };
 
   const open = () => {
-    setInput(state.value.join('\n'));
+    setInput(state.value.join("\n"));
     setIsOpen(true);
-  }
+  };
 
   const invalid = input.indexOf("\t") > -1;
 
@@ -38,7 +38,7 @@ export default function PastableArrayInput({ state, handleChange }) {
       </div>
 
       <div className="flex gap-2 mt-2">
-        <Button className="btn bg-primary" onClick={open}>
+        <Button className="btn bg-brand-primary" onClick={open}>
           Paste from excel
         </Button>
         {state.value.length > 0 && (
@@ -77,7 +77,7 @@ export default function PastableArrayInput({ state, handleChange }) {
             )}
             <div className="flex justify-start gap-4">
               <Button
-                className="btn block bg-primary disabled:opacity-70"
+                className="btn block bg-brand-primary disabled:opacity-70"
                 onClick={arrayFromInput}
                 disabled={invalid || !input}
               >

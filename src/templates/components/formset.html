@@ -1,15 +1,15 @@
 {% load static %}
 {% load formsetify %}
 
-{% var submit_text=submit_text|default:"Submit" %}
-{% var reset_text=reset_text|default:"Reset to initial" %}
+{% var submit_text=submit_text|default:'Submit' %}
+{% var reset_text=reset_text|default:'Reset to initial' %}
 
 <django-formset endpoint="{{ endpoint }}" csrf-token="{{ csrf_token }}">
-    {% if form_collection %}{{ form_collection }}{% endif %}
-    {% if form %}{{ form }}{% endif %}
-    <button class="btn bg-secondary custom_order_button_blue" type="button" df-click="disable -> submit -> proceed !~ scrollToError">{{ submit_text }}</button>
-    <button class="btn bg-default custom_order_button" type="button" df-click="reset">{{ reset_text }}</button>
+  {% if form_collection %}{{ form_collection }}{% endif %}
+  {% if form %}{{ form }}{% endif %}
+  <button class="btn bg-brand-secondary btn-primary" type="button" df-click="disable -> submit -> proceed !~ scrollToError">{{ submit_text }}</button>
+  <button class="btn bg-default btn-tertiary" type="button" df-click="reset">{{ reset_text }}</button>
 </django-formset>
 
-<link href="{% static 'formset/css/collections.css' %}" rel="stylesheet">
+<link href="{% static 'formset/css/collections.css' %}" rel="stylesheet" />
 <script type="module" src="{% static 'formset/js/django-formset.js' %}"></script>

@@ -2,15 +2,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import AsyncSelect from "react-select/async";
 
-const datePortal = document.getElementById('date-portal');
+const datePortal = document.getElementById("date-portal");
 
 const CLASSNAMES = {
-  container: () => 'flex w-full',
-  control: (state) => 'px-4 w-full cursor-auto',
-  menu: () => 'bg-white border border-[#444] cursor-auto',
-  option: () => 'px-4 my-2 cursor-auto focus:bg-primary',
-  multiValue: () => 'bg-primary px-1 rounded cursor-auto',
-}
+  container: () => "flex w-full",
+  control: (state) => "px-4 w-full cursor-auto",
+  menu: () => "bg-white border border-[#444] cursor-auto",
+  option: () => "px-4 my-2 cursor-auto focus:bg-brand-primary",
+  multiValue: () => "bg-brand-primary px-1 rounded cursor-auto",
+};
 
 export default function MultiSelectCell({
   getValue,
@@ -19,8 +19,8 @@ export default function MultiSelectCell({
   table,
   loadOptions,
   queryKey,
-  idField = 'id',
-  labelField = 'name',
+  idField = "id",
+  labelField = "name",
 }) {
   const queryClient = useQueryClient();
   const initialValue = getValue();
@@ -29,8 +29,11 @@ export default function MultiSelectCell({
   // When the input is blurred, we'll call our table meta's updateData function
   const handleBlur = () => {
     if (value !== initialValue) {
-      console.log(value)
-      table.options.meta?.updateData({ id: original.id, [id]: value.map(v => v[idField]) });
+      console.log(value);
+      table.options.meta?.updateData({
+        id: original.id,
+        [id]: value.map((v) => v[idField]),
+      });
     }
   };
 
@@ -39,7 +42,11 @@ export default function MultiSelectCell({
     setValue(initialValue || "");
   }, [initialValue]);
 
-  const load = async (input) => await queryClient.fetchQuery({ queryKey: [queryKey, input], queryFn: () => loadOptions(input) });
+  const load = async (input) =>
+    await queryClient.fetchQuery({
+      queryKey: [queryKey, input],
+      queryFn: () => loadOptions(input),
+    });
 
   return (
     <AsyncSelect

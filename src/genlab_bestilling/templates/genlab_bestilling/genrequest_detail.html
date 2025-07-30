@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="flex items-center mb-5 gap-2">
-  <h3 id="genrequest" class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
+  <h3 id="genrequest" class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
 </div>
 
 {% if object.short_timeframe %}
@@ -16,41 +16,41 @@
 {% endif %}
 
 <div class="flex gap-5 my-5">
-  <a class="btn custom_order_button" href="{% url 'genrequest-list' %}"
+  <a class="btn btn-tertiary" href="{% url 'genrequest-list' %}"
     ><i class="fas fa-arrow-left"></i> Back</a
   >
-  <a class="btn custom_order_button" href="{% url 'genrequest-update' pk=genrequest.id %}"
+  <a class="btn btn-tertiary" href="{% url 'genrequest-update' pk=genrequest.id %}"
     ><i class="fas fa-edit"></i> Edit</a
   >
   <a
-    class="btn custom_order_button"
+    class="btn btn-tertiary"
     href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"
     ><i class="fas fa-eye"></i> Orders</a
   >
   <a
-    class="btn custom_order_button_green"
+    class="btn btn-success"
     href="{% url 'genrequest-equipment-create' genrequest_id=genrequest.id %}"
     ><i class="fas fa-plus"></i> Equipment order</a
   >
   <a
-    class="btn custom_order_button_green"
+    class="btn btn-success"
     href="{% url 'genrequest-extraction-create' genrequest_id=genrequest.id %}"
     ><i class="fas fa-plus"></i> Extraction order</a
   >
   <a
-    class="btn custom_order_button_green"
+    class="btn btn-success"
     href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"
     ><i class="fas fa-plus"></i> Analysis order</a
   >
 
   <a
-    class="btn custom_order_button_red"
+    class="btn btn-danger"
     href="{% url 'genrequest-delete' pk=genrequest.id %}"
     ><i class="fas fa-trash"></i> Delete</a
   >
 
   {% if user.is_staff %}
-  <a class="btn custom_order_button ml-auto" href="{% url 'staff:add-staff' pk=genrequest.id model_type="genrequest" %}">
+  <a class="btn btn-tertiary ml-auto" href="{% url 'staff:add-staff' pk=genrequest.id model_type="genrequest" %}">
     <input type="hidden" name="type" value="genrequest">
     <i class="fa-solid fa-id-badge"></i> Assign staff
   </a>

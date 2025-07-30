@@ -1,11 +1,11 @@
-from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
-from django.db import models
+from django.db.models import Case, IntegerField, Value, When
 from django.db.models.query import QuerySet
+from django.http import QueryDict
+from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils.safestring import mark_safe
 from django.views.generic import View
 
 from genlab_bestilling.models import (
@@ -28,7 +28,7 @@ class StaffIDMixinTable(tables.Table):
     ) -> str:
         url = record.get_absolute_staff_url()
 
-        return mark_safe(f'<a href="{url}">{record}</a>')  # noqa: S308
+        return format_html('<a href="{}" class="underline">{}</a>', url, str(record))
 
 
 def render_status_helper(status: Order.OrderStatus) -> str:
@@ -47,8 +47,10 @@ def render_status_helper(status: Order.OrderStatus) -> str:
     classes = status_colors.get(status, "bg-gray-100 text-gray-800")
     text = status_text.get(status, "Unknown")
 
-    return mark_safe(  # noqa: S308
-        f'<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {classes}">{text}</span>'  # noqa: E501
+    return format_html(
+        '<span class="px-2 py-1 text-xs font-medium rounded-full text-nowrap {}">{}</span>',  # noqa: E501
+        classes,
+        text,
     )
 
 
@@ -63,11 +65,13 @@ class OrderStatusMixinTable(tables.Table):
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
         sorted_by_status = queryset.annotate(
-            status_order=models.Case(
-                models.When(status=Order.OrderStatus.DELIVERED, then=0),
-                models.When(status=Order.OrderStatus.DRAFT, then=1),
-                models.When(status=Order.OrderStatus.PROCESSING, then=2),
-                models.When(status=Order.OrderStatus.COMPLETED, then=3),
+            status_order=Case(
+                When(status=Order.OrderStatus.DELIVERED, then=0),
+                When(status=Order.OrderStatus.DRAFT, then=1),
+                When(status=Order.OrderStatus.PROCESSING, then=2),
+                When(status=Order.OrderStatus.COMPLETED, then=3),
+                default=Value(4),
+                output_field=IntegerField(),
             )
         ).order_by(f"{prefix}status_order")
 
@@ -84,9 +88,9 @@ class SampleStatusMixinTable(tables.Table):
 
     def render_sample_status(self, value: Any, record: Sample) -> str:
         order = record.order
+        status = "Unknown"
 
-        # Determine status label
-        if isinstance(order, ExtractionOrder):
+        if order:
             if record.is_isolated:
                 status = "Isolated"
             elif record.is_plucked:
@@ -95,8 +99,6 @@ class SampleStatusMixinTable(tables.Table):
                 status = "Marked"
             else:
                 status = "Not started"
-        else:
-            status = getattr(order, "sample_status", "Unknown")
 
         # Define color map
         status_colors = {
@@ -110,30 +112,26 @@ class SampleStatusMixinTable(tables.Table):
         # Use computed status, not value
         color_class = status_colors.get(status, "bg-gray-100 text-gray-800")
 
-        return mark_safe(  # noqa: S308
-            f'<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {color_class}">{status}</span>'  # noqa: E501
+        return format_html(
+            '<span class="px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap {}">{}</span>',  # noqa: E501
+            color_class,
+            status,
         )
 
     def order_sample_status(
-        self, records: Sequence[Any], is_descending: bool
-    ) -> tuple[list[Any], bool]:
-        def get_status_value(record: Any) -> int:
-            if isinstance(record.order, ExtractionOrder):
-                if record.is_isolated:
-                    return self.STATUS_PRIORITY["Isolated"]
-                if record.is_plucked:
-                    return self.STATUS_PRIORITY["Plucked"]
-                if record.is_marked:
-                    return self.STATUS_PRIORITY["Marked"]
-                return self.STATUS_PRIORITY["Not started"]
-
-            # fallback for other types of orders
-            return self.STATUS_PRIORITY.get(
-                getattr(record.order, "sample_status", ""), -1
-            )
-
-        sorted_records = sorted(records, key=get_status_value, reverse=is_descending)
-        return (sorted_records, True)
+        self, queryset: QuerySet[Sample], is_descending: bool
+    ) -> tuple[QuerySet[Sample], bool]:
+        prefix = "-" if is_descending else ""
+        status_order = Case(
+            When(is_isolated=True, then=Value(3)),
+            When(is_plucked=True, then=Value(2)),
+            When(is_marked=True, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+        annotated_queryset = queryset.annotate(sample_status_order=status_order)
+        sorted_queryset = annotated_queryset.order_by(f"{prefix}sample_status_order")
+        return (sorted_queryset, True)
 
 
 class PriorityMixinTable(tables.Table):
@@ -148,11 +146,11 @@ class PriorityMixinTable(tables.Table):
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
         queryset = queryset.annotate(
-            priority_order=models.Case(
-                models.When(is_urgent=True, then=2),
-                models.When(is_prioritized=True, then=1),
+            priority_order=Case(
+                When(is_urgent=True, then=2),
+                When(is_prioritized=True, then=1),
                 default=0,
-                output_field=models.IntegerField(),
+                output_field=IntegerField(),
             )
         )
         sorted_by_priority = queryset.order_by(f"{prefix}priority_order")
@@ -174,27 +172,52 @@ class SafeRedirectMixin(View):
         msg = "You must override get_fallback_url()"
         raise NotImplementedError(msg)
 
-    def has_next_url(self) -> bool:
-        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
-            self.next_param
-        )
-        return bool(
-            next_url
-            and url_has_allowed_host_and_scheme(
-                next_url,
-                allowed_hosts={self.request.get_host()},
-                require_https=self.request.is_secure(),
-            )
+    def get_next_url_from_request(self) -> str | None:
+        """
+        Safely extract the next URL from POST and GET data.
+        Returns a stripped string if present and non-empty, else None.
+        """
+        next_url = self.request.POST.get(self.next_param)
+        if not next_url:
+            next_url = self.request.GET.get(self.next_param)
+        if isinstance(next_url, str):
+            next_url = next_url.strip()
+            if next_url:
+                return next_url
+        return None
+
+    def has_next_url(self, next_url: str | None = None) -> bool:
+        """
+        Check if a valid and safe next URL is present in the request.
+        Optionally accepts a next_url to avoid duplicate extraction.
+        """
+        if next_url is None:
+            next_url = self.get_next_url_from_request()
+        if not next_url:
+            return False
+        return url_has_allowed_host_and_scheme(
+            url=next_url,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
         )
 
     def get_next_url(self) -> str:
-        next_url = self.request.POST.get(self.next_param) or self.request.GET.get(
-            self.next_param
-        )
-        if next_url and url_has_allowed_host_and_scheme(
-            next_url,
-            allowed_hosts={self.request.get_host()},
-            require_https=self.request.is_secure(),
-        ):
+        """
+        Return a safe next URL if available, otherwise fallback URL.
+        """
+        next_url = self.get_next_url_from_request()
+        if next_url and self.has_next_url(next_url):
             return next_url
         return self.get_fallback_url()
+
+
+class HideStatusesByDefaultMixin:
+    HIDDEN_STATUSES = [Order.OrderStatus.DRAFT, Order.OrderStatus.COMPLETED]
+
+    # Hide statuses by default unless user specifically selects them
+    def exclude_hidden_statuses(self, queryset: QuerySet, data: QueryDict) -> QuerySet:
+        selected_statuses = data.getlist("status")
+        if not selected_statuses:  # No statuses selected by user
+            return queryset.exclude(status__in=self.HIDDEN_STATUSES)
+
+        return queryset

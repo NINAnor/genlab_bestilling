@@ -31,19 +31,19 @@ class KoncivSerializer(EnumSerializer):
 class MarkerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Marker
-        fields = ["name"]
+        fields = ("name",)
 
 
 class SampleTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleType
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
 
 class SpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Species
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -51,7 +51,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
     def get_name(self, obj: Location) -> str:
         return str(obj)
@@ -60,7 +60,7 @@ class LocationSerializer(serializers.ModelSerializer):
 class LocationCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ["id", "name"]
+        fields = ("id", "name")
 
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -77,7 +77,7 @@ class SampleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "id",
             "order",
             "guid",
@@ -91,7 +91,12 @@ class SampleSerializer(serializers.ModelSerializer):
             "type",
             "has_error",
             "genlab_id",
-        ]
+        )
+
+
+class FlagField(serializers.Field):
+    def to_representation(self, value: bool) -> str:
+        return "x" if value else ""
 
 
 class SampleCSVSerializer(serializers.ModelSerializer):
@@ -102,14 +107,14 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     analysis_orders = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     isolation_method = serializers.SerializerMethodField()
-    is_marked = serializers.SerializerMethodField()
-    is_plucked = serializers.SerializerMethodField()
-    is_isolated = serializers.SerializerMethodField()
+    is_marked = FlagField()
+    is_plucked = FlagField()
+    is_isolated = FlagField()
     internal_note = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "order",
             "guid",
             "name",
@@ -128,14 +133,21 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "is_plucked",
             "is_isolated",
             "internal_note",
-        ]
+        )
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
 
     def get_analysis_orders(self, obj: Sample) -> list[str]:
-        if obj.order and obj.order.analysis_orders.exists():
-            return [str(anl.id) for anl in obj.order.analysis_orders.all()]
+        if not obj.order:
+            return []
+
+        analysis_orders = obj.order.analysis_orders.all()
+        # Return all analysis order IDs as strings
+        # only if there is exactly one analysis order, else return empty list.
+        # This is to ensure no duplicate rows in staffs common sheet
+        if analysis_orders.count() == 1:
+            return [str(analysis_orders.first().id)]
         return []
 
     def get_project(self, obj: Sample) -> str:
@@ -147,18 +159,6 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         method = obj.isolation_method.first()
         return method.name if method else ""
 
-    def _flag(self, value: bool) -> str:
-        return "x" if value else ""
-
-    def get_is_marked(self, obj: Sample) -> str:
-        return self._flag(obj.is_marked)
-
-    def get_is_plucked(self, obj: Sample) -> str:
-        return self._flag(obj.is_plucked)
-
-    def get_is_isolated(self, obj: Sample) -> str:
-        return self._flag(obj.is_isolated)
-
     def get_internal_note(self, obj: Sample) -> str:
         if obj.internal_note:
             return obj.internal_note
@@ -166,14 +166,18 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
 
 class LabelCSVSerializer(serializers.ModelSerializer):
+    location = LocationSerializer(allow_null=True, required=False)
+
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id",
             "guid",
             "name",
             "fish_id",
-        ]
+            "order",
+            "location",
+        )
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
@@ -190,7 +194,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "id",
             "order",
             "guid",
@@ -202,7 +206,7 @@ class SampleUpdateSerializer(serializers.ModelSerializer):
             "location",
             "type",
             "has_error",
-        ]
+        )
 
 
 class SampleBulkSerializer(serializers.ModelSerializer):
@@ -219,7 +223,7 @@ class SampleBulkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "order",
             "species",
             "year",
@@ -229,23 +233,23 @@ class SampleBulkSerializer(serializers.ModelSerializer):
             "type",
             "location",
             "quantity",
-        ]
+        )
 
 
 class SampleDeleteBulkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sample
-        fields = ["order"]
+        fields = ("order",)
 
 
 class GenrequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genrequest
-        fields = [
+        fields = (
             "id",
             "project",
             "area",
-        ]
+        )
 
 
 class ExtractionSerializer(serializers.ModelSerializer):
@@ -255,7 +259,7 @@ class ExtractionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExtractionOrder
-        fields = ["id", "genrequest", "species", "sample_types", "needs_guid"]
+        fields = ("id", "genrequest", "species", "sample_types", "needs_guid")
 
 
 class AnalysisSerializer(serializers.ModelSerializer):
@@ -264,7 +268,7 @@ class AnalysisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AnalysisOrder
-        fields = ["id", "genrequest", "markers"]
+        fields = ("id", "genrequest", "markers")
 
 
 class SampleMarkerAnalysisSerializer(serializers.ModelSerializer):
@@ -272,7 +276,7 @@ class SampleMarkerAnalysisSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ["id", "order", "sample", "marker"]
+        fields = ("id", "order", "sample", "marker")
 
 
 class SampleMarkerAnalysisBulkSerializer(serializers.ModelSerializer):
@@ -285,7 +289,7 @@ class SampleMarkerAnalysisBulkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ["order", "samples", "markers"]
+        fields = ("order", "samples", "markers")
 
 
 class SampleMarkerAnalysisBulkDeleteSerializer(serializers.Serializer):

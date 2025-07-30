@@ -26,6 +26,27 @@
 
     {% object-detail object=object %}
 
+    {% if results_contacts %}
+    <h5 class="text-2xl my-5">Contacts for Analysis Results</h5>
+    <div class="bg-white p-4">
+        <ul class="list-disc pl-5">
+        {% for contact in results_contacts %}
+            <li>
+            {{ contact.contact_person_results }} —
+            <a href="mailto:{{ contact.contact_email_results }}" class="underline text-primary">
+                {{ contact.contact_email_results }}
+            </a>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% else %}
+    <h5 class="text-2xl my-5">Contacts for Analysis Results</h5>
+    <div class="bg-white p-4">
+        <p>No contacts provided for analysis results.</p>
+    </div>
+    {% endif %}
+
 
     <h5 class="text-2xl my-5">Samples to analyze</h5>
     <div class="bg-white p-4">
@@ -44,9 +65,11 @@
         {% url 'genrequest-order-clone' genrequest_id=object.genrequest_id pk=object.id as clone_order_url %}
         {% action-button action=confirm_order_url class="btn custom_order_button" submit_text="Deliver order" csrf_token=csrf_token %}
         {% action-button action=clone_order_url class="btn custom_order_button" submit_text="Clone Order" csrf_token=csrf_token %}
+        {% if all_samples_have_no_genlab_id %}
         <a class="btn custom_order_button_red" href="{% url 'genrequest-analysis-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
+        {% endif %}
         {% elif object.status == object.OrderStatus.DELIVERED %}
-        <a class="btn custom_order_button" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
+            <a class="btn custom_order_button" href="{% url 'genrequest-analysis-samples' genrequest_id=object.genrequest_id pk=object.id %}">Samples</a>
         {% endif %}
     </div>
 {% endblock %}

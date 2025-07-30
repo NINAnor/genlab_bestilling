@@ -1,6 +1,6 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
-
+{% load next_input %}
 
 {% block content %}
     <h3 class="text-4xl mb-5">Project {{ object }}</h3>
@@ -9,11 +9,16 @@
     <div class="flex gap-5 my-5">
         <a class="btn custom_order_button" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
-        {% if object.verified_at is null %}
-            {% action-button action=verify_url class="btn-secondary text-white" submit_text="Mark as verified" csrf_token=csrf_token %}
+        <form method="post" action="{{ verify_url }}">
+            {% csrf_token %}
+            {% next_url_input %}
+        {% if not object.verified_at %}
+            <button type="submit" class="btn bg-[#dff7ca]">
+                <i class="fa-solid fa-circle-check"></i> Mark as verified
+            </button>
         {% endif %}
     </div>
 
-    {% object-detail object=object %}
+    {% object-detail-staff object=object %}
 
 {% endblock %}

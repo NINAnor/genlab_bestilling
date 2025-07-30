@@ -5,6 +5,7 @@ from typing import Any
 
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -284,7 +285,7 @@ class Order(PolymorphicModel):
     contact_person = models.CharField(
         null=True,
         blank=False,
-        help_text="Person to contact with questions about this order",
+        help_text="Responsible for genetic bioinformatics analysis",
     )
     contact_email = models.EmailField(
         null=True,
@@ -330,6 +331,14 @@ class Order(PolymorphicModel):
 
     def to_processing(self) -> None:
         self.status = Order.OrderStatus.PROCESSING
+        if not self.is_seen:
+            self.is_seen = True
+        self.save()
+
+    def to_completed(self) -> None:
+        self.status = Order.OrderStatus.COMPLETED
+        if not self.is_seen:
+            self.is_seen = True
         self.save()
 
     def toggle_seen(self) -> None:
@@ -343,9 +352,20 @@ class Order(PolymorphicModel):
     def get_type(self) -> str:
         return "order"
 
+    def update_status(self) -> None:
+        """
+        AnalysisOrder and ExtractionOrder should implement this method
+        """
+        msg = "Subclasses must implement update_status()"
+        raise NotImplementedError(msg)
+
     @property
     def filled_genlab_count(self) -> int:
         return self.samples.filter(genlab_id__isnull=False).count()
+
+    @property
+    def isolated_count(self) -> int:
+        return self.samples.filter(is_isolated=True).count()
 
     @property
     def next_status(self) -> OrderStatus | None:
@@ -439,6 +459,9 @@ class EquipmentOrder(Order):
             raise Order.CannotConfirm(_("No equipments found"))
         return super().confirm_order()
 
+    def update_status(self) -> None:
+        pass
+
     def get_type(self) -> str:
         return "equipment"
 
@@ -506,6 +529,14 @@ class ExtractionOrder(Order):
             if persist:
                 super().confirm_order()
 
+    def update_status(self) -> None:
+        if not self.samples.filter(is_isolated=False).exists():
+            super().to_completed()
+            return
+        if not self.samples.filter(genlab_id__isnull=True).exists():
+            super().to_processing()
+            return
+
     @transaction.atomic
     def order_selected_checked(
         self,
@@ -526,6 +557,27 @@ class ExtractionOrder(Order):
             order_id=self.id,  # type: ignore[arg-type] # `self` has been saved first, so id is known to exists.
             selected_samples=selected_samples,
         )
+
+
+class AnalysisOrderResultsCommunication(models.Model):
+    analysis_order = models.ForeignKey(
+        f"{an}.AnalysisOrder",
+        on_delete=models.CASCADE,
+        related_name="results_contacts",
+    )
+    contact_person_results = models.CharField(
+        null=True,
+        blank=False,
+        help_text="Person to contact for analysis resuls",
+    )
+    contact_email_results = models.EmailField(
+        null=True,
+        blank=False,
+        help_text="Email to send analysis results",
+    )
+
+    def __str__(self):
+        return f"{str(self.analysis_order)} {str(self.contact_person_results)} {str(self.contact_email_results)}"  # noqa: E501
 
 
 class AnalysisOrder(Order):
@@ -578,6 +630,21 @@ class AnalysisOrder(Order):
 
             if persist:
                 super().confirm_order()
+
+    def update_status(self) -> None:
+        if not SampleMarkerAnalysis.objects.filter(
+            order=self, is_outputted=False
+        ).exists():
+            super().to_completed()
+            return
+
+        if (
+            SampleMarkerAnalysis.objects.filter(order=self)
+            .filter(Q(has_pcr=True) | Q(is_analysed=True))
+            .exists()
+        ):
+            super().to_processing()
+            return
 
     def populate_from_order(self) -> None:
         """
@@ -674,6 +741,14 @@ class Sample(models.Model):
         through=f"{an}.SampleIsolationMethod",
         blank=True,
         help_text="The isolation method used for this sample",
+    )
+
+    markers = models.ManyToManyField(
+        f"{an}.Marker",
+        through="SampleMarkerAnalysis",
+        related_name="samples",
+        blank=True,
+        help_text="Markers that are relevant for this sample",
     )
 
     is_prioritised = models.BooleanField(
@@ -817,11 +892,12 @@ class SampleIsolationMethod(models.Model):
 
 class IsolationMethod(models.Model):
     name = models.CharField(max_length=255)
-    type = models.ForeignKey(
+    sample_types = models.ManyToManyField(
         f"{an}.SampleType",
-        on_delete=models.CASCADE,
-        related_name="type_isolation_methods",
-        help_text="The sample type this isolation method is related to.",
+        related_name="isolation_methods",
+        verbose_name="Sample types",
+        blank=True,
+        help_text="Sample types that this isolation method can be used for",
     )
 
     def __str__(self) -> str:

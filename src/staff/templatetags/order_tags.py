@@ -1,10 +1,18 @@
+import uuid
 from collections import Counter
 
 from django import template
 from django.db import models
+from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 
-from genlab_bestilling.models import Area, Order
+from genlab_bestilling.models import (
+    AnalysisOrder,
+    AnalysisOrderResultsCommunication,
+    Area,
+    Order,
+)
+from staff.forms import ResponsibleStaffForm
 
 from ..tables import (
     AssignedOrderTable,
@@ -18,13 +26,26 @@ from ..tables import (
 register = template.Library()
 
 
+@register.inclusion_tag("staff/components/responsible_staff_multiselect.html")
+def responsible_staff_multiselect(order: Order | None = None) -> dict:
+    prefix = f"order_{order.id}" if order else f"new_{uuid.uuid4().hex[:8]}"
+
+    # Add prefix to the form to avoid conflicts with other forms on the page
+    form = ResponsibleStaffForm(order=order, prefix=prefix)
+    return {
+        "form": form,
+        "order": order,
+    }
+
+
 def generate_order_links(orders: list) -> str:
     if not orders:
         return "-"
-    links = [
-        f'<a href="{order.get_absolute_staff_url()}">{order}</a>' for order in orders
-    ]
-    return mark_safe(", ".join(links))  # noqa: S308
+    return format_html_join(
+        ", ",
+        "<a href='{}'>{}</a>",
+        ((order.get_absolute_staff_url(), str(order)) for order in orders),
+    )
 
 
 def render_boolean(value: bool) -> str:
@@ -209,6 +230,7 @@ def assigned_orders_table(context: dict) -> dict:
             ),
         )
         .order_by(
+            "-priority",
             models.Case(
                 models.When(status=Order.OrderStatus.PROCESSING, then=0),
                 models.When(status=Order.OrderStatus.DELIVERED, then=1),
@@ -216,7 +238,6 @@ def assigned_orders_table(context: dict) -> dict:
                 default=3,
                 output_field=models.IntegerField(),
             ),
-            "-priority",
             "-created_at",
         )
     )
@@ -267,7 +288,7 @@ def extraction_order_detail_table(order: Order) -> dict:
     fields = {
         "Order ID": order.id,
         "Genetic Project": order.genrequest,
-        "Species": order.species.name,
+        "Species": ", ".join(str(s) for s in order.species.all()),
         "Status": render_status_helper(order.status),
         "Name": order.name,
         "Notes": "-" if order.notes == "" else order.notes,
@@ -307,7 +328,7 @@ def analysis_order_detail_table(order: Order) -> dict:
         "Confirmed at": order.confirmed_at.strftime("%d.%m.%Y")
         if order.confirmed_at
         else "Not confirmed",
-        "Expected delivery date": order.expected_delivery_date.strftime("%d.%m.%Y")
+        "Deadline": order.expected_delivery_date.strftime("%d.%m.%Y")
         if order.expected_delivery_date
         else "Not specified",
     }
@@ -316,21 +337,26 @@ def analysis_order_detail_table(order: Order) -> dict:
 
 @register.inclusion_tag("../templates/components/order-detail.html")
 def analysis_order_samples_detail_table(order: Order, extraction_orders: dict) -> dict:
-    # Generate links for extraction orders with sample counts
-    extraction_order_links = [
-        f"{generate_order_links([extraction_order])} ({count} sample{'s' if count != 1 else ''})"  # noqa: E501
-        for extraction_order, count in extraction_orders.items()
-    ]
+    extraction_order_links = format_html_join(
+        "<br>",
+        "{} ({})",
+        (
+            (
+                generate_order_links([extraction_order]),
+                f"{count} sample{'s' if count > 1 else ''}",
+            )
+            for extraction_order, count in extraction_orders.items()
+        ),
+    )
 
     fields = {
         "Number of samples": order.samples.count(),
         "Markers": ", ".join(marker.name for marker in order.markers.all())
         if order.markers.exists()
         else "No markers",
-        "Samples from extraction order": mark_safe("<br>".join(extraction_order_links))  # noqa: S308
-        if extraction_order_links
-        else "-",
+        "Samples from extraction order": extraction_order_links or "-",
     }
+
     return {
         "fields": fields,
         "header": "Samples",
@@ -339,11 +365,30 @@ def analysis_order_samples_detail_table(order: Order, extraction_orders: dict) -
 
 @register.inclusion_tag("../templates/components/order-detail.html")
 def contact_detail_table(order: Order) -> dict:
+    # Default values
+    result_contacts_html = "—"
+
+    # Only fetch contacts if it's an AnalysisOrder instance
+    if isinstance(order, AnalysisOrder):
+        result_contacts = (
+            AnalysisOrderResultsCommunication.objects.filter(analysis_order=order)
+            .values_list("contact_person_results", "contact_email_results")
+            .distinct()
+        )
+        if result_contacts:
+            result_contacts_html = format_html_join(
+                "\n",
+                '<div>{} — <a href="mailto:{}" class="text-primary underline !text-primary">{}</a></div>',  # noqa: E501
+                [(name, email, email) for name, email in result_contacts],
+            )
+
     fields = {
         "Samples owner of genetic project": order.genrequest.samples_owner,
-        "Contact person": order.contact_person,
-        "Contact Email": order.contact_email,
+        "Responsible genetic researcher": order.contact_person,
+        "Responsible genetic researcher email": order.contact_email,
+        "Contact name and email for analysis results": result_contacts_html,
     }
+
     return {
         "fields": fields,
         "header": "Contact",

@@ -4,7 +4,7 @@ import uuid
 from typing import Any
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -36,6 +36,7 @@ from ..filters import (
     SpeciesFilter,
 )
 from ..models import (
+    AnalysisOrder,
     AnalysisType,
     ExtractionOrder,
     Location,
@@ -190,6 +191,12 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
                 "order__genrequest__area",
                 "location",
             )
+            .prefetch_related(
+                Prefetch(
+                    "order__analysis_orders",
+                    queryset=AnalysisOrder.objects.only("id"),
+                )
+            )
             .order_by("genlab_id", "type")
         )
 
@@ -202,6 +209,13 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
             return SampleUpdateSerializer
         return super().get_serializer_class()
 
+    def get_order_id(self, queryset: QuerySet) -> str:
+        order_id = "unknown_order_id"
+        order_id_value = queryset.values_list("order__id", flat=True).first()
+        if order_id_value:
+            order_id = str(order_id_value)
+        return order_id
+
     @action(
         methods=["GET"],
         url_path="csv",
@@ -210,11 +224,14 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     )
     def csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
+
+        filename = f"Complete_sheet_EXT_{self.get_order_id(queryset)}.csv"
+
         return self.render_csv_response(
             queryset,
             serializer_class=SampleCSVSerializer,
             fields_by_area=SAMPLE_CSV_FIELDS_BY_AREA,
-            filename="samples.csv",
+            filename=filename,
         )
 
     @action(
@@ -225,11 +242,14 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     )
     def labels_csv(self, request: Request) -> HttpResponse:
         queryset = self.filter_queryset(self.get_queryset())
+
+        filename = f"EXT_{self.get_order_id(queryset)}.csv"
+
         return self.render_csv_response(
             queryset,
             serializer_class=LabelCSVSerializer,
             fields_by_area=LABEL_CSV_FIELDS_BY_AREA,
-            filename="sample_labels.csv",
+            filename=filename,
         )
 
     @extend_schema(

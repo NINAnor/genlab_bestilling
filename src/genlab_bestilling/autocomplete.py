@@ -72,3 +72,7 @@ class ExtractionOrderAutocomplete(autocomplete.Select2QuerySetView):
 
 class IsolationMethodAutocomplete(autocomplete.Select2QuerySetView):
     model = IsolationMethod
+
+
+class AnalysisMarkerAutocomplete(autocomplete.Select2QuerySetView):
+    model = Marker

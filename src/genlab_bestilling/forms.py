@@ -3,8 +3,10 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Model
+from django.utils.html import strip_tags
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
 from formset.widgets import DualSortableSelector, Selectize, TextInput
@@ -14,6 +16,7 @@ from nina.models import Project
 from .libs.formset import ContextFormCollection
 from .models import (
     AnalysisOrder,
+    AnalysisOrderResultsCommunication,
     EquimentOrderQuantity,
     EquipmentOrder,
     ExtractionOrder,
@@ -58,7 +61,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = Genrequest
-        fields = [
+        fields = (
             "project",
             "name",
             "area",
@@ -69,7 +72,7 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "expected_total_samples",
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
-        ]
+        )
         widgets = {
             "area": Selectize(search_lookup="name_icontains"),
             "samples_owner": Selectize(search_lookup="name_icontains"),
@@ -101,7 +104,7 @@ class GenrequestEditForm(GenrequestForm):
         )
 
     class Meta(GenrequestForm.Meta):
-        fields = [
+        fields = (
             "area",
             "name",
             "species",
@@ -110,7 +113,7 @@ class GenrequestEditForm(GenrequestForm):
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
             "expected_total_samples",
-        ]
+        )  # type: ignore[assignment]
 
 
 class EquipmentOrderForm(FormMixin, forms.ModelForm):
@@ -122,6 +125,12 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 
         # self.fields["species"].queryset = genrequest.species.all()
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
+        self.fields[
+            "contact_person"
+        ].help_text = "Person to contact with questions about this order"
+        self.fields[
+            "contact_email"
+        ].help_text = "Email to contact with questions about this order"
 
     def save(self, commit: bool = True) -> EquipmentOrder:
         obj = super().save(commit=False)
@@ -133,7 +142,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = EquipmentOrder
-        fields = [
+        fields = (
             "name",
             "needs_guid",
             # "species",
@@ -143,7 +152,7 @@ class EquipmentOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             # "species": DualSortableSelector(
             #     search_lookup="name_icontains",
@@ -175,7 +184,7 @@ class EquipmentOrderQuantityForm(forms.ModelForm):
 
     class Meta:
         model = EquimentOrderQuantity
-        fields = ["id", "equipment", "buffer", "buffer_quantity", "quantity"]
+        fields = ("id", "equipment", "buffer", "buffer_quantity", "quantity")
         widgets = {
             "equipment": Selectize(search_lookup="name_icontains"),
             "buffer": Selectize(search_lookup="name_icontains"),
@@ -258,9 +267,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
-        # self.fields["markers"].queryset = Marker.objects.filter(
-        #     species__genrequests__id=genrequest.id
-        # ).distinct()
+        self.fields["contact_person"].label = "Responsible genetic researcher"
+        self.fields["contact_email"].label = "Responsible genetic researcher email"
 
     def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)
@@ -272,7 +280,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = ExtractionOrder
-        fields = [
+        fields = (
             "name",
             "needs_guid",
             "species",
@@ -284,7 +292,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             "species": DualSortableSelector(
                 search_lookup="name_icontains",
@@ -329,10 +337,37 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
                 " with the sample selection by pressing Submit"
             )
 
+        self.fields["contact_person"].label = "Responsible genetic researcher"
+        self.fields["contact_email"].label = "Responsible genetic researcher email"
+
+    def clean_contact_email_results(self) -> str:
+        emails_raw = self.cleaned_data.get("contact_email_results", "")
+        emails = [e.strip() for e in emails_raw.split(",") if e.strip()]
+
+        try:
+            for email in emails:
+                validate_email(email)
+        except ValidationError:
+            msg = f"Invalid email: {email}"
+            raise forms.ValidationError(msg) from ValidationError(msg)
+        return ", ".join(emails)
+
+    def clean_contact_person_results(self) -> str:
+        names_raw = self.cleaned_data.get("contact_person_results", "")
+        names = [n.strip() for n in names_raw.split(",") if n.strip()]
+
+        for name in names:
+            # Optionally allow hyphens and apostrophes in names
+            if not all(c.isalpha() or c.isspace() or c in "-'" for c in name):
+                msg = f"Invalid name: {name}"
+                raise forms.ValidationError(msg) from ValidationError(msg)
+        return ", ".join(names)
+
     def save(self, commit: bool = True) -> Model:
         if not commit:
             msg = "This form is always committed"
             raise NotImplementedError(msg)
+
         with transaction.atomic():
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
@@ -342,9 +377,38 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
             if obj.from_order and not obj.name and obj.from_order.name:
                 obj.name = obj.from_order.name + " - Analysis"
+
             obj.save()
             self.save_m2m()
             obj.populate_from_order()
+
+            # Save AnalysisOrderResultsCommunication objects
+            # Delete old entries first (in case of resubmission)
+            obj.results_contacts.all().delete()
+
+            names = [
+                strip_tags(n.strip())
+                for n in self.cleaned_data["contact_person_results"].split(",")
+                if n.strip()
+            ]
+            emails = [
+                strip_tags(e.strip())
+                for e in self.cleaned_data["contact_email_results"].split(",")
+                if e.strip()
+            ]
+
+            if names and emails:
+                if len(names) != len(emails):
+                    msg = "The number of names must match the number of emails."
+                    raise ValidationError(msg)
+
+                for name, email in zip(names, emails, strict=False):
+                    AnalysisOrderResultsCommunication.objects.create(
+                        analysis_order=obj,
+                        contact_person_results=name,
+                        contact_email_results=email,
+                    )
+
             return obj
 
     def clean(self) -> None:
@@ -353,6 +417,18 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         if cleaned_data.get("use_all_samples") and not cleaned_data.get("from_order"):
             msg = "An extraction order must be selected"
             raise ValidationError(msg)
+
+    contact_person_results = forms.CharField(
+        label="Contact person(s) for results",
+        help_text="Comma-separated list of names to contact with results",
+        required=True,
+    )
+
+    contact_email_results = forms.CharField(
+        label="Contact email(s) for results",
+        help_text="Comma-separated list of emails to contact with results (must match order of names)",  # noqa: E501
+        required=True,
+    )
 
     field_order = [
         "name",
@@ -365,7 +441,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
     class Meta:
         model = AnalysisOrder
-        fields = [
+        fields = (
             "name",
             "from_order",
             "markers",
@@ -375,7 +451,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )
         widgets = {
             "name": TextInput(
                 attrs={"df-show": ".from_order==''||.use_all_samples=='False'"}
@@ -393,7 +469,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
 class AnalysisOrderUpdateForm(AnalysisOrderForm):
     class Meta(AnalysisOrderForm.Meta):
-        fields = [
+        fields = (
             "name",
             "markers",
             # "from_order",
@@ -403,7 +479,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             "is_urgent",
             "contact_person",
             "contact_email",
-        ]
+        )  # type: ignore[assignment]
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)

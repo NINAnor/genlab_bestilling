@@ -5,7 +5,7 @@ from dal import autocomplete
 from django import forms
 from django.db.models import QuerySet
 from django.http import HttpRequest
-from django_filters import BooleanFilter, CharFilter, ChoiceFilter
+from django_filters import CharFilter, ChoiceFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -13,14 +13,45 @@ from genlab_bestilling.models import (
     Area,
     ExtractionOrder,
     ExtractionPlate,
-    Order,
+    Marker,
     Sample,
     SampleMarkerAnalysis,
     Species,
 )
+from nina.models import Project
+from staff.mixins import HideStatusesByDefaultMixin
+
+CUSTOM_ORDER_STATUS_CHOICES = [
+    ("draft", "Draft"),
+    ("confirmed", "Not started"),
+    ("processing", "Processing"),
+    ("completed", "Completed"),
+]
 
 
-class AnalysisOrderFilter(filters.FilterSet):
+class StaticModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
+    def __init__(self, static_choices: list[tuple], *args: Any, **kwargs: Any) -> None:
+        self.static_choices = static_choices or []
+        super().__init__(*args, **kwargs)
+
+    def filter_queryset(
+        self, request: HttpRequest, term: str, queryset: QuerySet
+    ) -> list:
+        # Override to use static choices instead of queryset
+        if term:
+            return [
+                choice
+                for choice in self.static_choices
+                if term.lower() in choice[1].lower()
+            ]
+        return self.static_choices
+
+    def get_queryset(self) -> QuerySet:
+        # Return empty queryset since we're using static data
+        return self.model.objects.none()
+
+
+class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = filters.CharFilter(
         field_name="id",
         label="Order ID",
@@ -32,16 +63,17 @@ class AnalysisOrderFilter(filters.FilterSet):
         ),
     )
 
-    status = filters.ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
-        widget=forms.Select(
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
+        widget=StaticModelSelect2Multiple(
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+                "data-placeholder": "Filter by status",
+                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
             },
         ),
-        empty_label="",
     )
 
     genrequest__area = filters.ModelChoiceFilter(
@@ -74,18 +106,34 @@ class AnalysisOrderFilter(filters.FilterSet):
         ),
     )
 
+    markers = filters.ModelMultipleChoiceFilter(
+        field_name="markers",
+        label="Markers",
+        queryset=Marker.objects.all(),
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:analysis-marker",
+            attrs={"class": "w-full"},
+        ),
+    )
+
+    @property
+    def qs(self) -> QuerySet:
+        queryset = super().qs
+        return self.exclude_hidden_statuses(queryset, self.data)
+
     class Meta:
         model = AnalysisOrder
-        fields = [
+        fields = (
             "id",
             "status",
             "genrequest__area",
             "responsible_staff",
             "genrequest__species",
-        ]
+            "markers",
+        )
 
 
-class ExtractionOrderFilter(filters.FilterSet):
+class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = CharFilter(
         field_name="id",
         label="Order ID",
@@ -97,16 +145,17 @@ class ExtractionOrderFilter(filters.FilterSet):
         ),
     )
 
-    status = ChoiceFilter(
+    status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
-        choices=Order.OrderStatus.choices,
-        widget=forms.Select(
+        choices=CUSTOM_ORDER_STATUS_CHOICES,
+        widget=StaticModelSelect2Multiple(
+            static_choices=CUSTOM_ORDER_STATUS_CHOICES,
             attrs={
-                "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700"  # noqa: E501
+                "data-placeholder": "Filter by status",
+                "class": "border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
             },
         ),
-        empty_label="",
     )
 
     genrequest__area = filters.ModelChoiceFilter(
@@ -139,15 +188,20 @@ class ExtractionOrderFilter(filters.FilterSet):
         ),
     )
 
+    @property
+    def qs(self) -> QuerySet:
+        queryset = super().qs
+        return self.exclude_hidden_statuses(queryset, self.data)
+
     class Meta:
         model = ExtractionOrder
-        fields = [
+        fields = (
             "id",
             "status",
             "genrequest__area",
             "responsible_staff",
             "genrequest__species",
-        ]
+        )
 
 
 class OrderSampleFilter(filters.FilterSet):
@@ -187,12 +241,12 @@ class OrderSampleFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id",
             "name",
             "species",
             "type",
-        ]
+        )
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
@@ -239,7 +293,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
     class Meta:
         model = SampleMarkerAnalysis
-        fields = [
+        fields = (
             "sample__genlab_id",
             "sample__type",
             "sample__extractions",
@@ -247,10 +301,44 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             # "PCR",
             # "fluidigm",
             # "output",
-        ]
+        )
+
+
+class SampleStatusWidget(forms.Select):
+    def __init__(self, attrs: dict[str, Any] | None = None):
+        choices = (
+            ("", "Status"),
+            ("marked", "Marked"),
+            ("plucked", "Plucked"),
+            ("isolated", "Isolated"),
+        )
+        super().__init__(choices=choices, attrs=attrs)
+
+
+def filter_sample_status(
+    filter_set: Any, queryset: QuerySet, name: Any, value: str
+) -> QuerySet:
+    if value == "marked":
+        # Only marked, not plucked or isolated
+        return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
+    if value == "plucked":
+        # Plucked but not isolated
+        return queryset.filter(is_plucked=True, is_isolated=False)
+    if value == "isolated":
+        # All isolated samples, regardless of others
+        return queryset.filter(is_isolated=True)
+    return queryset
 
 
 class SampleFilter(filters.FilterSet):
+    filter_sample_status = filter_sample_status
+
+    sample_status = filters.CharFilter(
+        label="Sample Status",
+        method="filter_sample_status",
+        widget=SampleStatusWidget,
+    )
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
@@ -272,7 +360,7 @@ class SampleFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "name",
             "genlab_id",
             "species",
@@ -280,63 +368,18 @@ class SampleFilter(filters.FilterSet):
             "year",
             "location",
             "pop_id",
-            "type",
-        ]
+            "sample_status",
+        )
 
 
 class ExtractionPlateFilter(filters.FilterSet):
     class Meta:
         model = ExtractionPlate
-        fields = [
-            "id",
-        ]
+        fields = ("id",)
 
 
 class SampleLabFilter(filters.FilterSet):
-    is_marked = BooleanFilter(
-        label="Marked",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
-    )
-
-    is_plucked = BooleanFilter(
-        label="Plucked",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
-    )
-
-    is_isolated = BooleanFilter(
-        label="Isolated",
-        method="filter_boolean",
-        widget=forms.Select(
-            choices=(
-                ("", "---------"),
-                ("true", "Yes"),
-                ("false", "No"),
-            ),
-            attrs={
-                "class": "w-full border border-gray-300 rounded-lg py-2 px-4 text-gray-700",  # noqa: E501
-            },
-        ),
-    )
+    filter_sample_status = filter_sample_status
 
     genlab_id_min = ChoiceFilter(
         label="Genlab ID (From)",
@@ -348,6 +391,12 @@ class SampleLabFilter(filters.FilterSet):
         label="Genlab ID (To)",
         method="filter_genlab_id_range",
         empty_label="Select upper bound",
+    )
+
+    sample_status = filters.CharFilter(
+        label="Sample Status",
+        method="filter_sample_status",
+        widget=SampleStatusWidget,
     )
 
     def __init__(
@@ -399,17 +448,15 @@ class SampleLabFilter(filters.FilterSet):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id_min",
             "genlab_id_max",
-            "is_marked",
-            "is_plucked",
-            "is_isolated",
+            "sample_status",
             "extractions",
             "isolation_method",
             # "fluidigm",
             # "output",
-        ]
+        )
 
     def filter_genlab_id_range(
         self, queryset: QuerySet, name: str, value: Any
@@ -440,3 +487,76 @@ class SampleLabFilter(filters.FilterSet):
             queryset = queryset.filter(genlab_id__lte=genlab_max)
 
         return queryset
+
+
+class ProjectFilter(filters.FilterSet):
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        if not data or not any(data.values()):
+            data = {"active": "True"}
+
+        super().__init__(data, queryset, request=request, prefix=prefix)
+
+    number = CharFilter(
+        field_name="number",
+        lookup_expr="startswith",
+        label="Project number starts with",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter project number",
+            }
+        ),
+    )
+
+    name = CharFilter(
+        field_name="name",
+        lookup_expr="istartswith",
+        label="Project name starts with",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter project name",
+            }
+        ),
+    )
+
+    verified_at = filters.ChoiceFilter(
+        field_name="verified_at",
+        label="Verified",
+        choices=[
+            ("True", "Yes"),
+            ("False", "No"),
+        ],
+        method="filter_verified_at",
+        widget=forms.Select(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
+    )
+
+    active = filters.ChoiceFilter(
+        field_name="active",
+        label="Active",
+        choices=[
+            ("True", "Yes"),
+            ("False", "No"),
+        ],
+        widget=forms.Select(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
+    )
+
+    def filter_verified_at(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
+        return queryset.filter(verified_at__isnull=(value == "False"))
+
+    class Meta:
+        model = Project
+        fields = ()

@@ -3,4 +3,6 @@ components:
     table-cell: "components/table-cell.html"
     formset: "components/formset.html"
     object-detail: "components/object-detail.html"
+    object-detail-staff: "components/object-detail-staff.html"
     action-button: "components/action-button.html"
+    filtering: "components/filtering.html"

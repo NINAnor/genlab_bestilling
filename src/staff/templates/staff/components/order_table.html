@@ -1,8 +1,8 @@
 {% load django_tables2 %}
 
-<div class="rounded-md border bg-white p-4">
+<div>
   <h4 class="text-2xl mb-4">{{ title }} ({{ count }})</h4>
-  <div class="relative overflow-y-scroll{% if table.sticky_header %} max-h-96{% endif %}">
+  <div class="relative rounded-lg border bg-white overflow-y-auto {% if table.sticky_header %} max-h-96{% endif %}">
     {% render_table table %}
   </div>
 </div>

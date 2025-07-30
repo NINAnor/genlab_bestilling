@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count, QuerySet
+from django.db.models import Count, Prefetch, QuerySet
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -23,6 +23,7 @@ from genlab_bestilling.models import (
     ExtractionPlate,
     Genrequest,
     IsolationMethod,
+    Marker,
     Order,
     Sample,
     SampleIsolationMethod,
@@ -38,6 +39,7 @@ from .filters import (
     ExtractionOrderFilter,
     ExtractionPlateFilter,
     OrderSampleFilter,
+    ProjectFilter,
     SampleFilter,
     SampleLabFilter,
     SampleMarkerOrderFilter,
@@ -113,6 +115,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
+            .prefetch_related("samples__species")
             .annotate(total_samples=Count("samples"))
         )
 
@@ -251,6 +254,7 @@ class MarkAsSeenView(StaffMixin, DetailView):
         try:
             order = self.get_object()
             order.toggle_seen()
+            order.update_status()
 
             messages.success(request, _("Order is marked as seen"))
         except Exception as e:
@@ -268,6 +272,10 @@ class MarkAsSeenView(StaffMixin, DetailView):
 
 class ExtractionOrderDetailView(StaffMixin, DetailView):
     model = ExtractionOrder
+
+    # Prefetch species to avoid N+1 queries when accessing species in the template
+    def get_queryset(self) -> QuerySet[ExtractionOrder]:
+        return super().get_queryset().prefetch_related("species")
 
     def get_analysis_orders_for_samples(
         self, samples: QuerySet[Sample]
@@ -435,7 +443,7 @@ class OrderAnalysisSamplesListView(
 
     def assign_status_to_samples(
         self,
-        analyses: models.QuerySet,
+        analyses: QuerySet[SampleMarkerAnalysis],
         status_name: str,
         request: HttpRequest,
     ) -> None:
@@ -481,15 +489,17 @@ class OrderAnalysisSamplesListView(
 
     # Checks if all samples in the order have output
     # If they are, it updates the order status to completed
-    def check_all_output(self, analyses: models.QuerySet) -> None:
+    def check_all_output(self, analyses: QuerySet[SampleMarkerAnalysis]) -> None:
+        order = self.get_order()
+
         if not analyses.filter(is_outputted=False).exists():
-            self.get_order().to_next_status()
+            order.to_completed()
             messages.success(
                 self.request,
                 "All samples have an output. The order status is updated to completed.",
             )
-        elif self.get_order().status == Order.OrderStatus.COMPLETED:
-            self.get_order().to_processing()
+        elif order.status in (Order.OrderStatus.COMPLETED, Order.OrderStatus.DELIVERED):
+            order.to_processing()
             messages.success(
                 self.request,
                 "Not all samples have output. The order status is updated to processing.",  # noqa: E501
@@ -518,6 +528,9 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related(
                 "plate_positions",
                 "order__responsible_staff",
+                Prefetch(
+                    "markers", queryset=Marker.objects.order_by("name").distinct()
+                ),
             )
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .order_by("species__name", "year", "location__name", "name")
@@ -549,12 +562,14 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return self._order
 
     def get_queryset(self) -> QuerySet[Sample]:
-        return Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
+        return Sample.objects.filter(
+            order=self.get_order(), genlab_id__isnull=False
+        ).prefetch_related("order", "type", "isolation_method")
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
         types = self.get_queryset().values_list("type", flat=True).distinct()
         return (
-            IsolationMethod.objects.filter(type__in=types)
+            IsolationMethod.objects.filter(sample_types__in=types)
             .values_list("name", flat=True)
             .distinct()
         )
@@ -565,6 +580,13 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
+        total_samples = order.samples.count()
+        filled_count = order.isolated_count
+        context["progress_percent"] = (
+            (float(filled_count) / float(total_samples)) * 100
+            if total_samples > 0
+            else 0
+        )
 
         context.update(
             {
@@ -641,7 +663,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     # If they are, it updates the order status to completed
     def check_all_isolated(self, samples: QuerySet) -> None:
         if not samples.filter(is_isolated=False).exists():
-            self.get_order().to_next_status()
+            self.get_order().to_completed()
             messages.success(
                 self.request,
                 "All samples are isolated. The order status is updated to completed.",
@@ -940,29 +962,21 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
 class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
     model = Project
     table_class = ProjectTable
-    filterset_fields = {
-        "number": ["startswith"],
-        "name": ["startswith"],
-        "verified_at": ["isnull"],
-        "active": ["exact"],
-    }
+    filterset_class = ProjectFilter
 
 
 class ProjectDetailView(StaffMixin, DetailView):
     model = Project
 
 
-class ProjectValidateActionView(SingleObjectMixin, ActionView):
+class ProjectValidateActionView(SingleObjectMixin, SafeRedirectMixin, ActionView):
     model = Project
 
     def get_queryset(self) -> QuerySet[Project]:
         return super().get_queryset().filter(verified_at=None)
 
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
     def form_valid(self, form: Form) -> HttpResponse:
+        self.object = self.get_object()
         self.object.verified_at = now()
         self.object.save()
         messages.add_message(
@@ -974,7 +988,39 @@ class ProjectValidateActionView(SingleObjectMixin, ActionView):
         return super().form_valid(form)
 
     def get_success_url(self) -> str:
-        return reverse_lazy("staff:projects-detail", kwargs={"pk": self.object.pk})
+        return self.get_next_url()
+
+    def get_fallback_url(self) -> str:
+        return self.request.GET.get("next", reverse("staff:projects-list"))
+
+    def form_invalid(self, form: Form) -> HttpResponse:
+        return HttpResponseRedirect(self.get_next_url())
+
+
+class ProjectArchiveActionView(SingleObjectMixin, ActionView):
+    model = Project
+
+    def get_queryset(self) -> QuerySet[Project]:
+        return Project.objects.all()
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Form) -> HttpResponse:
+        # Toggle the active state of the project
+        self.object.active = not self.object.active
+        self.object.save()
+        status = _("activated") if self.object.active else _("archived")
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            _(f"The project is {status}"),
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse("staff:projects-list")
 
     def form_invalid(self, form: Form) -> HttpResponse:
         return HttpResponseRedirect(self.get_success_url())

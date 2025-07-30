@@ -3,6 +3,8 @@ from collections.abc import Sequence
 from typing import Any
 
 import django_tables2 as tables
+from django.templatetags.static import static
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -31,11 +33,25 @@ class ProjectTable(tables.Table):
         orderable=True,
         empty_values=(),
     )
-    verified_at = tables.BooleanColumn()
+    verified_at = tables.TemplateColumn(
+        template_name="staff/components/project_verified_column.html",
+        verbose_name="Verified",
+        orderable=True,
+        empty_values=(),
+    )
+
+    toggle_active = tables.TemplateColumn(
+        template_name="staff/components/activation_toggle_column.html",
+        verbose_name="Actions",
+        orderable=True,
+        empty_values=(),
+    )
 
     class Meta:
         model = Project
-        fields = ["number", "name", "active", "verified_at"]
+        fields = ("number", "name", "verified_at")
+        sequence = ("number", "name", "toggle_active", "verified_at")
+        order_by = ("-verified_at",)
 
 
 class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
@@ -72,7 +88,7 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
     )
 
     class Meta:
-        fields = [
+        fields = (
             "priority",
             "id",
             "status",
@@ -81,15 +97,15 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
             "species",
             "total_samples",
             "responsible_staff",
-        ]
+        )
         empty_text = "No Orders"
-        order_by = ["-priority", "status"]
+        order_by = ("-priority", "status")
 
 
 class AnalysisOrderTable(OrderTable):
     id = tables.Column(
         linkify=("staff:order-analysis-detail", {"pk": tables.A("id")}),
-        orderable=False,
+        orderable=True,
         empty_values=(),
     )
 
@@ -108,10 +124,17 @@ class AnalysisOrderTable(OrderTable):
         empty_values=(),
     )
 
+    species = tables.Column(
+        verbose_name="Species",
+        accessor="samples",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
-        fields = OrderTable.Meta.fields + ["markers", "expected_delivery_date"]
-        sequence = [
+        fields = OrderTable.Meta.fields + ("markers", "expected_delivery_date")  # type: ignore[assignment]
+        sequence = (
             "priority",
             "id",
             "status",
@@ -122,7 +145,12 @@ class AnalysisOrderTable(OrderTable):
             "markers",
             "responsible_staff",
             "expected_delivery_date",
-        ]
+        )
+
+    def render_species(self, value: Any) -> str:
+        return ", ".join(
+            sorted({sample.species.name for sample in value.all() if sample.species})
+        )
 
 
 class ExtractionOrderTable(OrderTable):
@@ -148,11 +176,11 @@ class ExtractionOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
-        fields = OrderTable.Meta.fields + [
+        fields = OrderTable.Meta.fields + (
             "total_samples_isolated",
             "confirmed_at",
-        ]
-        sequence = [
+        )  # type: ignore[assignment]
+        sequence = (
             "priority",
             "id",
             "status",
@@ -163,7 +191,7 @@ class ExtractionOrderTable(OrderTable):
             "total_samples_isolated",
             "responsible_staff",
             "confirmed_at",
-        ]
+        )
 
 
 class EquipmentOrderTable(tables.Table):
@@ -192,7 +220,7 @@ class EquipmentOrderTable(tables.Table):
 
     class Meta(OrderTable.Meta):
         model = EquipmentOrder
-        fields = [
+        fields = (
             "name",
             "status",
             "genrequest",
@@ -206,27 +234,25 @@ class EquipmentOrderTable(tables.Table):
             "is_seen",
             "needs_guid",
             "sample_types",
-        ]
-        sequence = ["is_seen", "is_urgent", "status", "id", "name"]
+        )  # type: ignore[assignment]
+        sequence = ("is_seen", "is_urgent", "status", "id", "name")
         empty_text = "No Orders"
-        order_by = ["-is_urgent", "last_modified_at", "created_at"]
+        order_by = ("-is_urgent", "last_modified_at", "created_at")  # type: ignore[assignment]
 
     def render_id(self, record: Any) -> str:
         return str(record)
 
     def render_is_urgent(self, value: bool) -> str:
-        html_exclaimation_mark = (
-            "<i class='fa-solid fa-exclamation text-red-500 fa-2x' title='Urgent'></i>"
-        )
         if value:
-            return mark_safe(html_exclaimation_mark)  # noqa: S308
+            icon_url = static("images/exclaimation_mark.svg")
+            html = f"<img src='{icon_url}' alt='Urgent' title='Urgent' class='w-5 h-5 inline' />"  # noqa: E501
+            return mark_safe(html)  # noqa: S308
         return ""
 
     def render_is_seen(self, value: bool) -> str:
         if not value:
             return mark_safe(
-                '<i class="fa-solid fa-bell text-yellow-500" '
-                'title="New within 24h"></i>'
+                '<i class="fa-solid fa-bell text-yellow-500" title="New within 24h"></i>'  # noqa: E501
             )
         return ""
 
@@ -234,12 +260,6 @@ class EquipmentOrderTable(tables.Table):
 class SampleBaseTable(tables.Table):
     plate_positions = tables.Column(
         empty_values=(), orderable=False, verbose_name="Extraction position"
-    )
-
-    is_prioritised = tables.TemplateColumn(
-        template_name="staff/prioritise_flag.html",
-        orderable=True,
-        verbose_name="",
     )
 
     checked = tables.CheckBoxColumn(
@@ -255,7 +275,7 @@ class SampleBaseTable(tables.Table):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "genlab_id",
             "guid",
             "name",
@@ -266,18 +286,17 @@ class SampleBaseTable(tables.Table):
             "location",
             "notes",
             "plate_positions",
-        ]
+        )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-        sequence = [
+        sequence = (
             "checked",
-            "is_prioritised",
             "genlab_id",
             "guid",
             "name",
             "species",
             "type",
-        ]
-        order_by = ["-is_prioritised", "species", "genlab_id"]
+        )
+        order_by = ("species", "genlab_id")
 
         empty_text = "No Samples"
 
@@ -288,7 +307,9 @@ class SampleBaseTable(tables.Table):
         return ""
 
     def render_checked(self, record: Any) -> str:
-        return mark_safe(f'<input type="checkbox" name="checked" value="{record.id}">')  # noqa: S308
+        return format_html(
+            '<input type="checkbox" name="checked" value="{}">', record.id
+        )
 
     def order_name(
         self, records: Sequence[Any], is_descending: bool
@@ -364,7 +385,7 @@ class SampleStatusTable(tables.Table):
 
     class Meta:
         model = Sample
-        fields = [
+        fields = (
             "checked",
             "genlab_id",
             "marked",
@@ -373,8 +394,8 @@ class SampleStatusTable(tables.Table):
             "internal_note",
             "isolation_method",
             "type",
-        ]
-        sequence = [
+        )
+        sequence = (
             "checked",
             "genlab_id",
             "type",
@@ -383,18 +404,20 @@ class SampleStatusTable(tables.Table):
             "isolated",
             "internal_note",
             "isolation_method",
-        ]
-        order_by = ["genlab_id"]
+        )
+        order_by = ("genlab_id",)
 
     def render_checked(self, record: Any) -> str:
-        return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-{record.order.id}" value="{record.id}">'  # noqa: E501
+        return format_html(
+            '<input type="checkbox" name="checked-{}" value="{}">',
+            record.order.id,
+            record.id,
         )
 
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        exclude = ["pop_id", "guid", "plate_positions"]
+        exclude = ("pop_id", "guid", "plate_positions")
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -413,7 +436,7 @@ class OrderAnalysisSampleTable(tables.Table):
     )
 
     has_pcr = tables.BooleanColumn(
-        verbose_name="Has PCR",
+        verbose_name="PCR",
         orderable=True,
         yesno="✔,-",
         default=False,
@@ -428,16 +451,26 @@ class OrderAnalysisSampleTable(tables.Table):
         accessor="is_analysed",
     )
     is_outputted = tables.BooleanColumn(
-        verbose_name="Is Outputted",
+        verbose_name="Output",
         orderable=True,
         yesno="✔,-",
         default=False,
         accessor="is_outputted",
     )
 
+    sample__internal_note = tables.TemplateColumn(
+        template_name="staff/note_input_column.html",
+        orderable=False,
+        attrs={
+            "td": {
+                "class": "relative",
+            },
+        },
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
-        fields = [
+        fields = (
             "checked",
             "sample__genlab_id",
             "sample__type",
@@ -447,13 +480,15 @@ class OrderAnalysisSampleTable(tables.Table):
             "is_outputted",
             "sample__internal_note",
             "sample__order",
-        ]
+        )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         empty_text = "No Samples"
 
     def render_checked(self, record: SampleMarkerAnalysis) -> str:
-        return mark_safe(  # noqa: S308
-            f'<input type="checkbox" name="checked-analysis-{record.order.id}" value="{record.id}">'  # noqa: E501
+        return format_html(
+            '<input type="checkbox" name="checked-analysis-{}" value="{}">',
+            record.order.id,
+            record.id,
         )
 
 
@@ -466,13 +501,13 @@ class PlateTable(tables.Table):
 
     class Meta:
         model = ExtractionPlate
-        fields = [
+        fields = (
             "id",
             "name",
             "created_at",
             "last_updated_at",
             "samples_count",
-        ]
+        )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Plates"
@@ -527,19 +562,26 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
     def render_order__id(self, value: int, record: Sample) -> str:
         return str(record.order)
 
+    markers = tables.ManyToManyColumn(
+        accessor="markers",
+        verbose_name="Markers",
+        orderable=False,
+    )
+
     class Meta(SampleBaseTable.Meta):
-        fields = SampleBaseTable.Meta.fields + [
+        fields = SampleBaseTable.Meta.fields + (
             "order__id",
             "order__status",
             "order__genrequest__project",
-        ]
-        sequence = SampleBaseTable.Meta.sequence + [
+        )  # type: ignore[assignment]
+        sequence = SampleBaseTable.Meta.sequence + (
             "sample_status",
+            "markers",
             "order__id",
             "order__status",
             "notes",
-        ]
-        exclude = ["plate_positions", "checked", "is_prioritised"]
+        )  # type: ignore[assignment]
+        exclude = ("plate_positions", "checked", "is_prioritised")
 
 
 class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
@@ -562,9 +604,27 @@ class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
         empty_values=(),
     )
 
+    status = tables.Column(
+        orderable=False,
+    )
+
+    assigned_staff = tables.TemplateColumn(
+        template_name="staff/components/responsible_staff_column.html",
+        verbose_name="Assigned staff",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta:
         model = Order
-        fields = ["priority", "id", "description", "delivery_date", "status"]
+        fields = (
+            "priority",
+            "id",
+            "description",
+            "delivery_date",
+            "status",
+            "assigned_staff",
+        )
         empty_text = "No urgent orders"
         template_name = "django_tables2/tailwind_inner.html"
 
@@ -609,7 +669,7 @@ class NewUnseenOrderTable(StaffIDMixinTable):
 
     class Meta:
         model = Order
-        fields = ["id", "description", "delivery_date", "samples", "markers", "seen"]
+        fields = ("id", "description", "delivery_date", "samples", "markers", "seen")
         empty_text = "No new unseen orders"
         template_name = "django_tables2/tailwind_inner.html"
 
@@ -651,22 +711,36 @@ class NewSeenOrderTable(StaffIDMixinTable):
         transform=lambda x: x.name,
     )
 
+    assigned_staff = tables.TemplateColumn(
+        template_name="staff/components/responsible_staff_column.html",
+        verbose_name="Assigned staff",
+        orderable=False,
+        empty_values=(),
+    )
+
     class Meta:
         model = Order
-        fields = [
+        fields = (
             "priority",
             "id",
             "description",
             "delivery_date",
             "markers",
             "samples",
-        ]
+            "assigned_staff",
+        )
         empty_text = "No new seen orders"
         template_name = "django_tables2/tailwind_inner.html"
 
 
 class AssignedOrderTable(OrderStatusMixinTable, PriorityMixinTable, StaffIDMixinTable):
     sticky_header = True
+
+    priority = tables.TemplateColumn(
+        orderable=False,
+        verbose_name="Priority",
+        template_name="staff/components/priority_column.html",
+    )
 
     description = tables.Column(
         accessor="genrequest__name",
@@ -685,9 +759,13 @@ class AssignedOrderTable(OrderStatusMixinTable, PriorityMixinTable, StaffIDMixin
             return str(record.isolated_sample_count) + " / " + str(value)
         return "-"
 
+    status = tables.Column(
+        orderable=False,
+    )
+
     class Meta:
         model = Order
-        fields = ["priority", "id", "description", "samples_completed", "status"]
+        fields = ("priority", "id", "description", "samples_completed", "status")
         empty_text = "No assigned orders"
         order_by = ["-priority", "status"]
         template_name = "django_tables2/tailwind_inner.html"
@@ -704,23 +782,23 @@ class DraftOrderTable(StaffIDMixinTable):
 
     contact_person = tables.Column(
         accessor="contact_person",
-        verbose_name="Contact Person",
+        verbose_name="Genetic researcher",
         orderable=False,
     )
 
     contact_email = tables.Column(
         accessor="contact_email",
-        verbose_name="Contact Email",
+        verbose_name="Genetic researcher email",
         orderable=False,
     )
 
     class Meta:
         model = Order
-        fields = [
+        fields = (
             "id",
             "description",
             "contact_person",
             "contact_email",
-        ]
+        )
         empty_text = "No draft orders"
         template_name = "django_tables2/tailwind_inner.html"

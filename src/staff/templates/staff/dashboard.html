@@ -9,13 +9,13 @@
   <div class="flex items-center mb-5 gap-2">
     <div role="tablist" class="tabs tabs-lift bg-white rounded-xl border">
       <a role="tab"
-       class="tab {% if not request.GET.area %}tab-active bg-blue-400/40 rounded-xl{% endif %}"
+       class="tab {% if not request.GET.area %}tab-active bg-[#FFEDC0] rounded-xl{% endif %}"
        href="{% url 'staff:dashboard' %}">
       All
       </a>
       {% for area in areas %}
       <a role="tab"
-         class="tab {% if request.GET.area == area.pk|stringformat:'s' %}tab-active bg-blue-400/40 rounded-xl{% endif %}"
+         class="tab {% if request.GET.area == area.pk|stringformat:'s' %}tab-active bg-[#FFEDC0] rounded-xl{% endif %}"
          href="{% url 'staff:dashboard' %}?area={{ area.pk }}">
         {{ area.name }}
       </a>

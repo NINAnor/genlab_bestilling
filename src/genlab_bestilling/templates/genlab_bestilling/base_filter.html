@@ -6,13 +6,7 @@
     <h3 class="text-4xl mb-5">{% block page-title %}{% endblock page-title %}</h3>
     {% block page-inner %}{% endblock page-inner %}
 
-    <form method="get" class="py-3 px-4 border mb-3 ">
-        <div class="flex flex-wrap gap-4">
-            {{ filter.form | crispy }}
-        <button class="btn custom_order_button_blue mt-6" type="submit">Search</button>
-        <a href="{{ request.path }}" class="btn custom_order_button_grey mt-6">Clear Filters</a>
-        </div>
-    </form>
+    {% filtering filter=filter request=request %}
 
     {% render_table table %}
 {% endblock %}

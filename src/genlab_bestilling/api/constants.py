@@ -101,6 +101,8 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
         "genlab_id",
         "fish_id",
         "guid",
+        "order",
+        "analysis_orders",
         "river",
         "location.name",
         "under_locality",
@@ -126,9 +128,9 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
         "rerun_date",
     ),
     "Terrestrisk": (
-        "name",
         "genlab_id",
         "guid",
+        "name",
         "type.name",
         "species.name",
         "location.name",
@@ -197,9 +199,9 @@ SAMPLE_CSV_FIELDS_BY_AREA = {
 }
 
 LABEL_CSV_FIELDS_BY_AREA = {
-    "Akvatisk": ("fish_id", "genlab_id", "guid"),
-    "Elvemusling": ("fish_id", "genlab_id", "guid"),
-    "Terrestrisk": ("genlab_id", "guid", "name"),
-    "MiljøDNA": ("genlab_id", "guid", "name", "location.name"),
-    "default": ("genlab_id", "guid", "name"),
+    "Akvatisk": ("fish_id", "genlab_id", "guid", "order"),
+    "Elvemusling": ("fish_id", "genlab_id", "guid", "order"),
+    "Terrestrisk": ("genlab_id", "guid", "name", "order"),
+    "MiljøDNA": ("genlab_id", "guid", "name", "location.name", "order"),
+    "default": ("genlab_id", "guid", "name", "order"),
 }

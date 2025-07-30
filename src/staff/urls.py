@@ -1,5 +1,7 @@
 from django.urls import path
 
+from staff.api import OrderAPIView
+
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
@@ -18,6 +20,7 @@ from .views import (
     OrderPrioritizedAdminView,
     OrderToDraftActionView,
     OrderToNextStatusActionView,
+    ProjectArchiveActionView,
     ProjectDetailView,
     ProjectListView,
     ProjectValidateActionView,
@@ -39,6 +42,11 @@ urlpatterns = [
         "projects/<str:pk>/verify/",
         ProjectValidateActionView.as_view(),
         name="projects-verify",
+    ),
+    path(
+        "projects/<str:pk>/archive/",
+        ProjectArchiveActionView.as_view(),
+        name="projects-archive",
     ),
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"
@@ -147,5 +155,10 @@ urlpatterns = [
         "orders/<int:pk>/priority/",
         OrderPrioritizedAdminView.as_view(),
         name="order-priority",
+    ),
+    path(
+        "orders/<int:pk>/assign-staff/",
+        OrderAPIView.as_view(),
+        name="order-assign-staff",
     ),
 ]

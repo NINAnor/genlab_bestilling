@@ -1,7 +1,7 @@
-{% load order_tags %}
-
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
   <input type="hidden" name="return_to" value="dashboard" />
-  <button class="btn custom_order_button" style="background-color: darkgoldenrod; height: auto;" type="submit">Mark as seen</button>
+  <button class="btn btn-sm bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
+    <p><i class="fa-solid fa-circle-check"></i> Mark as seen</p>
+  </button>
 </form>

@@ -27,8 +27,12 @@
     @apply border-yellow-500 bg-yellow-300;
   }
 
+  .tailwind-table thead {
+    @apply z-20;
+  }
+
   .tailwind-table thead tr:first-child {
-    @apply bg-gray-100 text-left;
+    @apply bg-gray-200 text-left;
   }
 
   .tailwind-table thead tr:first-child th {
@@ -40,7 +44,11 @@
   }
 
   .tailwind-table tbody tr td {
-    @apply border-b-2 border-[#eee] px-4 py-5;
+    @apply border-b-2 border-[#eee] p-4;
+  }
+
+  .tailwind-table tbody tr:last-child td {
+    @apply border-b-0;
   }
 
   .tailwind-table.table-sm tbody tr td {
@@ -203,7 +211,6 @@ django-form-collection .dj-form .dj-form-errors {
   white-space: nowrap;
   min-height: min-content;
   @apply flex py-2 mb-2;
-
 }
 
 .breadcrumb li {
@@ -211,7 +218,6 @@ django-form-collection .dj-form .dj-form-errors {
   align-items: center;
   text-transform: capitalize;
 }
-
 
 ul.breadcrumb > li + ::before,
 ol.breadcrumb > li + ::before {
@@ -284,43 +290,153 @@ ol.breadcrumb > li + ::before {
 .custom_order_button {
   background-color: #F2F2F2; /* Fill */
   border: 1px solid #BABABA; /* Stroke */
-  color: #4A4A4A; /* Text & icon color */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button:hover {
   background-color: #e0e0e0; /* Optional: darker on hover */
-  border: 1px solid #A0A0A0; /* Stroke */
+  border: 1px solid #a0a0a0; /* Stroke */
+}
+
+.custom_order_button:active {
+  background-color: #D6D6D6; /* Optional: darker on hover */
+  border: 1px solid #8C8C8C; /* Stroke */
+}
+
+.custom_order_button:active {
+  background-color: #D6D6D6; /* Optional: darker on hover */
+  border: 1px solid #8C8C8C; /* Stroke */
 }
 
 .custom_order_button_blue {
   background-color: #E6F0FA; /* Fill */
   border: 1px solid #8CA5BE; /* Stroke */
-  color: #0F3D6A; /* Text & icon color */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_blue:hover {
-  background-color: #D2E4F5; /* Optional: darker on hover */
-  border: 1px solid #7792AB; /* Stroke */
+  background-color: #d2e4f5; /* Optional: darker on hover */
+  border: 1px solid #7792ab; /* Stroke */
+}
+
+.custom_order_button_blue:active {
+  background-color: #BFD8F0; /* Optional: darker on hover */
+  border: 1px solid #5F7D95; /* Stroke */
+}
+
+.custom_order_button_dark_blue {
+  background-color: #C9E4FF; /* Fill */
+  border: 1px solid #6891BA; /* Stroke */
+  color: #000000; /* Text & icon color */
+}
+
+.custom_order_button_dark_blue:hover {
+  background-color: #A7D3FF; /* Optional: darker on hover */
+  border: 1px solid #6891BA; /* Stroke */
+}
+
+.custom_order_button_dark_blue:active {
+  background-color: #91C8FF; /* Optional: darker on hover */
+  border: 1px solid #437AB2; /* Stroke */
+}
+
+.custom_order_button_blue:active {
+  background-color: #BFD8F0; /* Optional: darker on hover */
+  border: 1px solid #5F7D95; /* Stroke */
+}
+
+.custom_order_button_dark_blue {
+  background-color: #C9E4FF; /* Fill */
+  border: 1px solid #6891BA; /* Stroke */
+  color: #000000; /* Text & icon color */
+}
+
+.custom_order_button_dark_blue:hover {
+  background-color: #A7D3FF; /* Optional: darker on hover */
+  border: 1px solid #6891BA; /* Stroke */
+}
+
+.custom_order_button_dark_blue:active {
+  background-color: #91C8FF; /* Optional: darker on hover */
+  border: 1px solid #437AB2; /* Stroke */
 }
 
 .custom_order_button_green {
   background-color: #DFF7CA; /* Fill */
   border: 1px solid #93AD7D; /* Stroke */
-  color: #001D3A; /* Text & icon color */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_green:hover {
-  background-color: #C9EBB0; /* Optional: darker on hover */
-  border: 1px solid #7F996C; /* Stroke */
+  background-color: #c9ebb0; /* Optional: darker on hover */
+  border: 1px solid #7f996c; /* Stroke */
+}
+
+.custom_order_button_green:active {
+  background-color: #B5DA9C; /* Optional: darker on hover */
+  border: 1px solid #6B855B; /* Stroke */
+}
+
+.custom_order_button_green:active {
+  background-color: #B5DA9C; /* Optional: darker on hover */
+  border: 1px solid #6B855B; /* Stroke */
 }
 
 .custom_order_button_red {
   background-color: #f7caca; /* Fill */
   border: 1px solid #ad7d7d; /* Stroke */
-  color: #3a0000; /* Text & icon color */
+  color: #000000; /* Text & icon color */
 }
 
 .custom_order_button_red:hover {
   background-color: #ebb0b0; /* Optional: darker on hover */
   border: 1px solid #996c6c; /* Stroke */
+}
+
+.custom_order_button_red:active {
+  background-color: #FFA3A3; /* Optional: darker on hover */
+  border: 1px solid #B96363; /* Stroke */
+}
+
+.responsible-staff-form {
+  position: relative;
+}
+
+.staff-status-indicator {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.staff-status-indicator.spinner {
+  color: #6b7280;
+}
+
+.staff-status-indicator.success {
+  color: #22c55e;
+}
+
+.staff-status-indicator.error {
+  color: #ef4444;
+}
+
+.responsible-staff-form .select2-container.select2-container--default {
+  max-width: 11rem !important;
+  width: 11rem !important;
+  min-width: 11rem !important;
+}
+
+.responsible-staff-form .select2-dropdown {
+  max-width: 11rem !important;
+  width: 11rem !important;
+}
+
+.responsible-staff-form .select2-selection {
+  max-width: 11rem !important;
+  width: 11rem !important;
+  min-width: 11rem !important;
 }

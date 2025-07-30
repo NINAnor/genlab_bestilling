@@ -1,5 +1,6 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
+{% load order_tags %}
 
 
 {% block content %}
@@ -9,12 +10,35 @@
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
-    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
+    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
     <div class="flex gap-5 mb-5">
-        <a class="btn custom_order_button" href="{% url 'staff:order-equipment-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+        {% responsible_staff_multiselect order=object %}
+        <div class="ml-auto"></div>
+
+        {% if not object.is_seen %}
+            <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
+                {% csrf_token %}
+                <button class="btn btn-sm bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
+                    <p><i class="fa-solid fa-circle-check"></i> Mark as seen</p>
+                </button>
+            </form>
+        {% endif %}
+
+        {% if object.status == object.OrderStatus.DELIVERED %}
+            {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
+            {% with "<i class='fa-solid fa-arrow-right'></i> Set as "|add:object.next_status as btn_name %}
+                {% action-button action=to_next_status_url class="bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300" submit_text=btn_name csrf_token=csrf_token %}
+            {% endwith %}
+        {% endif %}
+        {% if object.status == object.OrderStatus.PROCESSING %}
+            {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
+            {% with "<i class='fa-solid fa-circle-check'></i> Set as "|add:object.next_status as btn_name %}
+                {% action-button action=to_next_status_url class="custom_order_button_green" submit_text=btn_name csrf_token=csrf_token %}
+            {% endwith %}
+        {% endif %}
     </div>
 
-    {% object-detail object=object %}
+    {% object-detail-staff object=object %}
 
 
     <h5 class="text-2xl my-5">Requested Equipment</h5>
@@ -31,18 +55,4 @@
             </tr>
         {% endfor %}
     {% /table %}
-
-    <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" href="{% url 'staff:order-equipment-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
-        <a class="btn custom_order_button" href="{% url 'staff:add-staff' pk=object.id model_type="equipment" %}">Assign staff</a>
-        {% comment %}
-        {% if object.status == 'draft' %}
-        <a class="btn bg-primary" href="{% url 'genrequest-equipment-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
-        <a class="btn bg-secondary text-white" href="{% url 'genrequest-equipment-quantity-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit requested equipment</a>
-        {% url 'genrequest-order-confirm' genrequest_id=object.genrequest_id pk=object.id as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Deliver order" csrf_token=csrf_token %}
-        <a class="btn bg-red-500 text-white" href="{% url 'genrequest-equipment-delete' genrequest_id=object.genrequest_id pk=object.id %}">Delete</a>
-        {% endif %}
-        {% endcomment %}
-    </div>
 {% endblock %}

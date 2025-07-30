@@ -1,6 +1,8 @@
+{% load next_input %}
+
 <form method="post" action="{% url 'staff:mark-as-seen' pk=record.id %}">
   {% csrf_token %}
-  <input type="hidden" name="return_to" value="dashboard" />
+  {% next_url_input %}
   <button class="btn btn-sm btn-success text-nowrap" type="submit">
     <p>
       <i class="fa-solid fa-circle-check"></i> Mark as seen

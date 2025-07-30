@@ -159,7 +159,8 @@ class PriorityMixinTable(tables.Table):
 
 
 class SafeRedirectMixin(View):
-    """Mixin to provide safe redirection after a successful form submission.
+    """
+    Mixin to provide safe redirection after a successful form submission.
     This mixin checks for a 'next' parameter in the request and validates it
     to ensure it is a safe URL before redirecting. If no valid 'next' URL is found,
     it falls back to a method that must be implemented in the view to define

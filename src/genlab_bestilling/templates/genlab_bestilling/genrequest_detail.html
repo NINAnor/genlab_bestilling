@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="flex items-center mb-5 gap-2">
-  <h3 id="genrequest" class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
+  <h3 id="genrequest" class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
 </div>
 
 {% if object.short_timeframe %}
@@ -44,7 +44,7 @@
   >
 
   <a
-    class="btn "
+    class="btn btn-danger"
     href="{% url 'genrequest-delete' pk=genrequest.id %}"
     ><i class="fas fa-trash"></i> Delete</a
   >

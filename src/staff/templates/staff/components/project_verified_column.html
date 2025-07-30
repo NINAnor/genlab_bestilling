@@ -2,13 +2,12 @@
 
 {% url 'staff:projects-verify' pk=record.pk as verify_url %}
 <form method="post" action="{{ verify_url }}">
-    {% csrf_token %}
-    {% next_url_input %}
-{% if not record.verified_at %}
-        <button type="submit" class="btn btn-sm bg-[#dff7ca]">
-            <i class="fa-solid fa-circle-check"></i> Mark as verified
-        </button>
-    {% else %}
-    {% comment %} Default django true checkmark {% endcomment %}
+  {% csrf_token %}
+  {% next_url_input %}
+  {% if not record.verified_at %}
+    <button type="submit" class="btn btn-sm btn-success"><i class="fa-solid fa-circle-check"></i> Mark as verified</button>
+  {% else %}
+    {% comment %}Default django true checkmark{% endcomment %}
     <span>✔</span>
-{% endif %}
+  {% endif %}
+</form>

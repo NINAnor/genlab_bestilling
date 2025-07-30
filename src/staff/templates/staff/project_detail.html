@@ -13,7 +13,7 @@
             {% csrf_token %}
             {% next_url_input %}
         {% if not object.verified_at %}
-            <button type="submit" class="btn bg-[#dff7ca]">
+            <button type="submit" class="btn btn-success">
                 <i class="fa-solid fa-circle-check"></i> Mark as verified
             </button>
         {% endif %}

@@ -1,45 +1,46 @@
-{% extends "staff/base.html" %}
+{% extends 'staff/base.html' %}
 {% load i18n %}
 {% load static %}
 {% load order_tags %}
 
 {% block content %}
-    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-    <div class="flex gap-5 mb-5"></div>
+  <h3 class="text-4xl mb-5">Order {{ object }}</h3>
+  <div class="flex gap-5 mb-5"></div>
 
-    <div class="flex gap-5 my-5">
-        {% responsible_staff_multiselect order=object %}
-        <div class="ml-auto"></div>
-        {% if object.status != object.OrderStatus.DRAFT %}
-            {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
-            {% action-button action=to_draft_url class="btn-tertiary" submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
-        {% endif %}
-        {% if analysis_orders|length == 1 and not analysis_has_multiple_extraction_orders %}
-            <a class="btn btn-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first}}</a>
-        {% endif %}
-        <a class="btn btn-secondary" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
+  <div class="flex gap-5 my-5">
+    {% responsible_staff_multiselect order=object %}
+    <div class="ml-auto"></div>
+    {% if object.status != object.OrderStatus.DRAFT %}
+      {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}
+      {% action-button action=to_draft_url class='btn-tertiary' submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
+    {% endif %}
+    {% if analysis_orders|length == 1 and not analysis_has_multiple_extraction_orders %}
+      <a class="btn btn-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first }}</a>
+    {% endif %}
+    <a class="btn btn-secondary" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
 
-        {% if not object.is_seen %}
-            <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
-                {% csrf_token %}
-                <button class="btn bg-[#DFF7CA] border-[#93AD7D] hover:bg-[#C9EBB0] hover:border-[#7F996C] active:bg-[#B5DA9C] active:border-[#6B855B] text-nowrap" style="height: auto;" type="submit">
-                    <p><i class="fa-solid fa-circle-check"></i> Mark as seen</p>
-                </button>
-            </form>
-        {% endif %}
+    {% if not object.is_seen %}
+      <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">
+        {% csrf_token %}
+        <button class="btn btn-success" type="submit">
+          <p>
+            <i class="fa-solid fa-circle-check"></i> Mark as seen
+          </p>
+        </button>
+      </form>
+    {% endif %}
 
-        {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == "checked" %}
-            {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
-            {% with "<i class='fa-solid fa-arrow-right'></i> Set as "|add:object.next_status as btn_name %}
-                {% action-button action=to_next_status_url class="bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300" submit_text=btn_name csrf_token=csrf_token %}
-            {% endwith %}
-        {% endif %}
-    </div>
+    {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == 'checked' %}
+      {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
+      {% with btn_name="<i class='fa-solid fa-arrow-right'></i> Set as "|add:object.next_status %}
+        {% action-button action=to_next_status_url class='bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300' submit_text=btn_name csrf_token=csrf_token %}
+      {% endwith %}
+    {% endif %}
+  </div>
 
-
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-      {% extraction_order_detail_table order=object %}
-      {% extraction_order_samples_detail_table order=object analysis_orders=analysis_orders %}
-      {% contact_detail_table order=object %}
-    </div>
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+    {% extraction_order_detail_table order=object %}
+    {% extraction_order_samples_detail_table order=object analysis_orders=analysis_orders %}
+    {% contact_detail_table order=object %}
+  </div>
 {% endblock %}

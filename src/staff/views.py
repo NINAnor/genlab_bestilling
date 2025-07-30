@@ -241,11 +241,8 @@ class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
 
 
-class MarkAsSeenView(StaffMixin, DetailView):
+class MarkAsSeenView(StaffMixin, DetailView, SafeRedirectMixin):
     model = Order
-
-    class Params:
-        return_to = "return_to"
 
     def get_object(self) -> Order:
         return Order.objects.get(pk=self.kwargs["pk"])
@@ -261,12 +258,9 @@ class MarkAsSeenView(StaffMixin, DetailView):
             report_errors(e)
             messages.error(request, f"Error: {str(e)}")
 
-        return_to = request.POST.get(self.Params.return_to)
-        return HttpResponseRedirect(self.get_return_url(return_to))
+        return redirect(self.get_next_url())
 
-    def get_return_url(self, return_to: str | None) -> str:
-        if return_to == "dashboard":
-            return reverse("staff:dashboard")
+    def get_fallback_url(self) -> str:
         return self.get_object().get_absolute_staff_url()
 
 

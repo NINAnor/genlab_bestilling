@@ -1,10 +1,10 @@
 {% load static %}
 
-{% var submit_text=submit_text|default:"Submit" %}
-{% var class=class|default:"bg-secondary text-white" %}
+{% var submit_text=submit_text|default:'Submit' %}
+{% var class=class|default:'bg-brand-secondary text-white' %}
 
 <form method="post" action="{{ action }}">
-    {% csrf_token %}
-    {% if form %}{{ form }}{% endif %}
-    <button class="btn {{ class }}" type="submit">{{ submit_text|safe }}</button>
+  {% csrf_token %}
+  {% if form %}{{ form }}{% endif %}
+  <button class="btn {{ class }}" type="submit">{{ submit_text|safe }}</button>
 </form>

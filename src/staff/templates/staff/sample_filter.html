@@ -5,7 +5,7 @@
 
 {% block page-title %}
 <div class="flex gap-5 mb-10 items-center w-full">
-  <a class="btn btn-sm custom_order_button" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
+  <a class="btn btn-sm btn-tertiary" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
 </div>
 <div class="flex justify-between items-center w-full">
     <div>
@@ -31,10 +31,10 @@
       <input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}">
       {% next_url_input %}
       <div class="flex gap-5 mb-5">
-        <button class="btn custom_order_button_green" type="submit" name="generate_genlab_ids">
+        <button class="btn btn-success" type="submit" name="generate_genlab_ids">
             <i class="fa-solid fa-id-badge"></i> Generate genlab IDs
         </button>
-        <a class="btn custom_order_button_blue" href="{% url 'samples-labels-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Export to genlabID printer</a>
+        <a class="btn btn-primary" href="{% url 'samples-labels-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Export to genlabID printer</a>
 
         <div class="ml-auto text-right w-full max-w-xs">
           <div class="mb-1 font-medium text-sm">

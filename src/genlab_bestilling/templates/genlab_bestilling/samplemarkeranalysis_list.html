@@ -1,25 +1,25 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load neapolitan %}
 {% load render_table from django_tables2 %}
 
 {% block content %}
-    {% if analysis.short_timeframe %}
+  {% if analysis.short_timeframe %}
     <div class="px-4 alert alert-warning">
-    <p>
+      <p>
         Contact <a class="underline" href="mailto:ninagen@nina.no">ninagen@nina.no</a> due to the short timeframe for this project
-    </p>
+      </p>
     </div>
+  {% endif %}
+  <h3 class="text-4xl mb-5">{{ analysis }} - Samples</h3>
+  {% render_table table %}
+  <div class="flex gap-5 mt-5">
+    <a class="btn btn-tertiary" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> Back to order</a>
+    {% if analysis.status == 'draft' %}
+      {% url 'genrequest-order-confirm' genrequest_id=view.kwargs.genrequest_id pk=view.kwargs.pk as confirm_order_url %}
+      {% action-button action=confirm_order_url class='bg-brand-secondary text-white' submit_text='Deliver order' csrf_token=csrf_token %}
+      {% if not analysis.from_order %}
+        <a class="ml-auto btn btn-tertiary" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">Edit samples</a>
+      {% endif %}
     {% endif %}
-    <h3 class="text-4xl mb-5">{{ analysis }} - Samples</h3>
-    {% render_table table %}
-    <div class="flex gap-5 mt-5">
-        <a class="btn custom_order_button" href="{% url 'genrequest-analysis-detail' genrequest_id=genrequest.id pk=view.kwargs.pk %}"><i class="fas fa-arrow-left"></i> Back to order</a>
-        {% if analysis.status == 'draft' %}
-        {% url 'genrequest-order-confirm' genrequest_id=view.kwargs.genrequest_id pk=view.kwargs.pk as confirm_order_url %}
-        {% action-button action=confirm_order_url class="bg-secondary text-white" submit_text="Deliver order" csrf_token=csrf_token %}
-        {% if not analysis.from_order %}
-        <a class="ml-auto btn custom_order_button" href="{% url 'genrequest-analysis-samples-edit' genrequest_id=genrequest.id pk=view.kwargs.pk %}">Edit samples</a>
-        {% endif %}
-        {% endif %}
-    </div>
+  </div>
 {% endblock %}

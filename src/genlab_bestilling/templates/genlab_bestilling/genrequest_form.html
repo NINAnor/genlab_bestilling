@@ -1,16 +1,21 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load core %}
 
 {% block content %}
-    <h3 class="text-4xl mb-5">{% if object.id %}{{ object }}{% else %}Create {{ view.model|verbose_name }}{% endif %}</h3>
-    <div class="flex gap-5 mb-5">
-        {% if object.id %}
-        <a class="btn custom_order_button" href="{% url 'genrequest-detail' pk=object.id %}"><i class="fas fa-arrow-left"></i> Back</a>
-        {% else %}
-        <a class="btn custom_order_button" href="{% url 'genrequest-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
-        <a class="btn custom_order_button_green" href="{% url 'nina:project-create' %}"><i class="fas fa-plus"></i> Register UBW project</a>
-        {% endif %}
-    </div>
-    {% formset endpoint=request.path csrf_token=csrf_token form=form %}
-
+  <h3 class="text-4xl mb-5">
+    {% if object.id %}
+      {{ object }}
+    {% else %}
+      Create {{ view.model|verbose_name }}
+    {% endif %}
+  </h3>
+  <div class="flex gap-5 mb-5">
+    {% if object.id %}
+      <a class="btn btn-tertiary" href="{% url 'genrequest-detail' pk=object.id %}"><i class="fas fa-arrow-left"></i> Back</a>
+    {% else %}
+      <a class="btn btn-tertiary" href="{% url 'genrequest-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+      <a class="btn btn-success" href="{% url 'nina:project-create' %}"><i class="fas fa-plus"></i> Register UBW project</a>
+    {% endif %}
+  </div>
+  {% formset endpoint=request.path csrf_token=csrf_token form=form %}
 {% endblock %}

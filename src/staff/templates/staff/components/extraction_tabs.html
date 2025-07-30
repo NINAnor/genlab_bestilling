@@ -1,15 +1,7 @@
 <div class="flex items-center w-full min-w-0 mb-5">
-    <div role="tablist" class="tabs tabs-box bg-white rounded-md border">
-        <a role="tab"
-            class="tab {% if active_tab == 'ordered' %}tab-active bg-[#FFEDC0] rounded-md{% endif %}"
-            href="{% url 'staff:order-extraction-samples' pk=order.id %}">
-            Ordered extraction
-        </a>
-        <a role="tab"
-            class="tab {% if active_tab == 'lab' %}tab-active bg-[#FFEDC0] rounded-md{% endif %}"
-            href="{% url 'staff:order-extraction-samples-lab' pk=order.id %}">
-            Lab extraction
-        </a>
-    </div>
-    <a class="btn custom_order_button_dark_blue ml-auto" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Export complete sheet</a>
+  <div role="tablist" class="tabs">
+    <a role="tab" class="tab {% if active_tab == 'ordered' %}tab-active{% endif %}" href="{% url 'staff:order-extraction-samples' pk=order.id %}">Ordered extraction</a>
+    <a role="tab" class="tab {% if active_tab == 'lab' %}tab-active{% endif %}" href="{% url 'staff:order-extraction-samples-lab' pk=order.id %}">Lab extraction</a>
+  </div>
+  <a class="btn btn-secondary ml-auto" href="{% url 'samples-csv' %}?order={{ order.pk }}"><i class="fas fa-download"></i> Export complete sheet</a>
 </div>

@@ -378,7 +378,7 @@ def contact_detail_table(order: Order) -> dict:
         if result_contacts:
             result_contacts_html = format_html_join(
                 "; ",
-                '<a href="mailto:{}" class="text-primary underline !text-primary">{}</a>',  # noqa: E501
+                '<a href="mailto:{}" class="text-brand-primary underline !text-brand-primary">{}</a>',  # noqa: E501
                 [(email[0], email[0]) for email in result_contacts],
             )
 

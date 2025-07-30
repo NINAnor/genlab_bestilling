@@ -235,7 +235,7 @@ export default function Filters({ onSearch, submitBtn }) {
         <Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
           {([canSubmit, isSubmitting]) => (
             <Button
-              className="btn bg-primary block disabled:opacity-50"
+              className="btn bg-brand-primary block disabled:opacity-50"
               disabled={!canSubmit}
               onClick={handleSubmit}
             >

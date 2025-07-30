@@ -423,7 +423,7 @@ export default function Table() {
           )}
         </button>
         <button
-          className="btn bg-secondary disabled:opacity-70 text-white"
+          className="btn bg-brand-secondary disabled:opacity-70 text-white"
           onClick={mutateConfirm.mutate}
           disabled={pendingState}
         >

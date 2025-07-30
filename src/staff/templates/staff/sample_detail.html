@@ -3,9 +3,17 @@
 
 
 {% block content %}
-    <h3 class="text-4xl mb-5">Sample {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
+
+    <div class="flex gap-5 my-5">
+        {% if user.is_staff %}
+            <a class="btn custom_order_button ml-auto" href="{{ object.get_admin_change_url }}">
+              <i class="fa-solid fa-shield"></i> See in admin panel
+            </a>
+        {% endif %}
     </div>
+
+    <h3 class="text-4xl mb-5">Sample {{ object }}</h3>
+    <div class="flex gap-5 mb-5"></div>
 
     {% object-detail-staff object=object %}
 

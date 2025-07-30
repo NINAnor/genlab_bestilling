@@ -439,6 +439,7 @@ class SampleAdmin(ModelAdmin):
         Sample.id.field.name,
     ]
     list_filter = [
+        (Sample.id.field.name, unfold_filters.SingleNumericFilter),
         (Sample.name.field.name, unfold_filters.FieldTextFilter),
         (Sample.guid.field.name, unfold_filters.FieldTextFilter),
         (Sample.genlab_id.field.name, unfold_filters.FieldTextFilter),

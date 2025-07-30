@@ -765,6 +765,18 @@ class Sample(models.Model):
     def __str__(self) -> str:
         return self.genlab_id or f"#SMP_{self.id}"
 
+    def get_absolute_url(self) -> str:
+        return reverse("staff:samples-detail", kwargs={"pk": self.pk})
+
+    def get_admin_change_url(self) -> str:
+        return reverse(
+            "admin:genlab_bestilling_sample_change", kwargs={"object_id": self.pk}
+        )
+
+    @staticmethod
+    def get_admin_changelist_url() -> str:
+        return reverse("admin:genlab_bestilling_sample_changelist")
+
     def create_replica(self) -> None:
         pk = self.id
         self.id = None

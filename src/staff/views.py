@@ -580,6 +580,13 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
+        total_samples = order.samples.count()
+        filled_count = order.isolated_count
+        context["progress_percent"] = (
+            (float(filled_count) / float(total_samples)) * 100
+            if total_samples > 0
+            else 0
+        )
 
         context.update(
             {

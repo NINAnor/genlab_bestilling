@@ -3,6 +3,7 @@ from typing import Any
 import django_tables2 as tables
 from django.db.models import QuerySet
 from django.templatetags.static import static
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -270,6 +271,12 @@ class SampleBaseTable(tables.Table):
         empty_values=(),
     )
 
+    genlab_id = tables.Column(
+        orderable=False,
+        empty_values=(None,),
+        verbose_name="Genlab ID",
+    )
+
     name = tables.Column()
 
     class Meta:
@@ -317,6 +324,13 @@ class SampleBaseTable(tables.Table):
         queryset = queryset.order_by(f"{prefix}name_as_int", "name")
         return (queryset, True)
 
+    def render_genlab_id(self, value: Any, record: Any) -> Any:
+        from_url = reverse(
+            "staff:order-extraction-samples", kwargs={"pk": record.order.pk}
+        )
+        url = reverse("staff:samples-detail", kwargs={"pk": record.id})
+        return format_html('<a href="{}?from={}">{}</a>', url, from_url, value)
+
 
 class SampleStatusTable(tables.Table):
     """
@@ -337,6 +351,12 @@ class SampleStatusTable(tables.Table):
         },
         empty_values=(),
         verbose_name="Mark",
+    )
+
+    genlab_id = tables.Column(
+        orderable=False,
+        empty_values=(None,),
+        verbose_name="Genlab ID",
     )
 
     internal_note = tables.TemplateColumn(
@@ -401,6 +421,13 @@ class SampleStatusTable(tables.Table):
             record.order.id,
             record.id,
         )
+
+    def render_genlab_id(self, value: Any, record: Any) -> Any:
+        from_url = reverse(
+            "staff:order-extraction-samples-lab", kwargs={"pk": record.order.pk}
+        )
+        url = reverse("staff:samples-detail", kwargs={"pk": record.id})
+        return format_html('<a href="{}?from={}">{}</a>', url, from_url, value)
 
 
 class OrderExtractionSampleTable(SampleBaseTable):

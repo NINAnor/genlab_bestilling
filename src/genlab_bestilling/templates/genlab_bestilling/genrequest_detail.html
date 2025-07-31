@@ -60,7 +60,7 @@
   {% if user.is_staff %}
   <a class="btn btn-tertiary ml-auto" href="{% url 'staff:add-staff' pk=genrequest.id model_type="genrequest" %}">
     <input type="hidden" name="type" value="genrequest">
-    <i class="fa-solid fa-id-badge"></i> Assign staff
+    <i class="fa-solid fa-id-badge"></i> Responsible staff
   </a>
   {% endif %}
 </div>

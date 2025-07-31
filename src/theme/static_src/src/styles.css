@@ -31,12 +31,12 @@
   --color-tertiary-700: #a0a0a0;
   --color-tertiary-800: #8c8c8c;
 
-  --color-danger-100: #b96363;
-  --color-danger-300: #db7979;
-  --color-danger-500: #db7979;
-  --color-danger-600: #ffa3a3;
-  --color-danger-700: #ffc0c0;
-  --color-danger-800: #ffd7d7;
+  --color-danger-100: #ffd7d7;
+  --color-danger-300: #ffc0c0;
+  --color-danger-500: #ffc0c0;
+  --color-danger-600: #ff9090;
+  --color-danger-700: #db7979;
+  --color-danger-800: #b96363;
 
   --color-success-100: #dff7ca;
   --color-success-300: #c9ebb0;

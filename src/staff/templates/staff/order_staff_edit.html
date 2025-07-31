@@ -24,7 +24,7 @@
   </div>
 
   <div class="bg-white p-6 rounded-lg shadow">
-    <h4 class="text-lg font-semibold mb-4">Assign Staff to Order</h4>
+    <h4 class="text-lg font-semibold mb-4">Choose responsible staff for order</h4>
     <form method="post">
       {% csrf_token %}
 
@@ -34,7 +34,7 @@
         <div>{{ form.responsible_staff }}</div>
 
         {% if form.responsible_staff.help_text %}
-          <p class="text-sm text-gray-600 mt-1">{{ form.responsible_staff.help_text }}</p>
+          <p class="text-sm text-tertiary-900 mt-1">{{ form.responsible_staff.help_text }}</p>
         {% endif %}
 
         {% if form.responsible_staff.errors %}

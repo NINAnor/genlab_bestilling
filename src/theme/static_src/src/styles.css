@@ -31,12 +31,12 @@
   --color-tertiary-700: #a0a0a0;
   --color-tertiary-800: #8c8c8c;
 
-  --color-danger-100: #b96363;
-  --color-danger-300: #db7979;
-  --color-danger-500: #db7979;
-  --color-danger-600: #ffa3a3;
-  --color-danger-700: #ffc0c0;
-  --color-danger-800: #ffd7d7;
+  --color-danger-100: #ffd7d7;
+  --color-danger-300: #ffc0c0;
+  --color-danger-500: #ffc0c0;
+  --color-danger-600: #ff9090;
+  --color-danger-700: #db7979;
+  --color-danger-800: #b96363;
 
   --color-success-100: #dff7ca;
   --color-success-300: #c9ebb0;
@@ -143,6 +143,7 @@
   @apply text-sm text-gray-600;
 }
 
+.textinput,
 .formset-text-input,
 .formset-email-input,
 .formset-date-input,
@@ -152,7 +153,7 @@
 .formset-textarea,
 .formset-password-input,
 .formset-url-input {
-  @apply w-full px-3 py-2 placeholder-gray-300 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300;
+  @apply w-full px-3 py-2 !placeholder-tertiary-800 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 h-10;
 }
 
 .formset-dual-selector-select {
@@ -312,54 +313,59 @@ ol.breadcrumb > li + ::before {
   background-color: transparent;
 }
 
-.select2-selection--multiple {
-  @apply h-[2.6rem] flex items-center px-3 overflow-hidden rounded-md border border-gray-300 bg-white text-sm text-gray-700 relative;
+.select-base {
+  @apply w-full px-3 py-2 !placeholder-gray-800 !border !border-gray-300 !rounded-lg focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 !h-10;
 }
 
-.select2-selection--multiple .select2-selection__rendered {
-  @apply flex items-center flex-wrap gap-1 p-0 m-0;
-}
-
-.select2-selection--multiple .select2-selection__choice {
-  @apply m-0 px-2 py-1 text-sm leading-tight bg-gray-100 text-gray-800 rounded;
-}
-
-.select2-selection--multiple .select2-search--inline .select2-search__field {
-  @apply m-0 p-0 text-sm leading-none w-4;
-}
-
-.select2-selection--multiple::after {
+.select-icon::after {
   content: "";
-  @apply absolute top-1/2 right-3 w-4 h-4 pointer-events-none;
+  @apply absolute top-1/2 right-3 w-4 h-4 bg-no-repeat bg-contain pointer-events-none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 12a1 1 0 01-.7-.3l-3-3a1 1 0 011.4-1.4L10 9.6l2.3-2.3a1 1 0 011.4 1.4l-3 3a1 1 0 01-.7.3z' clip-rule='evenodd'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: 1rem 1rem;
   transform: translateY(-50%);
-  color: #6b7280; /* Tailwind gray-500 */
+  z-index: 2;
+}
+
+.select2-container--default .select2-selection--single {
+  @apply select-base !flex !items-center select-icon !pr-10;
+}
+
+.select2-container--default .select2-selection--multiple {
+  @apply select-base select-icon !flex !items-end !pr-10;
+}
+
+.select2-selection__clear,
+.select2-selection__arrow {
+  @apply !hidden;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field{
+  @apply !placeholder-tertiary-800 !mt-0;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  @apply !text-sm
+}
+
+.select2-container--default .select2-selection__placeholder {
+  @apply !text-tertiary-800;
+}
+
+.select2-container--default .select2-selection__rendered {
+  @apply !flex !flex-wrap !max-w-56 !max-h-8 !overflow-y-auto;
 }
 
 .select2-container {
-  width: 100% !important;
+  @apply !min-w-60;
 }
 
-.select2-container .select2-selection--single {
-  height: 2.6rem !important;
-  position: relative; /* Needed for absolute positioning inside */
-  padding-right: 2.5rem;
-  display: flex;
-  align-items: center;
-  border-color: rgb(209 213 219);
-  opacity: 80%;
+.selection {
+  @apply !w-60 !flex !content-center;
 }
 
-.select2-container .select2-selection__arrow {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  transform: translateY(20%);
-  width: 1rem;
-  height: 1rem;
-  pointer-events: none;
+select {
+  @apply select-base pr-10 !h-10 items-center bg-no-repeat bg-right;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='currentColor' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' d='M10 12a1 1 0 01-.7-.3l-3-3a1 1 0 011.4-1.4L10 9.6l2.3-2.3a1 1 0 011.4 1.4l-3 3a1 1 0 01-.7.3z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-size: 1rem 1rem;
 }
 
 .responsible-staff-form {
@@ -367,7 +373,7 @@ ol.breadcrumb > li + ::before {
 }
 
 .staff-status-indicator {
-  @apply top-2 left-2 flex absolute items-center justify-center z-10;
+  @apply top-2 left-2 flex absolute items-center justify-center z-10 pointer-events-none;
 }
 
 .staff-status-indicator.spinner {
@@ -390,6 +396,10 @@ ol.breadcrumb > li + ::before {
   @apply !max-w-52 !w-full;
 }
 
-.responsible-staff-form .select2-selection {
-  @apply !max-w-52 !w-full !min-w-52;
+.responsible-staff-form .select2-selection{
+  @apply !max-w-52 !w-full !min-w-52 !max-h-10;
+}
+
+.responsible-staff-form .select2-selection__rendered {
+  @apply !max-w-44 !w-full !min-w-44 !overflow-y-auto;
 }

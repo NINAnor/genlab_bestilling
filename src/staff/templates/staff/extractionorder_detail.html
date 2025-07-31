@@ -14,7 +14,12 @@
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
 
   <div class="flex flex-wrap gap-5 my-5">
-    {% responsible_staff_multiselect order=object %}
+        <div class="flex flex-col">
+            <span class="block font-bold text-sm text-tertiary-800 mb-1">
+                Assigned staff
+            </span>
+            {% responsible_staff_multiselect order=object %}
+        </div>
     <div class="ml-auto"></div>
     {% if object.status != object.OrderStatus.DRAFT %}
       {% url 'staff:order-to-draft' pk=object.id as to_draft_url %}

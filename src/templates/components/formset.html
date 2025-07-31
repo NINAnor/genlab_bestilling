@@ -7,8 +7,8 @@
 <django-formset endpoint="{{ endpoint }}" csrf-token="{{ csrf_token }}">
   {% if form_collection %}{{ form_collection }}{% endif %}
   {% if form %}{{ form }}{% endif %}
-  <button class="btn bg-brand-secondary btn-primary" type="button" df-click="disable -> submit -> proceed !~ scrollToError">{{ submit_text }}</button>
-  <button class="btn bg-default btn-tertiary" type="button" df-click="reset">{{ reset_text }}</button>
+  <button class="btn btn-primary" type="button" df-click="disable -> submit -> proceed !~ scrollToError">{{ submit_text }}</button>
+  <button class="btn btn-tertiary" type="button" df-click="reset">{{ reset_text }}</button>
 </django-formset>
 
 <link href="{% static 'formset/css/collections.css' %}" rel="stylesheet" />

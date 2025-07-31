@@ -59,7 +59,7 @@
         <p>Selected {{ object.samples.count }} samples</p>
     </div>
 
-    <div class="flex gap-5 my-5">
+    <div class="flex flex-wrap gap-5 my-5">
         <a class="btn btn-tertiary" href="{% url 'genrequest-order-list' genrequest_id=genrequest.id %}"><i class="fas fa-arrow-left"></i> Back</a>
         {% if object.status == 'draft' %}
         <a class="btn btn-tertiary" href="{% url 'genrequest-analysis-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit Order</a>

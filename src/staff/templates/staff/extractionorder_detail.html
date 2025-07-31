@@ -13,7 +13,7 @@
 
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
 
-  <div class="flex gap-5 my-5">
+  <div class="flex flex-wrap gap-5 my-5">
     {% responsible_staff_multiselect order=object %}
     <div class="ml-auto"></div>
     {% if object.status != object.OrderStatus.DRAFT %}

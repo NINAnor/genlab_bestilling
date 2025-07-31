@@ -19,7 +19,7 @@
     <h3 class="text-4xl mb-5">Project {{ object }}</h3>
     <div class="flex gap-5 mb-5"></div>
 
-    <div class="flex gap-5 my-5">
+    <div class="flex flex-wrap gap-5 my-5">
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
         <form method="post" action="{{ verify_url }}">
             {% csrf_token %}

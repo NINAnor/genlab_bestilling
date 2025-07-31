@@ -15,9 +15,9 @@
       {% action-button action=to_draft_url class='btn-tertiary' submit_text="<i class='fa-solid fa-pen-to-square'></i> Convert to draft"|safe csrf_token=csrf_token %}
     {% endif %}
     {% if analysis_orders|length == 1 and not analysis_has_multiple_extraction_orders %}
-      <a class="btn btn-primary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first }}</a>
+      <a class="btn btn-secondary" href="{% url 'staff:order-analysis-detail' pk=analysis_orders.first.id %}">Go to {{ analysis_orders.first }}</a>
     {% endif %}
-    <a class="btn btn-secondary" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
+    <a class="btn btn-primary" href="{% url 'staff:order-extraction-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
 
     {% if not object.is_seen %}
       <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">

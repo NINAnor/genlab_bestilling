@@ -46,6 +46,8 @@ Samples {{ order }}
       {% csrf_token %}
       <input type="hidden" name="sort" value="{{ request.GET.sort|default:'' }}">
       {% next_url_input %}
+      <h1 class="ml-2 mb-1 font-medium">Actions</h1>
+      <h3 class="ml-2 mb-2 font-light text-gray-600">Select samples to generate genlabID</h3>
       <div class="flex gap-5 mb-5">
         <button class="btn btn-success" type="submit" name="generate_genlab_ids">
             <i class="fa-solid fa-id-badge"></i> Generate genlab IDs

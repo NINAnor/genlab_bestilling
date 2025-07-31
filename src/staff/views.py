@@ -535,6 +535,16 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
 class SampleDetailView(StaffMixin, DetailView):
     model = Sample
 
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        referer = self.request.GET.get("from")
+        if referer:
+            context["url"] = referer
+        else:
+            # Fallback to a default page
+            context["url"] = reverse("staff:samples-list")
+        return context
+
 
 class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView):
     MARKED = "marked"

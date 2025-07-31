@@ -40,7 +40,7 @@
         {% endfor %}
     {% /table %}
 
-    <div class="flex gap-5 my-5">
+    <div class="flex flex-wrap gap-5 my-5">
         {% if object.status == 'draft' %}
         <a class="btn btn-tertiary" href="{% url 'genrequest-equipment-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit</a>
         <a class="btn btn-tertiary" href="{% url 'genrequest-equipment-quantity-update' genrequest_id=object.genrequest_id pk=object.id %}">Edit requested equipment</a>

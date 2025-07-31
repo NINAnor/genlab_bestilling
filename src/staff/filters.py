@@ -14,6 +14,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    IsolationMethod,
     Marker,
     Sample,
     SampleMarkerAnalysis,
@@ -320,6 +321,16 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         ),
     )
 
+    sample__isolation_method = filters.ModelMultipleChoiceFilter(
+        field_name="sample__isolation_method",
+        queryset=IsolationMethod.objects.all(),
+        label="Isolation method",
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:isolation-method",
+            attrs={"class": "w-full"},
+        ),
+    )
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
@@ -332,16 +343,6 @@ class SampleMarkerOrderFilter(filters.FilterSet):
 
         self.filters["sample__type"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:sample-type"
-        )
-
-        self.filters["sample__isolation_method"].field.label = "Isolation method"
-        self.filters[
-            "sample__isolation_method"
-        ].field.widget = autocomplete.ModelSelect2(
-            url="autocomplete:isolation-method",
-            attrs={
-                "class": "w-full",
-            },
         )
 
         self.filters["sample__extractions"].field.label = "Qiagen ID"
@@ -460,6 +461,16 @@ class SampleLabFilter(filters.FilterSet):
         widget=SampleStatusWidget,
     )
 
+    isolation_method = filters.ModelMultipleChoiceFilter(
+        field_name="isolation_method",
+        queryset=IsolationMethod.objects.all(),
+        label="Isolation method",
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:isolation-method",
+            attrs={"class": "w-full"},
+        ),
+    )
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
@@ -489,14 +500,6 @@ class SampleLabFilter(filters.FilterSet):
         self.filters["genlab_id_max"].field.choices = genlab_choices
         self.filters["genlab_id_max"].field.widget.attrs.update(
             {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
-        )
-
-        self.filters["isolation_method"].field.label = "Isolation method"
-        self.filters["isolation_method"].field.widget = autocomplete.ModelSelect2(
-            url="autocomplete:isolation-method",
-            attrs={
-                "class": "w-full",
-            },
         )
 
         self.filters["extractions"].field.label = "Qiagen ID"

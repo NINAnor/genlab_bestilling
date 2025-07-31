@@ -456,6 +456,13 @@ class OrderAnalysisSampleTable(tables.Table):
         },
     )
 
+    isolation_method = tables.ManyToManyColumn(
+        accessor="sample__isolation_method",
+        transform=lambda x: x.name,
+        verbose_name="Isolation Method",
+        orderable=False,
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
         fields = (
@@ -463,6 +470,7 @@ class OrderAnalysisSampleTable(tables.Table):
             "sample__genlab_id",
             "sample__type",
             "marker",
+            "isolation_method",
             "has_pcr",
             "is_analysed",
             "is_outputted",

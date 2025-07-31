@@ -559,7 +559,14 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_queryset(self) -> QuerySet[Sample]:
         return Sample.objects.filter(
             order=self.get_order(), genlab_id__isnull=False
-        ).prefetch_related("order", "type", "isolation_method")
+        ).prefetch_related(
+            "order",
+            "type",
+            Prefetch(
+                "isolation_method",
+                queryset=IsolationMethod.objects.order_by("name").distinct(),
+            ),
+        )
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
         types = self.get_queryset().values_list("type", flat=True).distinct()

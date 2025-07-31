@@ -1,0 +1,221 @@
+[
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 3,
+    "fields": {
+      "name": "King Fisher Tissue Vev",
+      "sample_types": [
+        18,
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 4,
+    "fields": {
+      "name": "King Fisher Tissue Fjær",
+      "sample_types": [
+        12
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 5,
+    "fields": {
+      "name": "King Fisher Tissue Hår",
+      "sample_types": [
+        14
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 6,
+    "fields": {
+      "name": "King Fisher Tissue PIT & swab",
+      "sample_types": [
+        15,
+        16
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 7,
+    "fields": {
+      "name": "King Fisher Tissue Plankton",
+      "sample_types": [
+        9,
+        7,
+        11,
+        10
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 8,
+    "fields": {
+      "name": "King Fisher Tissue Småmusling",
+      "sample_types": [
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 9,
+    "fields": {
+      "name": "King Fisher Microbiome Diett",
+      "sample_types": [
+        3
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 10,
+    "fields": {
+      "name": "King Fisher PlantDNA",
+      "sample_types": [
+        9
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 11,
+    "fields": {
+      "name": "Qiagen PowerSoil Pro",
+      "sample_types": [
+        3,
+        14,
+        5,
+        16,
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 12,
+    "fields": {
+      "name": "Qiagen Blood & Tissue Enkeltkolonne",
+      "sample_types": [
+        14,
+        13,
+        17,
+        18,
+        16,
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 13,
+    "fields": {
+      "name": "Qiagen Blood & Tissue Qiagen 96-plate",
+      "sample_types": [
+        12,
+        14,
+        8,
+        13,
+        15,
+        17,
+        18,
+        16,
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 14,
+    "fields": {
+      "name": "Qiagen Blood & Tissue Blod fra fugl",
+      "sample_types": [
+        2
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 15,
+    "fields": {
+      "name": "MP FastDNA Soil MP Soil 2mL",
+      "sample_types": [
+        3,
+        5,
+        11
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 16,
+    "fields": {
+      "name": "MP FastDNA Soil MP Soil 50mL",
+      "sample_types": [
+        3,
+        5,
+        11
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 17,
+    "fields": {
+      "name": "Maxwell Tissue Feces",
+      "sample_types": [
+        3
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 18,
+    "fields": {
+      "name": "Maxwell Tissue Vev",
+      "sample_types": [
+        2,
+        12,
+        20
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 19,
+    "fields": {
+      "name": "NORGEN urine Urin",
+      "sample_types": [
+        2,
+        19
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 20,
+    "fields": {
+      "name": "NucleoSpin vannfilter Glassfiberfilter",
+      "sample_types": [
+        4
+      ]
+    }
+  },
+  {
+    "model": "genlab_bestilling.isolationmethod",
+    "pk": 21,
+    "fields": {
+      "name": "NucleoSpin vannfilter NatureMetrics",
+      "sample_types": [
+        4
+      ]
+    }
+  }
+]

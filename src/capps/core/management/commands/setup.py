@@ -9,7 +9,7 @@ from genlab_bestilling.libs.load_csv_fixture import (
     sample_types_from_tsv,
     species_from_tsv,
 )
-from genlab_bestilling.models import Area
+from genlab_bestilling.models import Area, IsolationMethod
 
 
 class Command(BaseCommand):
@@ -29,3 +29,6 @@ class Command(BaseCommand):
             sample_types_from_tsv(settings.SRC_DIR / "fixtures" / "sample_types.tsv")
 
             call_command("loaddata", "test.json")
+
+        if not IsolationMethod.objects.all().exists():
+            call_command("loaddata", "isolation_methods.json")

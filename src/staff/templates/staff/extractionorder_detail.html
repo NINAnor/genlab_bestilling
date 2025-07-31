@@ -4,8 +4,14 @@
 {% load order_tags %}
 
 {% block content %}
-  <h3 class="text-4xl mb-5">Order {{ object }}</h3>
-  <div class="flex gap-5 mb-5"></div>
+    {% if user.is_staff %}
+      <div class="flex gap-5">
+        <div class="ml-auto"></div>
+        <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Edit (admin)</a>
+      </div>
+    {% endif %}
+
+    <h3 class="text-4xl mb-5">Order {{ object }}</h3>
 
   <div class="flex gap-5 my-5">
     {% responsible_staff_multiselect order=object %}
@@ -30,13 +36,14 @@
       </form>
     {% endif %}
 
-    {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == 'checked' %}
+    {% if object.status == object.OrderStatus.DELIVERED and object.internal_status == "checked" %}
       {% url 'staff:order-to-next-status' pk=object.id as to_next_status_url %}
       {% with btn_name="<i class='fa-solid fa-arrow-right'></i> Set as "|add:object.next_status %}
-        {% action-button action=to_next_status_url class='bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300' submit_text=btn_name csrf_token=csrf_token %}
+        {% action-button action=to_next_status_url class="bg-yellow-200 text-yellow-800 border border-yellow-700 hover:bg-yellow-300" submit_text=btn_name csrf_token=csrf_token %}
       {% endwith %}
     {% endif %}
-  </div>
+
+    </div>
 
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
     {% extraction_order_detail_table order=object %}

@@ -14,6 +14,7 @@ from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
 
 from shared.db import assert_is_in_atomic_block
+from shared.mixins import AdminUrlsMixin
 
 from . import managers
 from .libs.helpers import position_to_coordinates
@@ -21,7 +22,7 @@ from .libs.helpers import position_to_coordinates
 an = "genlab_bestilling"  # Short alias for app name.
 
 
-class Organization(models.Model):
+class Organization(AdminUrlsMixin, models.Model):
     # TODO: unique name
     name = models.CharField(max_length=255)
 
@@ -32,7 +33,7 @@ class Organization(models.Model):
         return self.name
 
 
-class Area(models.Model):
+class Area(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255)
     location_mandatory = models.BooleanField(default=False)
 
@@ -44,7 +45,7 @@ class Area(models.Model):
         return self.name
 
 
-class Marker(models.Model):
+class Marker(AdminUrlsMixin, models.Model):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
 
@@ -55,7 +56,7 @@ class Marker(models.Model):
         return self.name
 
 
-class Species(models.Model):
+class Species(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255)
     area = models.ForeignKey(f"{an}.Area", on_delete=models.CASCADE)
     markers = models.ManyToManyField(f"{an}.Marker", related_name="species")
@@ -79,7 +80,7 @@ class Species(models.Model):
         return self.name
 
 
-class SampleType(models.Model):
+class SampleType(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     areas = models.ManyToManyField(f"{an}.Area", blank=True)
 
@@ -98,7 +99,7 @@ class SampleType(models.Model):
         return "SAMPLE_TYPE"
 
 
-class AnalysisType(models.Model):
+class AnalysisType(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
@@ -116,14 +117,14 @@ class AnalysisType(models.Model):
         return "ANALYSIS_TYPE"
 
 
-class LocationType(models.Model):
+class LocationType(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=250)
 
     def __str__(self) -> str:
         return self.name
 
 
-class Location(models.Model):
+class Location(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=250)
     types = models.ManyToManyField(
         f"{an}.LocationType",
@@ -152,7 +153,7 @@ class Location(models.Model):
         return self.name
 
 
-class Genrequest(models.Model):  # type: ignore[django-manager-missing]
+class Genrequest(AdminUrlsMixin, models.Model):  # type: ignore[django-manager-missing]
     """
     A GenLab genrequest, multiple GenLab requests can have the same NINA project number
     """
@@ -227,6 +228,9 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
             kwargs={"pk": self.pk},
         )
 
+    def get_admin_orders_url(self) -> str:
+        return f"{Order.get_admin_changelist_url()}?genrequest={self.id}"
+
     def display_id(self) -> str:
         return f"#GEN_{self.id}"
 
@@ -240,7 +244,7 @@ class Genrequest(models.Model):  # type: ignore[django-manager-missing]
         ) < timedelta(days=30)
 
 
-class Order(PolymorphicModel):
+class Order(AdminUrlsMixin, PolymorphicModel):
     class CannotConfirm(ValidationError):
         pass
 
@@ -498,6 +502,9 @@ class ExtractionOrder(Order):
     def get_absolute_staff_url(self) -> str:
         return reverse("staff:order-extraction-detail", kwargs={"pk": self.pk})
 
+    def get_admin_samples_url(self) -> str:
+        return f"{Sample.get_admin_changelist_url()}?order__order_ptr__exact={self.id}"
+
     def clone(self) -> None:
         """
         Generates a clone of the model, with a different ID
@@ -559,7 +566,7 @@ class ExtractionOrder(Order):
         )
 
 
-class AnalysisOrderResultsCommunication(models.Model):
+class AnalysisOrderResultsCommunication(AdminUrlsMixin, models.Model):
     analysis_order = models.ForeignKey(
         f"{an}.AnalysisOrder",
         on_delete=models.CASCADE,
@@ -611,6 +618,10 @@ class AnalysisOrder(Order):
             "genrequest-analysis-detail",
             kwargs={"pk": self.pk, "genrequest_id": self.genrequest_id},
         )
+
+    def get_admin_samples_url(self) -> str:
+        url = SampleMarkerAnalysis.get_admin_changelist_url()
+        return f"{url}?order__order_ptr__exact={self.id}"
 
     def get_absolute_staff_url(self) -> str:
         return reverse("staff:order-analysis-detail", kwargs={"pk": self.pk})
@@ -667,7 +678,7 @@ class AnalysisOrder(Order):
             self.sample_markers.exclude(transaction=transaction_code).delete()
 
 
-class SampleMarkerAnalysis(models.Model):
+class SampleMarkerAnalysis(AdminUrlsMixin, models.Model):
     sample = models.ForeignKey(f"{an}.Sample", on_delete=models.CASCADE)
     order = models.ForeignKey(
         f"{an}.AnalysisOrder",
@@ -697,7 +708,7 @@ class SampleMarkerAnalysis(models.Model):
         return f"{str(self.sample)} {str(self.marker)} @ {str(self.order)}"
 
 
-class Sample(models.Model):
+class Sample(AdminUrlsMixin, models.Model):
     order = models.ForeignKey(
         f"{an}.ExtractionOrder",
         on_delete=models.CASCADE,
@@ -878,7 +889,7 @@ class Sample(models.Model):
 # assignee (one or plus?)
 
 
-class SampleIsolationMethod(models.Model):
+class SampleIsolationMethod(AdminUrlsMixin, models.Model):
     sample = models.ForeignKey(
         f"{an}.Sample",
         on_delete=models.CASCADE,
@@ -897,7 +908,7 @@ class SampleIsolationMethod(models.Model):
         return f"{self.sample} - {self.isolation_method}"
 
 
-class IsolationMethod(models.Model):
+class IsolationMethod(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255)
     sample_types = models.ManyToManyField(
         f"{an}.SampleType",
@@ -912,7 +923,7 @@ class IsolationMethod(models.Model):
 
 
 # Some extracts can be placed in multiple wells
-class ExtractPlatePosition(models.Model):
+class ExtractPlatePosition(AdminUrlsMixin, models.Model):
     plate = models.ForeignKey(
         f"{an}.ExtractionPlate",
         on_delete=models.DO_NOTHING,
@@ -940,7 +951,7 @@ class ExtractPlatePosition(models.Model):
         return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
 
 
-class ExtractionPlate(models.Model):
+class ExtractionPlate(AdminUrlsMixin, models.Model):
     name = models.CharField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
@@ -951,7 +962,7 @@ class ExtractionPlate(models.Model):
         return f"#P{self.id}" + f" - {self.name}" if self.name else ""
 
 
-class AnalysisResult(models.Model):
+class AnalysisResult(AdminUrlsMixin, models.Model):
     name = models.CharField()
     analysis_date = models.DateTimeField(null=True, blank=True)
     marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
@@ -971,7 +982,7 @@ class AnalysisResult(models.Model):
         return f"{self.name}"
 
 
-class GIDSequence(models.Model):
+class GIDSequence(AdminUrlsMixin, models.Model):
     """
     Represents a sequence of IDs
     This table provides a way to atomically update

@@ -3,6 +3,14 @@
 {% load i18n %}
 
 {% block content %}
+
+{% if user.is_staff %}
+    <div class="flex gap-5">
+      <div class="ml-auto"></div>
+      <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Edit (admin)</a>
+    </div>
+{% endif %}
+
 <div class="flex items-center mb-5 gap-2">
   <h3 id="genrequest" class="text-4xl">{{ object.project_id }} - {{ object.name|default_if_none:"Unnamed" }} </h3>
 </div>

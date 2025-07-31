@@ -4,20 +4,21 @@
 
 {% block content %}
 
-    <div class="flex gap-5 my-5">
+  <div class="flex gap-5 mb-5">
 
-        <a class="btn btn-tertiary" href="{% url 'staff:samples-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+    <a class="btn btn-sm btn-tertiary" href="{% url 'staff:samples-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
 
-        {% if user.is_staff %}
-            <a class="btn custom_order_button ml-auto" href="{{ object.get_admin_change_url }}">
-              <i class="fa-solid fa-shield"></i> See in admin panel
-            </a>
-        {% endif %}
-    </div>
+    <div class="ml-auto"></div>
 
-    <h3 class="text-4xl mb-5">Sample {{ object }}</h3>
-    <div class="flex gap-5 mb-5"></div>
+    {% if user.is_staff %}
+      <a class="btn btn-sm btn-tertiary" href="{{ sample.order.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Extraction order (admin)</a>
+      <a class="btn btn-sm btn-tertiary" href="{{ sample.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Edit (admin)</a>
+    {% endif %}
 
-    {% object-detail-staff object=object %}
+  </div>
+
+  <h3 class="text-4xl mb-5">Sample {{ object }}</h3>
+
+  {% object-detail-staff object=object %}
 
 {% endblock %}

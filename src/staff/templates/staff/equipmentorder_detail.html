@@ -9,6 +9,17 @@
     {% #table-cell header=True %}Qty{% /table-cell %}
     {% endfragment %}
 
+    <div class="flex gap-5 mb-5">
+      <a class="btn btn-sm btn-tertiary" href="../"><i class="fas fa-arrow-left"></i> Back</a>
+      <div class="ml-auto"></div>
+
+      {% if user.is_staff %}
+        <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_samples_url }}"><i class="fa-solid fa-shield-halved"></i>Samples (admin)</a>
+        <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i>Edit (admin)</a>
+      {% endif %}
+    </div>
+
+
     <h3 class="text-4xl mb-5">Order {{ object }}</h3>
     <div class="flex gap-5 mb-5">
         {% responsible_staff_multiselect order=object %}

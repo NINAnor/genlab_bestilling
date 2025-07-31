@@ -20,7 +20,6 @@
     <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" ><i class="fas fa-arrow-left"></i> Back</a>
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
         <form method="post" action="{{ verify_url }}">
             {% csrf_token %}

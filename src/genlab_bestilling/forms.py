@@ -361,7 +361,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             obj = super().save(commit=False)
             obj.genrequest = self.genrequest
 
-            if not self.cleaned_data["use_all_samples"]:
+            if "use_all_samples" not in self.cleaned_data:
                 obj.from_order = None
 
             if obj.from_order and not obj.name and obj.from_order.name:

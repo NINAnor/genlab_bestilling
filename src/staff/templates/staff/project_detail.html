@@ -3,11 +3,23 @@
 {% load next_input %}
 
 {% block content %}
+
+    <div class="flex gap-5 mb-5">
+
+      <a class="btn btn-sm custom_order_button" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
+
+      <div class="ml-auto"></div>
+
+      {% if user.is_staff %}
+        <a class="btn btn-sm btn-tertiary" href="{{ object.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Edit (admin)</a>
+      {% endif %}
+
+    </div>
+
     <h3 class="text-4xl mb-5">Project {{ object }}</h3>
     <div class="flex gap-5 mb-5"></div>
 
     <div class="flex gap-5 my-5">
-        <a class="btn custom_order_button" href="{% url 'staff:projects-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
         <form method="post" action="{{ verify_url }}">
             {% csrf_token %}

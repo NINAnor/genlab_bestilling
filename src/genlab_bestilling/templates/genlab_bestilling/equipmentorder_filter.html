@@ -2,12 +2,27 @@
 {% load neapolitan %}
 {% load render_table from django_tables2 %}
 
+{% block page-upper %}
+  {% if user.is_staff %}
+    <div class="flex gap-5">
+      <div class="ml-auto"></div>
+
+      {% if genrequest %}
+        <a class="btn btn-sm btn-tertiary" href="{{ genrequest.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Genetic project (admin)</a>
+      {% else %}
+        <a class="btn btn-sm btn-tertiary" href="{{ view.model.get_admin_changelist_url }}"><i class="fa-solid fa-shield-halved"></i> All equipment orders (admin)</a>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock page-upper %}
+
 {% block page-title %}Equipment Orders{% if genrequest %} relative to {{ genrequest }}{% endif %}{% endblock page-title %}
+
 {% block page-inner %}
-<div class="flex gap-5 mb-5">
+  <div class="flex gap-5 mb-5">
     {% if genrequest %}
     <a class="btn custom_order_button" href="{% url 'genrequest-detail' pk=genrequest.id %}"><i class="fas fa-arrow-left"></i> Back</a>
     <a class="btn custom_order_button_green" href="{% url 'genrequest-equipment-create' genrequest_id=genrequest.id %}"><i class="fas fa-plus"></i> Equipment order</a>
     {% endif %}
-</div>
+  </div>
 {% endblock page-inner %}

@@ -6,6 +6,7 @@ from unfold.contrib.filters import admin as unfold_filters
 
 from .models import (
     AnalysisOrder,
+    AnalysisOrderResultsCommunication,
     AnalysisResult,
     AnalysisType,
     Area,
@@ -342,6 +343,29 @@ class ExtractionOrderAdmin(ModelAdmin):
         EO.confirmed_at.field.name,
         EO.last_modified_at.field.name,
         EO.created_at.field.name,
+    ]
+
+
+@admin.register(AnalysisOrderResultsCommunication)
+class AnalysisOrderResultsCommunicationAdmin(ModelAdmin):
+    M = AnalysisOrderResultsCommunication
+    list_display = [
+        M.id.field.name,
+        M.analysis_order.field.name,
+        M.contact_person_results.field.name,
+        M.contact_email_results.field.name,
+    ]
+    search_help_text = "Search for id or contact person name/email"
+    search_fields = [
+        M.id.field.name,
+        M.contact_person_results.field.name,
+        M.contact_email_results.field.name,
+    ]
+    list_filter = [
+        (M.id.field.name, unfold_filters.SingleNumericFilter),
+        (M.analysis_order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.contact_email_results.field.name, unfold_filters.FieldTextFilter),
+        M.contact_person_results.field.name,
     ]
 
 

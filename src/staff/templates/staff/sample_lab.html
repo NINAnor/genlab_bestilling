@@ -4,11 +4,24 @@
 {% load next_input %}
 
 {% block content %}
-<div class="flex gap-5 mb-10 items-center w-full">
+
+  <div class="flex gap-5">
+
     <a class="btn btn-sm font-normal custom_order_button" href="../"><i class="fas fa-arrow-left"></i> <span class="font-normal">Back</span></a>
-</div>
-<h3 class="text-4xl mb-5">{% block page-title %}{% if order %}Samples {{ order }}{% else %}Samples{% endif %}{% endblock page-title %}</h3>
-{% block page-inner %}
+
+    <div class="ml-auto"></div>
+
+    {% if user.is_staff %}
+      <div class="flex gap-5">
+        <a class="btn btn-sm btn-tertiary" href="{{ order.get_admin_samples_url }}"><i class="fa-solid fa-shield-halved"></i> Samples (admin)</a>
+        <a class="btn btn-sm btn-tertiary" href="{{ order.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> Extraction order (admin)</a>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <h3 class="text-4xl my-5">Samples {{ order }}</h3>
+
     {% include "staff/components/extraction_tabs.html" with order=order active_tab="lab" %}
 
     {% filtering filter=filter request=request %}
@@ -66,7 +79,6 @@
     <div class="mt-2"></div>
         {% render_table table %}
     </form>
-{% endblock page-inner %}
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

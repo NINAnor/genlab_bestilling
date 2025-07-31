@@ -2,7 +2,16 @@
 {% load neapolitan %}
 {% load render_table from django_tables2 %}
 
+
 {% block content %}
+    {% if user.is_staff %}
+      <div class="flex gap-5">
+        <div class="ml-auto"></div>
+        <a class="btn btn-sm btn-tertiary" href="{{ extraction.get_admin_samples_url }}"><i class="fa-solid fa-shield-halved"></i> See samples (admin)</a>
+        <a class="btn btn-sm btn-tertiary" href="{{ extraction.get_admin_change_url }}"><i class="fa-solid fa-shield-halved"></i> See order (admin)</a>
+      </div>
+    {% endif %}
+
     <h3 class="text-4xl mb-5">Samples for Extraction #{{ view.kwargs.pk }}</h3>
     {% render_table table %}
     <div class="flex gap-5 mt-5">

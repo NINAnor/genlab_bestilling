@@ -528,6 +528,7 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 ),
             )
             .exclude(order__status=Order.OrderStatus.DRAFT)
+            .annotate_numeric_name()
             .order_by("species__name", "year", "location__name", "name")
         )
 

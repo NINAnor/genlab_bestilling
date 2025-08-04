@@ -240,6 +240,12 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
 
 class EquipmentOrderDetailView(StaffMixin, DetailView):
     model = EquipmentOrder
+    
+    def get_queryset(self) -> QuerySet[EquipmentOrder]:
+        return super().get_queryset().prefetch_related(
+            'equipments__equipment',
+            'equipments__buffer'
+        )
 
 
 class MarkAsSeenView(StaffMixin, DetailView, SafeRedirectMixin):

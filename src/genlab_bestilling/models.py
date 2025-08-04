@@ -522,15 +522,16 @@ class ExtractionOrder(Order):
             if not self.samples.exists():
                 raise ValidationError(_("No samples found"))
 
-            invalid = 0
+            invalid_samples = []
             for sample in self.samples.all():
                 try:
                     sample.has_error  # noqa: B018
-                except ValidationError:  # noqa: PERF203
-                    invalid += 1
+                except ValidationError as e:
+                    invalid_samples.append(f"Sample {sample.name}: {e}")
 
-            if invalid > 0:
-                msg = f"Found {invalid} invalid or incompleted samples"
+            if invalid_samples:
+                error_details = "; ".join(invalid_samples)
+                msg = f"Found {len(invalid_samples)} invalid samples: {error_details}"
                 raise Order.CannotConfirm(msg)
 
             if persist:

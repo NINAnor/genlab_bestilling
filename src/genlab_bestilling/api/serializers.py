@@ -142,12 +142,12 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         if not obj.order:
             return []
 
-        analysis_orders = obj.order.analysis_orders.all()
+        analysis_orders = list(obj.order.analysis_orders.all())
         # Return all analysis order IDs as strings
         # only if there is exactly one analysis order, else return empty list.
         # This is to ensure no duplicate rows in staffs common sheet
-        if analysis_orders.count() == 1:
-            return [str(analysis_orders.first().id)]
+        if len(analysis_orders) == 1:
+            return [str(analysis_orders[0].id)]
         return []
 
     def get_project(self, obj: Sample) -> str:

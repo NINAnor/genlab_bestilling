@@ -255,6 +255,7 @@ class OrderListView(SingleTableMixin, FilterView):
         return (
             super()
             .get_queryset()
+            .filter_allowed(self.request.user)
             .select_related("genrequest", "polymorphic_ctype", "genrequest__project")
         )
 
@@ -308,7 +309,10 @@ class EquipmentOrderListView(SingleTableMixin, FilterView):
 
     def get_queryset(self) -> QuerySet:
         return (
-            super().get_queryset().select_related("genrequest", "genrequest__project")
+            super()
+            .get_queryset()
+            .select_related("genrequest", "genrequest__project")
+            .filter_allowed(self.request.user)
         )
 
 
@@ -361,7 +365,10 @@ class ExtractionOrderListView(SingleTableMixin, FilterView):
 
     def get_queryset(self) -> QuerySet:
         return (
-            super().get_queryset().select_related("genrequest", "genrequest__project")
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)
+            .select_related("genrequest", "genrequest__project")
         )
 
 
@@ -416,7 +423,10 @@ class AnalysisOrderListView(SingleTableMixin, FilterView):
 
     def get_queryset(self) -> QuerySet:
         return (
-            super().get_queryset().select_related("genrequest", "genrequest__project")
+            super()
+            .get_queryset()
+            .select_related("genrequest", "genrequest__project")
+            .filter_allowed(self.request.user)
         )
 
 

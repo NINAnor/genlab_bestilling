@@ -1017,7 +1017,10 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
         ]
 
     def get_queryset(self) -> QuerySet[Any]:
-        self.extraction = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        try:
+            self.extraction = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        except ExtractionOrder.DoesNotExist as err:
+            raise Http404("Extraction order not found") from err
         return (
             super()
             .get_queryset()
@@ -1099,7 +1102,10 @@ class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
         ]
 
     def get_queryset(self) -> QuerySet[Any]:
-        self.analysis = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        try:
+            self.analysis = AnalysisOrder.objects.get(pk=self.kwargs.get("pk"))
+        except AnalysisOrder.DoesNotExist as err:
+            raise Http404("Analysis order not found") from err
         return (
             super()
             .get_queryset()

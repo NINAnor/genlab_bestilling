@@ -246,7 +246,10 @@ class MarkAsSeenView(StaffMixin, DetailView, SafeRedirectMixin):
     model = Order
 
     def get_object(self) -> Order:
-        return Order.objects.get(pk=self.kwargs["pk"])
+        try:
+            return Order.objects.get(pk=self.kwargs["pk"])
+        except Order.DoesNotExist as err:
+            raise Http404("Order not found") from err
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
@@ -335,7 +338,10 @@ class OrderExtractionSamplesListView(
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        try:
+            order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        except ExtractionOrder.DoesNotExist as err:
+            raise Http404("Extraction order not found") from err
         context["order"] = order
         total_samples = order.samples.count()
         filled_count = order.filled_genlab_count
@@ -878,7 +884,10 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
     model = ExtractionOrder
 
     def get_object(self) -> ExtractionOrder:
-        return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+        try:
+            return ExtractionOrder.objects.get(pk=self.kwargs["pk"])
+        except ExtractionOrder.DoesNotExist as err:
+            raise Http404("Extraction order not found") from err
 
     def get_fallback_url(self) -> str:
         return reverse_lazy(
@@ -1045,7 +1054,10 @@ class OrderPrioritizedAdminView(StaffMixin, SafeRedirectMixin, ActionView):
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         pk = kwargs.get("pk")
-        order = Order.objects.get(pk=pk)
+        try:
+            order = Order.objects.get(pk=pk)
+        except Order.DoesNotExist as err:
+            raise Http404("Order not found") from err
         order.toggle_prioritized()
 
         return redirect(self.get_next_url())

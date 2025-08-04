@@ -116,7 +116,10 @@ class LocationFilter(filters.FilterSet):
 
     def filter_ext_order(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
-            order = ExtractionOrder.objects.get(pk=value)
+            try:
+                order = ExtractionOrder.objects.get(pk=value)
+            except ExtractionOrder.DoesNotExist:
+                return queryset
             if order.genrequest.area.location_mandatory:
                 return queryset.exclude(types=None)
         return queryset

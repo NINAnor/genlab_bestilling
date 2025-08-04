@@ -13,7 +13,10 @@ class OrderAPIView(APIView):
         user_ids = "user_ids"
 
     def get_object(self) -> Order:
-        return Order.objects.get(pk=self.kwargs["pk"])
+        try:
+            return Order.objects.get(pk=self.kwargs["pk"])
+        except Order.DoesNotExist as err:
+            raise Http404("Order not found") from err
 
     def get_genlab_staff(self) -> QuerySet[User]:
         return User.objects.filter(groups__name="genlab")

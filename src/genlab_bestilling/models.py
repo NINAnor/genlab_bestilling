@@ -703,16 +703,27 @@ class AnalysisOrder(Order):
         with transaction.atomic():
             transaction_code = uuid.uuid4()
 
-            for marker in self.markers.all():
-                for sample in self.from_order.samples.filter(
-                    species__in=marker.species.all()
-                ):
-                    SampleMarkerAnalysis.objects.update_or_create(
-                        sample=sample,
-                        order=self,
-                        marker=marker,
-                        defaults={"transaction": transaction_code},
-                    )
+            # Prefetch all related data to prevent N+1 queries
+            markers = self.markers.prefetch_related('species').all()
+            from_order_samples = self.from_order.samples.select_related('species').all()
+            
+            # Create bulk data structures for efficient processing
+            sample_marker_pairs = []
+            
+            for marker in markers:
+                marker_species_ids = set(marker.species.values_list('id', flat=True))
+                for sample in from_order_samples:
+                    if sample.species_id in marker_species_ids:
+                        sample_marker_pairs.append((sample, marker))
+
+            # Bulk create/update operations
+            for sample, marker in sample_marker_pairs:
+                SampleMarkerAnalysis.objects.update_or_create(
+                    sample=sample,
+                    order=self,
+                    marker=marker,
+                    defaults={"transaction": transaction_code},
+                )
 
             # delete samples that are not generated in this transaction
             self.sample_markers.exclude(transaction=transaction_code).delete()

@@ -75,7 +75,7 @@ class ProjectCreateForm(forms.ModelForm):
             contacts = ", ".join(
                 [
                     c.user.email
-                    for c in p.members.filter(
+                    for c in p.members.select_related('user').filter(
                         models.Q(role=ProjectMembership.Role.MANAGER)
                         | models.Q(role=ProjectMembership.Role.OWNER)
                     )

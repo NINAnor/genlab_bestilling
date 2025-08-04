@@ -519,7 +519,7 @@ class ExtractionOrder(Order):
 
     def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
-            if not self.samples.all().exists():
+            if not self.samples.exists():
                 raise ValidationError(_("No samples found"))
 
             invalid = 0
@@ -631,7 +631,7 @@ class AnalysisOrder(Order):
 
     def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
-            if not self.samples.all().exists():
+            if not self.samples.exists():
                 raise ValidationError(_("No samples found"))
 
             if persist:

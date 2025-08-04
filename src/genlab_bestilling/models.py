@@ -314,6 +314,11 @@ class Order(AdminUrlsMixin, PolymorphicModel):
     objects = managers.OrderManager()
 
     def confirm_order(self) -> None:
+        if self.status != self.OrderStatus.DRAFT:
+            raise ValidationError(f"Cannot confirm order in {self.get_status_display()} status")
+        if not self.samples.exists():
+            raise ValidationError("Cannot confirm order without samples")
+            
         self.status = Order.OrderStatus.DELIVERED
         self.confirmed_at = timezone.now()
         if self.is_urgent:
@@ -328,6 +333,10 @@ class Order(AdminUrlsMixin, PolymorphicModel):
         self.save()
 
     def to_draft(self) -> None:
+        can_transition, reason = self.can_transition_to_draft()
+        if not can_transition:
+            raise ValidationError(f"Cannot revert to draft: {reason}")
+            
         self.status = Order.OrderStatus.DRAFT
         self.is_seen = False
         self.confirmed_at = None
@@ -378,7 +387,37 @@ class Order(AdminUrlsMixin, PolymorphicModel):
             return self.STATUS_ORDER[current_index + 1]
         return None
 
+    def can_transition_to_next_status(self) -> tuple[bool, str]:
+        """Check if order can transition to next status with validation reason."""
+        next_status = self.next_status
+        if not next_status:
+            return False, "Order is already at final status"
+        
+        if self.status == self.OrderStatus.DRAFT and next_status == self.OrderStatus.DELIVERED:
+            if not self.samples.exists():
+                return False, "Cannot deliver order without samples"
+        elif self.status == self.OrderStatus.DELIVERED and next_status == self.OrderStatus.PROCESSING:
+            # Can always transition from delivered to processing
+            pass
+        elif self.status == self.OrderStatus.PROCESSING and next_status == self.OrderStatus.COMPLETED:
+            # Additional checks could be added here for completion criteria
+            pass
+        
+        return True, "Transition allowed"
+    
+    def can_transition_to_draft(self) -> tuple[bool, str]:
+        """Check if order can be reverted to draft status."""
+        if self.status == self.OrderStatus.DRAFT:
+            return False, "Order is already in draft status"
+        if self.status == self.OrderStatus.COMPLETED:
+            return False, "Cannot revert completed orders to draft"
+        return True, "Can revert to draft"
+
     def to_next_status(self) -> None:
+        can_transition, reason = self.can_transition_to_next_status()
+        if not can_transition:
+            raise ValidationError(f"Cannot transition to next status: {reason}")
+        
         if status := self.next_status:
             self.status = status
             self.save()

@@ -817,7 +817,6 @@ class OrderToDraftActionView(SingleObjectMixin, ActionView):
 
     def form_valid(self, form: Form) -> HttpResponse:
         try:
-            # TODO: check state transition
             self.object.to_draft()
             messages.add_message(
                 self.request,
@@ -853,7 +852,6 @@ class OrderToNextStatusActionView(SingleObjectMixin, ActionView):
 
     def form_valid(self, form: Form) -> HttpResponse:
         try:
-            # TODO: check state transition
             self.object.to_next_status()
             messages.add_message(
                 self.request,
@@ -957,7 +955,6 @@ class SampleReplicaActionView(SingleObjectMixin, ActionView):
 
     def form_valid(self, form: Form) -> HttpResponse:
         try:
-            # TODO: check state transition
             self.object = self.object.create_replica()
             messages.add_message(
                 self.request,

@@ -594,7 +594,6 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
 
     def form_valid(self, form: Any) -> HttpResponse:
         try:
-            # TODO: check state transition
             self.object.confirm_order()
             messages.add_message(
                 self.request, messages.SUCCESS, _("Your order is delivered")

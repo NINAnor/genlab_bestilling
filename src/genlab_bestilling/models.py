@@ -828,15 +828,16 @@ class Sample(AdminUrlsMixin, models.Model):
             msg = "GUID, Sample Name, Sample Type, Species and Year are required"
             raise ValidationError(msg)
 
-        if self.order.genrequest.area.location_mandatory:  # type: ignore[union-attr] # FIXME: Order can be None.
+        if self.order and self.order.genrequest.area.location_mandatory:
             if not self.location_id:
                 msg = "Location is required"
                 raise ValidationError(msg)
             # ensure that location is correct for the selected species
             if (
                 self.species.location_type
+                and self.location
                 and self.species.location_type_id
-                not in self.location.types.values_list("id", flat=True)  # type: ignore[union-attr] # FIXME: Order can be None.
+                not in self.location.types.values_list("id", flat=True)
             ):
                 msg = "Invalid location for the selected species"
                 raise ValidationError(msg)

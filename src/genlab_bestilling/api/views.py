@@ -76,7 +76,9 @@ class AllowSampleDraft(BasePermission):
     """
 
     def has_object_permission(self, request: Request, view: View, obj: Sample) -> bool:
-        if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:  # type: ignore[union-attr] # FIXME: order could be None.
+        if obj.order is None:
+            return request.method in SAFE_METHODS
+        if obj.order.status != ExtractionOrder.OrderStatus.DRAFT:
             return request.method in SAFE_METHODS
         return True
 

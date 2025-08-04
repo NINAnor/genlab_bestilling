@@ -7,6 +7,10 @@ from .base import env
 #                GENERAL
 ###########################################
 
+# https://docs.djangoproject.com/en/dev/ref/settings/#debug
+# Explicitly set DEBUG to False for production safety
+DEBUG = False
+
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
@@ -17,7 +21,15 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[""])
 #               DATABASES
 ###########################################
 
+# Set connection timeout to prevent connection pool exhaustion
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa: F405
+
+# Additional database settings for production reliability
+DATABASES["default"]["OPTIONS"] = {  # noqa: F405
+    **DATABASES["default"].get("OPTIONS", {}),  # noqa: F405
+    "MAX_CONNS": env.int("DB_MAX_CONNS", default=20),
+    "connect_timeout": env.int("DB_CONNECT_TIMEOUT", default=10),
+}
 
 
 ###########################################
@@ -49,10 +61,10 @@ SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
 SESSION_COOKIE_SECURE = env.bool("SESSION_COOKIE_SECURE", default=True)
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
 CSRF_COOKIE_SECURE = env.bool("CSRF_COOKIE_SECURE", default=True)
-# https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
+# https://docs.djangoproject.com/en/dev/topics/security/#ssl-https  
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
-# TODO: set this to 60 seconds first and then to 518400 once you prove the former works
-SECURE_HSTS_SECONDS = 60
+# Start with 60 seconds for testing, increase to 518400 (6 months) for production
+SECURE_HSTS_SECONDS = env.int("DJANGO_SECURE_HSTS_SECONDS", default=60)
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-include-subdomains
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
     "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",

@@ -6,6 +6,8 @@ alias dpcli_prod="docker compose --profile prod"
 alias djcli_dev="docker compose exec -it django-dev ./src/manage.py"
 alias djcli_prod="docker compose exec -it django ./src/manage.py"
 
+alias dpcli_dev_test="$dpcli_dev run django-dev pytest src"
+
 alias run-mypy="uv run mypy ."
 
 alias deps-sync="uv sync"

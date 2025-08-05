@@ -84,6 +84,18 @@ models2puml #
 
 <br>
 
+### Running Tests
+
+The project uses pytest with Django integration for testing. Tests are located in `src/genlab_bestilling/tests/`.
+
+```bash
+# Run tests in development container
+docker compose --profile dev exec django-dev pytest src
+
+# Or using the alias (after sourcing aliases.sh)
+dpcli_dev_test
+```
+
 ### Production setup
 This setup will create docker images optimized for production, without devtools installed
 ```

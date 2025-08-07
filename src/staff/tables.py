@@ -148,6 +148,8 @@ class AnalysisOrderTable(OrderTable):
         )
 
     def render_species(self, value: Any) -> str:
+        # The queryset should already be prefetched with 'samples__species'
+        # to avoid N+1 queries. This method efficiently collects unique species names.
         return ", ".join(
             sorted({sample.species.name for sample in value.all() if sample.species})
         )

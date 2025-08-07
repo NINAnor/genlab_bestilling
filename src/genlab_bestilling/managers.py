@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import BigIntegerField, Case, QuerySet, Value, When
+from django.db.models import BigIntegerField, Case, Count, Q, QuerySet, Value, When
 from django.db.models.functions import Cast
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
@@ -39,6 +39,16 @@ class OrderQuerySet(PolymorphicQuerySet):
         Get only orders in draft
         """
         return self.filter(status=self.model.OrderStatus.DRAFT)
+
+    def annotate_sample_counts(self) -> QuerySet:
+        """
+        Annotate orders with sample counts to avoid N+1 queries for properties
+        """
+        return self.annotate(
+            filled_genlab_count_annotated=Count('samples', filter=Q(samples__genlab_id__isnull=False)),
+            isolated_count_annotated=Count('samples', filter=Q(samples__is_isolated=True)),
+            total_samples_count=Count('samples')
+        )
 
 
 OrderManager = PolymorphicManager.from_queryset(OrderQuerySet)

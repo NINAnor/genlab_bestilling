@@ -523,7 +523,9 @@ class ExtractionOrder(Order):
                 raise ValidationError(_("No samples found"))
 
             invalid = 0
-            for sample in self.samples.all():
+            # Prefetch related fields to avoid N+1 queries when checking has_error
+            samples = self.samples.select_related('species', 'location', 'type').all()
+            for sample in samples:
                 try:
                     sample.has_error  # noqa: B018
                 except ValidationError:  # noqa: PERF203
@@ -663,16 +665,25 @@ class AnalysisOrder(Order):
         with transaction.atomic():
             transaction_code = uuid.uuid4()
 
-            for marker in self.markers.all():
-                for sample in self.from_order.samples.filter(
-                    species__in=marker.species.all()
-                ):
-                    SampleMarkerAnalysis.objects.update_or_create(
-                        sample=sample,
-                        order=self,
-                        marker=marker,
-                        defaults={"transaction": transaction_code},
-                    )
+            # Prefetch markers with their species to avoid N+1 queries
+            markers = self.markers.prefetch_related('species').all()
+            
+            # Prefetch samples with species to avoid N+1 queries
+            samples = self.from_order.samples.select_related('species').all()
+
+            for marker in markers:
+                # Get species IDs for this marker to avoid repeated queries
+                marker_species_ids = set(marker.species.values_list('id', flat=True))
+                
+                for sample in samples:
+                    # Check if sample species is in marker's allowed species
+                    if sample.species_id in marker_species_ids:
+                        SampleMarkerAnalysis.objects.update_or_create(
+                            sample=sample,
+                            order=self,
+                            marker=marker,
+                            defaults={"transaction": transaction_code},
+                        )
 
             # delete samples that are not generated in this transaction
             self.sample_markers.exclude(transaction=transaction_code).delete()

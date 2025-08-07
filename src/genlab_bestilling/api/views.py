@@ -409,18 +409,26 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
         markers = serializer.validated_data.pop("markers")
         samples = serializer.validated_data.pop("samples")
         with transaction.atomic():
+            # Prefetch related data to avoid N+1 queries
+            order = serializer.validated_data["order"]
+            order_marker_names = set(order.markers.values_list('name', flat=True))
+            
+            # Prefetch marker species data
+            marker_species_map = {}
             for marker in markers:
+                marker_species_ids = set(marker.species.values_list('id', flat=True))
+                marker_species_map[marker.id] = marker_species_ids
+            
+            for marker in markers:
+                # Check if the marker is in the analysis order (avoid repeated DB queries)
+                if marker.name not in order_marker_names:
+                    continue
+                
+                marker_species_ids = marker_species_map[marker.id]
+                
                 for sample in samples:
-                    if (
-                        not serializer.validated_data["order"]
-                        .markers.filter(name=marker)
-                        .exists()
-                    ):
-                        # skip if the marker of the sample is not in the analysis
-                        continue
-
-                    if not marker.species.filter(id=sample.species_id).exists():
-                        # skip if the marker is not allowed for this species
+                    # Check if the marker is allowed for this species (avoid repeated DB queries)
+                    if sample.species_id not in marker_species_ids:
                         continue
 
                     SampleMarkerAnalysis.objects.get_or_create(

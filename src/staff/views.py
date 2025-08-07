@@ -201,10 +201,15 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
         extraction_orders: QuerySet[ExtractionOrder],
         samples: QuerySet[Sample],
     ) -> dict[ExtractionOrder, int]:
-        sample_ids = samples.values_list("id", flat=True)
-        return {
-            eo: eo.samples.filter(id__in=sample_ids).count() for eo in extraction_orders
-        }
+        sample_ids = list(samples.values_list("id", flat=True))
+        
+        # Use annotations to avoid N+1 queries
+        from django.db.models import Count, Q
+        annotated_orders = extraction_orders.annotate(
+            matching_sample_count=Count('samples', filter=Q(samples__id__in=sample_ids))
+        )
+        
+        return {eo: eo.matching_sample_count for eo in annotated_orders}
 
     # Checks if the extraction order has multiple analysis orders
     # This is used to determine which type of link to show in the template
@@ -223,7 +228,8 @@ class AnalysisOrderDetailView(StaffMixin, DetailView):
         context = super().get_context_data(**kwargs)
 
         analysis_order = self.object
-        samples = analysis_order.samples.all()
+        # Prefetch related fields to avoid N+1 queries
+        samples = analysis_order.samples.select_related('species', 'location', 'type').all()
         extraction_orders = self.get_extraction_orders_for_samples(samples)
         extraction_order_sample_counts = self.get_extraction_order_sample_counts(
             extraction_orders, samples
@@ -300,7 +306,8 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         extraction_order = self.object
-        samples = extraction_order.samples.all()
+        # Prefetch related fields to avoid N+1 queries
+        samples = extraction_order.samples.select_related('species', 'location', 'type').all()
         analysis_orders = self.get_analysis_orders_for_samples(samples=samples)
         context["analysis_orders"] = analysis_orders
         context["analysis_has_multiple_extraction_orders"] = (
@@ -335,10 +342,11 @@ class OrderExtractionSamplesListView(
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
+        # Use annotated query to avoid N+1 query for filled_genlab_count
+        order = ExtractionOrder.objects.annotate_sample_counts().get(pk=self.kwargs.get("pk"))
         context["order"] = order
-        total_samples = order.samples.count()
-        filled_count = order.filled_genlab_count
+        total_samples = getattr(order, 'total_samples_count', order.samples.count())
+        filled_count = getattr(order, 'filled_genlab_count_annotated', order.filled_genlab_count)
         context["progress_percent"] = (
             (float(filled_count) / float(total_samples)) * 100
             if total_samples > 0
@@ -564,7 +572,11 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
 
     def get_order(self) -> ExtractionOrder:
         if not hasattr(self, "_order"):
-            self._order = get_object_or_404(ExtractionOrder, pk=self.kwargs["pk"])
+            # Use annotated query to avoid N+1 queries for isolated_count
+            self._order = get_object_or_404(
+                ExtractionOrder.objects.annotate_sample_counts(), 
+                pk=self.kwargs["pk"]
+            )
         return self._order
 
     def get_queryset(self) -> QuerySet[Sample]:
@@ -593,8 +605,8 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
-        total_samples = order.samples.count()
-        filled_count = order.isolated_count
+        total_samples = getattr(order, 'total_samples_count', order.samples.count())
+        filled_count = getattr(order, 'isolated_count_annotated', order.isolated_count)
         context["progress_percent"] = (
             (float(filled_count) / float(total_samples)) * 100
             if total_samples > 0

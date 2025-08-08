@@ -354,7 +354,7 @@ class SampleStatusTable(tables.Table):
     )
 
     genlab_id = tables.Column(
-        orderable=False,
+        orderable=True,
         empty_values=(None,),
         verbose_name="Genlab ID",
     )

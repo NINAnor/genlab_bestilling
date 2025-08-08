@@ -18,6 +18,7 @@ from genlab_bestilling.models import (
     Marker,
     Sample,
     SampleMarkerAnalysis,
+    SampleType,
     Species,
 )
 from nina.models import Project
@@ -502,6 +503,16 @@ class SampleLabFilter(filters.FilterSet):
         widget=autocomplete.ModelSelect2Multiple(
             url="autocomplete:isolation-method",
             attrs={"class": "w-full", "data-placeholder": "Filter by isolation method"},
+        ),
+    )
+
+    type = filters.ModelMultipleChoiceFilter(
+        field_name="type",
+        queryset=SampleType.objects.all(),
+        label="Sample type",
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:sample-type",
+            attrs={"class": "w-full", "data-placeholder": "Filter by sample type"},
         ),
     )
 

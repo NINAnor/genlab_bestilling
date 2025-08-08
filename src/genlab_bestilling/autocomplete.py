@@ -1,4 +1,5 @@
 from dal import autocomplete
+from django.db import models
 from django.http import HttpRequest, JsonResponse
 
 from .models import (
@@ -52,6 +53,16 @@ class GenrequestAutocomplete(autocomplete.Select2QuerySetView):
 
 class LocationAutocomplete(autocomplete.Select2QuerySetView):
     model = Location
+
+    def get_queryset(self) -> models.QuerySet:
+        qs = Location.objects.all()
+        if self.q:
+            qs = qs.filter(
+                models.Q(name__icontains=self.q)
+                | models.Q(river_id__icontains=self.q)
+                | models.Q(code__icontains=self.q)
+            )
+        return qs
 
 
 class OrderAutocomplete(autocomplete.Select2QuerySetView):

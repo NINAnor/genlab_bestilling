@@ -267,8 +267,8 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
-        self.fields["contact_person"].label = "Responsible genetic researcher"
-        self.fields["contact_email"].label = "Responsible genetic researcher email"
+        self.fields["contact_person"].label = "Contact person for sample information"
+        self.fields["contact_email"].label = "Sample contact person email"
 
     def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)

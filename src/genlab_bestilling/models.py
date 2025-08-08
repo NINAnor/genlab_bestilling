@@ -289,12 +289,10 @@ class Order(AdminUrlsMixin, PolymorphicModel):
     contact_person = models.CharField(
         null=True,
         blank=False,
-        help_text="Responsible for genetic bioinformatics analysis",
     )
     contact_email = models.EmailField(
         null=True,
         blank=False,
-        help_text="Email to contact with questions about this order",
     )
     responsible_staff = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

@@ -270,6 +270,11 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
         self.fields["contact_person"].label = "Contact person for sample information"
         self.fields["contact_email"].label = "Sample contact person email"
 
+        self.fields[
+            "contact_person"
+        ].help_text = "Contact person for sample information"
+        self.fields["contact_email"].help_text = "Sample contact person email"
+
     def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)
         obj.genrequest = self.genrequest
@@ -339,6 +344,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["contact_person"].label = "Responsible genetic researcher"
         self.fields["contact_email"].label = "Responsible genetic researcher email"
+        self.fields[
+            "contact_person"
+        ].help_text = "Responsible for genetic bioinformatics analysis"
+        self.fields[
+            "contact_email"
+        ].help_text = "Email to contact with questions about this order"
 
     def clean_contact_email_results(self) -> str:
         emails_raw = self.cleaned_data.get("contact_email_results", "")

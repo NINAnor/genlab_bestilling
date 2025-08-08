@@ -22,7 +22,7 @@
 <div class="flex gap-5 mb-5">
     {% if genrequest %}
     <a class="btn btn-tertiary" href="{% url 'genrequest-detail' pk=genrequest.id %}"><i class="fas fa-arrow-left"></i> Back</a>
-    <a class="btn btn-tertiary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"><i class="fas fa-plus"></i> Equipment order</a>
+    <a class="btn btn-tertiary" href="{% url 'genrequest-analysis-create' genrequest_id=genrequest.id %}"><i class="fas fa-plus"></i> Analysis order</a>
     {% endif %}
 </div>
 {% endblock page-inner %}

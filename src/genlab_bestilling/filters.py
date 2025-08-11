@@ -110,7 +110,7 @@ class LocationFilter(filters.FilterSet):
     def filter_search(self, queryset: QuerySet, name: str, value: Any) -> QuerySet:
         if value:
             return queryset.filter(
-                Q(name__startswith=value) | Q(river_id__startswith=value)
+                Q(name__istartswith=value) | Q(river_id__istartswith=value)
             )
         return queryset
 

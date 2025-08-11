@@ -733,6 +733,7 @@ class Sample(AdminUrlsMixin, models.Model):
     is_marked = models.BooleanField(default=False)
     is_plucked = models.BooleanField(default=False)
     is_isolated = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(default=False)
 
     # "Merknad" in the Excel sheet.
     internal_note = models.TextField(null=True, blank=True)

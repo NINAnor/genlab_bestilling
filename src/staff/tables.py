@@ -390,6 +390,13 @@ class SampleStatusTable(tables.Table):
         default=False,
         accessor="is_isolated",
     )
+    invalid = tables.BooleanColumn(
+        verbose_name="Invalid",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_invalid",
+    )
 
     class Meta:
         model = Sample
@@ -399,6 +406,7 @@ class SampleStatusTable(tables.Table):
             "marked",
             "plucked",
             "isolated",
+            "invalid",
             "internal_note",
             "isolation_method",
             "type",
@@ -410,6 +418,7 @@ class SampleStatusTable(tables.Table):
             "marked",
             "plucked",
             "isolated",
+            "invalid",
             "internal_note",
             "isolation_method",
         )

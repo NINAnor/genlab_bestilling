@@ -67,7 +67,13 @@
               </button>
             {% endfor %}
             {% endif %}
-          </div>
+            </div>
+        </div>
+        <div class="join ml-1" x-data="{count: 0}">
+          <label class="join-item">
+            <input type="number" class="textinput text-sm !rounded-e-none" x-model="count"/>
+          </label>
+          <button type="submit" name="replicate" class="btn btn-sm btn-info rounded-s-none" x-bind:value="count">Replicate</button>
         </div>
         <div class="ml-auto text-right w-full max-w-xs">
             <div class="mb-1 font-medium text-sm">
@@ -126,4 +132,6 @@
         });
     });
 </script>
+
+
 {% endblock content %}

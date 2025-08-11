@@ -895,6 +895,10 @@ class Sample(AdminUrlsMixin, models.Model):
             s.pk = None
             s.genlab_id = sequence.next_value()
             s.parent = self
+            s.is_isolated = False
+            s.is_marked = False
+            s.is_plucked = False
+            s.internal_note = ""
             s.save()
 
 

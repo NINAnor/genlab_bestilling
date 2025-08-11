@@ -480,6 +480,13 @@ def test_replicate_function_creates_replicas(extraction):
             assert replica_sample.species == sample.species
             assert replica_sample.order == sample.order
 
+            # Check that replicated samples have reset fields
+            assert not replica_sample.is_isolated
+            assert not replica_sample.is_marked
+            assert not replica_sample.is_plucked
+            assert replica_sample.internal_note == ""
+            assert replica_sample.isolation_method.count() == 0
+
 
 def test_replicate_function_without_genlab_id_fails(extraction):
     """

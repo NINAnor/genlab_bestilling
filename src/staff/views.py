@@ -548,10 +548,14 @@ class SampleDetailView(StaffMixin, DetailView):
 
 
 class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView):
+    # TODO: move away the logic, validation logic should be in a form,
+    # any other logic should be in a manager/model method (FAT models, THIN views)
+    # TODO: write test to assert the behavior
     MARKED = "marked"
     PLUCKED = "plucked"
     ISOLATED = "isolated"
-    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED]
+    INVALID = "invalid"
+    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED, INVALID]
 
     table_pagination = False
     template_name = "staff/sample_lab.html"
@@ -616,6 +620,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        # TODO: use a form instead of manual extraction
         status_name = request.POST.get(self.Params.status)
         selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
         isolation_method = request.POST.get(self.Params.isolation_method)
@@ -637,10 +642,11 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
 
         if status_name:
             self.assign_status_to_samples(samples, status_name, request)
-            if status_name == self.ISOLATED:
+            if status_name in [self.ISOLATED, self.INVALID]:
                 # Cannot use "samples" here
                 # because we need to check all samples in the order
                 self.check_all_isolated(Sample.objects.filter(order=order))
+
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
 
@@ -650,8 +656,10 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
-        index = self.VALID_STATUSES.index(status_name)
-        return self.VALID_STATUSES[: index + 1]
+        if status_name != "invalid":
+            index = self.VALID_STATUSES.index(status_name)
+            return self.VALID_STATUSES[: index + 1]
+        return [status_name]
 
     def assign_status_to_samples(
         self,
@@ -685,7 +693,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     # Checks if all samples in the order are isolated
     # If they are, it updates the order status to completed
     def check_all_isolated(self, samples: QuerySet) -> None:
-        if not samples.filter(is_isolated=False).exists():
+        if not samples.exclude(is_invalid=True).filter(is_isolated=False).exists():
             self.get_order().to_completed()
             messages.success(
                 self.request,

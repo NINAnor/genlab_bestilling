@@ -792,13 +792,6 @@ class Sample(AdminUrlsMixin, models.Model):
     def get_admin_changelist_url() -> str:
         return reverse("admin:genlab_bestilling_sample_changelist")
 
-    def create_replica(self) -> None:
-        pk = self.id
-        self.id = None
-        self.genlab_id = None
-        self.parent_id = pk
-        self.save()
-
     @property
     def fish_id(self) -> str | None:
         """
@@ -902,7 +895,7 @@ class Sample(AdminUrlsMixin, models.Model):
             s.is_isolated = False
             s.is_marked = False
             s.is_plucked = False
-            s.isolation_method = None
+            s.isolation_method.clear()
             s.internal_note = ""
             s.save()
 

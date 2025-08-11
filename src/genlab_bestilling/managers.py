@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from capps.users.models import User
 
-    from .models import GIDSequence, Species
+    from .models import GIDSequence, Sample, Species
 
 
 class GenrequestQuerySet(models.QuerySet):
@@ -161,5 +161,24 @@ class GIDSequenceQuerySet(models.QuerySet):
             year=year,
             species=species,
             defaults={"id": f"G{year % 100}{species.code}"},
+        )
+        return sequence_id
+
+    def get_sequence_for_replication(
+        self, sample: Sample, lock: bool = False
+    ) -> GIDSequence:
+        """
+        Get or creates an ID sequence based on the sample year and species
+        """
+        if not sample.genlab_id:
+            error_text = "Cannot replicate a sample without genlab id"
+            raise ValueError(error_text)
+        s = self.select_for_update() if lock else self
+
+        sequence_id, _ = s.get_or_create(
+            year=sample.order.confirmed_at.year,
+            species=sample.species,
+            sample=sample,
+            defaults={"id": f"{sample.genlab_id}-", "last_value": 1},
         )
         return sequence_id

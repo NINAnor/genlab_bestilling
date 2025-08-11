@@ -883,6 +883,20 @@ class Sample(AdminUrlsMixin, models.Model):
 
         return self.genlab_id
 
+    def replicate(self, count: int, commit: bool = True) -> None:
+        assert_is_in_atomic_block()
+
+        sequence = GIDSequence.objects.get_sequence_for_replication(
+            sample=self, lock=True
+        )
+
+        for _ in range(count):  # noqa: F402
+            s = Sample.objects.get(pk=self.pk)
+            s.pk = None
+            s.genlab_id = sequence.next_value()
+            s.parent = self
+            s.save()
+
 
 # class Analysis(models.Model):
 # type =
@@ -1016,7 +1030,13 @@ class GIDSequence(AdminUrlsMixin, models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="unique_id_year_species", fields=["year", "species"]
+                name="unique_id_year_species",
+                fields=["year", "species"],
+                condition=Q(sample=None),
+            ),
+            models.UniqueConstraint(
+                name="unique_id_year_species_sample",
+                fields=["year", "species", "sample"],
             ),
         ]
 
@@ -1030,4 +1050,6 @@ class GIDSequence(AdminUrlsMixin, models.Model):
         assert_is_in_atomic_block()
         self.last_value += 1
         self.save(update_fields=["last_value"])
+        if self.sample:
+            return f"{self.id}{self.last_value}"
         return f"{self.id}{self.last_value:05d}"

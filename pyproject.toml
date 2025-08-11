@@ -71,7 +71,8 @@ dependencies = [
   "sqlglot[rs]",
   "django-view-breadcrumbs",
   "django-autocomplete-light",
-  "djangorestframework-csv"
+  "djangorestframework-csv",
+  "django-lifecycle>=1.2.4"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

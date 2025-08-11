@@ -455,3 +455,8 @@ DJANGO_VITE = {
 }
 
 DEPLOYMENT_ENV = env("DEPLOYMENT_ENV", default="production")
+
+NOTIFICATIONS = {
+    "SENDER": env("NOTIFICATION_SENDER", default="noreply@example.com"),
+    "NEW_PROJECT": env.list("NOTIFICATIONS_NEW_PROJECTS", default=[]),
+}

@@ -481,6 +481,13 @@ class OrderAnalysisSampleTable(tables.Table):
         default=False,
         accessor="is_outputted",
     )
+    is_invalid = tables.BooleanColumn(
+        verbose_name="Not Analysed",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_invalid",
+    )
 
     sample__internal_note = tables.TemplateColumn(
         template_name="staff/note_input_column.html",
@@ -510,6 +517,7 @@ class OrderAnalysisSampleTable(tables.Table):
             "has_pcr",
             "is_analysed",
             "is_outputted",
+            "is_invalid",
             "sample__internal_note",
             "sample__order",
         )

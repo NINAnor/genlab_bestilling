@@ -694,9 +694,12 @@ class SampleMarkerAnalysis(AdminUrlsMixin, models.Model):
     transaction = models.UUIDField(blank=True, null=True)
 
     # Fields for status tracking
+    # NOTE: a better idea here, would be to use a bitmask
+    # https://github.com/disqus/django-bitfield
     has_pcr = models.BooleanField(default=False)
     is_analysed = models.BooleanField(default=False)
     is_outputted = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(default=False)
 
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 

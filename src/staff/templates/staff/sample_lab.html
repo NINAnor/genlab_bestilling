@@ -35,7 +35,7 @@
         <h3 class="ml-2 mb-2 font-light text-tertiary-900">Select samples to toggle status or set isolation method</h3>
         <div class="flex items-center">
         {% for status in statuses %}
-            <button class="btn btn-sm btn-success" type="submit" name="status" value="{{ status }}">
+            <button class="btn btn-sm btn-{% if status == 'invalid' %}danger{% else %}success{% endif %}" type="submit" name="status" value="{{ status }}">
                 {{ status|capfirst }}
             </button>
         {% endfor %}

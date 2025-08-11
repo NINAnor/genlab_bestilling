@@ -371,8 +371,9 @@ class OrderAnalysisSamplesListView(
 ):
     PCR = "pcr"
     ANALYSED = "analysed"
+    NOT_ANALYSED = "invalid"
     OUTPUT = "output"
-    VALID_STATUSES = [PCR, ANALYSED, OUTPUT]
+    VALID_STATUSES = [PCR, ANALYSED, OUTPUT, NOT_ANALYSED]
 
     table_pagination = False
     model = SampleMarkerAnalysis
@@ -433,8 +434,10 @@ class OrderAnalysisSamplesListView(
         return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
-        index = self.VALID_STATUSES.index(status_name)
-        return self.VALID_STATUSES[: index + 1]
+        if status_name != self.NOT_ANALYSED:
+            index = self.VALID_STATUSES.index(status_name)
+            return self.VALID_STATUSES[: index + 1]
+        return [status_name]
 
     def assign_status_to_samples(
         self,
@@ -452,8 +455,13 @@ class OrderAnalysisSamplesListView(
             field_name = "has_pcr"
         elif status_name == self.ANALYSED:
             field_name = "is_analysed"
-        else:
+        elif status_name == self.OUTPUT:
             field_name = "is_outputted"
+        elif status_name == self.NOT_ANALYSED:
+            field_name = "is_invalid"
+        else:
+            msg = "Unexpected status value"
+            raise ValueError(msg)
 
         samples_to_turn_off_ids = list(
             analyses.filter(**{field_name: True}).values_list("id", flat=True)
@@ -473,6 +481,8 @@ class OrderAnalysisSamplesListView(
             update_dict["is_analysed"] = True
         if self.OUTPUT in statuses_to_turn_on:
             update_dict["is_outputted"] = True
+        if self.NOT_ANALYSED in statuses_to_turn_on:
+            update_dict["is_invalid"] = True
 
         SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_on_ids).update(
             **update_dict
@@ -487,7 +497,7 @@ class OrderAnalysisSamplesListView(
     def check_all_output(self, analyses: QuerySet[SampleMarkerAnalysis]) -> None:
         order = self.get_order()
 
-        if not analyses.filter(is_outputted=False).exists():
+        if not analyses.exclude(is_invalid=True).filter(is_outputted=False).exists():
             order.to_completed()
             messages.success(
                 self.request,

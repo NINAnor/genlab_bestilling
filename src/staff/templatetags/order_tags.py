@@ -3,7 +3,7 @@ from collections import Counter
 
 from django import template
 from django.db import models
-from django.utils.html import format_html_join
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
@@ -332,6 +332,13 @@ def analysis_order_detail_table(order: Order) -> dict:
         "Deadline": order.expected_delivery_date.strftime("%d.%m.%Y")
         if order.expected_delivery_date
         else "Not specified",
+        "Metadata file": format_html(
+            '<a href="{}" target="_blank" class="underline text-blue-600">{}</a>',
+            order.metadata_file.url,
+            order.metadata_file.name.split("/")[-1],
+        )
+        if order.metadata_file
+        else "No file uploaded",
     }
     return {"fields": fields, "header": "Order"}
 

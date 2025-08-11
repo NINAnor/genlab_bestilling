@@ -377,6 +377,7 @@ class AnalysisOrderAdmin(ModelAdmin):
         AO.status.field.name,
         AO.from_order.field.name,
         AO.expected_delivery_date.field.name,
+        AO.metadata_file.field.name,
         AO.confirmed_at.field.name,
         AO.last_modified_at.field.name,
         AO.created_at.field.name,

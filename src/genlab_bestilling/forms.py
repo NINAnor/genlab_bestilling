@@ -9,7 +9,12 @@ from django.db.models import Model
 from django.utils.html import strip_tags
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DualSortableSelector, Selectize, TextInput
+from formset.widgets import (
+    DualSortableSelector,
+    Selectize,
+    TextInput,
+    UploadedFileInput,
+)
 
 from nina.models import Project
 
@@ -431,6 +436,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "markers",
             "notes",
             "expected_delivery_date",
+            "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",
@@ -448,6 +454,11 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
             "expected_delivery_date": DateInput(),
+            "metadata_file": UploadedFileInput(
+                attrs={
+                    "max-size": 2 * 1024 * 1024,
+                }
+            ),
         }
 
 
@@ -459,6 +470,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             # "from_order",
             "notes",
             "expected_delivery_date",
+            "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",

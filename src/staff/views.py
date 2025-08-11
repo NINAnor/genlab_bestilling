@@ -620,8 +620,14 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
         isolation_method = request.POST.get(self.Params.isolation_method)
 
+        replicate = request.POST.get("replicate")
+
         if not selected_ids:
             messages.error(request, "No samples selected.")
+            return HttpResponseRedirect(self.get_next_url())
+
+        if replicate and len(selected_ids) > 1:
+            messages.error(request, "Select a single sample")
             return HttpResponseRedirect(self.get_next_url())
 
         order = self.get_order()
@@ -637,6 +643,10 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                 self.check_all_isolated(Sample.objects.filter(order=order))
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
+
+        if replicate:
+            samples.first().replicate(int(replicate))
+
         return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:

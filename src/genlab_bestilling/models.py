@@ -599,6 +599,13 @@ class AnalysisOrder(Order):
         verbose_name="Requested analysis result deadline",
         help_text="When you need to get the results",
     )
+    metadata_file = models.FileField(
+        upload_to="analysis_orders/metadata/",
+        null=True,
+        blank=True,
+        verbose_name="Metadata file",
+        help_text="Upload a metadata file for this analysis order",
+    )
 
     @property
     def short_timeframe(self) -> bool:

@@ -959,10 +959,9 @@ class IsolationMethod(AdminUrlsMixin, models.Model):
         return self.name
 
 
-# Some extracts can be placed in multiple wells
-class ExtractPlatePosition(AdminUrlsMixin, models.Model):
+class PlatePosition(AdminUrlsMixin, models.Model):
     plate = models.ForeignKey(
-        f"{an}.ExtractionPlate",
+        f"{an}.Plate",
         on_delete=models.DO_NOTHING,
         related_name="sample_positions",
     )
@@ -974,29 +973,40 @@ class ExtractPlatePosition(AdminUrlsMixin, models.Model):
         blank=True,
     )
     position = models.IntegerField()
-    extracted_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(null=True, blank=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
                 fields=["plate", "position"], name="unique_positions_in_plate"
-            )
+            ),
+            models.CheckConstraint(
+                check=Q(position__lte=95, position__gte=0),
+                name="position_in_plate_value_range",
+            ),
         ]
 
     def __str__(self) -> str:
         return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
 
 
-class ExtractionPlate(AdminUrlsMixin, models.Model):
-    name = models.CharField(blank=True, null=True)
+class Plate(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
-    # freezer
-    # shelf
+    notes = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"#P{self.id}" + f" - {self.name}" if self.name else ""
+        return f"#P{self.id}"
+
+
+class ExtractionPlate(Plate):
+    quiagen_id = models.BigAutoField(primary_key=False)
+    freezer_id = models.CharField(null=True, blank=True)
+    shelf_id = models.CharField(null=True, blank=True)
+
+    def __str__(self):
+        return f"#Q{self.quiagen_id}"
 
 
 class AnalysisResult(AdminUrlsMixin, models.Model):

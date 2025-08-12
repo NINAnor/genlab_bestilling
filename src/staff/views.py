@@ -661,7 +661,9 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
             self.update_isolation_methods(samples, isolation_method, request)
 
         if replicate:
-            samples.first().replicate(int(replicate))
+            first_sample = samples.first()
+            if first_sample:
+                first_sample.replicate(int(replicate))
 
         return HttpResponseRedirect(self.get_next_url())
 

@@ -173,6 +173,9 @@ class GIDSequenceQuerySet(models.QuerySet):
         if not sample.genlab_id:
             error_text = "Cannot replicate a sample without genlab id"
             raise ValueError(error_text)
+        if not sample.order or not sample.order.confirmed_at:
+            error_text = "Cannot replicate a sample without a confirmed order"
+            raise ValueError(error_text)
         s = self.select_for_update() if lock else self
 
         sequence_id, _ = s.get_or_create(

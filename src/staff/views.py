@@ -387,10 +387,18 @@ class OrderAnalysisSamplesListView(
         return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
-        return SampleMarkerAnalysis.objects.filter(
-            order=self.get_order()
-        ).select_related(
-            "sample__type", "sample__location", "sample__species", "marker"
+        return (
+            SampleMarkerAnalysis.objects.filter(order=self.get_order())
+            .select_related(
+                "sample",
+                "sample__type",
+                "sample__location",
+                "sample__species",
+                "marker",
+                "sample__order",
+                "order",
+            )
+            .prefetch_related("sample__isolation_method")
         )
 
     def get_base_fields(self) -> list[str]:

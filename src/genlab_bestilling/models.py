@@ -4,11 +4,14 @@ from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_lifecycle import AFTER_UPDATE, LifecycleModelMixin, hook
+from django_lifecycle.conditions import WhenFieldValueChangesTo
 from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
 from taggit.managers import TaggableManager
@@ -244,7 +247,7 @@ class Genrequest(AdminUrlsMixin, models.Model):  # type: ignore[django-manager-m
         ) < timedelta(days=30)
 
 
-class Order(AdminUrlsMixin, PolymorphicModel):
+class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
     class CannotConfirm(ValidationError):
         pass
 
@@ -383,6 +386,19 @@ class Order(AdminUrlsMixin, PolymorphicModel):
 
     def __str__(self):
         return f"#ORD_{self.id}"
+
+    @hook(
+        AFTER_UPDATE, condition=WhenFieldValueChangesTo("status", OrderStatus.COMPLETED)
+    )
+    def notify_order_completed(self) -> None:
+        o = self.get_real_instance()
+        send_mail(
+            f"{o} - completed",
+            "the order is completed",
+            settings.NOTIFICATIONS["SENDER"],
+            [self.contact_email],
+            # fail_silently=False,
+        )
 
 
 class EquipmentType(models.Model):

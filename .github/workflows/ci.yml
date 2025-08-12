@@ -57,13 +57,7 @@ jobs:
         run: docker compose --profile dev run --rm django-dev uv run mypy .
 
       - name: Run Django Tests with Coverage
-        run: docker compose --profile dev run --rm django-dev uv run coverage run --source='.' src/manage.py test
-
-      - name: Generate Coverage Report
-        run: docker compose --profile dev run --rm django-dev uv run coverage report --show-missing
-
-      - name: Generate Coverage XML Report
-        run: docker compose --profile dev run --rm django-dev uv run coverage xml
+        run: docker compose --profile dev run --rm django-dev uv run pytest src
 
       - name: Tear down the Stack
         run: docker compose --profile dev down

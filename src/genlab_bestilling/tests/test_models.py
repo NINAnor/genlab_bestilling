@@ -2,6 +2,7 @@ import itertools
 import uuid
 
 import pytest
+from django.core import mail
 from django.db import IntegrityError, transaction
 from pytest_django.asserts import assertQuerySetEqual
 
@@ -554,3 +555,79 @@ def test_replicate_function_with_commit_false(extraction):
         sample.replicate(count=2, commit=False)
 
         assert Sample.objects.count() == original_sample_count + 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_extraction_order_completion_sends_email(extraction):
+    """Test that email is sent when an extraction order is completed."""
+    # Clear any existing emails
+    mail.outbox = []
+
+    # Set contact email for the order
+    extraction.contact_email = "customer@example.com"
+    extraction.save()
+
+    # Complete the order
+    extraction.to_completed()
+
+    # Check that one email was sent
+    assert len(mail.outbox) == 1
+
+    # Check email details
+    email = mail.outbox[0]
+    assert email.subject == f"{extraction} - completed"
+    assert email.body == "the order is completed"
+    assert email.from_email == "noreply@genlab.com"
+    assert email.to == ["customer@example.com"]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_order_completion_sends_email(genlab_setup):
+    """Test that email is sent when an analysis order is completed."""
+    # Clear any existing emails
+    mail.outbox = []
+
+    # Create an analysis order
+    analysis_order = AnalysisOrder.objects.create(
+        genrequest_id=1, contact_email="researcher@example.com"
+    )
+
+    # Complete the order
+    analysis_order.to_completed()
+
+    # Check that one email was sent
+    assert len(mail.outbox) == 1
+
+    # Check email details
+    email = mail.outbox[0]
+    assert email.subject == f"{analysis_order} - completed"
+    assert email.body == "the order is completed"
+    assert email.from_email == "noreply@genlab.com"
+    assert email.to == ["researcher@example.com"]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_order_status_change_to_processing_no_email(extraction):
+    """Test that no email is sent when order status changes to processing."""
+    # Clear any existing emails
+    mail.outbox = []
+
+    # Set contact email
+    extraction.contact_email = "customer@example.com"
+    extraction.save()
+
+    # Change to processing (should not send email)
+    extraction.to_processing()
+
+    # Check that no email was sent
+    assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_order_completion_without_contact_email_fails(extraction):
+    """Test that order completion without contact email fails gracefully."""
+    # Clear any existing emails
+    mail.outbox = []
+
+    # Complete order without setting contact_email (should be None)
+    extraction.to_completed()

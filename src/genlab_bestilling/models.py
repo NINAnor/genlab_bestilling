@@ -911,9 +911,9 @@ class Sample(AdminUrlsMixin, models.Model):
             s.is_isolated = False
             s.is_marked = False
             s.is_plucked = False
-            s.isolation_method.clear()
             s.internal_note = ""
             s.save()
+            s.isolation_method.clear()
 
 
 # class Analysis(models.Model):

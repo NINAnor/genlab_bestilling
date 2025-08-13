@@ -15,8 +15,6 @@ from .models import (
     EquipmentOrder,
     EquipmentType,
     ExtractionOrder,
-    ExtractionPlate,
-    ExtractPlatePosition,
     Genrequest,
     IsolationMethod,
     Location,
@@ -24,6 +22,9 @@ from .models import (
     Marker,
     Order,
     Organization,
+    Plate,
+    PlatePosition,
+    QiagenPlate,
     Sample,
     SampleMarkerAnalysis,
     SampleType,
@@ -474,8 +475,8 @@ class SampleAdmin(ModelAdmin):
     list_filter_sheet = False
 
 
-@admin.register(ExtractPlatePosition)
-class ExtractPlatePositionAdmin(ModelAdmin):
+@admin.register(PlatePosition)
+class PlatePositionAdmin(ModelAdmin):
     """
     plate = models.ForeignKey(
     sample = models.ForeignKey(
@@ -485,13 +486,13 @@ class ExtractPlatePositionAdmin(ModelAdmin):
 
     """
 
-    M = ExtractPlatePosition
+    M = PlatePosition
     list_display = [
         "__str__",
         M.plate.field.name,
         M.sample.field.name,
         M.position.field.name,
-        M.extracted_at.field.name,
+        M.created_at.field.name,
     ]
 
     search_help_text = "Search for id"
@@ -501,28 +502,51 @@ class ExtractPlatePositionAdmin(ModelAdmin):
         (M.plate.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
         (M.sample.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
         (M.position.field.name, unfold_filters.SingleNumericFilter),
-        M.extracted_at.field.name,
+        M.created_at.field.name,
     ]
 
     list_filter_submit = True
     list_filter_sheet = False
 
 
-@admin.register(ExtractionPlate)
-class ExtractionPlateAdmin(ModelAdmin):
-    M = ExtractionPlate
+@admin.register(Plate)
+class PlateAdmin(ModelAdmin):
+    M = Plate
     list_display = [
         "__str__",
-        M.name.field.name,
+        M.notes.field.name,
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
 
-    search_help_text = "Search for id or name"
-    search_fields = [M.id.field.name, M.name.field.name]
+    search_help_text = "Search for id"
+    search_fields = [M.id.field.name, M.notes.field.name]
     list_filter = [
         (M.id.field.name, unfold_filters.SingleNumericFilter),
-        (M.name.field.name, unfold_filters.FieldTextFilter),
+        (M.notes.field.name, unfold_filters.FieldTextFilter),
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
+    ]
+
+    list_filter_submit = True
+    list_filter_sheet = False
+
+
+@admin.register(QiagenPlate)
+class QiagenPlateAdmin(ModelAdmin):
+    M = QiagenPlate
+    list_display = [
+        "__str__",
+        M.notes.field.name,
+        M.last_modified_at.field.name,
+        M.created_at.field.name,
+    ]
+
+    search_help_text = "Search for id"
+    search_fields = [M.id.field.name, M.notes.field.name]
+    list_filter = [
+        (M.id.field.name, unfold_filters.SingleNumericFilter),
+        (M.notes.field.name, unfold_filters.FieldTextFilter),
         M.last_modified_at.field.name,
         M.created_at.field.name,
     ]
@@ -556,7 +580,6 @@ class AnalysisResultAdmin(ModelAdmin):
     autocomplete_fields = [M.marker.field.name, M.order.field.name]
     list_filter_submit = True
     list_filter_sheet = False
-    filter_horizontal = [M.samples.field.name]
     readonly_fields = [
         M.analysis_date.field.name,
         M.last_modified_at.field.name,

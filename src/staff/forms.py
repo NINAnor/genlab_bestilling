@@ -4,13 +4,13 @@ from django.forms import ModelForm
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
+from genlab_bestilling.models import Genrequest, Order, Plate
 
 
-class ExtractionPlateForm(ModelForm):
+class PlateForm(ModelForm):
     class Meta:
-        model = ExtractionPlate
-        fields = ("name",)
+        model = Plate
+        fields = ("notes",)
 
 
 class OrderStaffForm(forms.Form):

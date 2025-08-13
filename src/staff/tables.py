@@ -11,8 +11,8 @@ from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
     ExtractionOrder,
-    ExtractionPlate,
     Order,
+    Plate,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -541,10 +541,9 @@ class PlateTable(tables.Table):
     )
 
     class Meta:
-        model = ExtractionPlate
+        model = Plate
         fields = (
             "id",
-            "name",
             "created_at",
             "last_updated_at",
             "samples_count",

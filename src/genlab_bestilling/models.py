@@ -14,6 +14,8 @@ from django_lifecycle import AFTER_UPDATE, LifecycleModelMixin, hook
 from django_lifecycle.conditions import WhenFieldValueChangesTo
 from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
+from sequencefield.constraints import IntSequenceConstraint
+from sequencefield.fields import IntegerSequenceField
 from taggit.managers import TaggableManager
 
 from shared.db import assert_is_in_atomic_block
@@ -717,6 +719,8 @@ class SampleMarkerAnalysis(AdminUrlsMixin, models.Model):
     is_outputted = models.BooleanField(default=False)
     is_invalid = models.BooleanField(default=False)
 
+    plate_positions = models.ManyToManyField(f"{an}.PlatePosition", blank=True)
+
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
     class Meta:
@@ -763,7 +767,6 @@ class Sample(AdminUrlsMixin, models.Model):
     volume = models.FloatField(null=True, blank=True)
     genlab_id = models.CharField(null=True, blank=True)
 
-    extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
     isolation_method = models.ManyToManyField(
@@ -916,16 +919,6 @@ class Sample(AdminUrlsMixin, models.Model):
             s.isolation_method.clear()
 
 
-# class Analysis(models.Model):
-# type =
-# sample =
-# plate
-# coordinates on plate
-# result
-# status
-# assignee (one or plus?)
-
-
 class SampleIsolationMethod(AdminUrlsMixin, models.Model):
     sample = models.ForeignKey(
         f"{an}.Sample",
@@ -988,7 +981,7 @@ class PlatePosition(AdminUrlsMixin, models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
+        return f"{self.plate}@{position_to_coordinates(self.position)}"
 
 
 class Plate(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
@@ -1000,13 +993,23 @@ class Plate(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
         return f"#P{self.id}"
 
 
-class ExtractionPlate(Plate):
-    quiagen_id = models.BigAutoField(primary_key=False)
+class QiagenPlate(Plate):
+    quiagen_id = IntegerSequenceField(primary_key=False)
     freezer_id = models.CharField(null=True, blank=True)
     shelf_id = models.CharField(null=True, blank=True)
 
     def __str__(self):
         return f"#Q{self.quiagen_id}"
+
+    class Meta:
+        constraints = [
+            IntSequenceConstraint(
+                name="%(app_label)s_%(class)s_qiagen",
+                sequence="qiagen",
+                drop=True,
+                fields=["quiagen_id"],
+            )
+        ]
 
 
 class AnalysisResult(AdminUrlsMixin, models.Model):
@@ -1019,14 +1022,26 @@ class AnalysisResult(AdminUrlsMixin, models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
-    result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
+    result_file = models.FileField(
+        null=True, blank=True, upload_to="analysis_orders/results/"
+    )
+    plate = models.ForeignKey(
+        f"{an}.Plate", on_delete=models.PROTECT, null=True, blank=True
+    )
     extra = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plate", "order", "marker"],
+                name="unique_analysis_plate_order_marker",
+            ),
+        ]
 
 
 class GIDSequence(AdminUrlsMixin, models.Model):

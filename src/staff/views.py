@@ -20,11 +20,11 @@ from genlab_bestilling.models import (
     Area,
     EquipmentOrder,
     ExtractionOrder,
-    ExtractionPlate,
     Genrequest,
     IsolationMethod,
     Marker,
     Order,
+    Plate,
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
@@ -38,14 +38,14 @@ from .filters import (
     AnalysisOrderFilter,
     EquipmentOrderFilter,
     ExtractionOrderFilter,
-    ExtractionPlateFilter,
     OrderSampleFilter,
+    PlateFilter,
     ProjectFilter,
     SampleFilter,
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm, OrderStaffForm
+from .forms import OrderStaffForm, PlateForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
@@ -148,12 +148,12 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
 
-class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
-    model = ExtractionPlate
+class PlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = Plate
     table_class = PlateTable
-    filterset_class = ExtractionPlateFilter
+    filterset_class = PlateFilter
 
-    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+    def get_queryset(self) -> QuerySet[Plate]:
         return (
             super()
             .get_queryset()
@@ -957,16 +957,16 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
         return HttpResponseRedirect(self.get_next_url())
 
 
-class ExtractionPlateCreateView(StaffMixin, CreateView):
-    model = ExtractionPlate
-    form_class = ExtractionPlateForm
+class PlateCreateView(StaffMixin, CreateView):
+    model = Plate
+    form_class = PlateForm
 
     def get_success_url(self) -> str:
         return reverse_lazy("staff:plates-list")
 
 
-class ExtractionPlateDetailView(StaffMixin, DetailView):
-    model = ExtractionPlate
+class PlateDetailView(StaffMixin, DetailView):
+    model = Plate
 
 
 class SampleReplicaActionView(SingleObjectMixin, ActionView):

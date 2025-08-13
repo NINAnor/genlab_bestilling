@@ -13,9 +13,9 @@ from genlab_bestilling.models import (
     Area,
     EquipmentOrder,
     ExtractionOrder,
-    ExtractionPlate,
     IsolationMethod,
     Marker,
+    Plate,
     Sample,
     SampleMarkerAnalysis,
     SampleType,
@@ -346,19 +346,18 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             attrs={"data-placeholder": "Filter by sample type"},
         )
 
-        self.filters["sample__extractions"].field.label = "Qiagen ID"
-        self.filters["sample__extractions"].field.widget = forms.TextInput(
-            attrs={
-                "placeholder": "Enter Quiagen ID",
-            }
-        )
+        # self.filters["sample__extractions"].field.label = "Qiagen ID"
+        # self.filters["sample__extractions"].field.widget = forms.TextInput(
+        #     attrs={
+        #         "placeholder": "Enter Quiagen ID",
+        #     }
+        # )
 
     class Meta:
         model = SampleMarkerAnalysis
         fields = (
             "sample__genlab_id",
             "sample__type",
-            "sample__extractions",
             "sample__isolation_method",
             # "PCR",
             # "fluidigm",
@@ -469,9 +468,9 @@ class SampleFilter(filters.FilterSet):
         )
 
 
-class ExtractionPlateFilter(filters.FilterSet):
+class PlateFilter(filters.FilterSet):
     class Meta:
-        model = ExtractionPlate
+        model = Plate
         fields = ("id",)
 
 
@@ -547,12 +546,12 @@ class SampleLabFilter(filters.FilterSet):
             {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
         )
 
-        self.filters["extractions"].field.label = "Qiagen ID"
-        self.filters["extractions"].field.widget = forms.TextInput(
-            attrs={
-                "placeholder": "Enter Quiagen ID",
-            }
-        )
+        # self.filters["extraction"].field.label = "Qiagen ID"
+        # self.filters["extraction"].field.widget = forms.TextInput(
+        #     attrs={
+        #         "placeholder": "Enter Quiagen ID",
+        #     }
+        # )
 
     class Meta:
         model = Sample
@@ -560,7 +559,6 @@ class SampleLabFilter(filters.FilterSet):
             "genlab_id_min",
             "genlab_id_max",
             "sample_status",
-            "extractions",
             "isolation_method",
             # "fluidigm",
             # "output",

@@ -1,6 +1,6 @@
 from typing import Any
 
-from django import template
+from django import core, template
 from django.db.models import Model
 from django.db.models import fields as djfields
 from taggit.managers import TaggableManager
@@ -26,7 +26,7 @@ def render(field: Any, instance: Model) -> tuple:
             return None, None
 
         return field.verbose_name or field.name, str(v)
-    except AttributeError:
+    except (AttributeError, core.exceptions.ObjectDoesNotExist):
         return None, None
 
 

@@ -353,7 +353,7 @@ LOGGING = {
 # https://django-allauth.readthedocs.io/en/stable/account/configuration.html
 # https://django-allauth.readthedocs.io/en/stable/account/advanced.html
 ACCOUNT_ALLOW_REGISTRATION = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None

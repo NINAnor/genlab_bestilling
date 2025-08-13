@@ -7,7 +7,6 @@ from unfold.contrib.filters import admin as unfold_filters
 from .models import (
     AnalysisOrder,
     AnalysisOrderResultsCommunication,
-    AnalysisResult,
     AnalysisType,
     Area,
     EquimentOrderQuantity,
@@ -15,8 +14,6 @@ from .models import (
     EquipmentOrder,
     EquipmentType,
     ExtractionOrder,
-    ExtractionPlate,
-    ExtractPlatePosition,
     Genrequest,
     IsolationMethod,
     Location,
@@ -474,94 +471,94 @@ class SampleAdmin(ModelAdmin):
     list_filter_sheet = False
 
 
-@admin.register(ExtractPlatePosition)
-class ExtractPlatePositionAdmin(ModelAdmin):
-    """
-    plate = models.ForeignKey(
-    sample = models.ForeignKey(
-    position = models.IntegerField()
-    extracted_at = models.DateTimeField(auto_now=True)
-    notes = models.CharField(null=True, blank=True)
+# @admin.register(ExtractPlatePosition)
+# class ExtractPlatePositionAdmin(ModelAdmin):
+#     """
+#     plate = models.ForeignKey(
+#     sample = models.ForeignKey(
+#     position = models.IntegerField()
+#     extracted_at = models.DateTimeField(auto_now=True)
+#     notes = models.CharField(null=True, blank=True)
 
-    """
+#     """
 
-    M = ExtractPlatePosition
-    list_display = [
-        "__str__",
-        M.plate.field.name,
-        M.sample.field.name,
-        M.position.field.name,
-        M.extracted_at.field.name,
-    ]
+#     M = ExtractPlatePosition
+#     list_display = [
+#         "__str__",
+#         M.plate.field.name,
+#         M.sample.field.name,
+#         M.position.field.name,
+#         M.extracted_at.field.name,
+#     ]
 
-    search_help_text = "Search for id"
-    search_fields = [M.id.field.name]
-    list_filter = [
-        (M.id.field.name, unfold_filters.SingleNumericFilter),
-        (M.plate.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
-        (M.sample.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
-        (M.position.field.name, unfold_filters.SingleNumericFilter),
-        M.extracted_at.field.name,
-    ]
+#     search_help_text = "Search for id"
+#     search_fields = [M.id.field.name]
+#     list_filter = [
+#         (M.id.field.name, unfold_filters.SingleNumericFilter),
+#         (M.plate.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+#         (M.sample.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+#         (M.position.field.name, unfold_filters.SingleNumericFilter),
+#         M.extracted_at.field.name,
+#     ]
 
-    list_filter_submit = True
-    list_filter_sheet = False
-
-
-@admin.register(ExtractionPlate)
-class ExtractionPlateAdmin(ModelAdmin):
-    M = ExtractionPlate
-    list_display = [
-        "__str__",
-        M.name.field.name,
-        M.last_modified_at.field.name,
-        M.created_at.field.name,
-    ]
-
-    search_help_text = "Search for id or name"
-    search_fields = [M.id.field.name, M.name.field.name]
-    list_filter = [
-        (M.id.field.name, unfold_filters.SingleNumericFilter),
-        (M.name.field.name, unfold_filters.FieldTextFilter),
-        M.last_modified_at.field.name,
-        M.created_at.field.name,
-    ]
-
-    list_filter_submit = True
-    list_filter_sheet = False
+#     list_filter_submit = True
+#     list_filter_sheet = False
 
 
-@admin.register(AnalysisResult)
-class AnalysisResultAdmin(ModelAdmin):
-    M = AnalysisResult
-    list_display = [
-        M.name.field.name,
-        M.marker.field.name,
-        M.order.field.name,
-        M.analysis_date.field.name,
-        M.last_modified_at.field.name,
-        M.created_at.field.name,
-    ]
+# @admin.register(ExtractionPlate)
+# class ExtractionPlateAdmin(ModelAdmin):
+#     M = ExtractionPlate
+#     list_display = [
+#         "__str__",
+#         M.name.field.name,
+#         M.last_modified_at.field.name,
+#         M.created_at.field.name,
+#     ]
 
-    search_help_text = "Search for analysis result name"
-    search_fields = [M.name.field.name]
-    list_filter = [
-        (M.name.field.name, unfold_filters.FieldTextFilter),
-        (M.marker.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
-        (M.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
-        M.analysis_date.field.name,
-        M.last_modified_at.field.name,
-        M.created_at.field.name,
-    ]
-    autocomplete_fields = [M.marker.field.name, M.order.field.name]
-    list_filter_submit = True
-    list_filter_sheet = False
-    filter_horizontal = [M.samples.field.name]
-    readonly_fields = [
-        M.analysis_date.field.name,
-        M.last_modified_at.field.name,
-        M.created_at.field.name,
-    ]
+#     search_help_text = "Search for id or name"
+#     search_fields = [M.id.field.name, M.name.field.name]
+#     list_filter = [
+#         (M.id.field.name, unfold_filters.SingleNumericFilter),
+#         (M.name.field.name, unfold_filters.FieldTextFilter),
+#         M.last_modified_at.field.name,
+#         M.created_at.field.name,
+#     ]
+
+#     list_filter_submit = True
+#     list_filter_sheet = False
+
+
+# @admin.register(AnalysisResult)
+# class AnalysisResultAdmin(ModelAdmin):
+#     M = AnalysisResult
+#     list_display = [
+#         M.name.field.name,
+#         M.marker.field.name,
+#         M.order.field.name,
+#         M.analysis_date.field.name,
+#         M.last_modified_at.field.name,
+#         M.created_at.field.name,
+#     ]
+
+#     search_help_text = "Search for analysis result name"
+#     search_fields = [M.name.field.name]
+#     list_filter = [
+#         (M.name.field.name, unfold_filters.FieldTextFilter),
+#         (M.marker.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+#         (M.order.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+#         M.analysis_date.field.name,
+#         M.last_modified_at.field.name,
+#         M.created_at.field.name,
+#     ]
+#     autocomplete_fields = [M.marker.field.name, M.order.field.name]
+#     list_filter_submit = True
+#     list_filter_sheet = False
+#     filter_horizontal = [M.samples.field.name]
+#     readonly_fields = [
+#         M.analysis_date.field.name,
+#         M.last_modified_at.field.name,
+#         M.created_at.field.name,
+#     ]
 
 
 @admin.register(IsolationMethod)

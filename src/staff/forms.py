@@ -1,16 +1,9 @@
 from dal import autocomplete
 from django import forms
-from django.forms import ModelForm
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
-
-
-class ExtractionPlateForm(ModelForm):
-    class Meta:
-        model = ExtractionPlate
-        fields = ("name",)
+from genlab_bestilling.models import Genrequest, Order
 
 
 class OrderStaffForm(forms.Form):

@@ -20,7 +20,6 @@ from shared.db import assert_is_in_atomic_block
 from shared.mixins import AdminUrlsMixin
 
 from . import managers
-from .libs.helpers import position_to_coordinates
 
 an = "genlab_bestilling"  # Short alias for app name.
 
@@ -763,7 +762,6 @@ class Sample(AdminUrlsMixin, models.Model):
     volume = models.FloatField(null=True, blank=True)
     genlab_id = models.CharField(null=True, blank=True)
 
-    extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
     isolation_method = models.ManyToManyField(
@@ -916,16 +914,6 @@ class Sample(AdminUrlsMixin, models.Model):
             s.isolation_method.clear()
 
 
-# class Analysis(models.Model):
-# type =
-# sample =
-# plate
-# coordinates on plate
-# result
-# status
-# assignee (one or plus?)
-
-
 class SampleIsolationMethod(AdminUrlsMixin, models.Model):
     sample = models.ForeignKey(
         f"{an}.Sample",
@@ -957,66 +945,6 @@ class IsolationMethod(AdminUrlsMixin, models.Model):
 
     def __str__(self) -> str:
         return self.name
-
-
-# Some extracts can be placed in multiple wells
-class ExtractPlatePosition(AdminUrlsMixin, models.Model):
-    plate = models.ForeignKey(
-        f"{an}.ExtractionPlate",
-        on_delete=models.DO_NOTHING,
-        related_name="sample_positions",
-    )
-    sample = models.ForeignKey(
-        f"{an}.Sample",
-        on_delete=models.PROTECT,
-        related_name="plate_positions",
-        null=True,
-        blank=True,
-    )
-    position = models.IntegerField()
-    extracted_at = models.DateTimeField(auto_now=True)
-    notes = models.CharField(null=True, blank=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["plate", "position"], name="unique_positions_in_plate"
-            )
-        ]
-
-    def __str__(self) -> str:
-        return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
-
-
-class ExtractionPlate(AdminUrlsMixin, models.Model):
-    name = models.CharField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-    # freezer
-    # shelf
-
-    def __str__(self):
-        return f"#P{self.id}" + f" - {self.name}" if self.name else ""
-
-
-class AnalysisResult(AdminUrlsMixin, models.Model):
-    name = models.CharField()
-    analysis_date = models.DateTimeField(null=True, blank=True)
-    marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
-    order = models.ForeignKey(
-        f"{an}.AnalysisOrder",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
-    extra = models.JSONField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self) -> str:
-        return f"{self.name}"
 
 
 class GIDSequence(AdminUrlsMixin, models.Model):

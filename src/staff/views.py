@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, TemplateView
+from django.views.generic import DetailView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -20,7 +20,6 @@ from genlab_bestilling.models import (
     Area,
     EquipmentOrder,
     ExtractionOrder,
-    ExtractionPlate,
     Genrequest,
     IsolationMethod,
     Marker,
@@ -38,21 +37,19 @@ from .filters import (
     AnalysisOrderFilter,
     EquipmentOrderFilter,
     ExtractionOrderFilter,
-    ExtractionPlateFilter,
     OrderSampleFilter,
     ProjectFilter,
     SampleFilter,
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm, OrderStaffForm
+from .forms import OrderStaffForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
     ExtractionOrderTable,
     OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
-    PlateTable,
     ProjectTable,
     SampleStatusTable,
     SampleTable,
@@ -148,19 +145,19 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
 
-class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
-    model = ExtractionPlate
-    table_class = PlateTable
-    filterset_class = ExtractionPlateFilter
+# class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+#     model = ExtractionPlate
+#     table_class = PlateTable
+#     filterset_class = ExtractionPlateFilter
 
-    def get_queryset(self) -> QuerySet[ExtractionPlate]:
-        return (
-            super()
-            .get_queryset()
-            .select_related()
-            .prefetch_related("sample_positions")
-            .annotate(samples_count=models.Count("sample_positions"))
-        )
+#     def get_queryset(self) -> QuerySet[ExtractionPlate]:
+#         return (
+#             super()
+#             .get_queryset()
+#             .select_related()
+#             .prefetch_related("sample_positions")
+#             .annotate(samples_count=models.Count("sample_positions"))
+#         )
 
 
 class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
@@ -957,16 +954,16 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
         return HttpResponseRedirect(self.get_next_url())
 
 
-class ExtractionPlateCreateView(StaffMixin, CreateView):
-    model = ExtractionPlate
-    form_class = ExtractionPlateForm
+# class ExtractionPlateCreateView(StaffMixin, CreateView):
+#     model = ExtractionPlate
+#     form_class = ExtractionPlateForm
 
-    def get_success_url(self) -> str:
-        return reverse_lazy("staff:plates-list")
+#     def get_success_url(self) -> str:
+#         return reverse_lazy("staff:plates-list")
 
 
-class ExtractionPlateDetailView(StaffMixin, DetailView):
-    model = ExtractionPlate
+# class ExtractionPlateDetailView(StaffMixin, DetailView):
+#     model = ExtractionPlate
 
 
 class SampleReplicaActionView(SingleObjectMixin, ActionView):

@@ -11,7 +11,6 @@ from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
     ExtractionOrder,
-    ExtractionPlate,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -531,27 +530,6 @@ class OrderAnalysisSampleTable(tables.Table):
             record.order.id,
             record.id,
         )
-
-
-class PlateTable(tables.Table):
-    id = tables.Column(
-        linkify=("staff:plates-detail", {"pk": tables.A("id")}),
-        orderable=False,
-        empty_values=(),
-    )
-
-    class Meta:
-        model = ExtractionPlate
-        fields = (
-            "id",
-            "name",
-            "created_at",
-            "last_updated_at",
-            "samples_count",
-        )
-        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-
-        empty_text = "No Plates"
 
 
 class StatusMixinTableSamples(tables.Table):

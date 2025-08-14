@@ -15,6 +15,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
+from genlab_bestilling.libs.helpers import COLUMNS, ROWS
 from genlab_bestilling.models import (
     AnalysisOrder,
     AnalysisPlate,
@@ -1201,3 +1202,41 @@ class AnalysisPlateUpdateView(StaffMixin, UpdateView):
             "Analysis plate updated successfully.",
         )
         return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})
+
+
+class PlatePositionsView(StaffMixin, DetailView):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        positions = self.object.positions.all()
+
+        # Create a grid of 8 rows x 12 columns
+        grid = []
+        pos_dict = {p.position: p for p in positions}
+
+        for row in range(8):  # 8 rows A-H
+            grid_row = []
+            for col in range(12):  # 12 columns 1-12
+                position = row * COLUMNS + col
+                grid_row.append(
+                    {
+                        "index": position,
+                        "coordinate": f"{ROWS[row]}{col + 1}",
+                        "position": pos_dict.get(position),
+                    }
+                )
+            grid.append(grid_row)
+
+        context["grid"] = grid
+        context["rows"] = ROWS
+        context["columns"] = range(1, COLUMNS + 1)
+        return context
+
+
+class ExtractionPlatePositionsView(PlatePositionsView):
+    model = ExtractionPlate
+    template_name = "staff/extractionplate_positions.html"
+
+
+class AnalysisPlatePositionsView(PlatePositionsView):
+    model = AnalysisPlate
+    template_name = "staff/extractionplate_positions.html"

@@ -65,3 +65,12 @@ def get_fields_staff(instance: Model, fields: str | None = None) -> Any:
             and field.name not in IGNORED_FIELDS_STAFF
         ),
     )
+
+
+@register.filter
+def get_item(array: list[Any], index: int) -> Any:
+    print(array, index)
+    try:
+        return array[index]
+    except IndexError:
+        return None

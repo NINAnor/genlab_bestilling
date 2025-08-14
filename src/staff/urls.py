@@ -8,6 +8,7 @@ from .views import (
     AnalysisPlateCreateView,
     AnalysisPlateDetailView,
     AnalysisPlateListView,
+    AnalysisPlatePositionsView,
     AnalysisPlateUpdateView,
     DashboardView,
     EquipmentOrderDetailView,
@@ -17,6 +18,7 @@ from .views import (
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
     ExtractionPlateListView,
+    ExtractionPlatePositionsView,
     ExtractionPlateUpdateView,
     GenerateGenlabIDsView,
     MarkAsSeenView,
@@ -190,5 +192,15 @@ urlpatterns = [
         "orders/<int:pk>/assign-staff/",
         OrderAPIView.as_view(),
         name="order-assign-staff",
+    ),
+    path(
+        "extraction-plates/<uuid:pk>/positions/",
+        ExtractionPlatePositionsView.as_view(),
+        name="extraction-plates-positions",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/positions/",
+        AnalysisPlatePositionsView.as_view(),
+        name="analysis-plates-positions",
     ),
 ]

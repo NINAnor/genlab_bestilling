@@ -12,5 +12,8 @@
     <div class="flex flex-wrap gap-5 my-5">
         <a class="btn btn-tertiary" href="{% url 'staff:analysis-plates-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
         <a class="btn btn-primary" href="{% url 'staff:analysis-plates-update' pk=object.pk %}"><i class="fas fa-edit"></i> Update Plate</a>
+        <a class="btn btn-tertiary" href="{% url 'staff:analysis-plates-positions' pk=object.pk %}">
+            <i class="fas fa-th"></i> View Positions Grid
+        </a>
     </div>
 {% endblock %}

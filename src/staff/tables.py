@@ -900,6 +900,12 @@ class AnalysisPlateTable(tables.Table):
         empty_values=(),
     )
 
+    result_file = tables.Column(
+        verbose_name="Result File",
+        orderable=False,
+        empty_values=(),
+    )
+
     actions = tables.TemplateColumn(
         template_name="staff/components/analysis_plate_actions.html",
         verbose_name="Actions",
@@ -913,8 +919,23 @@ class AnalysisPlateTable(tables.Table):
     def render_name(self, value: str | None, record: AnalysisPlate) -> str:
         return value or f"Plate {record.id}"
 
+    def render_result_file(self, value: str | None) -> str:
+        if value:
+            return (
+                f'<a href="{value}" class="text-blue-600 hover:underline">'
+                '<i class="fas fa-download"></i> Download</a>'
+            )
+        return '<span class="text-gray-500">No file</span>'
+
     class Meta:
         model = AnalysisPlate
-        fields = ["id", "name", "analysis_date", "created_at", "sample_count"]
+        fields = [
+            "id",
+            "name",
+            "analysis_date",
+            "created_at",
+            "sample_count",
+            "result_file",
+        ]
         empty_text = "No analysis plates found"
         template_name = "django_tables2/tailwind_inner.html"

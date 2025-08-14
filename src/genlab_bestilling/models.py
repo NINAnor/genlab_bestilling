@@ -905,7 +905,6 @@ class Sample(AdminUrlsMixin, models.Model):
             SampleMarkerAnalysis.objects.select_related("order").filter(
                 sample=self,
                 order__status__in=[
-                    Order.OrderStatus.PROCESSING,
                     Order.OrderStatus.DELIVERED,
                     Order.OrderStatus.DRAFT,
                 ],

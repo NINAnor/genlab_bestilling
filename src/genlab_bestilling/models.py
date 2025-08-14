@@ -901,6 +901,17 @@ class Sample(AdminUrlsMixin, models.Model):
             sample=self, lock=True
         )
 
+        analysis_markers = list(
+            SampleMarkerAnalysis.objects.select_related("order").filter(
+                sample=self,
+                order__status__in=[
+                    Order.OrderStatus.PROCESSING,
+                    Order.OrderStatus.DELIVERED,
+                    Order.OrderStatus.DRAFT,
+                ],
+            )
+        )
+
         for _ in range(count):  # noqa: F402
             s = Sample.objects.get(pk=self.pk)
             s.pk = None
@@ -912,6 +923,15 @@ class Sample(AdminUrlsMixin, models.Model):
             s.internal_note = ""
             s.save()
             s.isolation_method.clear()
+
+            for am in analysis_markers:
+                am.pk = None
+                am.sample = s
+                am.has_pcr = False
+                am.is_analysed = False
+                am.is_outputted = False
+                am.is_invalid = False
+                am.save()
 
 
 class SampleIsolationMethod(AdminUrlsMixin, models.Model):

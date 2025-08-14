@@ -11,6 +11,7 @@ from genlab_bestilling.models import (
     AnalysisOrder,
     EquipmentOrder,
     ExtractionOrder,
+    ExtractionPlate,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -820,4 +821,52 @@ class DraftOrderTable(StaffIDMixinTable):
             "contact_email",
         )
         empty_text = "No draft orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class ExtractionPlateTable(tables.Table):
+    qiagen_id = tables.Column(
+        linkify=("staff:extraction-plates-detail", {"pk": tables.A("pk")}),
+        verbose_name="Qiagen ID",
+        orderable=True,
+    )
+
+    freezer_id = tables.Column(
+        verbose_name="Freezer ID",
+        orderable=True,
+        empty_values=(),
+    )
+
+    shelf_id = tables.Column(
+        verbose_name="Shelf ID",
+        orderable=True,
+        empty_values=(),
+    )
+
+    created_at = tables.DateTimeColumn(
+        verbose_name="Created",
+        format="Y-m-d H:i",
+        orderable=True,
+    )
+
+    sample_count = tables.Column(
+        verbose_name="Samples",
+        orderable=False,
+        empty_values=(),
+    )
+
+    actions = tables.TemplateColumn(
+        template_name="staff/components/extraction_plate_actions.html",
+        verbose_name="Actions",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_sample_count(self, record: ExtractionPlate) -> int:
+        return record.positions.filter(sample_raw__isnull=False).count()
+
+    class Meta:
+        model = ExtractionPlate
+        fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]
+        empty_text = "No extraction plates found"
         template_name = "django_tables2/tailwind_inner.html"

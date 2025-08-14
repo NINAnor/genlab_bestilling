@@ -3,7 +3,7 @@ from django import forms
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import Genrequest, Order
+from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
 
 
 class OrderStaffForm(forms.Form):
@@ -60,3 +60,26 @@ class ResponsibleStaffForm(forms.ModelForm):
             "id",
             "responsible_staff",
         )
+
+
+class ExtractionPlateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = ExtractionPlate
+        fields = ("freezer_id", "shelf_id", "notes")
+        widgets = {
+            "freezer_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter Freezer ID"}
+            ),
+            "shelf_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter Shelf ID"}
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter notes...",
+                }
+            ),
+        }

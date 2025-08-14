@@ -12,6 +12,7 @@ from genlab_bestilling.models import (
     GIDSequence,
     Marker,
     Sample,
+    SampleMarkerAnalysis,
 )
 
 
@@ -621,6 +622,130 @@ def test_order_status_change_to_processing_no_email(extraction):
 
     # Check that no email was sent
     assert len(mail.outbox) == 0
+
+
+def test_replicate_creates_analysis_markers_for_incomplete_orders(genlab_setup):
+    """
+    Test that replicate function creates SampleMarkerAnalysis objects
+    for analysis orders that are not completed
+    """
+    with transaction.atomic():
+        # Create extraction order and confirm it
+        extraction = ExtractionOrder.objects.create(
+            genrequest_id=1,
+            return_samples=False,
+            pre_isolated=False,
+        )
+        extraction.species.add(*extraction.genrequest.species.all())
+        extraction.sample_types.add(*extraction.genrequest.sample_types.all())
+
+        # Create a sample with specific attributes for testing
+        combo = list(
+            itertools.product(extraction.species.all(), extraction.sample_types.all())
+        )
+        sample = Sample.objects.create(
+            order=extraction,
+            guid=uuid.uuid4(),
+            species=combo[0][0],
+            type=combo[0][1],
+            year=2023,
+            name="test_sample",
+        )
+
+        extraction.confirm_order()
+        sample.generate_genlab_id()
+
+        # Create analysis orders with different statuses
+        # 1. Draft analysis order
+        draft_analysis = AnalysisOrder.objects.create(
+            genrequest_id=1,
+            status=AnalysisOrder.OrderStatus.DRAFT,
+        )
+        draft_analysis.markers.add(*extraction.genrequest.markers.all())
+
+        # 2. Delivered analysis order
+        delivered_analysis = AnalysisOrder.objects.create(
+            genrequest_id=1,
+            status=AnalysisOrder.OrderStatus.DELIVERED,
+        )
+        delivered_analysis.markers.add(*extraction.genrequest.markers.all())
+
+        # 3. Processing analysis order
+        processing_analysis = AnalysisOrder.objects.create(
+            genrequest_id=1,
+            status=AnalysisOrder.OrderStatus.PROCESSING,
+        )
+        processing_analysis.markers.add(*extraction.genrequest.markers.all())
+
+        # 4. Completed analysis order
+        completed_analysis = AnalysisOrder.objects.create(
+            genrequest_id=1,
+            status=AnalysisOrder.OrderStatus.COMPLETED,
+        )
+        completed_analysis.markers.add(*extraction.genrequest.markers.all())
+
+        # Create SampleMarkerAnalysis objects for the original sample
+
+        for marker in extraction.genrequest.markers.all():
+            # Create for draft order
+            SampleMarkerAnalysis.objects.create(
+                sample=sample,
+                order=draft_analysis,
+                marker=marker,
+            )
+            # Create for delivered order
+            SampleMarkerAnalysis.objects.create(
+                sample=sample,
+                order=delivered_analysis,
+                marker=marker,
+            )
+            # Create for processing order
+            SampleMarkerAnalysis.objects.create(
+                sample=sample,
+                order=processing_analysis,
+                marker=marker,
+            )
+            # Don't create for completed order to simulate realistic scenario
+
+        # Replicate the sample
+        sample.replicate(count=2)
+
+        # Check that new SampleMarkerAnalysis objects were created for replicas
+        replica_samples = Sample.objects.filter(parent=sample)
+        assert replica_samples.count() == 2
+
+        # Count analysis markers for each status
+        draft_markers_count = SampleMarkerAnalysis.objects.filter(
+            sample__in=replica_samples, order=draft_analysis
+        ).count()
+
+        delivered_markers_count = SampleMarkerAnalysis.objects.filter(
+            sample__in=replica_samples, order=delivered_analysis
+        ).count()
+
+        processing_markers_count = SampleMarkerAnalysis.objects.filter(
+            sample__in=replica_samples, order=processing_analysis
+        ).count()
+
+        completed_markers_count = SampleMarkerAnalysis.objects.filter(
+            sample__in=replica_samples, order=completed_analysis
+        ).count()
+
+        # Should have created markers for draft, delivered, and processing orders
+        expected_markers_per_replica = extraction.genrequest.markers.count()
+        assert draft_markers_count == 2 * expected_markers_per_replica
+        assert delivered_markers_count == 2 * expected_markers_per_replica
+        assert processing_markers_count == 2 * expected_markers_per_replica
+        assert completed_markers_count == 0
+
+        # Verify the created analysis markers have proper initial values
+        for replica_sample in replica_samples:
+            replica_markers = SampleMarkerAnalysis.objects.filter(sample=replica_sample)
+            for marker in replica_markers:
+                assert not marker.has_pcr
+                assert not marker.is_analysed
+                assert not marker.is_outputted
+                assert not marker.is_invalid
 
 
 @pytest.mark.django_db(transaction=True)

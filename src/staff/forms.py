@@ -90,7 +90,7 @@ class AnalysisPlateForm(forms.ModelForm):
 
     class Meta:
         model = AnalysisPlate
-        fields = ("name", "analysis_date", "notes")
+        fields = ("name", "analysis_date", "result_file", "notes")
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter plate name"}
@@ -100,6 +100,12 @@ class AnalysisPlateForm(forms.ModelForm):
                     "class": "form-control",
                     "type": "datetime-local",
                     "placeholder": "Select analysis date",
+                }
+            ),
+            "result_file": forms.FileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.xlsx,.xls,.csv,.txt",
                 }
             ),
             "notes": forms.Textarea(

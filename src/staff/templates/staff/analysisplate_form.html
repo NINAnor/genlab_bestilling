@@ -16,7 +16,7 @@
       <a class="btn btn-tertiary" href="../"><i class="fas fa-arrow-left"></i> Back</a>
     {% endif %}
   </div>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {{ form|crispy }}
     {% csrf_token %}
     <button class="btn btn-tertiary">Send</button>

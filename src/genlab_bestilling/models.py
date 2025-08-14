@@ -1052,7 +1052,7 @@ class ExtractionPlate(Plate):
     shelf_id = models.CharField(null=True, blank=True)
 
     def __str__(self):
-        return "#Q{self.qiagen_id}"
+        return f"#Q{self.qiagen_id}"
 
     class Meta:
         constraints = [
@@ -1123,9 +1123,33 @@ class PlatePosition(AdminUrlsMixin, models.Model):
             ),
             models.CheckConstraint(
                 name="position_contain_marker_xor_raw_xor_reserved",
-                condition=Q(sample_raw__isnull=False)
-                ^ Q(sample_marker__isnull=False)
-                ^ Q(is_reserved=True),
+                condition=(
+                    # Exactly one of these conditions must be true:
+                    # 1. Has sample_raw only
+                    (
+                        Q(sample_raw__isnull=False)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=False)
+                    )
+                    # 2. Has sample_marker only
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=False)
+                        & Q(is_reserved=False)
+                    )
+                    # 3. Is reserved only
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=True)
+                    )
+                    # 4. Is empty (all null/false)
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=False)
+                    )
+                ),
             ),
             models.CheckConstraint(
                 condition=Q(position__lte=95, position__gte=0),

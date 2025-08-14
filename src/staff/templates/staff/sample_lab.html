@@ -69,11 +69,25 @@
             {% endif %}
             </div>
         </div>
-        <div class="join ml-1" x-data="{count: 0}">
-          <label class="join-item">
-            <input type="number" class="textinput text-sm !rounded-e-none" x-model="count"/>
-          </label>
-          <button type="submit" name="replicate" class="btn btn-sm btn-info rounded-s-none" x-bind:value="count">Replicate</button>
+        <div class="flex ml-2 items-center" x-data="{count: 0}">
+          <input type="number" class="textinput text-sm" x-model="count"/>
+          <button type="submit" name="replicate" class="btn btn-sm btn-info ml-1" x-bind:value="count">Replicate</button>
+        </div>
+        <div class="flex ml-2 items-center" >
+          <select class="bg-white focus:outline-none border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal text-gray-700 select2-hidden-accessible"
+            name="plate_id"
+            data-autocomplete-light-function="select2"
+            data-autocomplete-light-language="en"
+            data-autocomplete-light-url="{% url 'autocomplete:extraction-plate' %}"
+            data-placeholder="Choose a plate"
+            id="fill_plate_id"
+            data-select2-id="fill_plate_id"
+            x-model="id"
+            tabindex="-1"
+            aria-hidden="true">
+            <option value="" selected="" data-select2-id="2">---------</option>
+          </select>
+          <button type="submit"  class="btn btn-sm btn-warning ml-1">Add to plate</button>
         </div>
         <div class="ml-auto text-right w-full max-w-xs">
             <div class="mb-1 font-medium text-sm">

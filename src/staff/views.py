@@ -646,6 +646,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         isolation_method = request.POST.get(self.Params.isolation_method)
 
         replicate = request.POST.get("replicate")
+        _plate_id = request.POST.get("plate_id")
 
         if not selected_ids:
             messages.error(request, "No samples selected.")

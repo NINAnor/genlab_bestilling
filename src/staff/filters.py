@@ -10,6 +10,7 @@ from django_filters import CharFilter, ChoiceFilter
 from capps.users.models import User
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     Area,
     EquipmentOrder,
     ExtractionOrder,
@@ -695,3 +696,31 @@ class ExtractionPlateFilter(filters.FilterSet):
             "freezer_id",
             "shelf_id",
         ]
+
+
+class AnalysisPlateFilter(filters.FilterSet):
+    name = CharFilter(
+        field_name="name",
+        lookup_expr="icontains",
+        label="Name",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter plate name",
+            }
+        ),
+    )
+
+    analysis_date = filters.DateFromToRangeFilter(
+        field_name="analysis_date",
+        label="Analysis Date",
+        widget=filters.widgets.RangeWidget(
+            attrs={
+                "class": "form-control",
+                "type": "date",
+            }
+        ),
+    )
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ["id", "name", "analysis_date"]

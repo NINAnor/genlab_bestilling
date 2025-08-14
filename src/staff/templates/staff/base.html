@@ -33,6 +33,10 @@
             <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'extraction-plates-list' %}text-brand-primary font-bold{% endif %}"
                href="{% url 'staff:extraction-plates-list' %}">Extraction Plates</a>
         </li>
+        <li>
+            <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'analysis-plates-list' %}text-brand-primary font-bold{% endif %}"
+               href="{% url 'staff:analysis-plates-list' %}">Analysis Plates</a>
+        </li>
         </ul>
     </div>
     <div class="flex flex-col flex-1 p-5 overflow-x-scroll">

@@ -1025,7 +1025,6 @@ class SamplesListView(GenrequestNestedMixin, SingleTableView):
             super()
             .get_queryset()
             .select_related("type", "location", "species")
-            .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
             .order_by("species__name", "year", "location__name", "name")
         )

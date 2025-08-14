@@ -259,10 +259,6 @@ class EquipmentOrderTable(OrderTable):
 
 
 class SampleBaseTable(tables.Table):
-    plate_positions = tables.Column(
-        empty_values=(), orderable=False, verbose_name="Extraction position"
-    )
-
     checked = tables.CheckBoxColumn(
         attrs={
             "th__input": {"type": "checkbox", "id": "select-all-checkbox"},
@@ -292,7 +288,6 @@ class SampleBaseTable(tables.Table):
             "pop_id",
             "location",
             "notes",
-            "plate_positions",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         sequence = (
@@ -306,12 +301,6 @@ class SampleBaseTable(tables.Table):
         order_by = ("species", "genlab_id")
 
         empty_text = "No Samples"
-
-    def render_plate_positions(self, value: Any) -> str:
-        if value:
-            return ", ".join([str(v) for v in value.all()])
-
-        return ""
 
     def render_checked(self, record: Any) -> str:
         return format_html(
@@ -442,7 +431,10 @@ class SampleStatusTable(tables.Table):
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        exclude = ("pop_id", "guid", "plate_positions")
+        exclude = (
+            "pop_id",
+            "guid",
+        )
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -602,7 +594,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__status",
             "notes",
         )  # type: ignore[assignment]
-        exclude = ("plate_positions", "checked", "is_prioritised")
+        exclude = ("checked", "is_prioritised")
 
 
 class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):

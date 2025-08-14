@@ -17,6 +17,7 @@ from django_tables2.views import SingleTableMixin
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     Area,
     EquipmentOrder,
     ExtractionOrder,
@@ -36,6 +37,7 @@ from staff.mixins import SafeRedirectMixin
 
 from .filters import (
     AnalysisOrderFilter,
+    AnalysisPlateFilter,
     EquipmentOrderFilter,
     ExtractionOrderFilter,
     ExtractionPlateFilter,
@@ -45,9 +47,10 @@ from .filters import (
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm, OrderStaffForm
+from .forms import AnalysisPlateForm, ExtractionPlateForm, OrderStaffForm
 from .tables import (
     AnalysisOrderTable,
+    AnalysisPlateTable,
     EquipmentOrderTable,
     ExtractionOrderTable,
     ExtractionPlateTable,
@@ -1142,3 +1145,59 @@ class ExtractionPlateUpdateView(StaffMixin, UpdateView):
             f"Extraction plate #{self.object.qiagen_id} updated successfully.",
         )
         return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})
+
+
+# AnalysisPlate Views
+
+
+class AnalysisPlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = AnalysisPlate
+    table_class = AnalysisPlateTable
+    filterset_class = AnalysisPlateFilter
+    context_object_name = "analysis_plates"
+    paginate_by = 25
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return (
+            AnalysisPlate.objects.select_related()
+            .prefetch_related("positions__sample_marker")
+            .order_by("-created_at")
+        )
+
+
+class AnalysisPlateDetailView(StaffMixin, DetailView):
+    model = AnalysisPlate
+    context_object_name = "plate"
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return AnalysisPlate.objects.prefetch_related(
+            "positions__sample_marker__sample__species",
+            "positions__sample_marker__sample__type",
+            "positions__sample_marker__marker",
+            "positions__sample_marker__order",
+        )
+
+
+class AnalysisPlateCreateView(StaffMixin, CreateView):
+    model = AnalysisPlate
+    form_class = AnalysisPlateForm
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            "Analysis plate created successfully.",
+        )
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})
+
+
+class AnalysisPlateUpdateView(StaffMixin, UpdateView):
+    model = AnalysisPlate
+    form_class = AnalysisPlateForm
+    context_object_name = "plate"
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            "Analysis plate updated successfully.",
+        )
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})

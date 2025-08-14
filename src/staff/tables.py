@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
@@ -869,4 +870,51 @@ class ExtractionPlateTable(tables.Table):
         model = ExtractionPlate
         fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]
         empty_text = "No extraction plates found"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class AnalysisPlateTable(tables.Table):
+    name = tables.Column(
+        linkify=("staff:analysis-plates-detail", {"pk": tables.A("pk")}),
+        verbose_name="Name",
+        orderable=True,
+        empty_values=(),
+    )
+
+    analysis_date = tables.DateTimeColumn(
+        verbose_name="Analysis Date",
+        format="Y-m-d H:i",
+        orderable=True,
+        empty_values=(),
+    )
+
+    created_at = tables.DateTimeColumn(
+        verbose_name="Created",
+        format="Y-m-d H:i",
+        orderable=True,
+    )
+
+    sample_count = tables.Column(
+        verbose_name="Samples",
+        orderable=False,
+        empty_values=(),
+    )
+
+    actions = tables.TemplateColumn(
+        template_name="staff/components/analysis_plate_actions.html",
+        verbose_name="Actions",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_sample_count(self, record: AnalysisPlate) -> int:
+        return record.positions.filter(sample_marker__isnull=False).count()
+
+    def render_name(self, value: str | None, record: AnalysisPlate) -> str:
+        return value or f"Plate {record.id}"
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ["id", "name", "analysis_date", "created_at", "sample_count"]
+        empty_text = "No analysis plates found"
         template_name = "django_tables2/tailwind_inner.html"

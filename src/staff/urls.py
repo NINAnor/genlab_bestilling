@@ -5,6 +5,10 @@ from staff.api import OrderAPIView
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
+    AnalysisPlateCreateView,
+    AnalysisPlateDetailView,
+    AnalysisPlateListView,
+    AnalysisPlateUpdateView,
     DashboardView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
@@ -156,6 +160,26 @@ urlpatterns = [
         "extraction-plates/<uuid:pk>/update/",
         ExtractionPlateUpdateView.as_view(),
         name="extraction-plates-update",
+    ),
+    path(
+        "analysis-plates/",
+        AnalysisPlateListView.as_view(),
+        name="analysis-plates-list",
+    ),
+    path(
+        "analysis-plates/create/",
+        AnalysisPlateCreateView.as_view(),
+        name="analysis-plates-create",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/",
+        AnalysisPlateDetailView.as_view(),
+        name="analysis-plates-detail",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/update/",
+        AnalysisPlateUpdateView.as_view(),
+        name="analysis-plates-update",
     ),
     path(
         "orders/<int:pk>/priority/",

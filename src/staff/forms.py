@@ -3,7 +3,7 @@ from django import forms
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
+from genlab_bestilling.models import AnalysisPlate, ExtractionPlate, Genrequest, Order
 
 
 class OrderStaffForm(forms.Form):
@@ -74,6 +74,33 @@ class ExtractionPlateForm(forms.ModelForm):
             ),
             "shelf_id": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter Shelf ID"}
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter notes...",
+                }
+            ),
+        }
+
+
+class AnalysisPlateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ("name", "analysis_date", "notes")
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter plate name"}
+            ),
+            "analysis_date": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                    "placeholder": "Select analysis date",
+                }
             ),
             "notes": forms.Textarea(
                 attrs={

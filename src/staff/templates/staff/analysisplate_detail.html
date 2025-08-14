@@ -1,0 +1,16 @@
+{% extends "staff/base.html" %}
+{% load i18n %}
+
+
+{% block content %}
+    <h3 class="text-4xl mb-5">Analysis Plate {{ object.name|default:object.id }}</h3>
+    <div class="flex gap-5 mb-5">
+    </div>
+
+    {% object-detail-staff object=object %}
+
+    <div class="flex flex-wrap gap-5 my-5">
+        <a class="btn btn-tertiary" href="{% url 'staff:analysis-plates-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+        <a class="btn btn-primary" href="{% url 'staff:analysis-plates-update' pk=object.pk %}"><i class="fas fa-edit"></i> Update Plate</a>
+    </div>
+{% endblock %}

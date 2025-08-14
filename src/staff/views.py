@@ -332,7 +332,6 @@ class OrderExtractionSamplesListView(
             super()
             .get_queryset()
             .select_related("type", "location", "species")
-            .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
             .annotate_numeric_name()
         )
@@ -543,7 +542,6 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "order__genrequest__project",
             )
             .prefetch_related(
-                "plate_positions",
                 "order__responsible_staff",
                 Prefetch(
                     "markers", queryset=Marker.objects.order_by("name").distinct()

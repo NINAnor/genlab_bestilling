@@ -29,10 +29,12 @@
             <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'samples-list' %}text-brand-primary font-bold{% endif %}"
                href="{% url 'staff:samples-list' %}">Samples</a>
         </li>
+        {% comment %}
         <li>
             <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'plates-list' %}text-brand-primary font-bold{% endif %}"
                href="{% url 'staff:plates-list' %}">Plates</a>
         </li>
+        {%% endcomment }
         </ul>
     </div>
     <div class="flex flex-col flex-1 p-5 overflow-x-scroll">

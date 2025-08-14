@@ -13,6 +13,7 @@ from genlab_bestilling.models import (
     Area,
     EquipmentOrder,
     ExtractionOrder,
+    ExtractionPlate,
     IsolationMethod,
     Marker,
     Sample,
@@ -651,3 +652,46 @@ class ProjectFilter(filters.FilterSet):
     class Meta:
         model = Project
         fields = ()
+
+
+class ExtractionPlateFilter(filters.FilterSet):
+    qiagen_id = CharFilter(
+        field_name="qiagen_id",
+        lookup_expr="icontains",
+        label="Qiagen ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Qiagen ID",
+            }
+        ),
+    )
+
+    freezer_id = CharFilter(
+        field_name="freezer_id",
+        lookup_expr="istartswith",
+        label="Freezer ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Freezer ID",
+            }
+        ),
+    )
+
+    shelf_id = CharFilter(
+        field_name="shelf_id",
+        lookup_expr="istartswith",
+        label="Shelf ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Shelf ID",
+            }
+        ),
+    )
+
+    class Meta:
+        model = ExtractionPlate
+        fields = [
+            "qiagen_id",
+            "freezer_id",
+            "shelf_id",
+        ]

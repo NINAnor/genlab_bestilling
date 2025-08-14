@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import CreateView, DetailView, TemplateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -20,6 +20,7 @@ from genlab_bestilling.models import (
     Area,
     EquipmentOrder,
     ExtractionOrder,
+    ExtractionPlate,
     Genrequest,
     IsolationMethod,
     Marker,
@@ -37,17 +38,19 @@ from .filters import (
     AnalysisOrderFilter,
     EquipmentOrderFilter,
     ExtractionOrderFilter,
+    ExtractionPlateFilter,
     OrderSampleFilter,
     ProjectFilter,
     SampleFilter,
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import OrderStaffForm
+from .forms import ExtractionPlateForm, OrderStaffForm
 from .tables import (
     AnalysisOrderTable,
     EquipmentOrderTable,
     ExtractionOrderTable,
+    ExtractionPlateTable,
     OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
     ProjectTable,
@@ -1084,3 +1087,58 @@ class OrderPrioritizedAdminView(StaffMixin, SafeRedirectMixin, ActionView):
         order.toggle_prioritized()
 
         return redirect(self.get_next_url())
+
+
+# ExtractionPlate Views
+
+
+class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = ExtractionPlate
+    table_class = ExtractionPlateTable
+    filterset_class = ExtractionPlateFilter
+    context_object_name = "extraction_plates"
+    paginate_by = 25
+
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return (
+            ExtractionPlate.objects.select_related()
+            .prefetch_related("positions__sample_raw")
+            .order_by("-created_at")
+        )
+
+
+class ExtractionPlateDetailView(StaffMixin, DetailView):
+    model = ExtractionPlate
+    context_object_name = "plate"
+
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return ExtractionPlate.objects.prefetch_related(
+            "positions__sample_raw__species",
+            "positions__sample_raw__type",
+            "positions__sample_raw__location",
+        )
+
+
+class ExtractionPlateCreateView(StaffMixin, CreateView):
+    model = ExtractionPlate
+    form_class = ExtractionPlateForm
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            f"Extraction plate #{self.object.qiagen_id} created successfully.",
+        )
+        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})
+
+
+class ExtractionPlateUpdateView(StaffMixin, UpdateView):
+    model = ExtractionPlate
+    form_class = ExtractionPlateForm
+    context_object_name = "plate"
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            f"Extraction plate #{self.object.qiagen_id} updated successfully.",
+        )
+        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})

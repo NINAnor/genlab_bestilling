@@ -10,16 +10,24 @@ from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django_lifecycle import AFTER_UPDATE, LifecycleModelMixin, hook
+from django_lifecycle import (
+    AFTER_CREATE,
+    AFTER_UPDATE,
+    LifecycleModelMixin,
+    hook,
+)
 from django_lifecycle.conditions import WhenFieldValueChangesTo
 from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
+from sequencefield.constraints import IntSequenceConstraint
+from sequencefield.fields import IntegerSequenceField
 from taggit.managers import TaggableManager
 
 from shared.db import assert_is_in_atomic_block
 from shared.mixins import AdminUrlsMixin
 
 from . import managers
+from .libs.helpers import position_to_coordinates
 
 an = "genlab_bestilling"  # Short alias for app name.
 
@@ -1018,3 +1026,112 @@ class GIDSequence(AdminUrlsMixin, models.Model):
         if self.sample:
             return f"{self.id}{self.last_value}"
         return f"{self.id}{self.last_value:05d}"
+
+
+class Plate(LifecycleModelMixin, PolymorphicModel):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}"
+
+    @hook(AFTER_CREATE, on_commit=True)
+    def populate_positions(self) -> None:
+        for i in range(96):
+            PlatePosition.objects.create(
+                position=i,
+                plate=self,
+            )
+
+
+class ExtractionPlate(Plate):
+    qiagen_id = IntegerSequenceField(primary_key=False)
+    freezer_id = models.CharField(null=True, blank=True)
+    shelf_id = models.CharField(null=True, blank=True)
+
+    def __str__(self):
+        return "#Q{self.qiagen_id}"
+
+    class Meta:
+        constraints = [
+            IntSequenceConstraint(
+                name="%(app_label)s_%(class)s_qiagen",
+                sequence="qiagen",
+                drop=True,
+                fields=["qiagen_id"],
+            )
+        ]
+
+
+class AnalysisPlate(Plate):
+    name = models.CharField(null=True, blank=True, help_text="Human readable label")
+    analysis_date = models.DateTimeField(null=True, blank=True)
+    result_file = models.FileField(null=True, blank=True, upload_to="analysis/results/")
+    extra = models.JSONField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}"
+
+
+class PlatePosition(AdminUrlsMixin, models.Model):
+    plate = models.ForeignKey(
+        f"{an}.Plate",
+        on_delete=models.DO_NOTHING,
+        related_name="positions",
+    )
+    position = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    notes = models.CharField(null=True, blank=True)
+    is_reserved = models.BooleanField(default=False)
+
+    sample_raw = models.OneToOneField(
+        f"{an}.Sample",
+        null=True,
+        blank=True,
+        related_name="position",
+        on_delete=models.PROTECT,
+    )
+    sample_marker = models.ForeignKey(
+        f"{an}.SampleMarkerAnalysis",
+        null=True,
+        blank=True,
+        related_name="positions",
+        on_delete=models.PROTECT,
+    )
+    is_full = models.GeneratedField(
+        expression=models.Case(
+            models.When(
+                condition=(
+                    Q(sample_raw__isnull=False)
+                    | Q(sample_marker__isnull=False)
+                    | Q(is_reserved=True)
+                ),
+                then=models.Value(True),
+            ),
+            default=models.Value(False),
+        ),
+        output_field=models.BooleanField(),
+        db_persist=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plate", "position"], name="unique_positions_in_plate"
+            ),
+            models.CheckConstraint(
+                name="position_contain_marker_xor_raw_xor_reserved",
+                condition=Q(sample_raw__isnull=False)
+                ^ Q(sample_marker__isnull=False)
+                ^ Q(is_reserved=True),
+            ),
+            models.CheckConstraint(
+                condition=Q(position__lte=95, position__gte=0),
+                name="position_in_plate_value_range",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.plate}@{position_to_coordinates(self.position)}"

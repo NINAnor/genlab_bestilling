@@ -618,6 +618,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ed/d2/61159bc6efd1bf16adc4a2a48f7ace2080d1f7aef054f606d1857cab490c/django-rest-framework-0.1.0.tar.gz", hash = "sha256:47a8f496fa69e3b6bd79f68dd7a1527d907d6b77f009e9db7cf9bb21cc565e4a", size = 969 }
 
 [[package]]
+name = "django-sequencefield"
+version = "1.0.13"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/04/428bc88c198f583015c252247f5f3b6d8970b77d90e1db7a01c565a05416/django_sequencefield-1.0.13.tar.gz", hash = "sha256:399d8609416bf48ad0f9c37d71053a0c8994f484b78de0ae5296daf1457ee890", size = 8862 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/32/47/11658478e543c6b7ffe5b8f96fe2f959dffb75532277a4fd4cb93e461421/django_sequencefield-1.0.13-py3-none-any.whl", hash = "sha256:663ecdec32738a453764c81fa9e0dca22c1b03dba04ff2e3453bd5487a471671", size = 9373 },
+]
+
+[[package]]
 name = "django-solo"
 version = "2.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -920,6 +929,7 @@ dependencies = [
     { name = "django-postgres-extra" },
     { name = "django-probes" },
     { name = "django-rest-framework" },
+    { name = "django-sequencefield" },
     { name = "django-solo" },
     { name = "django-tables2" },
     { name = "django-taggit" },
@@ -996,6 +1006,7 @@ requires-dist = [
     { name = "django-postgres-extra" },
     { name = "django-probes" },
     { name = "django-rest-framework" },
+    { name = "django-sequencefield", specifier = ">=1.0.13" },
     { name = "django-solo" },
     { name = "django-tables2" },
     { name = "django-tables2", specifier = ">=2.7.0" },

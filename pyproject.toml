@@ -72,7 +72,8 @@ dependencies = [
   "django-view-breadcrumbs",
   "django-autocomplete-light",
   "djangorestframework-csv",
-  "django-lifecycle>=1.2.4"
+  "django-lifecycle>=1.2.4",
+  "django-sequencefield>=1.0.13"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

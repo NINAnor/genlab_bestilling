@@ -4,9 +4,11 @@ from django.http import HttpRequest, JsonResponse
 
 from .models import (
     AnalysisOrder,
+    AnalysisPlate,
     Area,
     EquipmentOrder,
     ExtractionOrder,
+    ExtractionPlate,
     Genrequest,
     IsolationMethod,
     Location,
@@ -87,3 +89,25 @@ class IsolationMethodAutocomplete(autocomplete.Select2QuerySetView):
 
 class AnalysisMarkerAutocomplete(autocomplete.Select2QuerySetView):
     model = Marker
+
+
+class ExtractionPlateAutocomplete(autocomplete.Select2QuerySetView):
+    model = ExtractionPlate
+
+    def get_queryset(self) -> models.QuerySet:
+        qs = super().get_queryset()
+        if self.q:
+            qs = qs.filter(qiagen__icontains=self.q)
+        return qs
+
+
+class AnalysisPlateAutocomplete(autocomplete.Select2QuerySetView):
+    model = AnalysisPlate
+
+    def get_queryset(self) -> models.QuerySet:
+        qs = super().get_queryset()
+        if self.q:
+            qs = qs.filter(
+                models.Q(id__istartswith=self.q) | models.Q(name__icontains=self.q)
+            )
+        return qs

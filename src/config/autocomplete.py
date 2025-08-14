@@ -4,9 +4,11 @@ from capps.users.autocomplete import StaffUserAutocomplete, UserAutocomplete
 from genlab_bestilling.autocomplete import (
     AnalysisMarkerAutocomplete,
     AnalysisOrderAutocomplete,
+    AnalysisPlateAutocomplete,
     AreaAutocomplete,
     EquipmentAutocomplete,
     ExtractionOrderAutocomplete,
+    ExtractionPlateAutocomplete,
     GenrequestAutocomplete,
     IsolationMethodAutocomplete,
     LocationAutocomplete,
@@ -47,5 +49,15 @@ urlpatterns = [
         "analysis-marker/",
         AnalysisMarkerAutocomplete.as_view(),
         name="analysis-marker",
+    ),
+    path(
+        "analysis-plate/",
+        AnalysisPlateAutocomplete.as_view(),
+        name="analysis-plate",
+    ),
+    path(
+        "extraction-plate/",
+        ExtractionPlateAutocomplete.as_view(),
+        name="extraction-plate",
     ),
 ]

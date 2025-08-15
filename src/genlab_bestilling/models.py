@@ -4,20 +4,29 @@ from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
+from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django_lifecycle import (
+    AFTER_CREATE,
+    AFTER_UPDATE,
+    LifecycleModelMixin,
+    hook,
+)
+from django_lifecycle.conditions import WhenFieldValueChangesTo
 from polymorphic.models import PolymorphicModel
 from rest_framework.exceptions import ValidationError
+from sequencefield.constraints import IntSequenceConstraint
+from sequencefield.fields import IntegerSequenceField
 from taggit.managers import TaggableManager
 
 from shared.db import assert_is_in_atomic_block
 from shared.mixins import AdminUrlsMixin
 
 from . import managers
-from .libs.helpers import position_to_coordinates
 
 an = "genlab_bestilling"  # Short alias for app name.
 
@@ -244,7 +253,7 @@ class Genrequest(AdminUrlsMixin, models.Model):  # type: ignore[django-manager-m
         ) < timedelta(days=30)
 
 
-class Order(AdminUrlsMixin, PolymorphicModel):
+class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
     class CannotConfirm(ValidationError):
         pass
 
@@ -289,12 +298,10 @@ class Order(AdminUrlsMixin, PolymorphicModel):
     contact_person = models.CharField(
         null=True,
         blank=False,
-        help_text="Responsible for genetic bioinformatics analysis",
     )
     contact_email = models.EmailField(
         null=True,
         blank=False,
-        help_text="Email to contact with questions about this order",
     )
     responsible_staff = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -385,6 +392,19 @@ class Order(AdminUrlsMixin, PolymorphicModel):
 
     def __str__(self):
         return f"#ORD_{self.id}"
+
+    @hook(
+        AFTER_UPDATE, condition=WhenFieldValueChangesTo("status", OrderStatus.COMPLETED)
+    )
+    def notify_order_completed(self) -> None:
+        o = self.get_real_instance()
+        send_mail(
+            f"{o} - completed",
+            "the order is completed",
+            settings.NOTIFICATIONS["SENDER"],
+            [self.contact_email],
+            fail_silently=settings.EMAIL_FAIL_SILENTLY,
+        )
 
 
 class EquipmentType(models.Model):
@@ -601,6 +621,13 @@ class AnalysisOrder(Order):
         verbose_name="Requested analysis result deadline",
         help_text="When you need to get the results",
     )
+    metadata_file = models.FileField(
+        upload_to="analysis_orders/metadata/",
+        null=True,
+        blank=True,
+        verbose_name="Metadata file",
+        help_text="Upload a metadata file for this analysis order",
+    )
 
     @property
     def short_timeframe(self) -> bool:
@@ -689,9 +716,12 @@ class SampleMarkerAnalysis(AdminUrlsMixin, models.Model):
     transaction = models.UUIDField(blank=True, null=True)
 
     # Fields for status tracking
+    # NOTE: a better idea here, would be to use a bitmask
+    # https://github.com/disqus/django-bitfield
     has_pcr = models.BooleanField(default=False)
     is_analysed = models.BooleanField(default=False)
     is_outputted = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(default=False)
 
     objects = managers.SampleAnalysisMarkerQuerySet.as_manager()
 
@@ -728,6 +758,7 @@ class Sample(AdminUrlsMixin, models.Model):
     is_marked = models.BooleanField(default=False)
     is_plucked = models.BooleanField(default=False)
     is_isolated = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(default=False)
 
     # "Merknad" in the Excel sheet.
     internal_note = models.TextField(null=True, blank=True)
@@ -738,7 +769,6 @@ class Sample(AdminUrlsMixin, models.Model):
     volume = models.FloatField(null=True, blank=True)
     genlab_id = models.CharField(null=True, blank=True)
 
-    extractions = models.ManyToManyField(f"{an}.ExtractionPlate", blank=True)
     parent = models.ForeignKey("self", on_delete=models.PROTECT, null=True, blank=True)
 
     isolation_method = models.ManyToManyField(
@@ -782,13 +812,6 @@ class Sample(AdminUrlsMixin, models.Model):
     @staticmethod
     def get_admin_changelist_url() -> str:
         return reverse("admin:genlab_bestilling_sample_changelist")
-
-    def create_replica(self) -> None:
-        pk = self.id
-        self.id = None
-        self.genlab_id = None
-        self.parent_id = pk
-        self.save()
 
     @property
     def fish_id(self) -> str | None:
@@ -878,15 +901,43 @@ class Sample(AdminUrlsMixin, models.Model):
 
         return self.genlab_id
 
+    def replicate(self, count: int, commit: bool = True) -> None:
+        assert_is_in_atomic_block()
 
-# class Analysis(models.Model):
-# type =
-# sample =
-# plate
-# coordinates on plate
-# result
-# status
-# assignee (one or plus?)
+        sequence = GIDSequence.objects.get_sequence_for_replication(
+            sample=self, lock=True
+        )
+
+        analysis_markers = list(
+            SampleMarkerAnalysis.objects.select_related("order").filter(
+                sample=self,
+                order__status__in=[
+                    Order.OrderStatus.DELIVERED,
+                    Order.OrderStatus.DRAFT,
+                ],
+            )
+        )
+
+        for _ in range(count):  # noqa: F402
+            s = Sample.objects.get(pk=self.pk)
+            s.pk = None
+            s.genlab_id = sequence.next_value()
+            s.parent = self
+            s.is_isolated = False
+            s.is_marked = False
+            s.is_plucked = False
+            s.internal_note = ""
+            s.save()
+            s.isolation_method.clear()
+
+            for am in analysis_markers:
+                am.pk = None
+                am.sample = s
+                am.has_pcr = False
+                am.is_analysed = False
+                am.is_outputted = False
+                am.is_invalid = False
+                am.save()
 
 
 class SampleIsolationMethod(AdminUrlsMixin, models.Model):
@@ -922,66 +973,6 @@ class IsolationMethod(AdminUrlsMixin, models.Model):
         return self.name
 
 
-# Some extracts can be placed in multiple wells
-class ExtractPlatePosition(AdminUrlsMixin, models.Model):
-    plate = models.ForeignKey(
-        f"{an}.ExtractionPlate",
-        on_delete=models.DO_NOTHING,
-        related_name="sample_positions",
-    )
-    sample = models.ForeignKey(
-        f"{an}.Sample",
-        on_delete=models.PROTECT,
-        related_name="plate_positions",
-        null=True,
-        blank=True,
-    )
-    position = models.IntegerField()
-    extracted_at = models.DateTimeField(auto_now=True)
-    notes = models.CharField(null=True, blank=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["plate", "position"], name="unique_positions_in_plate"
-            )
-        ]
-
-    def __str__(self) -> str:
-        return f"#Q{self.plate_id}@{position_to_coordinates(self.position)}"
-
-
-class ExtractionPlate(AdminUrlsMixin, models.Model):
-    name = models.CharField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-    # freezer
-    # shelf
-
-    def __str__(self):
-        return f"#P{self.id}" + f" - {self.name}" if self.name else ""
-
-
-class AnalysisResult(AdminUrlsMixin, models.Model):
-    name = models.CharField()
-    analysis_date = models.DateTimeField(null=True, blank=True)
-    marker = models.ForeignKey(f"{an}.Marker", on_delete=models.DO_NOTHING)
-    order = models.ForeignKey(
-        f"{an}.AnalysisOrder",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
-    result_file = models.FileField(null=True, blank=True)
-    samples = models.ManyToManyField(f"{an}.Sample", blank=True)
-    extra = models.JSONField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    last_modified_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self) -> str:
-        return f"{self.name}"
-
-
 class GIDSequence(AdminUrlsMixin, models.Model):
     """
     Represents a sequence of IDs
@@ -1011,7 +1002,13 @@ class GIDSequence(AdminUrlsMixin, models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                name="unique_id_year_species", fields=["year", "species"]
+                name="unique_id_year_species",
+                fields=["year", "species"],
+                condition=Q(sample=None),
+            ),
+            models.UniqueConstraint(
+                name="unique_id_year_species_sample",
+                fields=["year", "species", "sample"],
             ),
         ]
 
@@ -1025,4 +1022,211 @@ class GIDSequence(AdminUrlsMixin, models.Model):
         assert_is_in_atomic_block()
         self.last_value += 1
         self.save(update_fields=["last_value"])
+        if self.sample:
+            return f"{self.id}{self.last_value}"
         return f"{self.id}{self.last_value:05d}"
+
+
+class Plate(LifecycleModelMixin, PolymorphicModel):
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(null=True, blank=True)
+
+    ROWS = "ABCDEFGH"  # 8 rows
+    COLUMNS = 12  # 12 columns
+
+    def __str__(self) -> str:
+        return f"{self.id}"
+
+    @hook(AFTER_CREATE, on_commit=True)
+    def populate_positions(self) -> None:
+        for i in range(96):
+            PlatePosition.objects.create(
+                position=i,
+                plate=self,
+            )
+
+    @transaction.atomic
+    def populate(self, items: list, field_name: str) -> None:
+        if field_name not in ["sample_raw", "sample_marker_analysis"]:
+            msg = "item_type must be either 'sample' or 'sample_marker_analysis'"
+            raise ValueError(msg)
+
+        # Get available positions (not occupied and not reserved)
+        available_positions = self.positions.filter(is_full=False).order_by("position")
+
+        # Check if we have enough positions
+        if len(items) > available_positions.count():
+            available_count = available_positions.count()
+            msg = (
+                f"Not enough available positions. Need {len(items)}, "
+                f"but only {available_count} available"
+            )
+            raise ValueError(msg)
+
+        available_positions = (
+            self.positions.filter(is_full=False)
+            .order_by("position")
+            .select_for_update()[: len(items)]
+        )
+
+        for i, position in enumerate(available_positions):
+            setattr(position, field_name, items[i])
+            position.save(update_fields=[field_name])
+
+    def get_grid(self) -> list[list[dict]]:
+        positions = self.positions.all()
+
+        # Create a grid of 8 rows x 12 columns
+        grid = []
+        pos_dict = {p.position: p for p in positions}
+
+        for row in range(8):  # 8 rows A-H
+            grid_row = []
+            for col in range(12):  # 12 columns 1-12
+                position = col * 8 + row  # Fill by columns instead of rows
+                grid_row.append(
+                    {
+                        "index": position,
+                        "coordinate": f"{Plate.ROWS[row]}{col + 1}",
+                        "position": pos_dict.get(position),
+                    }
+                )
+            grid.append(grid_row)
+
+        return grid
+
+
+class ExtractionPlate(Plate):
+    qiagen_id = IntegerSequenceField(primary_key=False)
+    freezer_id = models.CharField(null=True, blank=True)
+    shelf_id = models.CharField(null=True, blank=True)
+
+    def __str__(self):
+        return f"#Q{self.qiagen_id}"
+
+    def populate(self, items: list) -> None:
+        super().populate(items, "sample_raw")
+
+    class Meta:
+        constraints = [
+            IntSequenceConstraint(
+                name="%(app_label)s_%(class)s_qiagen",
+                sequence="qiagen",
+                drop=True,
+                fields=["qiagen_id"],
+            )
+        ]
+
+
+class AnalysisPlate(Plate):
+    name = models.CharField(null=True, blank=True, help_text="Human readable label")
+    analysis_date = models.DateTimeField(null=True, blank=True)
+    result_file = models.FileField(null=True, blank=True, upload_to="analysis/results/")
+    extra = models.JSONField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"{self.id}"
+
+    def populate(self, items: list) -> None:
+        super().populate(items, "sample_marker")
+
+
+class PlatePosition(AdminUrlsMixin, models.Model):
+    plate = models.ForeignKey(
+        f"{an}.Plate",
+        on_delete=models.DO_NOTHING,
+        related_name="positions",
+    )
+    position = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    notes = models.CharField(null=True, blank=True)
+    is_reserved = models.BooleanField(default=False)
+
+    sample_raw = models.OneToOneField(
+        f"{an}.Sample",
+        null=True,
+        blank=True,
+        related_name="position",
+        on_delete=models.PROTECT,
+    )
+    sample_marker = models.ForeignKey(
+        f"{an}.SampleMarkerAnalysis",
+        null=True,
+        blank=True,
+        related_name="positions",
+        on_delete=models.PROTECT,
+    )
+    is_full = models.GeneratedField(
+        expression=models.Case(
+            models.When(
+                condition=(
+                    Q(sample_raw__isnull=False)
+                    | Q(sample_marker__isnull=False)
+                    | Q(is_reserved=True)
+                ),
+                then=models.Value(True),
+            ),
+            default=models.Value(False),
+        ),
+        output_field=models.BooleanField(),
+        db_persist=True,
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plate", "position"], name="unique_positions_in_plate"
+            ),
+            models.CheckConstraint(
+                name="position_contain_marker_xor_raw_xor_reserved",
+                condition=(
+                    # Exactly one of these conditions must be true:
+                    # 1. Has sample_raw only
+                    (
+                        Q(sample_raw__isnull=False)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=False)
+                    )
+                    # 2. Has sample_marker only
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=False)
+                        & Q(is_reserved=False)
+                    )
+                    # 3. Is reserved only
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=True)
+                    )
+                    # 4. Is empty (all null/false)
+                    | (
+                        Q(sample_raw__isnull=True)
+                        & Q(sample_marker__isnull=True)
+                        & Q(is_reserved=False)
+                    )
+                ),
+            ),
+            models.CheckConstraint(
+                condition=Q(position__lte=95, position__gte=0),
+                name="position_in_plate_value_range",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.plate}@{self.position_to_coordinates()}"
+
+    def position_to_coordinates(self) -> str:
+        """
+        Return the plate coordinate of this position (e.g., A1, B2, etc.)
+        Uses column-wise filling: A1=0, B1=1, C1=2..., H1=7, A2=8, B2=9...
+        """
+        row_label = Plate.ROWS[
+            self.position % len(Plate.ROWS)
+        ]  # 8 rows, so position % 8
+        column_label = (
+            self.position // len(Plate.ROWS)
+        ) + 1  # Every 8 positions moves to next column
+        return f"{row_label}{column_label}"

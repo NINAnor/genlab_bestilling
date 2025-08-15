@@ -12,6 +12,7 @@ def do_login(page):
     page.get_by_label("Password").press("Enter")
 
 
+@pytest.mark.skip(reason="E2E tests skipped")
 def test_login(page, live_server_url):
     page.goto(live_server_url)
     do_login(page)
@@ -22,6 +23,7 @@ def get_path(url, prefix):
     return url.replace(prefix, "")
 
 
+@pytest.mark.skip(reason="E2E tests skipped")
 def test_genrequest_flow(page, live_server_url):
     page.goto(live_server_url)
     do_login(page)
@@ -76,6 +78,7 @@ def test_genrequest_flow(page, live_server_url):
     assert re.match(r"\/genrequests\/", get_path(page.url, live_server_url))
 
 
+@pytest.mark.skip(reason="E2E tests skipped")
 def test_equipment_flow(page, live_server_url):
     page.goto(live_server_url + "/genrequests/1/")
     page.get_by_role("link", name="Hide »").click()

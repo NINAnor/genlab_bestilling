@@ -10,6 +10,7 @@ from django_filters import CharFilter, ChoiceFilter
 from capps.users.models import User
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     Area,
     EquipmentOrder,
     ExtractionOrder,
@@ -18,6 +19,7 @@ from genlab_bestilling.models import (
     Marker,
     Sample,
     SampleMarkerAnalysis,
+    SampleType,
     Species,
 )
 from nina.models import Project
@@ -345,19 +347,11 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             attrs={"data-placeholder": "Filter by sample type"},
         )
 
-        self.filters["sample__extractions"].field.label = "Qiagen ID"
-        self.filters["sample__extractions"].field.widget = forms.TextInput(
-            attrs={
-                "placeholder": "Enter Quiagen ID",
-            }
-        )
-
     class Meta:
         model = SampleMarkerAnalysis
         fields = (
             "sample__genlab_id",
             "sample__type",
-            "sample__extractions",
             "sample__isolation_method",
             # "PCR",
             # "fluidigm",
@@ -468,10 +462,10 @@ class SampleFilter(filters.FilterSet):
         )
 
 
-class ExtractionPlateFilter(filters.FilterSet):
-    class Meta:
-        model = ExtractionPlate
-        fields = ("id",)
+# class ExtractionPlateFilter(filters.FilterSet):
+#     class Meta:
+#         model = ExtractionPlate
+#         fields = ("id",)
 
 
 class SampleLabFilter(filters.FilterSet):
@@ -502,6 +496,16 @@ class SampleLabFilter(filters.FilterSet):
         widget=autocomplete.ModelSelect2Multiple(
             url="autocomplete:isolation-method",
             attrs={"class": "w-full", "data-placeholder": "Filter by isolation method"},
+        ),
+    )
+
+    type = filters.ModelMultipleChoiceFilter(
+        field_name="type",
+        queryset=SampleType.objects.all(),
+        label="Sample type",
+        widget=autocomplete.ModelSelect2Multiple(
+            url="autocomplete:sample-type",
+            attrs={"class": "w-full", "data-placeholder": "Filter by sample type"},
         ),
     )
 
@@ -536,20 +540,12 @@ class SampleLabFilter(filters.FilterSet):
             {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
         )
 
-        self.filters["extractions"].field.label = "Qiagen ID"
-        self.filters["extractions"].field.widget = forms.TextInput(
-            attrs={
-                "placeholder": "Enter Quiagen ID",
-            }
-        )
-
     class Meta:
         model = Sample
         fields = (
             "genlab_id_min",
             "genlab_id_max",
             "sample_status",
-            "extractions",
             "isolation_method",
             # "fluidigm",
             # "output",
@@ -657,3 +653,74 @@ class ProjectFilter(filters.FilterSet):
     class Meta:
         model = Project
         fields = ()
+
+
+class ExtractionPlateFilter(filters.FilterSet):
+    qiagen_id = CharFilter(
+        field_name="qiagen_id",
+        lookup_expr="icontains",
+        label="Qiagen ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Qiagen ID",
+            }
+        ),
+    )
+
+    freezer_id = CharFilter(
+        field_name="freezer_id",
+        lookup_expr="istartswith",
+        label="Freezer ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Freezer ID",
+            }
+        ),
+    )
+
+    shelf_id = CharFilter(
+        field_name="shelf_id",
+        lookup_expr="istartswith",
+        label="Shelf ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Shelf ID",
+            }
+        ),
+    )
+
+    class Meta:
+        model = ExtractionPlate
+        fields = [
+            "qiagen_id",
+            "freezer_id",
+            "shelf_id",
+        ]
+
+
+class AnalysisPlateFilter(filters.FilterSet):
+    name = CharFilter(
+        field_name="name",
+        lookup_expr="icontains",
+        label="Name",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter plate name",
+            }
+        ),
+    )
+
+    analysis_date = filters.DateFromToRangeFilter(
+        field_name="analysis_date",
+        label="Analysis Date",
+        widget=filters.widgets.RangeWidget(
+            attrs={
+                "class": "form-control",
+                "type": "date",
+            }
+        ),
+    )
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ["id", "name", "analysis_date"]

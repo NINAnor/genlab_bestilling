@@ -1,0 +1,8 @@
+<div class="flex gap-2">
+    <a href="{% url 'staff:analysis-plates-detail' pk=record.pk %}" class="btn btn-xs btn-primary">
+        <i class="fas fa-eye"></i> View
+    </a>
+    <a href="{% url 'staff:analysis-plates-update' pk=record.pk %}" class="btn btn-xs btn-secondary">
+        <i class="fas fa-edit"></i> Edit
+    </a>
+</div>

@@ -32,6 +32,15 @@
 
     {% object-detail object=object %}
 
+    {% if object.metadata_file %}
+    <h5 class="text-2xl my-5">Metadata File</h5>
+    <div class="bg-white p-4">
+        <a href="{{ object.metadata_file.url }}" target="_blank" class="underline text-blue-600">
+            <i class="fas fa-download"></i> {{ object.metadata_file.name|cut:"analysis_orders/metadata/" }}
+        </a>
+    </div>
+    {% endif %}
+
     {% if results_contacts %}
     <h5 class="text-2xl my-5">Contacts for Analysis Results</h5>
     <div class="bg-white p-4">

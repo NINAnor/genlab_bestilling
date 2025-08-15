@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
@@ -258,10 +259,6 @@ class EquipmentOrderTable(OrderTable):
 
 
 class SampleBaseTable(tables.Table):
-    plate_positions = tables.Column(
-        empty_values=(), orderable=False, verbose_name="Extraction position"
-    )
-
     checked = tables.CheckBoxColumn(
         attrs={
             "th__input": {"type": "checkbox", "id": "select-all-checkbox"},
@@ -291,7 +288,6 @@ class SampleBaseTable(tables.Table):
             "pop_id",
             "location",
             "notes",
-            "plate_positions",
         )
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
         sequence = (
@@ -305,12 +301,6 @@ class SampleBaseTable(tables.Table):
         order_by = ("species", "genlab_id")
 
         empty_text = "No Samples"
-
-    def render_plate_positions(self, value: Any) -> str:
-        if value:
-            return ", ".join([str(v) for v in value.all()])
-
-        return ""
 
     def render_checked(self, record: Any) -> str:
         return format_html(
@@ -354,7 +344,7 @@ class SampleStatusTable(tables.Table):
     )
 
     genlab_id = tables.Column(
-        orderable=False,
+        orderable=True,
         empty_values=(None,),
         verbose_name="Genlab ID",
     )
@@ -390,6 +380,13 @@ class SampleStatusTable(tables.Table):
         default=False,
         accessor="is_isolated",
     )
+    invalid = tables.BooleanColumn(
+        verbose_name="Invalid",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_invalid",
+    )
 
     class Meta:
         model = Sample
@@ -399,6 +396,7 @@ class SampleStatusTable(tables.Table):
             "marked",
             "plucked",
             "isolated",
+            "invalid",
             "internal_note",
             "isolation_method",
             "type",
@@ -410,6 +408,7 @@ class SampleStatusTable(tables.Table):
             "marked",
             "plucked",
             "isolated",
+            "invalid",
             "internal_note",
             "isolation_method",
         )
@@ -432,7 +431,10 @@ class SampleStatusTable(tables.Table):
 
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
-        exclude = ("pop_id", "guid", "plate_positions")
+        exclude = (
+            "pop_id",
+            "guid",
+        )
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -472,6 +474,13 @@ class OrderAnalysisSampleTable(tables.Table):
         default=False,
         accessor="is_outputted",
     )
+    is_invalid = tables.BooleanColumn(
+        verbose_name="Not Analysed",
+        orderable=True,
+        yesno="✔,-",
+        default=False,
+        accessor="is_invalid",
+    )
 
     sample__internal_note = tables.TemplateColumn(
         template_name="staff/note_input_column.html",
@@ -501,6 +510,7 @@ class OrderAnalysisSampleTable(tables.Table):
             "has_pcr",
             "is_analysed",
             "is_outputted",
+            "is_invalid",
             "sample__internal_note",
             "sample__order",
         )
@@ -514,27 +524,6 @@ class OrderAnalysisSampleTable(tables.Table):
             record.order.id,
             record.id,
         )
-
-
-class PlateTable(tables.Table):
-    id = tables.Column(
-        linkify=("staff:plates-detail", {"pk": tables.A("id")}),
-        orderable=False,
-        empty_values=(),
-    )
-
-    class Meta:
-        model = ExtractionPlate
-        fields = (
-            "id",
-            "name",
-            "created_at",
-            "last_updated_at",
-            "samples_count",
-        )
-        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
-
-        empty_text = "No Plates"
 
 
 class StatusMixinTableSamples(tables.Table):
@@ -605,7 +594,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__status",
             "notes",
         )  # type: ignore[assignment]
-        exclude = ("plate_positions", "checked", "is_prioritised")
+        exclude = ("checked", "is_prioritised")
 
 
 class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
@@ -825,4 +814,120 @@ class DraftOrderTable(StaffIDMixinTable):
             "contact_email",
         )
         empty_text = "No draft orders"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class ExtractionPlateTable(tables.Table):
+    qiagen_id = tables.Column(
+        linkify=("staff:extraction-plates-detail", {"pk": tables.A("pk")}),
+        verbose_name="Qiagen ID",
+        orderable=True,
+    )
+
+    freezer_id = tables.Column(
+        verbose_name="Freezer ID",
+        orderable=True,
+        empty_values=(),
+    )
+
+    shelf_id = tables.Column(
+        verbose_name="Shelf ID",
+        orderable=True,
+        empty_values=(),
+    )
+
+    created_at = tables.DateTimeColumn(
+        verbose_name="Created",
+        format="Y-m-d H:i",
+        orderable=True,
+    )
+
+    sample_count = tables.Column(
+        verbose_name="Samples",
+        orderable=False,
+        empty_values=(),
+    )
+
+    actions = tables.TemplateColumn(
+        template_name="staff/components/extraction_plate_actions.html",
+        verbose_name="Actions",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_sample_count(self, record: ExtractionPlate) -> int:
+        return record.positions.filter(sample_raw__isnull=False).count()
+
+    class Meta:
+        model = ExtractionPlate
+        fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]
+        empty_text = "No extraction plates found"
+        template_name = "django_tables2/tailwind_inner.html"
+
+
+class AnalysisPlateTable(tables.Table):
+    name = tables.Column(
+        linkify=("staff:analysis-plates-detail", {"pk": tables.A("pk")}),
+        verbose_name="Name",
+        orderable=True,
+        empty_values=(),
+    )
+
+    analysis_date = tables.DateTimeColumn(
+        verbose_name="Analysis Date",
+        format="Y-m-d H:i",
+        orderable=True,
+        empty_values=(),
+    )
+
+    created_at = tables.DateTimeColumn(
+        verbose_name="Created",
+        format="Y-m-d H:i",
+        orderable=True,
+    )
+
+    sample_count = tables.Column(
+        verbose_name="Samples",
+        orderable=False,
+        empty_values=(),
+    )
+
+    result_file = tables.Column(
+        verbose_name="Result File",
+        orderable=False,
+        empty_values=(),
+    )
+
+    actions = tables.TemplateColumn(
+        template_name="staff/components/analysis_plate_actions.html",
+        verbose_name="Actions",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_sample_count(self, record: AnalysisPlate) -> int:
+        return record.positions.filter(sample_marker__isnull=False).count()
+
+    def render_name(self, value: str | None, record: AnalysisPlate) -> str:
+        return value or f"Plate {record.id}"
+
+    def render_result_file(self, value: str | None) -> str:
+        if value:
+            return (
+                f'<a href="{value}" class="text-blue-600 hover:underline">'
+                '<i class="fas fa-download"></i> Download</a>'
+            )
+        return '<span class="text-gray-500">No file</span>'
+
+    class Meta:
+        model = AnalysisPlate
+        fields = [
+            "id",
+            "name",
+            "analysis_date",
+            "created_at",
+            "sample_count",
+            "result_file",
+        ]
+        empty_text = "No analysis plates found"
         template_name = "django_tables2/tailwind_inner.html"

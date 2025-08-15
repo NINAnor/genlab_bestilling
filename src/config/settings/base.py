@@ -300,6 +300,8 @@ EMAIL_BACKEND = env(
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-fail-silently
+EMAIL_FAIL_SILENTLY = env.bool("DJANGO_EMAIL_FAIL_SILENTLY", default=False)
 
 
 ###########################################
@@ -353,7 +355,7 @@ LOGGING = {
 # https://django-allauth.readthedocs.io/en/stable/account/configuration.html
 # https://django-allauth.readthedocs.io/en/stable/account/advanced.html
 ACCOUNT_ALLOW_REGISTRATION = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None
@@ -455,3 +457,8 @@ DJANGO_VITE = {
 }
 
 DEPLOYMENT_ENV = env("DEPLOYMENT_ENV", default="production")
+
+NOTIFICATIONS = {
+    "SENDER": env("NOTIFICATION_SENDER", default="noreply@example.com"),
+    "NEW_PROJECT": env.list("NOTIFICATIONS_NEW_PROJECTS", default=[]),
+}

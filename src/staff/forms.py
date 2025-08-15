@@ -1,16 +1,14 @@
 from dal import autocomplete
 from django import forms
-from django.forms import ModelForm
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import ExtractionPlate, Genrequest, Order
-
-
-class ExtractionPlateForm(ModelForm):
-    class Meta:
-        model = ExtractionPlate
-        fields = ("name",)
+from genlab_bestilling.models import (
+    AnalysisPlate,
+    ExtractionPlate,
+    Genrequest,
+    Order,
+)
 
 
 class OrderStaffForm(forms.Form):
@@ -67,3 +65,59 @@ class ResponsibleStaffForm(forms.ModelForm):
             "id",
             "responsible_staff",
         )
+
+
+class ExtractionPlateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = ExtractionPlate
+        fields = ("freezer_id", "shelf_id", "notes")
+        widgets = {
+            "freezer_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter Freezer ID"}
+            ),
+            "shelf_id": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter Shelf ID"}
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter notes...",
+                }
+            ),
+        }
+
+
+class AnalysisPlateForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ("name", "analysis_date", "result_file", "notes")
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Enter plate name"}
+            ),
+            "analysis_date": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                    "placeholder": "Select analysis date",
+                }
+            ),
+            "result_file": forms.FileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.xlsx,.xls,.csv,.txt",
+                }
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Enter notes...",
+                }
+            ),
+        }

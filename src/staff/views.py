@@ -10,13 +10,14 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, TemplateView
+from django.views.generic import CreateView, DetailView, TemplateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     Area,
     EquipmentOrder,
     ExtractionOrder,
@@ -25,6 +26,7 @@ from genlab_bestilling.models import (
     IsolationMethod,
     Marker,
     Order,
+    Plate,
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
@@ -36,6 +38,7 @@ from staff.mixins import SafeRedirectMixin
 
 from .filters import (
     AnalysisOrderFilter,
+    AnalysisPlateFilter,
     EquipmentOrderFilter,
     ExtractionOrderFilter,
     ExtractionPlateFilter,
@@ -45,14 +48,19 @@ from .filters import (
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import ExtractionPlateForm, OrderStaffForm
+from .forms import (
+    AnalysisPlateForm,
+    ExtractionPlateForm,
+    OrderStaffForm,
+)
 from .tables import (
     AnalysisOrderTable,
+    AnalysisPlateTable,
     EquipmentOrderTable,
     ExtractionOrderTable,
+    ExtractionPlateTable,
     OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
-    PlateTable,
     ProjectTable,
     SampleStatusTable,
     SampleTable,
@@ -148,19 +156,19 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
         )
 
 
-class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
-    model = ExtractionPlate
-    table_class = PlateTable
-    filterset_class = ExtractionPlateFilter
+# class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+#     model = ExtractionPlate
+#     table_class = PlateTable
+#     filterset_class = ExtractionPlateFilter
 
-    def get_queryset(self) -> QuerySet[ExtractionPlate]:
-        return (
-            super()
-            .get_queryset()
-            .select_related()
-            .prefetch_related("sample_positions")
-            .annotate(samples_count=models.Count("sample_positions"))
-        )
+#     def get_queryset(self) -> QuerySet[ExtractionPlate]:
+#         return (
+#             super()
+#             .get_queryset()
+#             .select_related()
+#             .prefetch_related("sample_positions")
+#             .annotate(samples_count=models.Count("sample_positions"))
+#         )
 
 
 class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
@@ -328,7 +336,6 @@ class OrderExtractionSamplesListView(
             super()
             .get_queryset()
             .select_related("type", "location", "species")
-            .prefetch_related("plate_positions")
             .filter(order=self.kwargs["pk"])
             .annotate_numeric_name()
         )
@@ -371,8 +378,9 @@ class OrderAnalysisSamplesListView(
 ):
     PCR = "pcr"
     ANALYSED = "analysed"
+    NOT_ANALYSED = "invalid"
     OUTPUT = "output"
-    VALID_STATUSES = [PCR, ANALYSED, OUTPUT]
+    VALID_STATUSES = [PCR, ANALYSED, OUTPUT, NOT_ANALYSED]
 
     table_pagination = False
     model = SampleMarkerAnalysis
@@ -386,10 +394,18 @@ class OrderAnalysisSamplesListView(
         return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
-        return SampleMarkerAnalysis.objects.filter(
-            order=self.get_order()
-        ).select_related(
-            "sample__type", "sample__location", "sample__species", "marker"
+        return (
+            SampleMarkerAnalysis.objects.filter(order=self.get_order())
+            .select_related(
+                "sample",
+                "sample__type",
+                "sample__location",
+                "sample__species",
+                "marker",
+                "sample__order",
+                "order",
+            )
+            .prefetch_related("sample__isolation_method")
         )
 
     def get_base_fields(self) -> list[str]:
@@ -433,8 +449,10 @@ class OrderAnalysisSamplesListView(
         return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
-        index = self.VALID_STATUSES.index(status_name)
-        return self.VALID_STATUSES[: index + 1]
+        if status_name != self.NOT_ANALYSED:
+            index = self.VALID_STATUSES.index(status_name)
+            return self.VALID_STATUSES[: index + 1]
+        return [status_name]
 
     def assign_status_to_samples(
         self,
@@ -452,8 +470,13 @@ class OrderAnalysisSamplesListView(
             field_name = "has_pcr"
         elif status_name == self.ANALYSED:
             field_name = "is_analysed"
-        else:
+        elif status_name == self.OUTPUT:
             field_name = "is_outputted"
+        elif status_name == self.NOT_ANALYSED:
+            field_name = "is_invalid"
+        else:
+            msg = "Unexpected status value"
+            raise ValueError(msg)
 
         samples_to_turn_off_ids = list(
             analyses.filter(**{field_name: True}).values_list("id", flat=True)
@@ -473,6 +496,8 @@ class OrderAnalysisSamplesListView(
             update_dict["is_analysed"] = True
         if self.OUTPUT in statuses_to_turn_on:
             update_dict["is_outputted"] = True
+        if self.NOT_ANALYSED in statuses_to_turn_on:
+            update_dict["is_invalid"] = True
 
         SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_on_ids).update(
             **update_dict
@@ -487,7 +512,7 @@ class OrderAnalysisSamplesListView(
     def check_all_output(self, analyses: QuerySet[SampleMarkerAnalysis]) -> None:
         order = self.get_order()
 
-        if not analyses.filter(is_outputted=False).exists():
+        if not analyses.exclude(is_invalid=True).filter(is_outputted=False).exists():
             order.to_completed()
             messages.success(
                 self.request,
@@ -521,7 +546,6 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
                 "order__genrequest__project",
             )
             .prefetch_related(
-                "plate_positions",
                 "order__responsible_staff",
                 Prefetch(
                     "markers", queryset=Marker.objects.order_by("name").distinct()
@@ -548,10 +572,14 @@ class SampleDetailView(StaffMixin, DetailView):
 
 
 class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView):
+    # TODO: move away the logic, validation logic should be in a form,
+    # any other logic should be in a manager/model method (FAT models, THIN views)
+    # TODO: write test to assert the behavior
     MARKED = "marked"
     PLUCKED = "plucked"
     ISOLATED = "isolated"
-    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED]
+    INVALID = "invalid"
+    VALID_STATUSES = [MARKED, PLUCKED, ISOLATED, INVALID]
 
     table_pagination = False
     template_name = "staff/sample_lab.html"
@@ -616,32 +644,63 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        # TODO: use a form instead of manual extraction
         status_name = request.POST.get(self.Params.status)
         selected_ids = request.POST.getlist(f"checked-{self.get_order().pk}")
         isolation_method = request.POST.get(self.Params.isolation_method)
+
+        replicate = request.POST.get("replicate")
+        plate_id = request.POST.get("plate_id")
 
         if not selected_ids:
             messages.error(request, "No samples selected.")
             return HttpResponseRedirect(self.get_next_url())
 
+        if replicate and len(selected_ids) > 1:
+            messages.error(request, "Select a single sample")
+            return HttpResponseRedirect(self.get_next_url())
+
         order = self.get_order()
 
         # Get the selected samples
-        samples = Sample.objects.filter(id__in=selected_ids)
+        samples = Sample.objects.filter(id__in=selected_ids).order_by("genlab_id")
 
         if status_name:
             self.assign_status_to_samples(samples, status_name, request)
-            if status_name == self.ISOLATED:
+            if status_name in [self.ISOLATED, self.INVALID]:
                 # Cannot use "samples" here
                 # because we need to check all samples in the order
                 self.check_all_isolated(Sample.objects.filter(order=order))
+
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)
+
+        if replicate:
+            first_sample = samples.first()
+            if first_sample:
+                first_sample.replicate(int(replicate))
+
+        if plate_id:
+            plate = get_object_or_404(ExtractionPlate, pk=plate_id)
+            plate.populate(
+                list(
+                    samples.filter(
+                        is_isolated=True,
+                        is_plucked=True,
+                        is_marked=True,
+                        is_invalid=False,
+                        position__isnull=True,
+                    )
+                )
+            )
+
         return HttpResponseRedirect(self.get_next_url())
 
     def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
-        index = self.VALID_STATUSES.index(status_name)
-        return self.VALID_STATUSES[: index + 1]
+        if status_name != "invalid":
+            index = self.VALID_STATUSES.index(status_name)
+            return self.VALID_STATUSES[: index + 1]
+        return [status_name]
 
     def assign_status_to_samples(
         self,
@@ -675,7 +734,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     # Checks if all samples in the order are isolated
     # If they are, it updates the order status to completed
     def check_all_isolated(self, samples: QuerySet) -> None:
-        if not samples.filter(is_isolated=False).exists():
+        if not samples.exclude(is_invalid=True).filter(is_isolated=False).exists():
             self.get_order().to_completed()
             messages.success(
                 self.request,
@@ -919,59 +978,6 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
         return HttpResponseRedirect(self.get_next_url())
 
 
-class ExtractionPlateCreateView(StaffMixin, CreateView):
-    model = ExtractionPlate
-    form_class = ExtractionPlateForm
-
-    def get_success_url(self) -> str:
-        return reverse_lazy("staff:plates-list")
-
-
-class ExtractionPlateDetailView(StaffMixin, DetailView):
-    model = ExtractionPlate
-
-
-class SampleReplicaActionView(SingleObjectMixin, ActionView):
-    model = Sample
-
-    def get_queryset(self) -> QuerySet[Sample]:
-        return (
-            super()
-            .get_queryset()
-            .select_related("order")
-            .filter(order__status=Order.OrderStatus.DELIVERED)
-        )
-
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form: Form) -> HttpResponse:
-        try:
-            # TODO: check state transition
-            self.object = self.object.create_replica()
-            messages.add_message(
-                self.request,
-                messages.SUCCESS,
-                _("The sample was replicated"),
-            )
-        except Exception as e:
-            report_errors(e)
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                f"Error: {str(e)}",
-            )
-
-        return super().form_valid(form)
-
-    def get_success_url(self) -> str:
-        return reverse_lazy("staff:samples-detail", kwargs={"id": self.object.pk})
-
-    def form_invalid(self, form: Form) -> HttpResponse:
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
     model = Project
     table_class = ProjectTable
@@ -1049,3 +1055,157 @@ class OrderPrioritizedAdminView(StaffMixin, SafeRedirectMixin, ActionView):
         order.toggle_prioritized()
 
         return redirect(self.get_next_url())
+
+
+# ExtractionPlate Views
+
+
+class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = ExtractionPlate
+    table_class = ExtractionPlateTable
+    filterset_class = ExtractionPlateFilter
+    context_object_name = "extraction_plates"
+    paginate_by = 25
+
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return (
+            ExtractionPlate.objects.select_related()
+            .prefetch_related("positions__sample_raw")
+            .order_by("-created_at")
+        )
+
+
+class ExtractionPlateDetailView(StaffMixin, DetailView):
+    model = ExtractionPlate
+    context_object_name = "plate"
+
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return ExtractionPlate.objects.prefetch_related(
+            "positions__sample_raw__species",
+            "positions__sample_raw__type",
+            "positions__sample_raw__location",
+        )
+
+
+class ExtractionPlateCreateView(StaffMixin, CreateView):
+    model = ExtractionPlate
+    form_class = ExtractionPlateForm
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            f"Extraction plate #{self.object.qiagen_id} created successfully.",  # type: ignore[union-attr]
+        )
+        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
+
+
+class ExtractionPlateUpdateView(StaffMixin, UpdateView):
+    model = ExtractionPlate
+    form_class = ExtractionPlateForm
+    context_object_name = "plate"
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            f"Extraction plate #{self.object.qiagen_id} updated successfully.",
+        )
+        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})
+
+
+# AnalysisPlate Views
+
+
+class AnalysisPlateListView(StaffMixin, SingleTableMixin, FilterView):
+    model = AnalysisPlate
+    table_class = AnalysisPlateTable
+    filterset_class = AnalysisPlateFilter
+    context_object_name = "analysis_plates"
+    paginate_by = 25
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return (
+            AnalysisPlate.objects.select_related()
+            .prefetch_related("positions__sample_marker")
+            .order_by("-created_at")
+        )
+
+
+class AnalysisPlateDetailView(StaffMixin, DetailView):
+    model = AnalysisPlate
+    context_object_name = "plate"
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return AnalysisPlate.objects.prefetch_related(
+            "positions__sample_marker__sample__species",
+            "positions__sample_marker__sample__type",
+            "positions__sample_marker__marker",
+            "positions__sample_marker__order",
+        )
+
+
+class AnalysisPlateCreateView(StaffMixin, CreateView):
+    model = AnalysisPlate
+    form_class = AnalysisPlateForm
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            "Analysis plate created successfully.",
+        )
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
+
+
+class AnalysisPlateUpdateView(StaffMixin, UpdateView):
+    model = AnalysisPlate
+    form_class = AnalysisPlateForm
+    context_object_name = "plate"
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            "Analysis plate updated successfully.",
+        )
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})
+
+
+class PlatePositionsView(StaffMixin, DetailView):
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["grid"] = self.object.get_grid()
+        context["rows"] = Plate.ROWS
+        context["columns"] = range(1, Plate.COLUMNS + 1)
+        return context
+
+
+class ExtractionPlatePositionsView(PlatePositionsView):
+    model = ExtractionPlate
+    template_name = "staff/extractionplate_positions.html"
+
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return (
+            super()
+            .get_queryset()
+            .select_related()
+            .prefetch_related(
+                "positions__sample_raw",
+                "positions__sample_raw__order",
+            )
+        )
+
+
+class AnalysisPlatePositionsView(PlatePositionsView):
+    model = AnalysisPlate
+    template_name = "staff/extractionplate_positions.html"
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return (
+            super()
+            .get_queryset()
+            .select_related()
+            .prefetch_related(
+                "positions__sample_marker",
+                "positions__sample_marker__marker",
+                "positions__sample_marker__sample",
+                "positions__sample_marker__order",
+            )
+        )

@@ -41,3 +41,13 @@ TEMPLATES[0]["OPTIONS"]["debug"] = True  # type: ignore # noqa: F405
 ###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
 MEDIA_URL = "http://media.testserver/"
+
+
+###########################################
+#          NOTIFICATIONS
+###########################################
+# Override notifications settings for testing
+NOTIFICATIONS = {
+    "SENDER": "noreply@genlab.com",
+    "NEW_PROJECT": ["admin@genlab.com", "staff@genlab.com"],
+}

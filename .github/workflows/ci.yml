@@ -56,8 +56,8 @@ jobs:
       - name: Run mypy
         run: docker compose --profile dev run --rm django-dev uv run mypy .
 
-      # - name: Run Django Tests
-      #   run: docker compose --profile dev --rm run django-dev pytest src
+      - name: Run Django Tests with Coverage
+        run: docker compose --profile dev run --rm django-dev uv run pytest src
 
       - name: Tear down the Stack
         run: docker compose --profile dev down

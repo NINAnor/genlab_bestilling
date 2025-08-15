@@ -5,6 +5,11 @@ from staff.api import OrderAPIView
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
+    AnalysisPlateCreateView,
+    AnalysisPlateDetailView,
+    AnalysisPlateListView,
+    AnalysisPlatePositionsView,
+    AnalysisPlateUpdateView,
     DashboardView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
@@ -13,6 +18,8 @@ from .views import (
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
     ExtractionPlateListView,
+    ExtractionPlatePositionsView,
+    ExtractionPlateUpdateView,
     GenerateGenlabIDsView,
     MarkAsSeenView,
     OrderAnalysisSamplesListView,
@@ -26,7 +33,6 @@ from .views import (
     ProjectValidateActionView,
     SampleDetailView,
     SampleLabView,
-    SampleReplicaActionView,
     SamplesListView,
     StaffEditView,
     UpdateInternalNote,
@@ -117,11 +123,6 @@ urlpatterns = [
         name="samples-detail",
     ),
     path(
-        "samples/<int:pk>/replica/",
-        SampleReplicaActionView.as_view(),
-        name="samples-detail-replica",
-    ),
-    path(
         "orders/equipment/<int:pk>/",
         EquipmentOrderDetailView.as_view(),
         name="order-equipment-detail",
@@ -137,19 +138,44 @@ urlpatterns = [
         name="order-extraction-detail",
     ),
     path(
-        "orders/plates/",
+        "extraction-plates/",
         ExtractionPlateListView.as_view(),
-        name="plates-list",
+        name="extraction-plates-list",
     ),
     path(
-        "orders/plates/create/",
+        "extraction-plates/create/",
         ExtractionPlateCreateView.as_view(),
-        name="plates-create",
+        name="extraction-plates-create",
     ),
     path(
-        "orders/plates/<int:pk>/",
+        "extraction-plates/<uuid:pk>/",
         ExtractionPlateDetailView.as_view(),
-        name="plates-detail",
+        name="extraction-plates-detail",
+    ),
+    path(
+        "extraction-plates/<uuid:pk>/update/",
+        ExtractionPlateUpdateView.as_view(),
+        name="extraction-plates-update",
+    ),
+    path(
+        "analysis-plates/",
+        AnalysisPlateListView.as_view(),
+        name="analysis-plates-list",
+    ),
+    path(
+        "analysis-plates/create/",
+        AnalysisPlateCreateView.as_view(),
+        name="analysis-plates-create",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/",
+        AnalysisPlateDetailView.as_view(),
+        name="analysis-plates-detail",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/update/",
+        AnalysisPlateUpdateView.as_view(),
+        name="analysis-plates-update",
     ),
     path(
         "orders/<int:pk>/priority/",
@@ -160,5 +186,15 @@ urlpatterns = [
         "orders/<int:pk>/assign-staff/",
         OrderAPIView.as_view(),
         name="order-assign-staff",
+    ),
+    path(
+        "extraction-plates/<uuid:pk>/positions/",
+        ExtractionPlatePositionsView.as_view(),
+        name="extraction-plates-positions",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/positions/",
+        AnalysisPlatePositionsView.as_view(),
+        name="analysis-plates-positions",
     ),
 ]

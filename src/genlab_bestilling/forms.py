@@ -9,7 +9,12 @@ from django.db.models import Model
 from django.utils.html import strip_tags
 from formset.renderers.tailwind import FormRenderer
 from formset.utils import FormMixin
-from formset.widgets import DualSortableSelector, Selectize, TextInput
+from formset.widgets import (
+    DualSortableSelector,
+    Selectize,
+    TextInput,
+    UploadedFileInput,
+)
 
 from nina.models import Project
 
@@ -267,8 +272,13 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
-        self.fields["contact_person"].label = "Responsible genetic researcher"
-        self.fields["contact_email"].label = "Responsible genetic researcher email"
+        self.fields["contact_person"].label = "Contact person for sample information"
+        self.fields["contact_email"].label = "Sample contact person email"
+
+        self.fields[
+            "contact_person"
+        ].help_text = "Contact person for sample information"
+        self.fields["contact_email"].help_text = "Sample contact person email"
 
     def save(self, commit: bool = True) -> ExtractionOrder:
         obj = super().save(commit=False)
@@ -339,6 +349,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
         self.fields["contact_person"].label = "Responsible genetic researcher"
         self.fields["contact_email"].label = "Responsible genetic researcher email"
+        self.fields[
+            "contact_person"
+        ].help_text = "Responsible for genetic bioinformatics analysis"
+        self.fields[
+            "contact_email"
+        ].help_text = "Email to contact with questions about this order"
 
     def clean_contact_email_results(self) -> str:
         emails_raw = self.cleaned_data.get("contact_email_results", "")
@@ -420,6 +436,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "markers",
             "notes",
             "expected_delivery_date",
+            "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",
@@ -437,6 +454,11 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             ),
             "markers": DualSortableSelector(search_lookup="name_icontains"),
             "expected_delivery_date": DateInput(),
+            "metadata_file": UploadedFileInput(
+                attrs={
+                    "max-size": 2 * 1024 * 1024,
+                }
+            ),
         }
 
 
@@ -448,6 +470,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             # "from_order",
             "notes",
             "expected_delivery_date",
+            "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",

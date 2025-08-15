@@ -30,8 +30,12 @@
                href="{% url 'staff:samples-list' %}">Samples</a>
         </li>
         <li>
-            <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'plates-list' %}text-brand-primary font-bold{% endif %}"
-               href="{% url 'staff:plates-list' %}">Plates</a>
+            <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'extraction-plates-list' %}text-brand-primary font-bold{% endif %}"
+               href="{% url 'staff:extraction-plates-list' %}">Extraction Plates</a>
+        </li>
+        <li>
+            <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'analysis-plates-list' %}text-brand-primary font-bold{% endif %}"
+               href="{% url 'staff:analysis-plates-list' %}">Analysis Plates</a>
         </li>
         </ul>
     </div>

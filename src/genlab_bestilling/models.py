@@ -403,7 +403,7 @@ class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
             "the order is completed",
             settings.NOTIFICATIONS["SENDER"],
             [self.contact_email],
-            # fail_silently=False,
+            fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )
 
 

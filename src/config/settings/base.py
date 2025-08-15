@@ -300,6 +300,8 @@ EMAIL_BACKEND = env(
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-timeout
 EMAIL_TIMEOUT = 5
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-fail-silently
+EMAIL_FAIL_SILENTLY = env.bool("DJANGO_EMAIL_FAIL_SILENTLY", default=False)
 
 
 ###########################################

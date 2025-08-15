@@ -32,7 +32,7 @@
                   <th class="text-center p-2 font-bold">{{ rows|get_item:forloop.counter0 }}</th>
                   {% for cell in row %}
                     <td class="border p-2 text-center cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all
-                             {% if cell.position and not cell.position.is_full %}bg-green-100 hover:bg-green-200{% elif cell.position and cell.position.is_full %}bg-red-100 hover:bg-red-200{% else %}bg-gray-100 hover:bg-gray-200{% endif %}"
+                             {% if cell.position and cell.position.is_full %}bg-red-100 hover:bg-red-200{% elif cell.position and cell.position.is_reserved %}bg-yellow-100 hover:bg-yellow-200{% elif cell.position %}bg-green-100 hover:bg-green-200{% else %}bg-gray-100 hover:bg-gray-200{% endif %}"
                         {% if cell.position %}
                           @click="selectPosition({{ cell.position.id }}, '{{ cell.coordinate }}')"
                           :class="{'ring-2 ring-blue-500': selectedPosition && selectedPosition.id === {{ cell.position.id }}}"

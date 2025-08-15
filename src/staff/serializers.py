@@ -48,40 +48,39 @@ class PlatePositionSerializer(serializers.ModelSerializer):
         """Return possible actions for this position based on its current state."""
         actions = []
 
-        if obj.is_full:
-            # Position is occupied
-            if obj.sample_raw:
-                actions.extend(
-                    [
-                        {
-                            "action": "remove_sample",
-                            "label": "Remove Sample",
-                            "type": "danger",
-                        },
-                        {
-                            "action": "view_sample",
-                            "label": "View Sample Details",
-                            "type": "info",
-                        },
-                    ]
-                )
-            elif obj.sample_marker:
-                actions.extend(
-                    [
-                        {
-                            "action": "remove_analysis",
-                            "label": "Remove Analysis",
-                            "type": "danger",
-                        },
-                        {
-                            "action": "view_analysis",
-                            "label": "View Analysis Details",
-                            "type": "info",
-                        },
-                    ]
-                )
-        # Position is empty
+        # Check specific content first, then reservation status
+        if obj.sample_raw:
+            actions.extend(
+                [
+                    {
+                        "action": "remove_sample",
+                        "label": "Remove Sample",
+                        "type": "danger",
+                    },
+                    {
+                        "action": "view_sample",
+                        "label": "View Sample Details",
+                        "type": "info",
+                    },
+                ]
+            )
+        elif obj.sample_marker:
+            actions.extend(
+                [
+                    {
+                        "action": "remove_analysis",
+                        "label": "Remove Analysis",
+                        "type": "danger",
+                    },
+                    {
+                        "action": "view_analysis",
+                        "label": "View Analysis Details",
+                        "type": "info",
+                    },
+                ]
+            )
         elif obj.is_reserved:
+            # Position is reserved but empty
             actions.append(
                 {
                     "action": "unreserve",
@@ -90,6 +89,7 @@ class PlatePositionSerializer(serializers.ModelSerializer):
                 }
             )
         else:
+            # Position is completely empty
             actions.extend(
                 [
                     {

@@ -69,7 +69,6 @@ def get_fields_staff(instance: Model, fields: str | None = None) -> Any:
 
 @register.filter
 def get_item(array: list[Any], index: int) -> Any:
-    print(array, index)
     try:
         return array[index]
     except IndexError:

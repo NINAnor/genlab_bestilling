@@ -62,7 +62,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
     serializer_class = PlatePositionSerializer
 
     @action(detail=True, methods=["post"])
-    def reserve(self, request: Request, pk: int | None = None) -> Response:
+    def reserve(self, request: Request, pk: int | str) -> Response:
         """Reserve a plate position."""
         position = PlatePosition.objects.select_for_update().get(pk=pk)
 
@@ -81,7 +81,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def unreserve(self, request: Request, pk: int | None = None) -> Response:
+    def unreserve(self, request: Request, pk: int | str) -> Response:
         """Remove reservation from a plate position."""
         position = PlatePosition.objects.select_for_update().get(pk=pk)
 
@@ -94,7 +94,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def remove_sample(self, request: Request, pk: int | None = None) -> Response:
+    def remove_sample(self, request: Request, pk: int | str) -> Response:
         """Remove sample from a plate position."""
         position = PlatePosition.objects.select_for_update().get(pk=pk)
 
@@ -112,7 +112,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def remove_analysis(self, request: Request, pk: int | None = None) -> Response:
+    def remove_analysis(self, request: Request, pk: int | str) -> Response:
         """Remove analysis from a plate position."""
         position = PlatePosition.objects.select_for_update().get(pk=pk)
 
@@ -130,7 +130,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def edit_notes(self, request: Request, pk: int | None = None) -> Response:
+    def edit_notes(self, request: Request, pk: int | str) -> Response:
         """Edit notes for a plate position."""
         position = PlatePosition.objects.select_for_update().get(pk=pk)
         notes = request.data.get("notes", "")
@@ -144,7 +144,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         )
 
     @action(detail=True, methods=["post"])
-    def add_sample(self, request: Request, pk: int | None = None) -> Response:
+    def add_sample(self, request: Request, pk: int | str) -> Response:
         """Add a sample to a plate position."""
         with transaction.atomic():
             position = PlatePosition.objects.select_for_update().get(pk=pk)
@@ -172,7 +172,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             except Sample.DoesNotExist:
                 return Response(
                     {"error": "Sample not found or not available"},
-                    status=status.HTTP_404,
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             position.sample_raw = sample
@@ -185,7 +185,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             )
 
     @action(detail=True, methods=["post"])
-    def add_sample_marker(self, request: Request, pk: int | None = None) -> Response:
+    def add_sample_marker(self, request: Request, pk: int | str) -> Response:
         """Add a sample marker to a plate position."""
         with transaction.atomic():
             position = PlatePosition.objects.select_for_update().get(pk=pk)
@@ -211,7 +211,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             except SampleMarkerAnalysis.DoesNotExist:
                 return Response(
                     {"error": "Sample marker not found or not available"},
-                    status=status.HTTP_404,
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             position.sample_marker = sample_marker

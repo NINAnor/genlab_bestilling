@@ -16,6 +16,7 @@ from genlab_bestilling.api.views import (
     SampleViewset,
     SpeciesViewset,
 )
+from staff.api import PlatePositionViewSet
 
 router = DefaultRouter()
 
@@ -31,6 +32,7 @@ router.register(
     SampleMarkerAnalysisViewset,
     basename="sample-marker-analysis",
 )
+router.register("plate-positions", PlatePositionViewSet, basename="plate-positions")
 
 
 urlpatterns = [

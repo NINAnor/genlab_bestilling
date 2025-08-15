@@ -689,7 +689,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                         is_plucked=True,
                         is_marked=True,
                         is_invalid=False,
-                        position_isnull=True,
+                        position__isnull=True,
                     )
                 )
             )

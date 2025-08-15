@@ -7,6 +7,7 @@ from genlab_bestilling.autocomplete import (
     AnalysisPlateAutocomplete,
     AreaAutocomplete,
     AvailableSampleAutocomplete,
+    AvailableSampleMarkerAutocomplete,
     EquipmentAutocomplete,
     ExtractionOrderAutocomplete,
     ExtractionPlateAutocomplete,
@@ -65,5 +66,10 @@ urlpatterns = [
         "available-sample/",
         AvailableSampleAutocomplete.as_view(),
         name="available-sample",
+    ),
+    path(
+        "available-sample-marker/",
+        AvailableSampleMarkerAutocomplete.as_view(),
+        name="available-sample-marker",
     ),
 ]

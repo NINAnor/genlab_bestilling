@@ -15,6 +15,7 @@ from .models import (
     Marker,
     Order,
     Sample,
+    SampleMarkerAnalysis,
     SampleType,
     Species,
 )
@@ -137,3 +138,30 @@ class AvailableSampleAutocomplete(autocomplete.Select2QuerySetView):
         """Customize how samples appear in the dropdown."""
         species_name = item.species.name if item.species else "Unknown"
         return f"{item.genlab_id} - {item.name} ({species_name})"
+
+
+class AvailableSampleMarkerAutocomplete(autocomplete.Select2QuerySetView):
+    model = SampleMarkerAnalysis
+
+    def get_queryset(self) -> models.QuerySet:
+        # Only show sample markers where the sample has a position
+        qs = SampleMarkerAnalysis.objects.filter(
+            sample__position__isnull=False,
+            is_invalid=False,
+        ).select_related("sample", "marker", "order")
+
+        if self.q:
+            qs = qs.filter(
+                models.Q(sample__genlab_id__icontains=self.q)
+                | models.Q(marker__name__icontains=self.q)
+                | models.Q(id__icontains=self.q)
+            )
+
+        return qs.order_by("sample__genlab_id", "marker__name")[:50]  # Limit results
+
+    def get_result_label(self, item: SampleMarkerAnalysis) -> str:
+        """Customize how sample markers appear in the dropdown."""
+        sample_id = item.sample.genlab_id if item.sample else "Unknown"
+        marker_name = item.marker.name if item.marker else "Unknown"
+        order_id = item.order.id if item.order else "No Order"
+        return f"{sample_id} - {marker_name} - {order_id}"

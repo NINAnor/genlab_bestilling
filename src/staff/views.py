@@ -1179,7 +1179,31 @@ class ExtractionPlatePositionsView(PlatePositionsView):
     model = ExtractionPlate
     template_name = "staff/extractionplate_positions.html"
 
+    def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        return (
+            super()
+            .get_queryset()
+            .select_related()
+            .prefetch_related(
+                "positions__sample_raw",
+                "positions__sample_raw__order",
+            )
+        )
+
 
 class AnalysisPlatePositionsView(PlatePositionsView):
     model = AnalysisPlate
     template_name = "staff/extractionplate_positions.html"
+
+    def get_queryset(self) -> QuerySet[AnalysisPlate]:
+        return (
+            super()
+            .get_queryset()
+            .select_related()
+            .prefetch_related(
+                "positions__sample_marker",
+                "positions__sample_marker__marker",
+                "positions__sample_marker__sample",
+                "positions__sample_marker__order",
+            )
+        )

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from capps.users.models import User
-from genlab_bestilling.models import Order, PlatePosition, Sample
+from genlab_bestilling.models import Order, PlatePosition, Sample, SampleMarkerAnalysis
 
 from .serializers import PlatePositionSerializer
 
@@ -182,4 +182,46 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(position)
             return Response(
                 {"message": "Sample added successfully", "position": serializer.data}
+            )
+
+    @action(detail=True, methods=["post"])
+    def add_sample_marker(self, request: Request, pk: int | None = None) -> Response:
+        """Add a sample marker to a plate position."""
+        with transaction.atomic():
+            position = PlatePosition.objects.select_for_update().get(pk=pk)
+            sample_marker_id = request.data.get("sample_marker_id")
+
+            if not sample_marker_id:
+                return Response(
+                    {"error": "Sample marker ID is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if position.sample_marker:
+                return Response(
+                    {"error": "Position already has a sample marker"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                sample_marker = SampleMarkerAnalysis.objects.select_for_update().get(
+                    pk=sample_marker_id,
+                    sample__position__isnull=False,
+                )
+            except SampleMarkerAnalysis.DoesNotExist:
+                return Response(
+                    {"error": "Sample marker not found or not available"},
+                    status=status.HTTP_404,
+                )
+
+            position.sample_marker = sample_marker
+            position.is_reserved = False  # Remove reservation when adding sample marker
+            position.save(update_fields=["sample_marker", "is_reserved"])
+
+            serializer = self.get_serializer(position)
+            return Response(
+                {
+                    "message": "Sample marker added successfully",
+                    "position": serializer.data,
+                }
             )

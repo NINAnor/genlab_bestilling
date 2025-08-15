@@ -13,6 +13,8 @@ function platePositions() {
     loadingSample: false,
     showSampleSelection: false,
     selectedSampleId: null,
+    showSampleMarkerSelection: false,
+    selectedSampleMarkerId: null,
 
     async selectPosition(positionId, coordinate) {
       if (this.selectedPosition && this.selectedPosition.id === positionId) {
@@ -72,6 +74,11 @@ function platePositions() {
         return;
       }
 
+      if (actionType === "add_sample_marker") {
+        this.initSampleMarkerSelection();
+        return;
+      }
+
       this.loading = true;
       this.message = "";
 
@@ -98,7 +105,7 @@ function platePositions() {
             this.selectedCoordinate
           );
           // Reload the page to update the grid
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => window.location.reload(), 10);
         } else {
           console.error("Action failed:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
@@ -350,7 +357,7 @@ function platePositions() {
             this.selectedCoordinate
           );
           // Reload the page to update the grid
-          setTimeout(() => window.location.reload(), 1000);
+          setTimeout(() => window.location.reload(), 10);
         } else {
           console.error(
             "Failed to add sample:",
@@ -364,6 +371,108 @@ function platePositions() {
       } catch (error) {
         console.error("Error adding sample:", error);
         this.showMessage("Error adding sample", "error");
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    initSampleMarkerSelection() {
+      this.selectedSampleMarkerId = null;
+      this.showSampleMarkerSelection = true;
+
+      // Initialize Select2 after modal is shown
+      this.$nextTick(() => {
+        $("#sample-marker-select")
+          .select2({
+            ajax: {
+              url: $("#sample-marker-select").data("url"),
+              dataType: "json",
+              delay: 250,
+              data: (params) => {
+                return {
+                  q: params.term, // Search term
+                  page: params.page || 1, // Pagination
+                };
+              },
+              processResults: (data, params) => {
+                params.page = params.page || 1;
+                return {
+                  results: data.results,
+                  pagination: {
+                    more: data.next ? true : false,
+                  },
+                };
+              },
+            },
+          })
+          .on("change", (e) => {
+            this.selectedSampleMarkerId = $(e.target).val();
+          });
+      });
+    },
+
+    closeSampleMarkerSelection() {
+      this.showSampleMarkerSelection = false;
+      this.selectedSampleMarkerId = null;
+
+      // Destroy Select2 to clean up
+      if ($("#sample-marker-select").hasClass("select2-hidden-accessible")) {
+        $("#sample-marker-select").select2("destroy");
+      }
+    },
+
+    async addSelectedSampleMarker() {
+      if (!this.selectedSampleMarkerId) {
+        this.showMessage("Please select a sample marker", "error");
+        return;
+      }
+
+      this.loading = true;
+
+      try {
+        const response = await fetch(
+          `/api/plate-positions/${this.selectedPosition.id}/add_sample_marker/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": document.querySelector(
+                "[name=csrfmiddlewaretoken]"
+              ).value,
+            },
+            body: JSON.stringify({
+              sample_marker_id: this.selectedSampleMarkerId,
+            }),
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          this.showMessage(data.message, "success");
+          this.closeSampleMarkerSelection();
+          // Refresh the position data
+          await this.selectPosition(
+            this.selectedPosition.id,
+            this.selectedCoordinate
+          );
+          // Reload the page to update the grid
+          setTimeout(() => window.location.reload(), 10);
+        } else {
+          console.error(
+            "Failed to add sample marker:",
+            response.status,
+            response.statusText
+          );
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Error response:", errorData);
+          this.showMessage(
+            errorData.error || "Failed to add sample marker",
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("Error adding sample marker:", error);
+        this.showMessage("Error adding sample marker", "error");
       } finally {
         this.loading = false;
       }

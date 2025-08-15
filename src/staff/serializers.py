@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from genlab_bestilling.models import PlatePosition, Sample, SampleMarkerAnalysis
+from genlab_bestilling.models import (
+    AnalysisPlate,
+    ExtractionPlate,
+    PlatePosition,
+    Sample,
+    SampleMarkerAnalysis,
+)
 
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -45,8 +51,14 @@ class PlatePositionSerializer(serializers.ModelSerializer):
         return obj.position_to_coordinates()
 
     def get_possible_actions(self, obj: PlatePosition) -> list[dict]:
-        """Return possible actions for this position based on its current state."""
+        """Return possible actions for this position based on state and plate type."""
         actions = []
+
+        plate = obj.plate.get_real_instance()
+
+        # Determine plate type
+        is_extraction_plate = isinstance(plate, ExtractionPlate)
+        is_analysis_plate = isinstance(plate, AnalysisPlate)
 
         # Check specific content first, then reservation status
         if obj.sample_raw:
@@ -69,12 +81,12 @@ class PlatePositionSerializer(serializers.ModelSerializer):
                 [
                     {
                         "action": "remove_analysis",
-                        "label": "Remove Analysis",
+                        "label": "Remove Sample Marker",
                         "type": "danger",
                     },
                     {
                         "action": "view_analysis",
-                        "label": "View Analysis Details",
+                        "label": "View Sample Marker Details",
                         "type": "info",
                     },
                 ]
@@ -90,21 +102,27 @@ class PlatePositionSerializer(serializers.ModelSerializer):
             )
         else:
             # Position is completely empty
-            actions.extend(
-                [
-                    {
-                        "action": "reserve",
-                        "label": "Reserve Position",
-                        "type": "warning",
-                    },
-                    {"action": "add_sample", "label": "Add Sample", "type": "success"},
-                    {
-                        "action": "add_analysis",
-                        "label": "Add Analysis",
-                        "type": "success",
-                    },
-                ]
+            actions.append(
+                {
+                    "action": "reserve",
+                    "label": "Reserve Position",
+                    "type": "warning",
+                }
             )
+
+            # Add different actions based on plate type
+            if is_extraction_plate:
+                actions.append(
+                    {"action": "add_sample", "label": "Add Sample", "type": "success"}
+                )
+            elif is_analysis_plate:
+                actions.append(
+                    {
+                        "action": "add_sample_marker",
+                        "label": "Add Sample Marker",
+                        "type": "success",
+                    }
+                )
 
         # Always allow editing notes
         actions.append(

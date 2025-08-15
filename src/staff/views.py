@@ -15,7 +15,6 @@ from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
 
-from genlab_bestilling.libs.helpers import COLUMNS, ROWS
 from genlab_bestilling.models import (
     AnalysisOrder,
     AnalysisPlate,
@@ -27,6 +26,7 @@ from genlab_bestilling.models import (
     IsolationMethod,
     Marker,
     Order,
+    Plate,
     Sample,
     SampleIsolationMethod,
     SampleMarkerAnalysis,
@@ -646,7 +646,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         isolation_method = request.POST.get(self.Params.isolation_method)
 
         replicate = request.POST.get("replicate")
-        _plate_id = request.POST.get("plate_id")
+        plate_id = request.POST.get("plate_id")
 
         if not selected_ids:
             messages.error(request, "No samples selected.")
@@ -659,7 +659,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         order = self.get_order()
 
         # Get the selected samples
-        samples = Sample.objects.filter(id__in=selected_ids)
+        samples = Sample.objects.filter(id__in=selected_ids).order_by("genlab_id")
 
         if status_name:
             self.assign_status_to_samples(samples, status_name, request)
@@ -675,6 +675,18 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
             first_sample = samples.first()
             if first_sample:
                 first_sample.replicate(int(replicate))
+
+        if plate_id:
+            plate = get_object_or_404(ExtractionPlate, pk=plate_id)
+            plate.populate(
+                samples.filter(
+                    is_isolated=True,
+                    is_plucked=True,
+                    is_marked=True,
+                    is_invalid=False,
+                    position_isnull=True,
+                )
+            )
 
         return HttpResponseRedirect(self.get_next_url())
 
@@ -960,59 +972,6 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
         return HttpResponseRedirect(self.get_next_url())
 
 
-# class ExtractionPlateCreateView(StaffMixin, CreateView):
-#     model = ExtractionPlate
-#     form_class = ExtractionPlateForm
-
-#     def get_success_url(self) -> str:
-#         return reverse_lazy("staff:plates-list")
-
-
-# class ExtractionPlateDetailView(StaffMixin, DetailView):
-#     model = ExtractionPlate
-
-
-class SampleReplicaActionView(SingleObjectMixin, ActionView):
-    model = Sample
-
-    def get_queryset(self) -> QuerySet[Sample]:
-        return (
-            super()
-            .get_queryset()
-            .select_related("order")
-            .filter(order__status=Order.OrderStatus.DELIVERED)
-        )
-
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        self.object = self.get_object()
-        return super().post(request, *args, **kwargs)
-
-    def form_valid(self, form: Form) -> HttpResponse:
-        try:
-            # TODO: check state transition
-            self.object = self.object.create_replica()
-            messages.add_message(
-                self.request,
-                messages.SUCCESS,
-                _("The sample was replicated"),
-            )
-        except Exception as e:
-            report_errors(e)
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                f"Error: {str(e)}",
-            )
-
-        return super().form_valid(form)
-
-    def get_success_url(self) -> str:
-        return reverse_lazy("staff:samples-detail", kwargs={"id": self.object.pk})
-
-    def form_invalid(self, form: Form) -> HttpResponse:
-        return HttpResponseRedirect(self.get_success_url())
-
-
 class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
     model = Project
     table_class = ProjectTable
@@ -1206,28 +1165,9 @@ class AnalysisPlateUpdateView(StaffMixin, UpdateView):
 class PlatePositionsView(StaffMixin, DetailView):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        positions = self.object.positions.all()
-
-        # Create a grid of 8 rows x 12 columns
-        grid = []
-        pos_dict = {p.position: p for p in positions}
-
-        for row in range(8):  # 8 rows A-H
-            grid_row = []
-            for col in range(12):  # 12 columns 1-12
-                position = row * COLUMNS + col
-                grid_row.append(
-                    {
-                        "index": position,
-                        "coordinate": f"{ROWS[row]}{col + 1}",
-                        "position": pos_dict.get(position),
-                    }
-                )
-            grid.append(grid_row)
-
-        context["grid"] = grid
-        context["rows"] = ROWS
-        context["columns"] = range(1, COLUMNS + 1)
+        context["grid"] = self.object.get_grid()
+        context["rows"] = Plate.ROWS
+        context["columns"] = range(1, Plate.COLUMNS + 1)
         return context
 
 

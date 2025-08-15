@@ -27,7 +27,6 @@ from shared.db import assert_is_in_atomic_block
 from shared.mixins import AdminUrlsMixin
 
 from . import managers
-from .libs.helpers import position_to_coordinates
 
 an = "genlab_bestilling"  # Short alias for app name.
 
@@ -1034,6 +1033,9 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
     last_modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
 
+    ROWS = "ABCDEFGH"  # 8 rows
+    COLUMNS = 12  # 12 columns
+
     def __str__(self) -> str:
         return f"{self.id}"
 
@@ -1045,6 +1047,56 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
                 plate=self,
             )
 
+    @transaction.atomic
+    def populate(self, items: list, field_name: str) -> None:
+        if field_name not in ["sample_raw", "sample_marker_analysis"]:
+            msg = "item_type must be either 'sample' or 'sample_marker_analysis'"
+            raise ValueError(msg)
+
+        # Get available positions (not occupied and not reserved)
+        available_positions = self.positions.filter(is_full=False).order_by("position")
+
+        # Check if we have enough positions
+        if len(items) > available_positions.count():
+            available_count = available_positions.count()
+            msg = (
+                f"Not enough available positions. Need {len(items)}, "
+                f"but only {available_count} available"
+            )
+            raise ValueError(msg)
+
+        available_positions = (
+            self.positions.filter(is_full=False)
+            .order_by("position")
+            .select_for_update()[: len(items)]
+        )
+
+        for i, position in enumerate(available_positions):
+            setattr(position, field_name, items[i])
+            position.save(update_fields=[field_name])
+
+    def get_grid(self) -> list[list[dict]]:
+        positions = self.positions.all()
+
+        # Create a grid of 8 rows x 12 columns
+        grid = []
+        pos_dict = {p.position: p for p in positions}
+
+        for row in range(8):  # 8 rows A-H
+            grid_row = []
+            for col in range(12):  # 12 columns 1-12
+                position = col * 8 + row  # Fill by columns instead of rows
+                grid_row.append(
+                    {
+                        "index": position,
+                        "coordinate": f"{Plate.ROWS[row]}{col + 1}",
+                        "position": pos_dict.get(position),
+                    }
+                )
+            grid.append(grid_row)
+
+        return grid
+
 
 class ExtractionPlate(Plate):
     qiagen_id = IntegerSequenceField(primary_key=False)
@@ -1053,6 +1105,9 @@ class ExtractionPlate(Plate):
 
     def __str__(self):
         return f"#Q{self.qiagen_id}"
+
+    def populate(self, items: list) -> None:
+        super().populate(items, "sample_raw")
 
     class Meta:
         constraints = [
@@ -1073,6 +1128,9 @@ class AnalysisPlate(Plate):
 
     def __str__(self) -> str:
         return f"{self.id}"
+
+    def populate(self, items: list) -> None:
+        super().populate(items, "sample_marker")
 
 
 class PlatePosition(AdminUrlsMixin, models.Model):
@@ -1158,4 +1216,17 @@ class PlatePosition(AdminUrlsMixin, models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.plate}@{position_to_coordinates(self.position)}"
+        return f"{self.plate}@{self.position_to_coordinates()}"
+
+    def position_to_coordinates(self) -> str:
+        """
+        Return the plate coordinate of this position (e.g., A1, B2, etc.)
+        Uses column-wise filling: A1=0, B1=1, C1=2..., H1=7, A2=8, B2=9...
+        """
+        row_label = Plate.ROWS[
+            self.position % len(Plate.ROWS)
+        ]  # 8 rows, so position % 8
+        column_label = (
+            self.position // len(Plate.ROWS)
+        ) + 1  # Every 8 positions moves to next column
+        return f"{row_label}{column_label}"

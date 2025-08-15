@@ -7,6 +7,7 @@ from unfold.contrib.filters import admin as unfold_filters
 from .models import (
     AnalysisOrder,
     AnalysisOrderResultsCommunication,
+    AnalysisPlate,
     AnalysisType,
     Area,
     EquimentOrderQuantity,
@@ -14,6 +15,7 @@ from .models import (
     EquipmentOrder,
     EquipmentType,
     ExtractionOrder,
+    ExtractionPlate,
     Genrequest,
     IsolationMethod,
     Location,
@@ -21,6 +23,8 @@ from .models import (
     Marker,
     Order,
     Organization,
+    Plate,
+    PlatePosition,
     Sample,
     SampleMarkerAnalysis,
     SampleType,
@@ -586,3 +590,139 @@ class IsolationMethodAdmin(ModelAdmin):
 
     def get_sample_types(self, obj: IsolationMethod) -> str:
         return ", ".join([sample_type.name for sample_type in obj.sample_types.all()])
+
+
+@admin.register(Plate)
+class PlateAdmin(ModelAdmin):
+    M = Plate
+    list_display = [
+        "__str__",
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+        "get_position_count",
+    ]
+    search_help_text = "Search for plate ID"
+    search_fields = [M.id.field.name]
+    list_filter = [
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    readonly_fields = [
+        M.id.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    list_filter_submit = True
+
+    @admin.display(description="Positions")
+    def get_position_count(self, obj: Plate) -> int:
+        return obj.positions.count()
+
+
+@admin.register(ExtractionPlate)
+class ExtractionPlateAdmin(ModelAdmin):
+    M = ExtractionPlate
+    list_display = [
+        "__str__",
+        M.qiagen_id.field.name,
+        M.freezer_id.field.name,
+        M.shelf_id.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+        "get_filled_positions",
+    ]
+    search_help_text = "Search for plate ID or Qiagen ID"
+    search_fields = [M.id.field.name, M.qiagen_id.field.name]
+    list_filter = [
+        (M.qiagen_id.field.name, unfold_filters.RangeNumericFilter),
+        (M.freezer_id.field.name, unfold_filters.FieldTextFilter),
+        (M.shelf_id.field.name, unfold_filters.FieldTextFilter),
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    readonly_fields = [
+        M.id.field.name,
+        M.qiagen_id.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    list_filter_submit = True
+
+    @admin.display(description="Filled Positions")
+    def get_filled_positions(self, obj: ExtractionPlate) -> str:
+        filled = obj.positions.filter(is_full=True).count()
+        total = obj.positions.count()
+        return f"{filled}/{total}"
+
+
+@admin.register(AnalysisPlate)
+class AnalysisPlateAdmin(ModelAdmin):
+    M = AnalysisPlate
+    list_display = [
+        "__str__",
+        M.name.field.name,
+        M.analysis_date.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+        "get_filled_positions",
+    ]
+    search_help_text = "Search for plate ID or name"
+    search_fields = [M.id.field.name, M.name.field.name]
+    list_filter = [
+        (M.name.field.name, unfold_filters.FieldTextFilter),
+        M.analysis_date.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    readonly_fields = [
+        M.id.field.name,
+        M.created_at.field.name,
+        M.last_modified_at.field.name,
+    ]
+    list_filter_submit = True
+
+    @admin.display(description="Filled Positions")
+    def get_filled_positions(self, obj: AnalysisPlate) -> str:
+        filled = obj.positions.filter(is_full=True).count()
+        total = obj.positions.count()
+        return f"{filled}/{total}"
+
+
+@admin.register(PlatePosition)
+class PlatePositionAdmin(ModelAdmin):
+    M = PlatePosition
+    list_display = [
+        "__str__",
+        M.plate.field.name,
+        M.position.field.name,
+        M.sample_raw.field.name,
+        M.sample_marker.field.name,
+        M.is_reserved.field.name,
+        M.is_full.field.name,
+        M.created_at.field.name,
+    ]
+    search_help_text = "Search for position or plate ID"
+    search_fields = [
+        M.plate.field.name,
+        M.position.field.name,
+    ]
+    list_filter = [
+        (M.plate.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.position.field.name, unfold_filters.RangeNumericFilter),
+        (M.sample_raw.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        (M.sample_marker.field.name, unfold_filters.AutocompleteSelectMultipleFilter),
+        M.is_reserved.field.name,
+        M.is_full.field.name,
+        M.created_at.field.name,
+    ]
+    autocomplete_fields = [
+        M.plate.field.name,
+        M.sample_raw.field.name,
+        M.sample_marker.field.name,
+    ]
+    readonly_fields = [
+        M.is_full.field.name,
+        M.created_at.field.name,
+    ]
+    list_filter_submit = True
+    list_filter_sheet = False

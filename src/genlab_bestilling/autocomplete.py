@@ -14,6 +14,7 @@ from .models import (
     Location,
     Marker,
     Order,
+    Sample,
     SampleType,
     Species,
 )
@@ -111,3 +112,28 @@ class AnalysisPlateAutocomplete(autocomplete.Select2QuerySetView):
                 models.Q(id__istartswith=self.q) | models.Q(name__icontains=self.q)
             )
         return qs
+
+
+class AvailableSampleAutocomplete(autocomplete.Select2QuerySetView):
+    model = Sample
+
+    def get_queryset(self) -> models.QuerySet:
+        # Only show samples that are isolated, not invalid, and not already positioned
+        qs = Sample.objects.filter(
+            genlab_id__isnull=False,  # Has genlab ID
+            is_isolated=True,  # Is isolated
+            is_invalid=False,  # Not invalid
+            position__isnull=True,  # Not already positioned
+        ).select_related("species", "type", "order")
+
+        if self.q:
+            qs = qs.filter(
+                models.Q(genlab_id__icontains=self.q) | models.Q(name__icontains=self.q)
+            )
+
+        return qs.order_by("genlab_id")[:50]  # Limit results
+
+    def get_result_label(self, item: Sample) -> str:
+        """Customize how samples appear in the dropdown."""
+        species_name = item.species.name if item.species else "Unknown"
+        return f"{item.genlab_id} - {item.name} ({species_name})"

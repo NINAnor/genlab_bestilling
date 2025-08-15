@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.db.models.query import QuerySet
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -7,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from capps.users.models import User
-from genlab_bestilling.models import Order, PlatePosition
+from genlab_bestilling.models import Order, PlatePosition, Sample
 
 from .serializers import PlatePositionSerializer
 
@@ -141,3 +142,44 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         return Response(
             {"message": "Notes updated successfully", "position": serializer.data}
         )
+
+    @action(detail=True, methods=["post"])
+    def add_sample(self, request: Request, pk: int | None = None) -> Response:
+        """Add a sample to a plate position."""
+        with transaction.atomic():
+            position = PlatePosition.objects.select_for_update().get(pk=pk)
+            sample_id = request.data.get("sample_id")
+
+            if not sample_id:
+                return Response(
+                    {"error": "Sample ID is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if position.sample_raw:
+                return Response(
+                    {"error": "Position already has a sample"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            try:
+                sample = Sample.objects.select_for_update().get(
+                    pk=sample_id,
+                    genlab_id__isnull=False,
+                    is_isolated=True,
+                    is_invalid=False,
+                )
+            except Sample.DoesNotExist:
+                return Response(
+                    {"error": "Sample not found or not available"},
+                    status=status.HTTP_404,
+                )
+
+            position.sample_raw = sample
+            position.is_reserved = False  # Remove reservation when adding sample
+            position.save(update_fields=["sample_raw", "is_reserved"])
+
+            serializer = self.get_serializer(position)
+            return Response(
+                {"message": "Sample added successfully", "position": serializer.data}
+            )

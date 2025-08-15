@@ -48,7 +48,11 @@ from .filters import (
     SampleLabFilter,
     SampleMarkerOrderFilter,
 )
-from .forms import AnalysisPlateForm, ExtractionPlateForm, OrderStaffForm
+from .forms import (
+    AnalysisPlateForm,
+    ExtractionPlateForm,
+    OrderStaffForm,
+)
 from .tables import (
     AnalysisOrderTable,
     AnalysisPlateTable,

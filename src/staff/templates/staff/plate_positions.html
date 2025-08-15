@@ -1,6 +1,11 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
 {% load core %}
+{% load static %}
+
+{% block css %}
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock css %}
 
 {% block content %}
   {% csrf_token %}
@@ -152,13 +157,13 @@
 
         <div class="p-6">
           <!-- Loading state -->
-          <div x-show="loadingSample" class="text-center py-8">
+          <div x-cloak x-show="loadingSample" class="text-center py-8">
             <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
             <p class="text-gray-600 mt-2">Loading details...</p>
           </div>
 
           <!-- Sample Details -->
-          <div x-show="!loadingSample && sampleDetails && sampleDetails.genlab_id" class="space-y-4">
+          <div x-cloak x-show="!loadingSample && sampleDetails && sampleDetails.genlab_id" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Genlab ID</label>
@@ -201,8 +206,8 @@
           </div>
 
           <!-- Analysis Details -->
-          <div x-show="!loadingSample && sampleDetails && !sampleDetails.genlab_id" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div x-cloak x-show="!loadingSample && sampleDetails && !sampleDetails.genlab_id" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-if="!sampleDetails">
               <div>
                 <label class="block text-sm font-medium text-gray-700">Analysis ID</label>
                 <p class="mt-1 text-sm text-gray-900" x-text="sampleDetails.id"></p>
@@ -231,243 +236,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Sample Selection Modal -->
+    <div x-cloak x-show="showSampleSelection"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+         @click.self="closeSampleSelection()">
+
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="flex justify-between items-center p-6 border-b">
+          <h3 class="text-xl font-semibold text-gray-900">Add Sample</h3>
+          <button @click="closeSampleSelection()"
+                  class="text-gray-400 hover:text-gray-600 transition-colors">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        <div class="p-6">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Select Sample for Position <span x-text="selectedCoordinate"></span>:
+            </label>
+            <select id="sample-select"
+              data-language="en"
+              data-url="{% url 'autocomplete:available-sample' %}"
+              data-placeholder="Choose a sample"
+              >
+              <option value="">Choose a sample...</option>
+            </select>
+          </div>
+
+          <div class="flex gap-3 justify-end">
+            <button @click="closeSampleSelection()"
+                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">
+              Cancel
+            </button>
+            <button @click="addSelectedSample()"
+                    :disabled="!selectedSampleId"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              Add Sample
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script>
-    function platePositions() {
-      return {
-        selectedPosition: null,
-        selectedCoordinate: '',
-        actions: [],
-        loading: false,
-        message: '',
-        messageType: 'success',
-        showNotesEdit: false,
-        notesInput: '',
-        showSampleDetails: false,
-        sampleDetails: null,
-        loadingSample: false,
-
-        async selectPosition(positionId, coordinate) {
-          if (this.selectedPosition && this.selectedPosition.id === positionId) {
-            return; // Already selected
-          }
-
-          this.selectedPosition = { id: positionId };
-          this.selectedCoordinate = coordinate;
-          this.loading = true;
-          this.actions = [];
-          this.message = '';
-          this.showNotesEdit = false;
-
-          try {
-            const response = await fetch(`/api/plate-positions/${positionId}/`);
-            if (response.ok) {
-              const data = await response.json();
-              this.selectedPosition = data;
-              this.actions = data.possible_actions || [];
-              this.notesInput = data.notes || '';
-            } else {
-              console.error('Failed to load position details:', response.status, response.statusText);
-              const errorData = await response.json().catch(() => ({}));
-              console.error('Error response:', errorData);
-              this.showMessage('Failed to load position details', 'error');
-            }
-          } catch (error) {
-            console.error('Error loading position details:', error);
-            this.showMessage('Error loading position details', 'error');
-          } finally {
-            this.loading = false;
-          }
-        },
-
-        async performAction(actionType) {
-          if (actionType === 'edit_notes') {
-            this.showNotesEdit = true;
-            return;
-          }
-
-          if (actionType === 'view_sample') {
-            await this.viewSample();
-            return;
-          }
-
-          if (actionType === 'view_analysis') {
-            await this.viewAnalysis();
-            return;
-          }
-
-          this.loading = true;
-          this.message = '';
-
-          try {
-            const response = await fetch(`/api/plate-positions/${this.selectedPosition.id}/${actionType}/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-              }
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              this.showMessage(data.message, 'success');
-              // Refresh the position data
-              await this.selectPosition(this.selectedPosition.id, this.selectedCoordinate);
-              // Reload the page to update the grid
-              setTimeout(() => window.location.reload(), 1000);
-            } else {
-              console.error('Action failed:', response.status, response.statusText);
-              const errorData = await response.json().catch(() => ({}));
-              console.error('Error response:', errorData);
-              this.showMessage(errorData.error || 'Action failed', 'error');
-            }
-          } catch (error) {
-            console.error('Error performing action:', error);
-            this.showMessage('Error performing action', 'error');
-          } finally {
-            this.loading = false;
-          }
-        },
-
-        async saveNotes() {
-          this.loading = true;
-
-          try {
-            const response = await fetch(`/api/plate-positions/${this.selectedPosition.id}/edit_notes/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-              },
-              body: JSON.stringify({ notes: this.notesInput })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              this.showMessage(data.message, 'success');
-              this.showNotesEdit = false;
-              this.selectedPosition.notes = this.notesInput;
-            } else {
-              console.error('Failed to save notes:', response.status, response.statusText);
-              const errorData = await response.json().catch(() => ({}));
-              console.error('Error response:', errorData);
-              this.showMessage(errorData.error || 'Failed to save notes', 'error');
-            }
-          } catch (error) {
-            console.error('Error saving notes:', error);
-            this.showMessage('Error saving notes', 'error');
-          } finally {
-            this.loading = false;
-          }
-        },
-
-        cancelNotesEdit() {
-          this.showNotesEdit = false;
-          this.notesInput = this.selectedPosition.notes || '';
-        },
-
-        async viewSample() {
-          if (!this.selectedPosition.sample_raw) {
-            this.showMessage('No sample to view', 'error');
-            return;
-          }
-
-          this.loadingSample = true;
-          this.sampleDetails = null;
-
-          try {
-            const response = await fetch(`/api/samples/${this.selectedPosition.sample_raw.id}/`);
-            if (response.ok) {
-              const data = await response.json();
-              this.sampleDetails = data;
-              this.showSampleDetails = true;
-            } else {
-              console.error('Failed to load sample details:', response.status, response.statusText);
-              const errorData = await response.json().catch(() => ({}));
-              console.error('Error response:', errorData);
-              this.showMessage('Failed to load sample details', 'error');
-            }
-          } catch (error) {
-            console.error('Error loading sample details:', error);
-            this.showMessage('Error loading sample details', 'error');
-          } finally {
-            this.loadingSample = false;
-          }
-        },
-
-        async viewAnalysis() {
-          if (!this.selectedPosition.sample_marker) {
-            this.showMessage('No analysis to view', 'error');
-            return;
-          }
-
-          this.loadingSample = true;
-          this.sampleDetails = null;
-
-          try {
-            const response = await fetch(`/api/sample-marker-analysis/${this.selectedPosition.sample_marker.id}/`);
-            if (response.ok) {
-              const data = await response.json();
-              this.sampleDetails = data;
-              this.showSampleDetails = true;
-            } else {
-              console.error('Failed to load analysis details:', response.status, response.statusText);
-              const errorData = await response.json().catch(() => ({}));
-              console.error('Error response:', errorData);
-              this.showMessage('Failed to load analysis details', 'error');
-            }
-          } catch (error) {
-            console.error('Error loading analysis details:', error);
-            this.showMessage('Error loading analysis details', 'error');
-          } finally {
-            this.loadingSample = false;
-          }
-        },
-
-        closeSampleDetails() {
-          this.showSampleDetails = false;
-          this.sampleDetails = null;
-        },
-
-        getPositionStatus() {
-          if (!this.selectedPosition) return '';
-
-          if (this.selectedPosition.sample_raw) {
-            return `Contains sample: ${this.selectedPosition.sample_raw.genlab_id}`;
-          } else if (this.selectedPosition.sample_marker) {
-            return `Contains analysis: ${this.selectedPosition.sample_marker.id}`;
-          } else if (this.selectedPosition.is_reserved) {
-            return 'Reserved';
-          } else {
-            return 'Empty position';
-          }
-        },
-
-        getActionButtonClass(type) {
-          const baseClasses = 'transition-colors';
-          switch (type) {
-            case 'success':
-              return baseClasses + ' bg-green-600 text-white hover:bg-green-700';
-            case 'danger':
-              return baseClasses + ' bg-red-600 text-white hover:bg-red-700';
-            case 'warning':
-              return baseClasses + ' bg-yellow-600 text-white hover:bg-yellow-700';
-            case 'info':
-              return baseClasses + ' bg-blue-600 text-white hover:bg-blue-700';
-            default:
-              return baseClasses + ' bg-gray-600 text-white hover:bg-gray-700';
-          }
-        },
-
-        showMessage(msg, type = 'success') {
-          this.message = msg;
-          this.messageType = type;
-          setTimeout(() => {
-            this.message = '';
-          }, 5000);
-        }
-      }
-    }
-  </script>
 {% endblock %}
+
+{% block body_javascript %}
+  {{ block.super }}
+  <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="{% static 'js/plate_positions.js' %}"></script>
+{% endblock body_javascript %}

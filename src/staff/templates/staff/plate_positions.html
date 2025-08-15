@@ -1,0 +1,48 @@
+{% extends "staff/base.html" %}
+{% load i18n %}
+{% load core %}
+
+{% block content %}
+  <div class="flex gap-5 mb-5">
+    <a class="btn btn-sm btn-tertiary" href="../">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <h3 class="text-4xl mb-5">Plate {{ object }} - Positions</h3>
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto p-4">
+    <table class="w-full table-fixed">
+      <thead>
+        <tr>
+          <th></th>
+          {% for col in columns %}
+            <th class="text-center p-2 font-bold">{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in grid %}
+          <tr>
+            <th class="text-center p-2 font-bold">{{ rows|get_item:forloop.counter0 }}</th>
+            {% for cell in row %}
+              <td class="border p-2 text-center {% if cell.position and not cell.position.is_full %}bg-success text-success-content{% else %}bg-error text-danger-content{% endif %}">
+                {% if cell.position %}
+                  <div class="text-lg min-h-20">
+                    {% if cell.position.sample_raw %}
+                      <a target="_blank" href="{% url 'staff:samples-detail' pk=cell.position.sample_raw.pk %}">{{ cell.position.sample_raw.genlab_id }}</a>
+                    {% elif cell.position.sample_marker %}
+                      {{ cell.position.sample_marker.genlab_id }}
+                    {% elif cell.position.is_reserved %}
+                      <span class="text-warning">Reserved</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

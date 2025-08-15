@@ -8,9 +8,12 @@ from pytest_django.asserts import assertQuerySetEqual
 
 from genlab_bestilling.models import (
     AnalysisOrder,
+    AnalysisPlate,
     ExtractionOrder,
+    ExtractionPlate,
     GIDSequence,
     Marker,
+    PlatePosition,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -756,3 +759,175 @@ def test_order_completion_without_contact_email_fails(extraction):
 
     # Complete order without setting contact_email (should be None)
     extraction.to_completed()
+
+
+@pytest.mark.django_db
+def test_plate_get_grid_column_filling():
+    """Test that get_grid method fills the matrix by columns instead of rows."""
+    # Create an extraction plate for testing
+    plate = ExtractionPlate.objects.create()
+
+    # Create some plate positions to test with
+    # Positions are filled by columns: A1=0, B1=1, C1=2..., H1=7, A2=8, B2=9...
+    test_positions = [0, 1, 8, 9, 16, 17]  # A1, B1, A2, B2, A3, B3
+    for pos in test_positions:
+        PlatePosition.objects.create(plate=plate, position=pos)
+
+    # Get the grid
+    grid = plate.get_grid()
+
+    # Verify grid structure
+    assert len(grid) == 8  # 8 rows (A-H)
+    assert len(grid[0]) == 12  # 12 columns (1-12)
+
+    # Test specific positions and their coordinates
+    # Row A (index 0)
+    assert grid[0][0]["index"] == 0  # A1
+    assert grid[0][0]["coordinate"] == "A1"
+    assert grid[0][0]["position"] is not None
+
+    assert grid[0][1]["index"] == 8  # A2
+    assert grid[0][1]["coordinate"] == "A2"
+    assert grid[0][1]["position"] is not None
+
+    assert grid[0][2]["index"] == 16  # A3
+    assert grid[0][2]["coordinate"] == "A3"
+    assert grid[0][2]["position"] is not None
+
+    # Row B (index 1)
+    assert grid[1][0]["index"] == 1  # B1
+    assert grid[1][0]["coordinate"] == "B1"
+    assert grid[1][0]["position"] is not None
+
+    assert grid[1][1]["index"] == 9  # B2
+    assert grid[1][1]["coordinate"] == "B2"
+    assert grid[1][1]["position"] is not None
+
+    assert grid[1][2]["index"] == 17  # B3
+    assert grid[1][2]["coordinate"] == "B3"
+    assert grid[1][2]["position"] is not None
+
+    # Test empty positions
+    assert grid[0][3]["index"] == 24  # A4
+    assert grid[0][3]["coordinate"] == "A4"
+    assert grid[0][3]["position"] is None  # No position created for this
+
+    # Test column filling pattern - verify that positions are filled column by column
+    # Column 1: A1=0, B1=1, C1=2, ..., H1=7
+    # Column 2: A2=8, B2=9, C2=10, ..., H2=15
+    for row in range(8):  # Rows A-H
+        for col in range(12):  # Columns 1-12
+            expected_position = col * 8 + row
+            assert grid[row][col]["index"] == expected_position
+            assert grid[row][col]["coordinate"] == f"{'ABCDEFGH'[row]}{col + 1}"
+
+
+@pytest.mark.django_db
+def test_analysis_plate_get_grid():
+    """Test that get_grid method works for AnalysisPlate as well."""
+    # Create an analysis plate for testing
+    plate = AnalysisPlate.objects.create()
+
+    # Create a few plate positions
+    test_positions = [0, 7, 8, 15]  # A1, H1, A2, H2
+    for pos in test_positions:
+        PlatePosition.objects.create(plate=plate, position=pos)
+
+    # Get the grid
+    grid = plate.get_grid()
+
+    # Verify basic structure
+    assert len(grid) == 8  # 8 rows
+    assert len(grid[0]) == 12  # 12 columns
+
+    # Test that positions are found correctly
+    assert grid[0][0]["position"] is not None  # A1
+    assert grid[7][0]["position"] is not None  # H1
+    assert grid[0][1]["position"] is not None  # A2
+    assert grid[7][1]["position"] is not None  # H2
+
+
+@pytest.mark.django_db
+def test_plate_position_to_coordinates():
+    """Test position_to_coordinates method for column-wise filling."""
+    # Create a plate for testing
+    plate = ExtractionPlate.objects.create()
+
+    # Test specific position mappings with column-wise filling
+    test_cases = [
+        # (position_index, expected_coordinate)
+        (0, "A1"),  # First position: row A, column 1
+        (1, "B1"),  # Second position: row B, column 1
+        (2, "C1"),  # Third position: row C, column 1
+        (7, "H1"),  # Eighth position: row H, column 1
+        (8, "A2"),  # Ninth position: row A, column 2
+        (9, "B2"),  # Tenth position: row B, column 2
+        (15, "H2"),  # Sixteenth position: row H, column 2
+        (16, "A3"),  # Seventeenth position: row A, column 3
+        (24, "A4"),  # Twenty-fifth position: row A, column 4
+        (31, "H4"),  # Thirty-second position: row H, column 4
+        (88, "A12"),  # Position 88: row A, column 12
+        (95, "H12"),  # Last position: row H, column 12
+    ]
+
+    for position_index, expected_coordinate in test_cases:
+        # Create a plate position with the given index
+        plate_position = PlatePosition.objects.create(
+            plate=plate, position=position_index
+        )
+
+        # Test the position_to_coordinates method
+        actual_coordinate = plate_position.position_to_coordinates()
+        assert actual_coordinate == expected_coordinate, (
+            f"Position {position_index} should map to {expected_coordinate}, "
+            f"got {actual_coordinate}"
+        )
+
+        # Clean up for next iteration
+        plate_position.delete()
+
+
+@pytest.mark.django_db
+def test_plate_position_str_method():
+    """Test that PlatePosition.__str__ method uses position_to_coordinates correctly."""
+    # Create a plate for testing
+    plate = ExtractionPlate.objects.create()
+
+    # Create a position
+    position = PlatePosition.objects.create(plate=plate, position=0)  # A1
+
+    # Test the __str__ method
+    str_representation = str(position)
+    assert "@A1" in str_representation
+    assert str(plate) in str_representation
+
+
+@pytest.mark.django_db
+def test_position_to_coordinates_edge_cases():
+    """Test edge cases for position_to_coordinates method."""
+    # Create a plate for testing
+    plate = ExtractionPlate.objects.create()
+
+    # Test boundary positions
+    test_cases = [
+        (0, "A1"),  # First position
+        (7, "H1"),  # Last position in first column
+        (8, "A2"),  # First position in second column
+        (87, "H11"),  # Last position in second-to-last column
+        (88, "A12"),  # First position in last column
+        (95, "H12"),  # Very last position
+    ]
+
+    for position_index, expected_coordinate in test_cases:
+        plate_position = PlatePosition.objects.create(
+            plate=plate, position=position_index
+        )
+
+        coordinate = plate_position.position_to_coordinates()
+        assert coordinate == expected_coordinate, (
+            f"Edge case: position {position_index} should be {expected_coordinate}, "
+            f"got {coordinate}"
+        )
+
+        # Clean up
+        plate_position.delete()

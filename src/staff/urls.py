@@ -33,7 +33,6 @@ from .views import (
     ProjectValidateActionView,
     SampleDetailView,
     SampleLabView,
-    SampleReplicaActionView,
     SamplesListView,
     StaffEditView,
     UpdateInternalNote,
@@ -122,11 +121,6 @@ urlpatterns = [
         "samples/<int:pk>/",
         SampleDetailView.as_view(),
         name="samples-detail",
-    ),
-    path(
-        "samples/<int:pk>/replica/",
-        SampleReplicaActionView.as_view(),
-        name="samples-detail-replica",
     ),
     path(
         "orders/equipment/<int:pk>/",

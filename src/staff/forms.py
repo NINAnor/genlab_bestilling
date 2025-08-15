@@ -3,7 +3,12 @@ from django import forms
 from formset.renderers.tailwind import FormRenderer
 
 from capps.users.models import User
-from genlab_bestilling.models import AnalysisPlate, ExtractionPlate, Genrequest, Order
+from genlab_bestilling.models import (
+    AnalysisPlate,
+    ExtractionPlate,
+    Genrequest,
+    Order,
+)
 
 
 class OrderStaffForm(forms.Form):

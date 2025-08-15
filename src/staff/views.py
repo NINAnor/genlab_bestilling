@@ -683,12 +683,14 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         if plate_id:
             plate = get_object_or_404(ExtractionPlate, pk=plate_id)
             plate.populate(
-                samples.filter(
-                    is_isolated=True,
-                    is_plucked=True,
-                    is_marked=True,
-                    is_invalid=False,
-                    position_isnull=True,
+                list(
+                    samples.filter(
+                        is_isolated=True,
+                        is_plucked=True,
+                        is_marked=True,
+                        is_invalid=False,
+                        position_isnull=True,
+                    )
                 )
             )
 
@@ -1092,9 +1094,9 @@ class ExtractionPlateCreateView(StaffMixin, CreateView):
     def get_success_url(self) -> str:
         messages.success(
             self.request,
-            f"Extraction plate #{self.object.qiagen_id} created successfully.",
+            f"Extraction plate #{self.object.qiagen_id} created successfully.",  # type: ignore[union-attr]
         )
-        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})
+        return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
 
 
 class ExtractionPlateUpdateView(StaffMixin, UpdateView):
@@ -1150,7 +1152,7 @@ class AnalysisPlateCreateView(StaffMixin, CreateView):
             self.request,
             "Analysis plate created successfully.",
         )
-        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
 
 
 class AnalysisPlateUpdateView(StaffMixin, UpdateView):

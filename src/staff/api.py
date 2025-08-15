@@ -1,11 +1,15 @@
 from django.contrib import messages
 from django.db.models.query import QuerySet
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from capps.users.models import User
-from genlab_bestilling.models import Order
+from genlab_bestilling.models import Order, PlatePosition
+
+from .serializers import PlatePositionSerializer
 
 
 class OrderAPIView(APIView):
@@ -46,3 +50,94 @@ class OrderAPIView(APIView):
             return Response(
                 status=500,
             )
+
+
+class PlatePositionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing plate positions."""
+
+    queryset = PlatePosition.objects.select_related(
+        "plate", "sample_raw", "sample_marker"
+    ).all()
+    serializer_class = PlatePositionSerializer
+
+    @action(detail=True, methods=["post"])
+    def reserve(self, request: Request, pk: int | None = None) -> Response:
+        """Reserve a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+        if position.is_full:
+            return Response(
+                {"error": "Cannot reserve an occupied position"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        position.is_reserved = True
+        position.save(update_fields=["is_reserved"])
+
+        serializer = self.get_serializer(position)
+        return Response(
+            {"message": "Position reserved successfully", "position": serializer.data}
+        )
+
+    @action(detail=True, methods=["post"])
+    def unreserve(self, request: Request, pk: int | None = None) -> Response:
+        """Remove reservation from a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+        position.is_reserved = False
+        position.save(update_fields=["is_reserved"])
+
+        serializer = self.get_serializer(position)
+        return Response(
+            {"message": "Position unreserved successfully", "position": serializer.data}
+        )
+
+    @action(detail=True, methods=["post"])
+    def remove_sample(self, request: Request, pk: int | None = None) -> Response:
+        """Remove sample from a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+        if not position.sample_raw:
+            return Response(
+                {"error": "No sample to remove"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        position.sample_raw = None
+        position.save(update_fields=["sample_raw"])
+
+        serializer = self.get_serializer(position)
+        return Response(
+            {"message": "Sample removed successfully", "position": serializer.data}
+        )
+
+    @action(detail=True, methods=["post"])
+    def remove_analysis(self, request: Request, pk: int | None = None) -> Response:
+        """Remove analysis from a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+        if not position.sample_marker:
+            return Response(
+                {"error": "No analysis to remove"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        position.sample_marker = None
+        position.save(update_fields=["sample_marker"])
+
+        serializer = self.get_serializer(position)
+        return Response(
+            {"message": "Analysis removed successfully", "position": serializer.data}
+        )
+
+    @action(detail=True, methods=["post"])
+    def edit_notes(self, request: Request, pk: int | None = None) -> Response:
+        """Edit notes for a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+        notes = request.data.get("notes", "")
+
+        position.notes = notes
+        position.save(update_fields=["notes"])
+
+        serializer = self.get_serializer(position)
+        return Response(
+            {"message": "Notes updated successfully", "position": serializer.data}
+        )

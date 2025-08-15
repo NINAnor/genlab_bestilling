@@ -80,7 +80,7 @@ class Project(AdminUrlsMixin, LifecycleModel):
             "A new project was registered, please verify it",
             settings.NOTIFICATIONS["SENDER"],
             settings.NOTIFICATIONS["NEW_PROJECT"],
-            # fail_silently=False,
+            fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )
 
     @hook(
@@ -96,5 +96,5 @@ class Project(AdminUrlsMixin, LifecycleModel):
             "A new project was registered, please verify it",
             settings.NOTIFICATIONS["SENDER"],
             self.memberships.values_list("email", flat=True),
-            # fail_silently=False,
+            fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )

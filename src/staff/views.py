@@ -686,8 +686,6 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                 plate.populate(
                     list(
                         samples.filter(
-                            is_isolated=True,
-                            is_plucked=True,
                             is_marked=True,
                             is_invalid=False,
                             position__isnull=True,

@@ -160,6 +160,7 @@ class GIDSequenceQuerySet(models.QuerySet):
         sequence_id, _ = s.get_or_create(
             year=year,
             species=species,
+            sample=None,
             defaults={"id": f"G{year % 100}{species.code}"},
         )
         return sequence_id

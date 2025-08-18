@@ -1047,6 +1047,12 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
                 plate=self,
             )
 
+    class NotEnoughPositions(Exception):
+        """
+        Exception raised when there are not enough positions available in the plate
+        to accommodate the items being populated.
+        """
+
     @transaction.atomic
     def populate(self, items: list, field_name: str) -> None:
         if field_name not in ["sample_raw", "sample_marker_analysis"]:
@@ -1063,7 +1069,7 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
                 f"Not enough available positions. Need {len(items)}, "
                 f"but only {available_count} available"
             )
-            raise ValueError(msg)
+            raise self.NotEnoughPositions(msg)
 
         available_positions = (
             self.positions.filter(is_full=False)

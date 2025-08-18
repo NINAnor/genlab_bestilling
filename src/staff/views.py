@@ -682,17 +682,21 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
 
         if plate_id:
             plate = get_object_or_404(ExtractionPlate, pk=plate_id)
-            plate.populate(
-                list(
-                    samples.filter(
-                        is_isolated=True,
-                        is_plucked=True,
-                        is_marked=True,
-                        is_invalid=False,
-                        position__isnull=True,
+            try:
+                plate.populate(
+                    list(
+                        samples.filter(
+                            is_isolated=True,
+                            is_plucked=True,
+                            is_marked=True,
+                            is_invalid=False,
+                            position__isnull=True,
+                        )
                     )
                 )
-            )
+            except Plate.NotEnoughPositions:
+                messages.error(request, "Not enough empty positions in the plate.")
+                return HttpResponseRedirect(self.get_next_url())
 
         return HttpResponseRedirect(self.get_next_url())
 

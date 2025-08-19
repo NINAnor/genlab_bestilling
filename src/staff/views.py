@@ -688,14 +688,17 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         if plate_id:
             plate = get_object_or_404(ExtractionPlate, pk=plate_id)
             try:
-                plate.populate(
-                    list(
-                        samples.filter(
-                            is_marked=True,
-                            is_invalid=False,
-                            position__isnull=True,
-                        )
+                sample_list = list(
+                    samples.filter(
+                        is_marked=True,
+                        is_invalid=False,
+                        position__isnull=True,
                     )
+                )
+                plate.populate(sample_list)
+                messages.success(
+                    request,
+                    f"Populated {len(sample_list)} samples in the plate {plate.name}.",
                 )
             except Plate.NotEnoughPositions:
                 messages.error(request, "Not enough empty positions in the plate.")

@@ -388,6 +388,22 @@ class SampleStatusTable(tables.Table):
         accessor="is_invalid",
     )
 
+    position = tables.Column(
+        verbose_name="Position",
+        orderable=False,
+        accessor="position",
+        empty_values=(),
+        linkify=(
+            "staff:extraction-plates-positions",
+            {"pk": tables.A("position__plate_id")},
+        ),
+    )
+
+    def render_position(self, value: Any, record: Any) -> str:
+        if value:
+            return str(value)
+        return None
+
     class Meta:
         model = Sample
         fields = (
@@ -399,6 +415,7 @@ class SampleStatusTable(tables.Table):
             "invalid",
             "internal_note",
             "isolation_method",
+            "position",
             "type",
         )
         sequence = (
@@ -411,6 +428,7 @@ class SampleStatusTable(tables.Table):
             "invalid",
             "internal_note",
             "isolation_method",
+            "position",
         )
         order_by = ("genlab_id",)
 

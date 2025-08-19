@@ -35,6 +35,8 @@ function platePositions() {
           this.selectedPosition = data;
           this.actions = data.possible_actions || [];
           this.notesInput = data.notes || "";
+
+          await this.viewSample();
         } else {
           console.error(
             "Failed to load position details:",

@@ -596,15 +596,20 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return self._order
 
     def get_queryset(self) -> QuerySet[Sample]:
-        return Sample.objects.filter(
-            order=self.get_order(), genlab_id__isnull=False
-        ).prefetch_related(
-            "order",
-            "type",
-            Prefetch(
-                "isolation_method",
-                queryset=IsolationMethod.objects.order_by("name").distinct(),
-            ),
+        return (
+            Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
+            .select_related(
+                "position",
+                "position__plate",
+                "type",
+                "order",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "isolation_method",
+                    queryset=IsolationMethod.objects.order_by("name").distinct(),
+                ),
+            )
         )
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:

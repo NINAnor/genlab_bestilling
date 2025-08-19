@@ -1222,6 +1222,21 @@ class PlatePosition(AdminUrlsMixin, models.Model):
         ]
 
     def __str__(self) -> str:
+        if self.sample_raw:
+            plate = (
+                self.plate
+                if isinstance(self.plate, ExtractionPlate)
+                else self.plate.extractionplate
+            )
+            return f"{plate}@{self.position_to_coordinates()}"
+        if self.sample_marker:
+            plate = (
+                self.plate
+                if isinstance(self.plate, AnalysisPlate)
+                else self.plate.analysisplate
+            )
+            return f"{plate}@{self.position_to_coordinates()}"
+
         return f"{self.plate}@{self.position_to_coordinates()}"
 
     def position_to_coordinates(self) -> str:

@@ -1081,6 +1081,7 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
         return (
             ExtractionPlate.objects.select_related()
             .prefetch_related("positions__sample_raw")
+            .distinct()
             .order_by("-created_at")
         )
 

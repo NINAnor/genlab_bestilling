@@ -55,6 +55,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        print: { raw: "print" },
+      },
       colors: {
         brand: {
           primary: "var(--color-brand-primary)",

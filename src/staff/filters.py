@@ -689,12 +689,70 @@ class ExtractionPlateFilter(filters.FilterSet):
         ),
     )
 
+    positions__sample_raw__genlab_id = CharFilter(
+        field_name="positions__sample_raw__genlab_id",
+        lookup_expr="istartswith",
+        label="Sample Genlab ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Sample Genlab ID starts with",
+            }
+        ),
+    )
+
+    positions__sample_raw__name = CharFilter(
+        field_name="positions__sample_raw__name",
+        lookup_expr="istartswith",
+        label="Sample Name",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Sample name starts with",
+            }
+        ),
+    )
+
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["positions__sample_raw__species"].extra["widget"] = (
+            autocomplete.ModelSelect2(
+                url="autocomplete:species",
+                attrs={"data-placeholder": "Filter by species"},
+            )
+        )
+        self.filters["positions__sample_raw__type"].extra["widget"] = (
+            autocomplete.ModelSelect2(
+                url="autocomplete:sample-type",
+                attrs={"data-placeholder": "Filter by sample type"},
+            )
+        )
+        self.filters["positions__sample_raw__order"].extra["widget"] = (
+            autocomplete.ModelSelect2(
+                url="autocomplete:extraction-order",
+                attrs={"data-placeholder": "Filter by extraction order"},
+            )
+        )
+        self.filters["positions__sample_raw__species"].label = "Sample Species"
+        self.filters["positions__sample_raw__type"].label = "Sample Type"
+        self.filters["positions__sample_raw__order"].label = "Sample Order"
+
     class Meta:
         model = ExtractionPlate
         fields = [
             "qiagen_id",
             "freezer_id",
             "shelf_id",
+            "positions__sample_raw__genlab_id",
+            "positions__sample_raw__name",
+            "positions__sample_raw__species",
+            "positions__sample_raw__type",
+            "positions__sample_raw__order",
         ]
 
 

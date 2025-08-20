@@ -322,6 +322,15 @@ class SampleBaseTable(tables.Table):
         return format_html('<a href="{}?from={}">{}</a>', url, from_url, value)
 
 
+def get_plate_url(record: Sample) -> str:
+    if hasattr(record, "position") and record.position.plate:
+        return reverse(
+            "staff:extraction-plates-detail",
+            kwargs={"pk": record.position.plate.pk},
+        )
+    return ""
+
+
 class SampleStatusTable(tables.Table):
     """
     This shows a checkbox in the header.
@@ -393,16 +402,13 @@ class SampleStatusTable(tables.Table):
         orderable=False,
         accessor="position",
         empty_values=(),
-        linkify=(
-            "staff:extraction-plates-positions",
-            {"pk": tables.A("position__plate_id")},
-        ),
+        linkify=get_plate_url,
     )
 
     def render_position(self, value: Any, record: Any) -> str:
         if value:
             return str(value)
-        return None
+        return ""
 
     class Meta:
         model = Sample

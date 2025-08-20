@@ -1088,10 +1088,10 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
         grid = []
         pos_dict = {p.position: p for p in positions}
 
-        for row in range(8):  # 8 rows A-H
+        for row in range(len(self.ROWS)):  # 8 rows A-H
             grid_row = []
-            for col in range(12):  # 12 columns 1-12
-                position = col * 8 + row  # Fill by columns instead of rows
+            for col in range(len(self.COLUMNS)):  # 12 columns 1-12
+                position = col * len(self.ROWS) + row  # Fill by columns instead of rows
                 grid_row.append(
                     {
                         "index": position,

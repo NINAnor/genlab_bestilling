@@ -698,7 +698,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                 plate.populate(sample_list)
                 messages.success(
                     request,
-                    f"Populated {len(sample_list)} samples in the plate {plate.name}.",
+                    f"Populated {len(sample_list)} samples in the plate {plate}.",
                 )
             except Plate.NotEnoughPositions:
                 messages.error(request, "Not enough empty positions in the plate.")

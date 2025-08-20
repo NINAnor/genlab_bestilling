@@ -1090,7 +1090,7 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
 
         for row in range(len(self.ROWS)):  # 8 rows A-H
             grid_row = []
-            for col in range(len(self.COLUMNS)):  # 12 columns 1-12
+            for col in range(self.COLUMNS):  # 12 columns 1-12
                 position = col * len(self.ROWS) + row  # Fill by columns instead of rows
                 grid_row.append(
                     {

@@ -1041,11 +1041,15 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
 
     @hook(AFTER_CREATE, on_commit=True)
     def populate_positions(self) -> None:
-        for i in range(96):
-            PlatePosition.objects.create(
-                position=i,
-                plate=self,
-            )
+        PlatePosition.objects.bulk_create(
+            [
+                PlatePosition(
+                    position=i,
+                    plate=self,
+                )
+                for i in range(96)
+            ]
+        )
 
     class NotEnoughPositions(Exception):
         """

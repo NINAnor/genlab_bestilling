@@ -696,10 +696,16 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                     )
                 )
                 plate.populate(sample_list)
-                messages.success(
-                    request,
-                    f"Populated {len(sample_list)} samples in the plate {plate}.",
-                )
+                if len(sample_list) > 0:
+                    messages.success(
+                        request,
+                        f"Populated {len(sample_list)} samples in the plate {plate}.",
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        "Only marked and not invalid samples can be populated, no samples were added.",  # noqa: E501
+                    )
             except Plate.NotEnoughPositions:
                 messages.error(request, "Not enough empty positions in the plate.")
                 return HttpResponseRedirect(self.get_next_url())

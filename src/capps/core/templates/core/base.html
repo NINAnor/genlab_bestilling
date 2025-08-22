@@ -55,7 +55,9 @@
             {% endif %}
 
             {% block breadcrumbs %}
+            {% if request %}
               {% render_breadcrumbs %}
+            {% endif %}
             {% endblock %}
 
             {% block content %}

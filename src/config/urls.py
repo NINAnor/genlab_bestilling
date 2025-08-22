@@ -1,7 +1,6 @@
 from typing import Any
 
 from django.conf import settings
-from django.conf.urls import handler403, handler404, handler500
 from django.contrib import admin
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import include, path, reverse_lazy
@@ -58,10 +57,3 @@ if settings.DEBUG:
         import debug_toolbar
 
         urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
-else:
-    # use custom error handlers in production to populate the context
-    urlpatterns += [
-        handler404("capps.core.views.handler404"),
-        handler403("capps.core.views.handler403"),
-        handler500("capps.core.views.handler500"),
-    ]

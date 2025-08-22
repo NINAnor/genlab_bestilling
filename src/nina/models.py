@@ -77,8 +77,10 @@ class Project(AdminUrlsMixin, LifecycleModel):
     def notify_require_verification(self) -> None:
         send_mail(
             f"{self.number} {self.name} - New project was registered",
-            "A new project was registered, please verify it",
-            settings.NOTIFICATIONS["SENDER"],
+            "A new project was registered, please verify it: "
+            + settings.NOTIFICATIONS["BASE_URL"]
+            + reverse("staff:projects-detail", kwargs={"pk": self.pk}),
+            None,
             settings.NOTIFICATIONS["NEW_PROJECT"],
             fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )
@@ -94,7 +96,7 @@ class Project(AdminUrlsMixin, LifecycleModel):
         send_mail(
             f"{self.number} {self.name} - New project was registered",
             "A new project was registered, please verify it",
-            settings.NOTIFICATIONS["SENDER"],
+            None,
             self.memberships.values_list("email", flat=True),
             fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )

@@ -303,6 +303,31 @@ EMAIL_TIMEOUT = 5
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-fail-silently
 EMAIL_FAIL_SILENTLY = env.bool("DJANGO_EMAIL_FAIL_SILENTLY", default=False)
 
+# https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
+DEFAULT_FROM_EMAIL = env(
+    "DJANGO_DEFAULT_FROM_EMAIL",
+    default="ninagen@nina.no",
+)
+# https://docs.djangoproject.com/en/dev/ref/settings/#server-email
+SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
+# https://docs.djangoproject.com/en/dev/ref/settings/#email-subject-prefix
+EMAIL_SUBJECT_PREFIX = env(
+    "DJANGO_EMAIL_SUBJECT_PREFIX",
+    default="[Bestilling] ",
+)
+
+###########################################
+#                MSGRAPH
+###########################################
+if EMAIL_BACKEND == "msgraphbackend.MSGraphBackend":
+    MSGRAPH_TENANT_ID = env("MSGRAPH_TENANT_ID")
+    MSGRAPH_CLIENT_ID = env("MSGRAPH_CLIENT_ID")
+    MSGRAPH_CLIENT_SECRET = env("MSGRAPH_CLIENT_SECRET")
+    MSGRAPH_USER_ID = SERVER_EMAIL
+
+    INSTALLED_APPS += [
+        "msgraphbackend",
+    ]
 
 ###########################################
 #                 ADMIN
@@ -459,6 +484,6 @@ DJANGO_VITE = {
 DEPLOYMENT_ENV = env("DEPLOYMENT_ENV", default="production")
 
 NOTIFICATIONS = {
-    "SENDER": env("NOTIFICATION_SENDER", default="noreply@example.com"),
+    "BASE_URL": env("NOTIFICATIONS_BASE_URL", default="http://localhost:8000"),
     "NEW_PROJECT": env.list("NOTIFICATIONS_NEW_PROJECTS", default=[]),
 }

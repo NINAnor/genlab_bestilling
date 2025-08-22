@@ -574,6 +574,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/36/1b/e4bc8d6f2d1d8426d298282ca2007d98bbae3bd4750d7d71b65aa3c53a78/django-models2puml-0.2.tar.gz", hash = "sha256:a96f345a709890a501dba2aa9bb272a5929bc81f1d38c0bade481650c0b3c1f4", size = 15539 }
 
 [[package]]
+name = "django-msgraphbackend"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/88/ab/a84be65c2cec773c31435f9e67ce7302c912bba2cf0d13ad287ca501a538/django_msgraphbackend-1.0.0.tar.gz", hash = "sha256:3d50a786745941f3db01baf68abbb48e2ace0f0878f02b9569d7edce7550428d", size = 7022 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fc/18/167065dc9cba523887ce0a21cb2a74d3dcd4fef6e7d8e0e8d0a4dda77536/django_msgraphbackend-1.0.0-py3-none-any.whl", hash = "sha256:5c43ddad9d60fd6804bf7bbd2330154be2965ea9c2444763764283d1a9713bc2", size = 7741 },
+]
+
+[[package]]
 name = "django-polymorphic"
 version = "4.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -925,6 +934,7 @@ dependencies = [
     { name = "django-htmx" },
     { name = "django-lifecycle" },
     { name = "django-model-utils" },
+    { name = "django-msgraphbackend" },
     { name = "django-polymorphic" },
     { name = "django-postgres-extra" },
     { name = "django-probes" },
@@ -1002,6 +1012,7 @@ requires-dist = [
     { name = "django-htmx" },
     { name = "django-lifecycle", specifier = ">=1.2.4" },
     { name = "django-model-utils" },
+    { name = "django-msgraphbackend", specifier = ">=1.0.0" },
     { name = "django-polymorphic" },
     { name = "django-postgres-extra" },
     { name = "django-probes" },

@@ -401,7 +401,7 @@ class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
         send_mail(
             f"{o} - completed",
             "the order is completed",
-            settings.NOTIFICATIONS["SENDER"],
+            None,
             [self.contact_email],
             fail_silently=settings.EMAIL_FAIL_SILENTLY,
         )

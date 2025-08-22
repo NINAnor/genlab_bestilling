@@ -283,6 +283,7 @@ export default function SampleForm() {
                     <AsyncCreatableSelect
                       defaultOptions
                       isClearable
+                      key={species?.id}
                       isDisabled={!species}
                       loadOptions={(input) => locationOptions(input, species)}
                       getOptionLabel={(o) => o.name}

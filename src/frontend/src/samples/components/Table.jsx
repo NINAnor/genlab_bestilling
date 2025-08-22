@@ -106,14 +106,19 @@ const COLUMNS = [
   }),
   columnHelper.accessor("location", {
     header: "Location",
-    cell: (props) => (
-      <SelectCreateCell
-        {...props}
-        loadOptions={locationOptions(props.row.getValue("species"))}
-        queryKey={"locations"}
-        onCreate={locationCreate}
-      />
-    ),
+    cell: (props) => {
+      const species = props.row.getValue("species");
+      const opts = locationOptions(species);
+      return (
+        <SelectCreateCell
+          {...props}
+          key={species.id}
+          loadOptions={opts}
+          queryKey={`locations-${species.id}`}
+          onCreate={locationCreate}
+        />
+      );
+    },
     size: 300,
   }),
   columnHelper.accessor("type", {

@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
@@ -13,6 +12,7 @@ from django_lifecycle.conditions import (
     WhenFieldHasChanged,
     WhenFieldValueWas,
 )
+from procrastinate.contrib.django import app
 
 from shared.mixins import AdminUrlsMixin
 
@@ -75,14 +75,13 @@ class Project(AdminUrlsMixin, LifecycleModel):
 
     @hook(AFTER_CREATE, on_commit=True)
     def notify_require_verification(self) -> None:
-        send_mail(
-            f"{self.number} {self.name} - New project was registered",
-            "A new project was registered, please verify it: "
+        app.configure_task("nina.tasks.send_email_async").defer(
+            subject=f"{self.number} {self.name} - New project was registered",
+            message="A new project was registered, please verify it: "
             + settings.NOTIFICATIONS["BASE_URL"]
             + reverse("staff:projects-detail", kwargs={"pk": self.pk}),
-            None,
-            settings.NOTIFICATIONS["NEW_PROJECT"],
-            fail_silently=settings.EMAIL_FAIL_SILENTLY,
+            from_email=None,
+            recipient_list=settings.NOTIFICATIONS["NEW_PROJECT"],
         )
 
     @hook(
@@ -93,10 +92,9 @@ class Project(AdminUrlsMixin, LifecycleModel):
         ),
     )
     def notify_verified(self) -> None:
-        send_mail(
-            f"{self.number} {self.name} - New project was registered",
-            "A new project was registered, please verify it",
-            None,
-            self.memberships.values_list("email", flat=True),
-            fail_silently=settings.EMAIL_FAIL_SILENTLY,
+        app.configure_task("nina.tasks.send_email_async").defer(
+            subject=f"{self.number} {self.name} - New project was registered",
+            message=f"The project {self.number} was verified, you can now use it",
+            from_email=None,
+            recipient_list=list(self.memberships.values_list("email", flat=True)),
         )

@@ -100,19 +100,19 @@ services:
       - "traefik.http.middlewares.upload-limit-dev.buffering.maxRequestBodyBytes=8000000000"
       - "traefik.http.routers.django-dev.middlewares=upload-limit-dev"
 
-  # queue:
-  #   <<: *django-prod
-  #   environment:
-  #     <<: *django-prod-env
-  #     WAIT_FOR_HTTP: http://django:8000/ht/
-  #   command: ./src/manage.py procrastinate worker
+  queue:
+    <<: *django-prod
+    environment:
+      <<: *django-prod-env
+      WAIT_FOR_HTTP: http://django:8000/ht/
+    command: ./src/manage.py procrastinate worker
 
-  # queue-dev:
-  #   <<: *django-dev
-  #   environment:
-  #     <<: *django-dev-env
-  #     WAIT_FOR_HTTP: http://django:8000/ht/
-  #   command: ./src/manage.py procrastinate worker
+  queue-dev:
+    <<: *django-dev
+    environment:
+      <<: *django-dev-env
+      WAIT_FOR_HTTP: http://django:8000/ht/
+    command: ./src/manage.py procrastinate worker
 
   tailwind:
     <<: *django-dev

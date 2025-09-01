@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import Q
 from django.urls import reverse
@@ -19,6 +18,7 @@ from django_lifecycle import (
 )
 from django_lifecycle.conditions import WhenFieldValueChangesTo
 from polymorphic.models import PolymorphicModel
+from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from sequencefield.constraints import IntSequenceConstraint
 from sequencefield.fields import IntegerSequenceField
@@ -399,12 +399,11 @@ class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
     )
     def notify_order_completed(self) -> None:
         o = self.get_real_instance()
-        send_mail(
-            f"{o} - completed",
-            "the order is completed",
-            None,
-            [self.contact_email],
-            fail_silently=settings.EMAIL_FAIL_SILENTLY,
+        app.configure_task("nina.tasks.send_email_async").defer(
+            subject=f"{o} - completed",
+            message="the order is completed",
+            from_email=None,
+            recipient_list=[self.contact_email],
         )
 
 

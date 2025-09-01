@@ -836,6 +836,20 @@ class Sample(AdminUrlsMixin, models.Model):
         return f"{self.location.code}_{format_year}_{format_name}"
 
     @property
+    def bird_id(self) -> str | None:
+        """
+        Generate a bird ID based on the species code and last three digits
+        of the running number from the genlab_id.
+
+        Format: {species.code}{last_three_digits}
+        Example: if genlab_id is 'G24ABC00123', returns 'ABC123'
+        """
+        if not self.genlab_id:
+            return None
+
+        return self.species.code + self.genlab_id[-3:]
+
+    @property
     def has_error(self) -> bool:
         """
         Check if all the fields are filled correctly depending on several factors.

@@ -104,6 +104,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     fish_id = serializers.SerializerMethodField()
+    bird_id = serializers.SerializerMethodField()
     analysis_orders = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
     isolation_method = serializers.SerializerMethodField()
@@ -137,6 +138,9 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
     def get_fish_id(self, obj: Sample) -> str:
         return obj.fish_id or "-"
+
+    def get_bird_id(self, obj: Sample) -> str:
+        return obj.bird_id or "-"
 
     def get_analysis_orders(self, obj: Sample) -> list[str]:
         if not obj.order:

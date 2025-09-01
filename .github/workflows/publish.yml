@@ -17,8 +17,6 @@ jobs:
           - context: .
             target: django
             image: ghcr.io/${{ github.repository }}/backend-django
-          - context: ./nginx
-            image: ghcr.io/${{ github.repository }}/backend-nginx
 
     permissions:
       contents: read

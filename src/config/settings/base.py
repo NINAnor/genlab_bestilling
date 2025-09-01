@@ -487,3 +487,5 @@ NOTIFICATIONS = {
     "BASE_URL": env("NOTIFICATIONS_BASE_URL", default="http://localhost:8000"),
     "NEW_PROJECT": env.list("NOTIFICATIONS_NEW_PROJECTS", default=[]),
 }
+
+QIAGEN_START = 2250

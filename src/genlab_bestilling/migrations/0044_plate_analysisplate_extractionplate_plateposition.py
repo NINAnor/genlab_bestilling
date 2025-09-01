@@ -106,7 +106,7 @@ class Migration(migrations.Migration):
                         maxvalue=2147483647,
                         name="genlab_bestilling_extractionplate_qiagen",
                         sequence="qiagen",
-                        start=1,
+                        start=2250,
                     )
                 ],
             },

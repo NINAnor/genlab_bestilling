@@ -1126,6 +1126,7 @@ class ExtractionPlate(Plate):
                 sequence="qiagen",
                 drop=True,
                 fields=["qiagen_id"],
+                start=settings.QIAGEN_START,
             )
         ]
 

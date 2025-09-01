@@ -90,9 +90,6 @@ STORAGES = {
 # Django Admin URL regex.
 ADMIN_URL = env("DJANGO_ADMIN_URL")
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-
 ###########################################
 #                 LOGGING
 ###########################################

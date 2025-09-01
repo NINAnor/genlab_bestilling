@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import Sequence
 from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 from django.conf import settings
@@ -602,6 +603,11 @@ class AnalysisOrderResultsCommunication(AdminUrlsMixin, models.Model):
         return f"{str(self.analysis_order)} {str(self.contact_email_results)}"
 
 
+def UPLOAD_ANALYSIS_META(instance: "AnalysisOrder", filename: str) -> str:
+    ext = Path(filename).suffix
+    return f"analysis_orders/metadata/{instance.id}{ext}"
+
+
 class AnalysisOrder(Order):
     samples = models.ManyToManyField(
         f"{an}.Sample", blank=True, through="SampleMarkerAnalysis"
@@ -622,7 +628,7 @@ class AnalysisOrder(Order):
         help_text="When you need to get the results",
     )
     metadata_file = models.FileField(
-        upload_to="analysis_orders/metadata/",
+        upload_to=UPLOAD_ANALYSIS_META,
         null=True,
         blank=True,
         verbose_name="Metadata file",
@@ -1131,10 +1137,17 @@ class ExtractionPlate(Plate):
         ]
 
 
+def UPLOAD_ANALYSIS_RESULTS(instance: "AnalysisPlate", filename: str) -> str:
+    ext = Path(filename).suffix
+    return f"analysis_orders/results/{instance.id}{ext}"
+
+
 class AnalysisPlate(Plate):
     name = models.CharField(null=True, blank=True, help_text="Human readable label")
     analysis_date = models.DateTimeField(null=True, blank=True)
-    result_file = models.FileField(null=True, blank=True, upload_to="analysis/results/")
+    result_file = models.FileField(
+        null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS
+    )
     extra = models.JSONField(null=True, blank=True)
 
     def __str__(self) -> str:

@@ -843,11 +843,20 @@ class Sample(AdminUrlsMixin, models.Model):
 
         Format: {species.code}{last_three_digits}
         Example: if genlab_id is 'G24ABC00123', returns 'ABC123'
+        Example: if genlab_id is 'G24ABC00123-12', returns 'ABC123-12'
         """
         if not self.genlab_id:
             return None
 
-        return self.species.code + self.genlab_id[-3:]
+        try:
+            base, replica = self.genlab_id.split("-")
+            result = self.species.code + base
+            if replica:
+                result += "-" + replica
+        except ValueError:
+            return self.species.code + self.genlab_id
+
+        return result
 
     @property
     def has_error(self) -> bool:

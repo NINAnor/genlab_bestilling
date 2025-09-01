@@ -127,6 +127,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "notes",
             "genlab_id",
             "fish_id",
+            "bird_id",
             "analysis_orders",
             "project",
             "isolation_method",

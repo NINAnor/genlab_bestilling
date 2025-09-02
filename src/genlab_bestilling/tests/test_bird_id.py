@@ -1,5 +1,3 @@
-import pytest
-
 from genlab_bestilling.libs.bird_id import bird_id
 
 
@@ -54,5 +52,4 @@ def test_bird_id():
     ]
 
     for invalid_id in invalid_genlab_ids:
-        with pytest.raises(AttributeError):
-            bird_id(invalid_id)
+        assert bird_id(invalid_id) is None

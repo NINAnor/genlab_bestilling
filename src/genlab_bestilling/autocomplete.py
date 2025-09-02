@@ -129,7 +129,9 @@ class AvailableSampleAutocomplete(autocomplete.Select2QuerySetView):
 
         if self.q:
             qs = qs.filter(
-                models.Q(genlab_id__icontains=self.q) | models.Q(name__icontains=self.q)
+                models.Q(genlab_id__icontains=self.q)
+                | models.Q(name__icontains=self.q)
+                | models.Q(guid__icontains=self.q)
             )
 
         return qs.order_by("genlab_id")[:50]  # Limit results
@@ -153,6 +155,7 @@ class AvailableSampleMarkerAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             qs = qs.filter(
                 models.Q(sample__genlab_id__icontains=self.q)
+                | models.Q(sample__guid__icontains=self.q)
                 | models.Q(marker__name__icontains=self.q)
                 | models.Q(id__icontains=self.q)
             )

@@ -28,6 +28,7 @@ from shared.db import assert_is_in_atomic_block
 from shared.mixins import AdminUrlsMixin
 
 from . import managers
+from .libs.bird_id import bird_id
 
 an = "genlab_bestilling"  # Short alias for app name.
 
@@ -848,15 +849,7 @@ class Sample(AdminUrlsMixin, models.Model):
         if not self.genlab_id:
             return None
 
-        try:
-            base, replica = self.genlab_id.split("-")
-            result = self.species.code + base
-            if replica:
-                result += "-" + replica
-        except ValueError:
-            return self.species.code + self.genlab_id
-
-        return result
+        return bird_id(self.genlab_id)
 
     @property
     def has_error(self) -> bool:

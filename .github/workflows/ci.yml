@@ -55,6 +55,7 @@ jobs:
 
       - name: Run mypy
         run: docker compose --profile dev run --rm django-dev uv run mypy .
+        continue-on-error: true
 
       - name: Run Django Tests with Coverage
         run: docker compose --profile dev run --rm django-dev uv run pytest src

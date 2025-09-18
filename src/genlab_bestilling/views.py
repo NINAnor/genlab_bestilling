@@ -128,7 +128,7 @@ class GenrequestUpdateView(BaseBreadcrumbMixin, FormsetUpdateView):
         )
 
 
-class GenrequestDeleteView(BaseBreadcrumbMixin, DeleteView):
+class GenrequestDeleteView(BaseBreadcrumbMixin, LoginRequiredMixin, DeleteView):
     model = Genrequest
 
     add_home = False
@@ -246,7 +246,7 @@ class GenrequestOrderListView(GenrequestNestedMixin, SingleTableMixin, FilterVie
         return super().get_queryset().select_related("genrequest", "polymorphic_ctype")
 
 
-class OrderListView(SingleTableMixin, FilterView):
+class OrderListView(SingleTableMixin, LoginRequiredMixin, FilterView):
     model = Order
     table_class = OrderTable
     filterset_class = OrderFilter
@@ -288,7 +288,7 @@ class GenrequestEquipmentOrderListView(
         return super().get_queryset().select_related("genrequest")
 
 
-class EquipmentOrderListView(SingleTableMixin, FilterView):
+class EquipmentOrderListView(SingleTableMixin, LoginRequiredMixin, FilterView):
     model = EquipmentOrder
     table_class = EquipmentOrderTable
     filterset_class = OrderEquipmentFilter
@@ -344,7 +344,7 @@ class GenrequestExtractionOrderListView(
         return super().get_queryset().select_related("genrequest")
 
 
-class ExtractionOrderListView(SingleTableMixin, FilterView):
+class ExtractionOrderListView(SingleTableMixin, LoginRequiredMixin, FilterView):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
     filterset_class = OrderExtractionFilter
@@ -402,7 +402,7 @@ class GenrequestAnalysisOrderListView(
         )
 
 
-class AnalysisOrderListView(SingleTableMixin, FilterView):
+class AnalysisOrderListView(SingleTableMixin, LoginRequiredMixin, FilterView):
     model = AnalysisOrder
     table_class = AnalysisOrderTable
     filterset_class = OrderAnalysisFilter

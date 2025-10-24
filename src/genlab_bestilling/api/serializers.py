@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import exceptions, serializers
 
 from ..models import (
@@ -112,6 +113,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
     is_plucked = FlagField()
     is_isolated = FlagField()
     internal_note = serializers.SerializerMethodField()
+    qiagen = serializers.SerializerMethodField()
 
     class Meta:
         model = Sample
@@ -135,6 +137,7 @@ class SampleCSVSerializer(serializers.ModelSerializer):
             "is_plucked",
             "is_isolated",
             "internal_note",
+            "qiagen",
         )
 
     def get_fish_id(self, obj: Sample) -> str:
@@ -142,6 +145,12 @@ class SampleCSVSerializer(serializers.ModelSerializer):
 
     def get_bird_id(self, obj: Sample) -> str:
         return obj.bird_id or "-"
+
+    def get_qiagen(self, obj: Sample) -> str:
+        try:
+            return obj.position.plate.get_real_instance()
+        except ObjectDoesNotExist:
+            return "-"
 
     def get_analysis_orders(self, obj: Sample) -> list[str]:
         if not obj.order:

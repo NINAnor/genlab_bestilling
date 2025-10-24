@@ -190,6 +190,7 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
                 "order__genrequest",
                 "order__genrequest__area",
                 "location",
+                "position__plate",
             )
             .prefetch_related(
                 Prefetch(

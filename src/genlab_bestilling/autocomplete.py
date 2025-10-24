@@ -95,24 +95,15 @@ class AnalysisMarkerAutocomplete(autocomplete.Select2QuerySetView):
 
 class ExtractionPlateAutocomplete(autocomplete.Select2QuerySetView):
     model = ExtractionPlate
-
-    def get_queryset(self) -> models.QuerySet:
-        qs = super().get_queryset()
-        if self.q:
-            qs = qs.filter(qiagen__icontains=self.q)
-        return qs
+    model_field_name = "quiagen"
 
 
 class AnalysisPlateAutocomplete(autocomplete.Select2QuerySetView):
     model = AnalysisPlate
-
-    def get_queryset(self) -> models.QuerySet:
-        qs = super().get_queryset()
-        if self.q:
-            qs = qs.filter(
-                models.Q(id__istartswith=self.q) | models.Q(name__icontains=self.q)
-            )
-        return qs
+    search_fields = [
+        "id",
+        "name",
+    ]
 
 
 class AvailableSampleAutocomplete(autocomplete.Select2QuerySetView):

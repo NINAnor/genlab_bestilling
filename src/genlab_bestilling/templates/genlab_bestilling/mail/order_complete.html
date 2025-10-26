@@ -1,0 +1,48 @@
+{% extends "genlab_bestilling/mail/base.html" %}
+{% load order_tags %}
+
+{% block content %}
+<p>The order is completed</p>
+
+<p>Summary:</p>
+{% object-detail-staff object=object %}
+
+{% if object_type == 'ExtractionOrder' %}
+
+<h5>Delivered Samples</h5>
+<div>
+    <p>Uploaded {{ object.samples.count }} samples</p>
+</div>
+
+{% elif object_type == 'AnalysisOrder' %}
+
+<h5>Samples to analyze</h5>
+<div>
+    <p>Analyzed {{ object.samples.count }} samples</p>
+</div>
+
+{% elif object_type == 'EquipmentOrder' %}
+
+<h5>Requested Equipment</h5>
+{% fragment as table_header %}
+{% #table-cell header=True %}Equipment{% /table-cell %}
+{% #table-cell header=True %}Buffer/Volume{% /table-cell %}
+{% #table-cell header=True %}Qty{% /table-cell %}
+{% endfragment %}
+
+{% #table headers=table_header %}
+{% for oq in object.equipments.all %}
+<tr>
+    {% #table-cell %}{{ oq.equipment.name }}{% /table-cell %}
+    {% #table-cell %}{{ oq.buffer.name }} {{ oq.buffer_quantity}} {{ oq.buffer.unit }}{% /table-cell %}
+    {% #table-cell %}{{ oq.quantity }}{% /table-cell %}
+</tr>
+{% empty %}
+<tr>
+    <td colspan="3" class="text-center font-bold">No Equipment requested</td>
+</tr>
+{% endfor %}
+{% /table %}
+{% endif %}
+
+{% endblock %}

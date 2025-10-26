@@ -9,6 +9,7 @@ def send_email_async(
     message: str,
     from_email: str | None,
     recipient_list: list[str],
+    html_message: str | None = None,
 ) -> None:
     """
     Send an email asynchronously using the task queue.
@@ -26,4 +27,5 @@ def send_email_async(
         from_email,
         recipient_list,
         fail_silently=settings.EMAIL_FAIL_SILENTLY,
+        html_message=html_message,
     )

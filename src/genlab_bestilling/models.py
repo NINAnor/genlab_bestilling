@@ -7,6 +7,7 @@ from typing import Any
 from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Q
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -400,11 +401,21 @@ class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
     )
     def notify_order_completed(self) -> None:
         o = self.get_real_instance()
+        context = {
+            "title": f"Order {o} is completed",
+            "object": o,
+            "object_type": o.__class__.__name__,
+        }
+        html_message = render_to_string(
+            "genlab_bestilling/mail/order_complete.html", context=context
+        )
+
         app.configure_task("nina.tasks.send_email_async").defer(
             subject=f"{o} - completed",
             message="the order is completed",
             from_email=None,
             recipient_list=[self.contact_email],
+            html_message=html_message,
         )
 
 

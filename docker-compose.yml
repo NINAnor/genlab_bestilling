@@ -15,7 +15,7 @@ x-django-env: &django-env
   MSGRAPH_CLIENT_ID: "${MSGRAPH_CLIENT_ID:-}"
   MSGRAPH_CLIENT_SECRET: "${MSGRAPH_CLIENT_SECRET:-}"
   NOTIFICATIONS_NEW_PROJECTS: "${NOTIFICATIONS_NEW_PROJECTS:-}"
-  DJANGO_EMAIL_BACKEND: "${DJANGO_EMAIL_BACKEND:-}"
+  DJANGO_EMAIL_BACKEND: "${DJANGO_EMAIL_BACKEND:-django.core.mail.backends.smtp.EmailBackend}"
 
 x-django-prod-env: &django-prod-env
   <<: *django-env
@@ -169,3 +169,10 @@ services:
       - 5173:5173
     volumes:
       - ./src/frontend/src:/app/src
+
+  mailtrap:
+    profiles:
+      - dev
+    image: dbck/mailtrap
+    ports:
+      - "8090:80"

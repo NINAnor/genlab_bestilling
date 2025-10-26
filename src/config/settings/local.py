@@ -34,9 +34,12 @@ CACHES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 EMAIL_BACKEND = env(
     "DJANGO_EMAIL_BACKEND",
-    default="django.core.mail.backends.console.EmailBackend",
+    default="django.core.mail.backends.smtp.EmailBackend",
 )
-
+EMAIL_HOST = env("EMAIL_HOST", default="mailtrap")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="mailtrap")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="mailtrap")
 
 ###########################################
 #       django-debug-toolbar

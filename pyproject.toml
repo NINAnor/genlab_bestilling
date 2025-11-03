@@ -68,13 +68,13 @@ dependencies = [
   "django-tables2",
   "django-formset==1.7.6",
   "django-vite",
-  "sqlglot[rs]",
   "django-view-breadcrumbs",
   "django-autocomplete-light",
   "djangorestframework-csv",
   "django-lifecycle>=1.2.4",
   "django-sequencefield>=1.0.13",
-  "django-msgraphbackend>=1.0.0"
+  "django-msgraphbackend>=1.0.0",
+  "django-storages[s3]>=1.14.5"
 ]
 description = ""
 license = {text = "GPL-3.0+"}

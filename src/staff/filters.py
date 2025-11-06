@@ -312,6 +312,40 @@ class OrderSampleFilter(filters.FilterSet):
         )
 
 
+class SampleStatusWidget(forms.Select):
+    def __init__(self, attrs: dict[str, Any] | None = None):
+        choices = (
+            ("", "Status"),
+            ("marked", "Marked"),
+            ("plucked", "Plucked"),
+            ("isolated", "Isolated"),
+        )
+        super().__init__(choices=choices, attrs=attrs)
+
+
+def filter_sample_status(
+    filter_set: Any, queryset: QuerySet, name: Any, value: str, prefix: str = ""
+) -> QuerySet:
+    if value == "marked":
+        # Only marked, not plucked or isolated
+        return queryset.filter(
+            **{
+                prefix + "is_marked": True,
+                prefix + "is_plucked": False,
+                prefix + "is_isolated": False,
+            }
+        )
+    if value == "plucked":
+        # Plucked but not isolated
+        return queryset.filter(
+            **{prefix + "is_plucked": True, prefix + "is_isolated": False}
+        )
+    if value == "isolated":
+        # All isolated samples, regardless of others
+        return queryset.filter(**{prefix + "is_isolated": True})
+    return queryset
+
+
 class SampleMarkerOrderFilter(filters.FilterSet):
     sample__genlab_id = CharFilter(
         label="GenlabID",
@@ -331,6 +365,17 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             attrs={"class": "w-full", "data-placeholder": "Filter by isolation method"},
         ),
     )
+
+    sample_status = filters.CharFilter(
+        label="Sample Status",
+        method="filter_sample_status",
+        widget=SampleStatusWidget,
+    )
+
+    def filter_sample_status(
+        self, queryset: QuerySet, name: str, value: str
+    ) -> QuerySet:
+        return filter_sample_status(self, queryset, name, value, "sample__")
 
     def __init__(
         self,
@@ -353,40 +398,19 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             "sample__genlab_id",
             "sample__type",
             "sample__isolation_method",
+            "marker",
+            "sample_status",
             # "PCR",
             # "fluidigm",
             # "output",
         )
 
 
-class SampleStatusWidget(forms.Select):
-    def __init__(self, attrs: dict[str, Any] | None = None):
-        choices = (
-            ("", "Status"),
-            ("marked", "Marked"),
-            ("plucked", "Plucked"),
-            ("isolated", "Isolated"),
-        )
-        super().__init__(choices=choices, attrs=attrs)
-
-
-def filter_sample_status(
-    filter_set: Any, queryset: QuerySet, name: Any, value: str
-) -> QuerySet:
-    if value == "marked":
-        # Only marked, not plucked or isolated
-        return queryset.filter(is_marked=True, is_plucked=False, is_isolated=False)
-    if value == "plucked":
-        # Plucked but not isolated
-        return queryset.filter(is_plucked=True, is_isolated=False)
-    if value == "isolated":
-        # All isolated samples, regardless of others
-        return queryset.filter(is_isolated=True)
-    return queryset
-
-
 class SampleFilter(filters.FilterSet):
-    filter_sample_status = filter_sample_status
+    def filter_sample_status(
+        self, queryset: QuerySet, name: str, value: str
+    ) -> QuerySet:
+        return filter_sample_status(self, queryset, name, value)
 
     sample_status = filters.CharFilter(
         label="Sample Status",

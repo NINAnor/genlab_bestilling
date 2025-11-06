@@ -863,6 +863,21 @@ class Sample(AdminUrlsMixin, models.Model):
         return bird_id(self.genlab_id)
 
     @property
+    def status(self) -> str:
+        """
+        Returns a string representation of the sample's status based on its attributes.
+        """
+        if self.is_invalid:
+            return "Invalid"
+        if not (self.is_isolated and self.is_plucked) and self.is_marked:
+            return "Marked"
+        if self.is_plucked and not self.is_isolated:
+            return "Plucked"
+        if self.is_isolated:
+            return "Isolated"
+        return "Waiting"
+
+    @property
     def has_error(self) -> bool:
         """
         Check if all the fields are filled correctly depending on several factors.

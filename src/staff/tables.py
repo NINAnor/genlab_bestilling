@@ -516,10 +516,9 @@ class OrderAnalysisSampleTable(tables.Table):
         },
     )
 
-    isolation_method = tables.ManyToManyColumn(
-        accessor="sample__isolation_method",
-        transform=lambda x: x.name,
-        verbose_name="Isolation Method",
+    sample__status = tables.Column(
+        accessor="sample__status",
+        verbose_name="Sample status",
         orderable=False,
     )
 
@@ -530,7 +529,7 @@ class OrderAnalysisSampleTable(tables.Table):
             "sample__genlab_id",
             "sample__type",
             "marker",
-            "isolation_method",
+            "sample__status",
             "has_pcr",
             "is_analysed",
             "is_outputted",

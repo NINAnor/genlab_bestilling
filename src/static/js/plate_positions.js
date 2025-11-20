@@ -247,7 +247,7 @@ function platePositions() {
       if (!this.selectedPosition) return "";
 
       if (this.selectedPosition.sample_raw) {
-        return `Contains sample: ${this.selectedPosition.sample_raw.genlab_id}`;
+        return `Contains sample: ${this.selectedPosition.sample_raw.genlab_id} - Filled in date: ${this.selectedPosition.filled_at}`;
       } else if (this.selectedPosition.sample_marker) {
         return `Contains analysis: ${this.selectedPosition.sample_marker.id}`;
       } else if (this.selectedPosition.is_reserved) {

@@ -17,7 +17,7 @@ from django_lifecycle import (
     LifecycleModelMixin,
     hook,
 )
-from django_lifecycle.conditions import WhenFieldValueChangesTo
+from django_lifecycle.conditions import WhenFieldValueChangesTo, WhenFieldValueIsNot
 from polymorphic.models import PolymorphicModel
 from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
@@ -1204,7 +1204,7 @@ class AnalysisPlate(Plate):
         super().populate(items, "sample_marker")
 
 
-class PlatePosition(AdminUrlsMixin, models.Model):
+class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     plate = models.ForeignKey(
         f"{an}.Plate",
         on_delete=models.DO_NOTHING,
@@ -1317,3 +1317,23 @@ class PlatePosition(AdminUrlsMixin, models.Model):
             self.position // len(Plate.ROWS)
         ) + 1  # Every 8 positions moves to next column
         return f"{row_label}{column_label}"
+
+    @hook(
+        AFTER_UPDATE,
+        on_commit=True,
+        condition=WhenFieldValueChangesTo("sample_raw", value=None)
+        | WhenFieldValueChangesTo("sample_marker", value=None),
+    )
+    def set_fill_date_null(self) -> None:
+        self.filled_at = None
+        self.save(update_fields=["filled_at"])
+
+    @hook(
+        AFTER_UPDATE,
+        on_commit=True,
+        condition=WhenFieldValueIsNot("sample_raw", value=None)
+        | WhenFieldValueIsNot("sample_marker", value=None),
+    )
+    def set_fill_date(self) -> None:
+        self.filled_at = timezone.now()
+        self.save(update_fields=["filled_at"])

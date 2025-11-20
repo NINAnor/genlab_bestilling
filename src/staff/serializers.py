@@ -32,6 +32,7 @@ class PlatePositionSerializer(serializers.ModelSerializer):
     sample_raw = SampleSerializer(read_only=True)
     sample_marker = SampleMarkerSerializer(read_only=True)
     possible_actions = serializers.SerializerMethodField()
+    filled_at = serializers.DateTimeField(format="%d/%m/%Y", read_only=True)
 
     class Meta:
         model = PlatePosition
@@ -41,6 +42,7 @@ class PlatePositionSerializer(serializers.ModelSerializer):
             "coordinate",
             "is_full",
             "is_reserved",
+            "filled_at",
             "sample_raw",
             "sample_marker",
             "notes",

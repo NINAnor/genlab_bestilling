@@ -43,12 +43,15 @@ export default function Filters({ onSearch, submitBtn }) {
               (Array.isArray(v) ? v.length : true)
           )
           .map(([k, v]) => {
-            if (typeof v === "object") {
+            if (Array.isArray(v)) {
+              return [k, v];
+            } else if (typeof v === "object") {
               return [k, v.id];
             }
             return [k, v];
           })
       );
+      console.log(o);
       if (Object.keys(o)) {
         onSearch(new URLSearchParams(o).toString());
       }

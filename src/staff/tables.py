@@ -456,7 +456,7 @@ class SampleStatusTable(tables.Table):
 class OrderExtractionSampleTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
         exclude = (
-            "pop_id",
+            # "pop_id",
             "guid",
         )
 

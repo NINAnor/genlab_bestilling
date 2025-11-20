@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.utils.translation import gettext as _
-from django.views.generic import CreateView, DetailView, TemplateView, UpdateView
+from django.views.generic import DetailView, TemplateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
@@ -33,7 +33,7 @@ from genlab_bestilling.models import (
 )
 from nina.models import Project
 from shared.sentry import report_errors
-from shared.views import ActionView
+from shared.views import ActionView, FormsetCreateView, FormsetUpdateView
 from staff.mixins import SafeRedirectMixin
 
 from .filters import (
@@ -50,6 +50,7 @@ from .filters import (
 )
 from .forms import (
     AnalysisPlateForm,
+    AnalysisPlateResultForm,
     ExtractionPlateForm,
     OrderStaffForm,
 )
@@ -1104,7 +1105,7 @@ class ExtractionPlateDetailView(StaffMixin, DetailView):
         )
 
 
-class ExtractionPlateCreateView(StaffMixin, CreateView):
+class ExtractionPlateCreateView(StaffMixin, FormsetCreateView):
     model = ExtractionPlate
     form_class = ExtractionPlateForm
 
@@ -1116,7 +1117,7 @@ class ExtractionPlateCreateView(StaffMixin, CreateView):
         return reverse("staff:extraction-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
 
 
-class ExtractionPlateUpdateView(StaffMixin, UpdateView):
+class ExtractionPlateUpdateView(StaffMixin, FormsetUpdateView):
     model = ExtractionPlate
     form_class = ExtractionPlateForm
     context_object_name = "plate"
@@ -1160,7 +1161,7 @@ class AnalysisPlateDetailView(StaffMixin, DetailView):
         )
 
 
-class AnalysisPlateCreateView(StaffMixin, CreateView):
+class AnalysisPlateCreateView(StaffMixin, FormsetCreateView):
     model = AnalysisPlate
     form_class = AnalysisPlateForm
 
@@ -1172,10 +1173,33 @@ class AnalysisPlateCreateView(StaffMixin, CreateView):
         return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
 
 
-class AnalysisPlateUpdateView(StaffMixin, UpdateView):
+class AnalysisPlateUpdateView(StaffMixin, FormsetUpdateView):
     model = AnalysisPlate
     form_class = AnalysisPlateForm
     context_object_name = "plate"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["formset"] = True
+        return ctx
+
+    def get_success_url(self) -> str:
+        messages.success(
+            self.request,
+            "Analysis plate updated successfully.",
+        )
+        return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})
+
+
+class AnalysisPlateUploadView(StaffMixin, UpdateView):
+    model = AnalysisPlate
+    form_class = AnalysisPlateResultForm
+    context_object_name = "plate"
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["formset"] = False
+        return ctx
 
     def get_success_url(self) -> str:
         messages.success(

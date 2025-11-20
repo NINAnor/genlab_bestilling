@@ -10,6 +10,7 @@ from .views import (
     AnalysisPlateListView,
     AnalysisPlatePositionsView,
     AnalysisPlateUpdateView,
+    AnalysisPlateUploadView,
     DashboardView,
     EquipmentOrderDetailView,
     EqupimentOrderListView,
@@ -176,6 +177,11 @@ urlpatterns = [
         "analysis-plates/<uuid:pk>/update/",
         AnalysisPlateUpdateView.as_view(),
         name="analysis-plates-update",
+    ),
+    path(
+        "analysis-plates/<uuid:pk>/results/",
+        AnalysisPlateUploadView.as_view(),
+        name="analysis-plates-results",
     ),
     path(
         "orders/<int:pk>/priority/",

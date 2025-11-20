@@ -1,6 +1,8 @@
 from dal import autocomplete
 from django import forms
 from formset.renderers.tailwind import FormRenderer
+from formset.utils import FormMixin
+from formset.widgets import DualSortableSelector
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -67,12 +69,12 @@ class ResponsibleStaffForm(forms.ModelForm):
         )
 
 
-class ExtractionPlateForm(forms.ModelForm):
+class ExtractionPlateForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
     class Meta:
         model = ExtractionPlate
-        fields = ("freezer_id", "shelf_id", "notes")
+        fields = ("freezer_id", "shelf_id", "species", "sample_types", "notes")
         widgets = {
             "freezer_id": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter Freezer ID"}
@@ -87,37 +89,55 @@ class ExtractionPlateForm(forms.ModelForm):
                     "placeholder": "Enter notes...",
                 }
             ),
+            "species": DualSortableSelector(search_lookup="name_icontains"),
+            "sample_types": DualSortableSelector(search_lookup="name_icontains"),
         }
 
 
-class AnalysisPlateForm(forms.ModelForm):
+class AnalysisPlateForm(FormMixin, forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")
 
     class Meta:
         model = AnalysisPlate
-        fields = ("name", "analysis_date", "result_file", "notes")
+        fields = (
+            "name",
+            "analysis_type",
+            "markers",
+            "notes",
+        )
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter plate name"}
-            ),
-            "analysis_date": forms.DateTimeInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "datetime-local",
-                    "placeholder": "Select analysis date",
-                }
-            ),
-            "result_file": forms.FileInput(
-                attrs={
-                    "class": "form-control",
-                    "accept": ".pdf,.xlsx,.xls,.csv,.txt",
-                }
             ),
             "notes": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 3,
                     "placeholder": "Enter notes...",
+                }
+            ),
+            "markers": DualSortableSelector(
+                search_lookup="name_icontains",
+                filter_by={"analysis_type": "analysis_type_id"},
+            ),
+        }
+
+
+class AnalysisPlateResultForm(forms.ModelForm):
+    default_renderer = FormRenderer(field_css_classes="mb-3")
+
+    class Meta:
+        model = AnalysisPlate
+        fields = (
+            "analysis_date",
+            "result_file",
+        )
+        widgets = {
+            "analysis_date": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                    "placeholder": "Select analysis date",
                 }
             ),
         }

@@ -394,7 +394,12 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
             .get_queryset()
             .filter_allowed(self.request.user)  # type: ignore[attr-defined]
             .select_related(
-                "marker", "order", "sample", "sample__species", "sample__location"
+                "marker",
+                "order",
+                "sample",
+                "sample__species",
+                "sample__location",
+                "marker__analysis_type",
             )
         )
 

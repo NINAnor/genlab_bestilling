@@ -65,7 +65,7 @@ class Marker(AdminUrlsMixin, models.Model):
         ordering = ["name"]
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} ({self.analysis_type})"
 
 
 class Species(AdminUrlsMixin, models.Model):

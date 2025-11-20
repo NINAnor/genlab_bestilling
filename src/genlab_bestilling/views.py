@@ -1107,6 +1107,7 @@ class AnalysisSamplesListView(GenrequestNestedMixin, SingleTableView):
             .get_queryset()
             .select_related(
                 "marker",
+                "marker__analysis_type",
                 "sample",
                 "sample__species",
                 "sample__type",

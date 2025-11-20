@@ -403,6 +403,7 @@ class OrderAnalysisSamplesListView(
                 "sample__location",
                 "sample__species",
                 "marker",
+                "marker__analysis_type",
                 "sample__order",
                 "order",
             )
@@ -549,7 +550,10 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related(
                 "order__responsible_staff",
                 Prefetch(
-                    "markers", queryset=Marker.objects.order_by("name").distinct()
+                    "markers",
+                    queryset=Marker.objects.order_by("name")
+                    .distinct()
+                    .select_related("analysis_type"),
                 ),
             )
             .exclude(order__status=Order.OrderStatus.DRAFT)
@@ -1157,6 +1161,7 @@ class AnalysisPlateDetailView(StaffMixin, DetailView):
             "positions__sample_marker__sample__species",
             "positions__sample_marker__sample__type",
             "positions__sample_marker__marker",
+            "positions__sample_marker__marker__analysis_type",
             "positions__sample_marker__order",
         )
 
@@ -1246,6 +1251,7 @@ class AnalysisPlatePositionsView(PlatePositionsView):
             .prefetch_related(
                 "positions__sample_marker",
                 "positions__sample_marker__marker",
+                "positions__sample_marker__marker__analysis_type",
                 "positions__sample_marker__sample",
                 "positions__sample_marker__order",
             )

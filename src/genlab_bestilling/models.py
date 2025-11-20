@@ -17,7 +17,10 @@ from django_lifecycle import (
     LifecycleModelMixin,
     hook,
 )
-from django_lifecycle.conditions import WhenFieldValueChangesTo, WhenFieldValueIsNot
+from django_lifecycle.conditions import (
+    WhenFieldHasChanged,
+    WhenFieldValueChangesTo,
+)
 from polymorphic.models import PolymorphicModel
 from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
@@ -1321,19 +1324,20 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     @hook(
         AFTER_UPDATE,
         on_commit=True,
-        condition=WhenFieldValueChangesTo("sample_raw", value=None)
-        | WhenFieldValueChangesTo("sample_marker", value=None),
-    )
-    def set_fill_date_null(self) -> None:
-        self.filled_at = None
-        self.save(update_fields=["filled_at"])
-
-    @hook(
-        AFTER_UPDATE,
-        on_commit=True,
-        condition=WhenFieldValueIsNot("sample_raw", value=None)
-        | WhenFieldValueIsNot("sample_marker", value=None),
+        condition=(
+            WhenFieldHasChanged(
+                "sample_raw",
+            )
+            | WhenFieldHasChanged("sample_marker")
+        ),
     )
     def set_fill_date(self) -> None:
-        self.filled_at = timezone.now()
+        if any([self.sample_marker, self.sample_raw]):
+            self.filled_at = timezone.now()
+            if self.sample_raw:
+                self.sample_raw.is_isolated = True
+                self.sample_raw.save(update_fields=["is_isolated"])
+        else:
+            self.filled_at = None
+
         self.save(update_fields=["filled_at"])

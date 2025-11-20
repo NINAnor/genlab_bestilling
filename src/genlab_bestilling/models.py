@@ -1159,6 +1159,8 @@ class ExtractionPlate(Plate):
     qiagen_id = IntegerSequenceField(primary_key=False)
     freezer_id = models.CharField(null=True, blank=True)
     shelf_id = models.CharField(null=True, blank=True)
+    species = models.ManyToManyField(f"{an}.Species", blank=True)
+    sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
 
     def __str__(self):
         return f"#Q{self.qiagen_id}"
@@ -1190,6 +1192,10 @@ class AnalysisPlate(Plate):
         null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS
     )
     extra = models.JSONField(null=True, blank=True)
+    analysis_type = models.ForeignKey(
+        f"{an}.AnalysisType", on_delete=models.PROTECT, null=True, blank=True
+    )
+    markers = models.ManyToManyField(f"{an}.Marker", blank=True)
 
     def __str__(self) -> str:
         return f"{self.id}"
@@ -1208,6 +1214,7 @@ class PlatePosition(AdminUrlsMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(null=True, blank=True)
     is_reserved = models.BooleanField(default=False)
+    filled_at = models.DateTimeField(null=True, blank=True)
 
     sample_raw = models.OneToOneField(
         f"{an}.Sample",

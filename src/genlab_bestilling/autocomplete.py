@@ -141,7 +141,7 @@ class AvailableSampleMarkerAutocomplete(autocomplete.Select2QuerySetView):
         qs = SampleMarkerAnalysis.objects.filter(
             sample__position__isnull=False,
             is_invalid=False,
-        ).select_related("sample", "marker", "order")
+        ).select_related("sample", "marker", "order", "marker__analysis_type")
 
         if self.q:
             qs = qs.filter(

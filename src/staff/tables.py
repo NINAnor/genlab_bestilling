@@ -595,6 +595,14 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
         verbose_name="Order ID",
     )
 
+    position__plate = tables.Column(
+        linkify=(
+            "staff:extraction-plates-detail",
+            {"pk": tables.A("position__plate_id")},
+        ),
+        verbose_name="Plate",
+    )
+
     def render_order__id(self, value: int, record: Sample) -> str:
         return str(record.order)
 
@@ -609,6 +617,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__id",
             "order__status",
             "order__genrequest__project",
+            "position__plate",
         )  # type: ignore[assignment]
         sequence = SampleBaseTable.Meta.sequence + (
             "sample_status",
@@ -616,6 +625,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "order__id",
             "order__status",
             "notes",
+            "position__plate",
         )  # type: ignore[assignment]
         exclude = ("checked", "is_prioritised")
 

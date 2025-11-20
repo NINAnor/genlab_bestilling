@@ -550,6 +550,10 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related(
                 "order__responsible_staff",
                 Prefetch(
+                    "position__plate",
+                    queryset=ExtractionPlate.objects.all(),
+                ),
+                Prefetch(
                     "markers",
                     queryset=Marker.objects.order_by("name")
                     .distinct()

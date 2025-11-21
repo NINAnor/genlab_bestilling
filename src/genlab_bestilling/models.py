@@ -1335,9 +1335,6 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     def set_fill_date(self) -> None:
         if any([self.sample_marker, self.sample_raw]):
             self.filled_at = timezone.now()
-            if self.sample_raw:
-                self.sample_raw.is_isolated = True
-                self.sample_raw.save(update_fields=["is_isolated"])
         else:
             self.filled_at = None
 

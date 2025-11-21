@@ -322,6 +322,15 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
         choices=YES_NO_CHOICES,
         widget=forms.RadioSelect,
     )
+    external_samples = forms.TypedChoiceField(
+        label="Are your samples stored outside this database?",
+        help_text="You should upload a file "
+        "containing the info about the samples to analyze",
+        coerce=lambda x: x == "True",
+        choices=YES_NO_CHOICES,
+        widget=forms.RadioSelect,
+        initial="False",
+    )
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, **kwargs)
@@ -409,6 +418,12 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
     def clean(self) -> None:
         cleaned_data = super().clean() or {}
 
+        if cleaned_data.get("external_samples") and not cleaned_data.get(
+            "metadata_file"
+        ):
+            msg = "Upload a file if your samples are not stored in this database"
+            raise ValidationError(msg)
+
         if cleaned_data.get("use_all_samples") and not cleaned_data.get("from_order"):
             msg = "An extraction order must be selected"
             raise ValidationError(msg)
@@ -421,6 +436,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
 
     field_order = [
         "name",
+        "external_samples",
         "use_all_samples",
         "from_order",
         "markers",
@@ -441,6 +457,7 @@ class AnalysisOrderForm(FormMixin, forms.ModelForm):
             "is_urgent",
             "contact_person",
             "contact_email",
+            "external_samples",
         )
         widgets = {
             "name": TextInput(
@@ -470,12 +487,13 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             # "from_order",
             "notes",
             "expected_delivery_date",
-            "metadata_file",
+            # "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",
             "contact_email",
         )  # type: ignore[assignment]
+        widgets = AnalysisOrderForm.Meta.widgets
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)

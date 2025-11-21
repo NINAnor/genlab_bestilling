@@ -851,6 +851,14 @@ class AnalysisOrderCreateView(
                     "pk": obj.id,
                 },
             )
+        if obj.external_samples:
+            return reverse(
+                "genrequest-analysis-detail",
+                kwargs={
+                    "genrequest_id": self.genrequest.id,
+                    "pk": obj.id,
+                },
+            )
         return reverse(
             "genrequest-analysis-samples-edit",
             kwargs={

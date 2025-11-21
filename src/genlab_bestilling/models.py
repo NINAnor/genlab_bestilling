@@ -648,6 +648,7 @@ class AnalysisOrder(Order):
         verbose_name="Metadata file",
         help_text="Upload a metadata file for this analysis order",
     )
+    external_samples = models.BooleanField(default=False)
 
     @property
     def short_timeframe(self) -> bool:

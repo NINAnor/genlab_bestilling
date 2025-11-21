@@ -572,10 +572,24 @@ class ExtractionOrder(Order):
                 super().confirm_order()
 
     def update_status(self) -> None:
-        if not self.samples.filter(is_isolated=False).exists():
+        if (
+            self.status == Order.OrderStatus.PROCESSING
+            and not self.samples.exclude(is_invalid=True)
+            .filter(is_isolated=False)
+            .exists()
+        ):
             super().to_completed()
             return
-        if not self.samples.filter(genlab_id__isnull=True).exists():
+        if (
+            self.status == Order.OrderStatus.COMPLETED
+            and self.samples.exclude(is_invalid=True).filter(is_isolated=False).exists()
+        ):
+            super().to_processing()
+            return
+        if (
+            self.status == Order.OrderStatus.DELIVERED
+            and not self.samples.filter(genlab_id__isnull=True).exists()
+        ):
             super().to_processing()
             return
 
@@ -1165,12 +1179,28 @@ class ExtractionPlate(Plate):
     shelf_id = models.CharField(null=True, blank=True)
     species = models.ManyToManyField(f"{an}.Species", blank=True)
     sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
+    isolated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"#Q{self.qiagen_id}"
 
     def populate(self, items: list) -> None:
         super().populate(items, "sample_raw")
+
+    def deferred_isolate_all_samples(self) -> None:
+        with transaction.atomic():
+            Sample.objects.filter(position__plate_id=self.pk).select_related(
+                "position"
+            ).update(is_isolated=True)
+            self.isolated_at = timezone.now()
+            self.save()
+
+            for ext_order in (
+                ExtractionOrder.objects.filter(samples__position__plate_id=self.pk)
+                .prefetch_related("samples", "samples__position")
+                .distinct()
+            ):
+                ext_order.update_status()
 
     class Meta:
         constraints = [

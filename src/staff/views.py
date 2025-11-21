@@ -684,7 +684,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
             if status_name in [self.ISOLATED, self.INVALID]:
                 # Cannot use "samples" here
                 # because we need to check all samples in the order
-                self.check_all_isolated(Sample.objects.filter(order=order))
+                order.update_status()
 
         if isolation_method:
             self.update_isolation_methods(samples, isolation_method, request)

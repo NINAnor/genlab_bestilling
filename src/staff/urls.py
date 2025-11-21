@@ -18,6 +18,7 @@ from .views import (
     ExtractionOrderListView,
     ExtractionPlateCreateView,
     ExtractionPlateDetailView,
+    ExtractionPlateIsolateActionView,
     ExtractionPlateListView,
     ExtractionPlatePositionsView,
     ExtractionPlateUpdateView,
@@ -157,6 +158,11 @@ urlpatterns = [
         "extraction-plates/<uuid:pk>/update/",
         ExtractionPlateUpdateView.as_view(),
         name="extraction-plates-update",
+    ),
+    path(
+        "extraction-plates/<uuid:pk>/isolate/",
+        ExtractionPlateIsolateActionView.as_view(),
+        name="extraction-plates-isolate",
     ),
     path(
         "analysis-plates/",

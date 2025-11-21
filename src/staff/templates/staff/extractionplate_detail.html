@@ -2,17 +2,24 @@
 {% load i18n %}
 
 {% block content %}
-    <h3 class="text-4xl mb-5">Plate {{ object }}</h3>
-    <div class="flex gap-5 mb-5">
-    </div>
+<h3 class="text-4xl mb-5">Plate {{ object }}</h3>
+<div class="flex gap-5 mb-5">
+</div>
 
-    {% object-detail-staff object=object %}
+{% object-detail-staff object=object %}
 
-    <div class="flex flex-wrap gap-5 my-5">
-        <a class="btn btn-tertiary" href="{% url 'staff:extraction-plates-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
-        <a class="btn btn-primary" href="{% url 'staff:extraction-plates-update' pk=object.pk %}"><i class="fas fa-edit"></i> Update Plate</a>
-        <a class="btn btn-tertiary" href="{% url 'staff:extraction-plates-positions' pk=object.pk %}">
-            <i class="fas fa-th"></i> View Positions Grid
-        </a>
-    </div>
+<div class="flex flex-wrap gap-5 my-5">
+    <a class="btn btn-tertiary" href="{% url 'staff:extraction-plates-list' %}"><i class="fas fa-arrow-left"></i>
+        Back</a>
+    <a class="btn btn-primary" href="{% url 'staff:extraction-plates-update' pk=object.pk %}"><i
+            class="fas fa-edit"></i> Update Plate</a>
+    <a class="btn btn-tertiary" href="{% url 'staff:extraction-plates-positions' pk=object.pk %}">
+        <i class="fas fa-th"></i> View Positions Grid
+    </a>
+    {% if not object.isolated_at %}
+    <div class="ms-auto"></div>
+    {% url 'staff:extraction-plates-isolate' pk=object.pk as isolate_url %}
+    {% action-button action=isolate_url class="btn btn-secondary" submit_text="Isolate all samples" csrf_token=csrf_token %}
+    {% endif %}
+</div>
 {% endblock %}

@@ -14,6 +14,7 @@ from django.views.generic import DetailView, TemplateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
+from procrastinate.contrib.django import app
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -1260,3 +1261,46 @@ class AnalysisPlatePositionsView(PlatePositionsView):
                 "positions__sample_marker__order",
             )
         )
+
+
+class ExtractionPlateIsolateActionView(SingleObjectMixin, ActionView):
+    model = ExtractionPlate
+
+    def get_queryset(self) -> QuerySet[Order]:
+        return super().get_queryset()
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object: Order = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Form) -> HttpResponse:
+        try:
+            app.configure_task("genlab_bestilling.tasks.isolate_all_samples").defer(
+                plate_id=str(self.object.pk)
+            )
+            messages.add_message(
+                self.request,
+                messages.SUCCESS,
+                _(
+                    "The plate is set as isolated, and all the samples in this "
+                    "plate will be updated."
+                    " This operation is run in queue and it might take time."
+                ),
+            )
+        except Exception as e:
+            report_errors(e)
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                f"Error: {str(e)}",
+            )
+
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse_lazy(
+            "staff:extraction-plates-detail", kwargs={"pk": self.object.pk}
+        )
+
+    def form_invalid(self, form: Form) -> HttpResponse:
+        return HttpResponseRedirect(self.get_success_url())

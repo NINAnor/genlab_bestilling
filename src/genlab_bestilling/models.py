@@ -1216,7 +1216,9 @@ class ExtractionPlate(Plate):
 
 def UPLOAD_ANALYSIS_RESULTS(instance: "AnalysisPlate", filename: str) -> str:
     ext = Path(filename).suffix
-    return f"analysis_orders/results/{instance.id}{ext}"
+    return (
+        f"analysis_orders/results/type={instance.analysis_type.name}/{instance.id}{ext}"
+    )
 
 
 class AnalysisPlate(Plate):

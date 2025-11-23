@@ -95,7 +95,7 @@ class AnalysisMarkerAutocomplete(autocomplete.Select2QuerySetView):
 
 class ExtractionPlateAutocomplete(autocomplete.Select2QuerySetView):
     model = ExtractionPlate
-    model_field_name = "quiagen"
+    model_field_name = "qiagen"
 
 
 class AnalysisPlateAutocomplete(autocomplete.Select2QuerySetView):

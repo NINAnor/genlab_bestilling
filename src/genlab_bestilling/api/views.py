@@ -419,7 +419,7 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
                 for sample in samples:
                     if (
                         not serializer.validated_data["order"]
-                        .markers.filter(name=marker)
+                        .markers.filter(pk=marker.pk)
                         .exists()
                     ):
                         # skip if the marker of the sample is not in the analysis

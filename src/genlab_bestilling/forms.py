@@ -487,7 +487,7 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
             # "from_order",
             "notes",
             "expected_delivery_date",
-            # "metadata_file",
+            "metadata_file",
             "tags",
             "is_urgent",
             "contact_person",

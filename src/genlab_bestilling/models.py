@@ -693,7 +693,7 @@ class AnalysisOrder(Order):
 
     def confirm_order(self, persist: bool = True) -> None:
         with transaction.atomic():
-            if not self.samples.all().exists():
+            if not self.external_samples and not self.samples.all().exists():
                 raise ValidationError(_("No samples found"))
 
             if persist:

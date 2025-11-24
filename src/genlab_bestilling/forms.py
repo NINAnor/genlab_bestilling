@@ -497,5 +497,6 @@ class AnalysisOrderUpdateForm(AnalysisOrderForm):
 
     def __init__(self, *args, genrequest: Genrequest, **kwargs):
         super().__init__(*args, genrequest=genrequest, **kwargs)
+        del self.fields["external_samples"]
         if "use_all_samples" in self.fields:
             del self.fields["use_all_samples"]

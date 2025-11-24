@@ -661,6 +661,7 @@ class AnalysisOrder(Order):
         blank=True,
         verbose_name="Metadata file",
         help_text="Upload a metadata file for this analysis order",
+        max_length=500,
     )
     external_samples = models.BooleanField(default=False)
 
@@ -1225,7 +1226,7 @@ class AnalysisPlate(Plate):
     name = models.CharField(null=True, blank=True, help_text="Human readable label")
     analysis_date = models.DateTimeField(null=True, blank=True)
     result_file = models.FileField(
-        null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS
+        null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS, max_length=500
     )
     extra = models.JSONField(null=True, blank=True)
     analysis_type = models.ForeignKey(

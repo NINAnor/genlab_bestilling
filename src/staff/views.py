@@ -1182,6 +1182,11 @@ class AnalysisPlateCreateView(StaffMixin, FormsetCreateView):
         )
         return reverse("staff:analysis-plates-detail", kwargs={"pk": self.object.pk})  # type: ignore[union-attr]
 
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+        ctx["formset"] = True
+        return ctx
+
 
 class AnalysisPlateUpdateView(StaffMixin, FormsetUpdateView):
     model = AnalysisPlate

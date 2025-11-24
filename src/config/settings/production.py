@@ -69,15 +69,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 ###########################################
 #                STATIC
 ###########################################
-STORAGES = {
-    "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
-
 
 ###########################################
 #                 MEDIA

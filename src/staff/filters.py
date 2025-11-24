@@ -323,6 +323,17 @@ class SampleStatusWidget(forms.Select):
         super().__init__(choices=choices, attrs=attrs)
 
 
+class SampleAnalysisStatusWidget(forms.Select):
+    def __init__(self, attrs: dict[str, Any] | None = None):
+        choices = (
+            ("", "Status"),
+            ("pcr", "PCR"),
+            ("analysed", "Analysed"),
+            ("output", "Output"),
+        )
+        super().__init__(choices=choices, attrs=attrs)
+
+
 def filter_sample_status(
     filter_set: Any, queryset: QuerySet, name: Any, value: str, prefix: str = ""
 ) -> QuerySet:
@@ -367,15 +378,37 @@ class SampleMarkerOrderFilter(filters.FilterSet):
     )
 
     sample_status = filters.CharFilter(
-        label="Sample Status",
+        label="Sample Extraction Status",
         method="filter_sample_status",
         widget=SampleStatusWidget,
+    )
+
+    status = filters.CharFilter(
+        label="Sample Analysis Status",
+        method="filter_status",
+        widget=SampleAnalysisStatusWidget,
     )
 
     def filter_sample_status(
         self, queryset: QuerySet, name: str, value: str
     ) -> QuerySet:
         return filter_sample_status(self, queryset, name, value, "sample__")
+
+    def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        if value == "pcr":
+            # Only marked, not plucked or isolated
+            return queryset.filter(
+                has_pcr=True,
+                is_analysed=False,
+                is_outputted=False,
+            )
+        if value == "analysed":
+            # Plucked but not isolated
+            return queryset.filter(is_analysed=True, is_outputted=False)
+        if value == "output":
+            # All isolated samples, regardless of others
+            return queryset.filter(is_outputted=True)
+        return queryset
 
     def __init__(
         self,
@@ -400,9 +433,6 @@ class SampleMarkerOrderFilter(filters.FilterSet):
             "sample__isolation_method",
             "marker",
             "sample_status",
-            # "PCR",
-            # "fluidigm",
-            # "output",
         )
 
 

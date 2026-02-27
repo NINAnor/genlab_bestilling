@@ -29,19 +29,25 @@ function getFilledLabel(position, plateType) {
 }
 
 function getTooltip(position, coordinate, status, plateType) {
+  let base;
   if (status === 'filled') {
     if (plateType === 'extraction' && position.sample_raw) {
       const id = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
-      return `${coordinate} — ${id}`;
-    }
-    if (plateType === 'analysis' && position.sample_marker) {
+      base = `${coordinate} — ${id}`;
+    } else if (plateType === 'analysis' && position.sample_marker) {
       const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
       const sampleName = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?';
-      return `${coordinate} — ${markerName} (${sampleName})`;
+      base = `${coordinate} — ${markerName} (${sampleName})`;
+    } else {
+      base = `${coordinate} — Filled`;
     }
+  } else if (status === 'reserved') {
+    base = `${coordinate} — Reserved`;
+  } else {
+    base = `${coordinate} — Empty`;
   }
-  if (status === 'reserved') return `${coordinate} — Reserved`;
-  return `${coordinate} — Empty`;
+  if (position?.notes) base += `\n📝 ${position.notes}`;
+  return base;
 }
 
 export default function Well({ position, coordinate, plateType, selected, onClick }) {
@@ -49,17 +55,25 @@ export default function Well({ position, coordinate, plateType, selected, onClic
   const filledLabel = getFilledLabel(position, plateType);
   const tooltip = getTooltip(position, coordinate, status, plateType);
 
+  const hasNote = !!position?.notes;
+
   return (
     <button
       type="button"
       title={tooltip}
       className={classnames(
-        'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center transition-colors cursor-pointer select-none p-0.5 overflow-hidden',
+        'relative w-full h-full rounded-lg border-2 flex flex-col items-center justify-center transition-colors cursor-pointer select-none p-0.5',
         STATUS_STYLES[status],
         selected && 'ring-2 ring-blue-500 ring-offset-1',
       )}
       onClick={() => onClick && onClick(position, coordinate, status)}
     >
+      {hasNote && (
+        <span
+          style={{ position: 'absolute', top: '2px', right: '2px', width: '8px', height: '8px' }}
+          className="rounded-full bg-blue-600 shadow-sm"
+        />
+      )}
       <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
       {status === 'filled' && filledLabel && typeof filledLabel === 'string' && (
         <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel}</span>

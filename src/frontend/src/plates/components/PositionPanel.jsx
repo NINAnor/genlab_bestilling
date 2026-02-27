@@ -69,6 +69,12 @@ const STATUS_CONFIG = {
  *   plateType – "extraction" | "analysis"
  *   children  – render-prop receiving { position, coordinate, status }
  */
+const IconNote = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+  </svg>
+);
+
 export default function PositionPanel({ plateType, children }) {
   const positions = usePlateStore((s) => s.positions);
   const selectedPositionIdx = usePlateStore((s) => s.selectedPositionIdx);
@@ -76,10 +82,13 @@ export default function PositionPanel({ plateType, children }) {
   const clearSelection = usePlateStore((s) => s.clearSelection);
   const actionMutation = usePositionAction();
   const [confirmAction, setConfirmAction] = useState(null);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
 
-  // Reset confirmation when selection changes
+  // Reset confirmation and notes editor when selection changes
   useEffect(() => {
     setConfirmAction(null);
+    setEditingNotes(false);
   }, [selectedPositionIdx]);
 
   const position = selectedPositionIdx != null ? positions[selectedPositionIdx] : null;
@@ -142,23 +151,88 @@ export default function PositionPanel({ plateType, children }) {
 
       <div className="divide-y divide-gray-100">
         {/* Meta info */}
-        {(position.filled_at || position.notes) && (
-          <div className="px-5 py-3 space-y-2">
-            {position.filled_at && (
-              <div className="flex items-center text-xs text-gray-500 gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                Filled {position.filled_at}
-              </div>
-            )}
-            {position.notes && (
-              <div className="bg-blue-50/60 rounded-lg px-3 py-2">
-                <p className="text-xs text-blue-800 leading-relaxed">{position.notes}</p>
-              </div>
-            )}
+        {position.filled_at && (
+          <div className="px-5 py-3">
+            <div className="flex items-center text-xs text-gray-500 gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              Filled {position.filled_at}
+            </div>
           </div>
         )}
+
+        {/* Notes section — always visible */}
+        <div className="px-5 py-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Notes
+            </h5>
+            {!editingNotes && (
+              <button
+                type="button"
+                onClick={() => { setNoteDraft(position.notes ?? ''); setEditingNotes(true); }}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+              >
+                {position.notes ? 'Edit' : 'Add note'}
+              </button>
+            )}
+          </div>
+
+          {editingNotes ? (
+            <div className="space-y-2">
+              <textarea
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                rows={3}
+                className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+                           placeholder:text-gray-400
+                           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                           transition-colors resize-none"
+                placeholder="Add a note for this position…"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    actionMutation.mutate(
+                      { positionId: position.id, action: 'edit_notes', payload: { notes: noteDraft } },
+                      {
+                        onSuccess: () => { toast.success('Note saved'); setEditingNotes(false); },
+                        onError: (err) => toast.error(err.response?.data?.error ?? 'Failed to save note'),
+                      },
+                    );
+                  }}
+                  disabled={actionMutation.isPending}
+                  className="flex-1 px-3 py-1.5 rounded-md text-sm font-medium
+                             bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800
+                             transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingNotes(false)}
+                  className="flex-1 px-3 py-1.5 rounded-md text-sm font-medium
+                             bg-white text-gray-700 ring-1 ring-inset ring-gray-300
+                             hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : position.notes ? (
+            <div className="bg-blue-50/60 rounded-lg px-3 py-2">
+              <p className="text-xs text-blue-800 leading-relaxed whitespace-pre-wrap">{position.notes}</p>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">No notes</p>
+          )}
+        </div>
 
         {/* Type-specific content */}
         {children && (

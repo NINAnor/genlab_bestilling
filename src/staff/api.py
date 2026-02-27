@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from capps.users.models import User
 from genlab_bestilling.models import (
+    AnalysisPlate,
     ExtractionPlate,
     Order,
     PlatePosition,
@@ -243,6 +244,19 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
 
             position.sample_marker = sample_marker
             position.is_reserved = False  # Remove reservation when adding sample marker
+
+            # Enforce analysis plate marker whitelist
+            try:
+                plate = AnalysisPlate.objects.get(pk=position.plate_id)
+                plate.validate_sample_marker(sample_marker)
+            except AnalysisPlate.DoesNotExist:
+                pass  # Not an analysis plate, skip whitelist checks
+            except AnalysisPlate.SampleMarkerNotAllowed as exc:
+                return Response(
+                    {"error": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             position.save(update_fields=["sample_marker", "is_reserved"])
 
             serializer = self.get_serializer(position)

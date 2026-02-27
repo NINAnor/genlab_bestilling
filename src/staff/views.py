@@ -720,6 +720,9 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
             except Plate.NotEnoughPositions:
                 messages.error(request, "Not enough empty positions in the plate.")
                 return HttpResponseRedirect(self.get_next_url())
+            except ExtractionPlate.SampleNotAllowed as exc:
+                messages.error(request, str(exc))
+                return HttpResponseRedirect(self.get_next_url())
 
         return HttpResponseRedirect(self.get_next_url())
 

@@ -21,9 +21,11 @@ function getFilledLabel(position, plateType) {
     return position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
   }
   if (plateType === 'analysis' && position?.sample_marker) {
-    const sampleId = position.sample_marker.sample;
-    const markerId = position.sample_marker.marker;
-    return sampleId ? `S${sampleId}/M${markerId}` : `M#${position.sample_marker.id}`;
+    const sampleLabel = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name;
+    const markerLabel = position.sample_marker.marker_name;
+    if (sampleLabel && markerLabel) return `${sampleLabel}/${markerLabel}`;
+    if (markerLabel) return markerLabel;
+    return `#${position.sample_marker.id}`;
   }
   return null;
 }
@@ -35,14 +37,16 @@ function getTooltip(position, coordinate, status, plateType) {
       return `${coordinate} — ${id}`;
     }
     if (plateType === 'analysis' && position.sample_marker) {
-      return `${coordinate} — Marker #${position.sample_marker.id} (Sample ${position.sample_marker.sample ?? '?'})`;
+      const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
+      const sampleName = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?';
+      return `${coordinate} — ${markerName} (${sampleName})`;
     }
   }
   if (status === 'reserved') return `${coordinate} — Reserved`;
   return `${coordinate} — Empty`;
 }
 
-export default function Well({ position, coordinate, plateType, onClick }) {
+export default function Well({ position, coordinate, plateType, selected, onClick }) {
   const status = getStatus(position, plateType);
   const filledLabel = getFilledLabel(position, plateType);
   const tooltip = getTooltip(position, coordinate, status, plateType);
@@ -54,6 +58,7 @@ export default function Well({ position, coordinate, plateType, onClick }) {
       className={classnames(
         'w-full h-full rounded-lg border-2 flex flex-col items-center justify-center transition-colors cursor-pointer select-none p-0.5 overflow-hidden',
         STATUS_STYLES[status],
+        selected && 'ring-2 ring-blue-500 ring-offset-1',
       )}
       onClick={() => onClick && onClick(position, coordinate, status)}
     >

@@ -11,6 +11,8 @@ const usePlateStore = create((set) => ({
   plateType: null,
   plateLabel: null,
   positions: {},
+  selectedPositionIdx: null,
+  selectedCoordinate: null,
 
   /** Initialise from config injected by Django template */
   init: (cfg) =>
@@ -19,6 +21,21 @@ const usePlateStore = create((set) => ({
       plateType: cfg.plate_type,
       plateLabel: cfg.plate_label,
     }),
+
+  /** Select a position (or deselect if same is clicked) */
+  selectPosition: (position, coordinate) =>
+    set((state) => {
+      if (state.selectedPositionIdx === position?.position) {
+        return { selectedPositionIdx: null, selectedCoordinate: null };
+      }
+      return {
+        selectedPositionIdx: position?.position ?? null,
+        selectedCoordinate: coordinate,
+      };
+    }),
+
+  clearSelection: () =>
+    set({ selectedPositionIdx: null, selectedCoordinate: null }),
 
   /** Bulk-set positions from API response */
   setPositions: (positionList) =>

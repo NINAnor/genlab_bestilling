@@ -12,17 +12,71 @@ from genlab_bestilling.models import (
 class SampleSerializer(serializers.ModelSerializer):
     """Serializer for sample information in plate positions."""
 
+    species_name = serializers.CharField(
+        source="species.name", read_only=True, default=None
+    )
+    species_code = serializers.CharField(
+        source="species.code", read_only=True, default=None
+    )
+    type_name = serializers.CharField(source="type.name", read_only=True, default=None)
+    location_name = serializers.SerializerMethodField()
+    location_river_id = serializers.CharField(
+        source="location.river_id", read_only=True, default=None
+    )
+    location_code = serializers.CharField(
+        source="location.code", read_only=True, default=None
+    )
+
     class Meta:
         model = Sample
-        fields = ("id", "genlab_id", "name", "species", "type")
+        fields = (
+            "id",
+            "genlab_id",
+            "name",
+            "species",
+            "species_name",
+            "species_code",
+            "type",
+            "type_name",
+            "year",
+            "pop_id",
+            "location",
+            "location_name",
+            "location_river_id",
+            "location_code",
+        )
+
+    def get_location_name(self, obj: Sample) -> str | None:
+        return str(obj.location) if obj.location else None
 
 
 class SampleMarkerSerializer(serializers.ModelSerializer):
     """Serializer for sample marker analysis information in plate positions."""
 
+    sample_genlab_id = serializers.CharField(
+        source="sample.genlab_id", read_only=True, default=None
+    )
+    sample_name = serializers.CharField(
+        source="sample.name", read_only=True, default=None
+    )
+    sample_species_name = serializers.CharField(
+        source="sample.species.name", read_only=True, default=None
+    )
+    marker_name = serializers.CharField(
+        source="marker.name", read_only=True, default=None
+    )
+
     class Meta:
         model = SampleMarkerAnalysis
-        fields = ("id", "sample", "marker")
+        fields = (
+            "id",
+            "sample",
+            "sample_genlab_id",
+            "sample_name",
+            "sample_species_name",
+            "marker",
+            "marker_name",
+        )
 
 
 class PlatePositionSerializer(serializers.ModelSerializer):

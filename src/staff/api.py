@@ -57,7 +57,15 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
     """ViewSet for managing plate positions."""
 
     queryset = PlatePosition.objects.select_related(
-        "plate", "sample_raw", "sample_marker"
+        "plate",
+        "sample_raw",
+        "sample_raw__species",
+        "sample_raw__type",
+        "sample_raw__location",
+        "sample_marker",
+        "sample_marker__sample",
+        "sample_marker__sample__species",
+        "sample_marker__marker",
     ).all()
     serializer_class = PlatePositionSerializer
     filterset_fields = ["plate"]

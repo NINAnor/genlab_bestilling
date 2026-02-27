@@ -122,6 +122,10 @@ class AnalysisPlateForm(FormMixin, forms.ModelForm):
             ),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["markers"].required = True
+
 
 class AnalysisPlateResultForm(forms.ModelForm):
     default_renderer = FormRenderer(field_css_classes="mb-3")

@@ -17,7 +17,7 @@ function toPositionIndex(row, col) {
   return (col - 1) * ROWS.length + rowIdx;
 }
 
-export default function PlateGrid() {
+export default function PlateGrid({ plateType }) {
   const positions = usePlateStore((s) => s.positions);
   const { isLoading, isError, error } = usePlatePositions();
   const actionMutation = usePositionAction();
@@ -55,7 +55,7 @@ export default function PlateGrid() {
   const counts = positionsList.reduce(
     (acc, p) => {
       if (p.is_reserved) acc.reserved += 1;
-      else if (p.sample_raw || p.sample_marker) acc.filled += 1;
+      else if (plateType === 'extraction' ? p.sample_raw : p.sample_marker) acc.filled += 1;
       else acc.empty += 1;
       return acc;
     },
@@ -134,6 +134,7 @@ export default function PlateGrid() {
                   key={coordinate}
                   position={position}
                   coordinate={coordinate}
+                  plateType={plateType}
                   onClick={handleWellClick}
                 />
               );

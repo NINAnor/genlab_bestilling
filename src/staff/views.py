@@ -1228,10 +1228,17 @@ class AnalysisPlateUploadView(StaffMixin, UpdateView):
 class PlatePositionsView(StaffMixin, DetailView):
     template_name = "staff/plate_positions_frontend.html"
 
+    plate_type = "extraction"  # default, overridden by subclasses
+
+    def get_plate_label(self) -> str:
+        return str(self.object.pk)
+
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["frontend_args"] = {
             "plate_id": str(self.object.pk),
+            "plate_type": self.plate_type,
+            "plate_label": self.get_plate_label(),
             "csrf": get_token(self.request),
         }
         return context
@@ -1239,10 +1246,18 @@ class PlatePositionsView(StaffMixin, DetailView):
 
 class ExtractionPlatePositionsView(PlatePositionsView):
     model = ExtractionPlate
+    plate_type = "extraction"
+
+    def get_plate_label(self) -> str:
+        return str(self.object.qiagen_id)
 
 
 class AnalysisPlatePositionsView(PlatePositionsView):
     model = AnalysisPlate
+    plate_type = "analysis"
+
+    def get_plate_label(self) -> str:
+        return self.object.name or str(self.object.pk)
 
 
 class ExtractionPlateIsolateActionView(SingleObjectMixin, ActionView):

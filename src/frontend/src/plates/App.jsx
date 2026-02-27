@@ -4,7 +4,8 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast';
-import PlateGrid from './components/PlateGrid';
+import ExtractionPlate from './components/ExtractionPlate';
+import AnalysisPlate from './components/AnalysisPlate';
 import usePlateStore from './store';
 import { config } from './config';
 
@@ -12,6 +13,7 @@ const queryClient = new QueryClient()
 
 function App() {
   const init = usePlateStore((s) => s.init);
+  const plateType = usePlateStore((s) => s.plateType);
 
   useEffect(() => {
     init(config);
@@ -19,11 +21,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <h2 className='text-4xl font-bold mb-5'>Plates</h2>
       <Toaster />
-      <div className='p-4 bg-white mb-2 rounded'>
-        <PlateGrid />
-      </div>
+      {plateType === 'extraction' && <ExtractionPlate />}
+      {plateType === 'analysis' && <AnalysisPlate />}
+      {!plateType && <p className="text-gray-500">Loading…</p>}
     </QueryClientProvider>
   )
 }

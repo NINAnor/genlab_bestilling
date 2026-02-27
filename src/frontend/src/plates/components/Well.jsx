@@ -18,12 +18,15 @@ export function getStatus(position, plateType) {
 
 function getFilledLabel(position, plateType) {
   if (plateType === 'extraction' && position?.sample_raw) {
-    return position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+    const mainLabel = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+    const orderLabel = position.sample_raw.order_id;
+    return { mainLabel, orderLabel };
   }
   if (plateType === 'analysis' && position?.sample_marker) {
     const sampleLabel = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name;
     const markerLabel = position.sample_marker.marker_name;
-    return { sampleLabel, markerLabel };
+    const orderLabel = position.sample_marker.order_id;
+    return { sampleLabel, markerLabel, orderLabel };
   }
   return null;
 }
@@ -33,11 +36,15 @@ function getTooltip(position, coordinate, status, plateType) {
   if (status === 'filled') {
     if (plateType === 'extraction' && position.sample_raw) {
       const id = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
-      base = `${coordinate} — ${id}`;
+      const order = position.sample_raw.order_id;
+      base = order ? `${coordinate} — ${id} [#${order}]` : `${coordinate} — ${id}`;
     } else if (plateType === 'analysis' && position.sample_marker) {
       const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
       const sampleName = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?';
-      base = `${coordinate} — ${markerName} (${sampleName})`;
+      const order = position.sample_marker.order_id;
+      base = order
+        ? `${coordinate} — ${markerName} (${sampleName}) [#${order}]`
+        : `${coordinate} — ${markerName} (${sampleName})`;
     } else {
       base = `${coordinate} — Filled`;
     }
@@ -75,16 +82,19 @@ export default function Well({ position, coordinate, plateType, selected, onClic
         />
       )}
       <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
-      {status === 'filled' && filledLabel && typeof filledLabel === 'string' && (
-        <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel}</span>
-      )}
-      {status === 'filled' && filledLabel && typeof filledLabel === 'object' && (
+      {status === 'filled' && filledLabel && (
         <>
+          {filledLabel.mainLabel && (
+            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel.mainLabel}</span>
+          )}
           {filledLabel.sampleLabel && (
             <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel.sampleLabel}</span>
           )}
           {filledLabel.markerLabel && (
             <span className="text-[9px] leading-tight truncate max-w-full font-semibold text-emerald-900">{filledLabel.markerLabel}</span>
+          )}
+          {filledLabel.orderLabel && (
+            <span className="text-[8px] leading-tight truncate max-w-full text-gray-600 italic">#{filledLabel.orderLabel}</span>
           )}
         </>
       )}

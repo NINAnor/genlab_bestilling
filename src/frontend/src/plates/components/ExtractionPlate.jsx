@@ -50,6 +50,17 @@ export default function ExtractionPlate() {
                     <div className="space-y-2.5">
                       <DetailRow label="Genlab ID" value={position.sample_raw.genlab_id} mono />
                       <DetailRow label="Name" value={position.sample_raw.name} />
+                      {position.sample_raw.order_id && (
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-xs text-gray-500 shrink-0">Order</span>
+                          <a
+                            href={`/staff/orders/extraction/${position.sample_raw.order_id}/`}
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline text-right truncate"
+                          >
+                            #{position.sample_raw.order_id}
+                          </a>
+                        </div>
+                      )}
                       <DetailRow label="Species" value={position.sample_raw.species_name} />
                       <DetailRow label="Type" value={position.sample_raw.type_name} />
                       <DetailRow label="Year" value={position.sample_raw.year} />

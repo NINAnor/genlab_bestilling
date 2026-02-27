@@ -26,6 +26,7 @@ class SampleSerializer(serializers.ModelSerializer):
     location_code = serializers.CharField(
         source="location.code", read_only=True, default=None
     )
+    order_id = serializers.PrimaryKeyRelatedField(source="order", read_only=True)
 
     class Meta:
         model = Sample
@@ -44,6 +45,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "location_name",
             "location_river_id",
             "location_code",
+            "order_id",
         )
 
     def get_location_name(self, obj: Sample) -> str | None:
@@ -65,6 +67,7 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
     marker_name = serializers.CharField(
         source="marker.name", read_only=True, default=None
     )
+    order_id = serializers.PrimaryKeyRelatedField(source="order", read_only=True)
 
     class Meta:
         model = SampleMarkerAnalysis
@@ -76,6 +79,7 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
             "sample_species_name",
             "marker",
             "marker_name",
+            "order_id",
         )
 
 

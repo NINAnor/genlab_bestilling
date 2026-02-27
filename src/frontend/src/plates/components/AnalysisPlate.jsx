@@ -51,6 +51,17 @@ export default function AnalysisPlate() {
                       <DetailRow label="Marker" value={position.sample_marker.marker_name} />
                       <DetailRow label="Sample" value={position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name} mono />
                       <DetailRow label="Species" value={position.sample_marker.sample_species_name} />
+                      {position.sample_marker.order_id && (
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-xs text-gray-500 shrink-0">Order</span>
+                          <a
+                            href={`/staff/orders/analysis/${position.sample_marker.order_id}/`}
+                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline text-right truncate"
+                          >
+                            #{position.sample_marker.order_id}
+                          </a>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

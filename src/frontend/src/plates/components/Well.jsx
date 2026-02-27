@@ -23,9 +23,7 @@ function getFilledLabel(position, plateType) {
   if (plateType === 'analysis' && position?.sample_marker) {
     const sampleLabel = position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name;
     const markerLabel = position.sample_marker.marker_name;
-    if (sampleLabel && markerLabel) return `${sampleLabel}/${markerLabel}`;
-    if (markerLabel) return markerLabel;
-    return `#${position.sample_marker.id}`;
+    return { sampleLabel, markerLabel };
   }
   return null;
 }
@@ -63,8 +61,18 @@ export default function Well({ position, coordinate, plateType, selected, onClic
       onClick={() => onClick && onClick(position, coordinate, status)}
     >
       <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
-      {status === 'filled' && filledLabel && (
+      {status === 'filled' && filledLabel && typeof filledLabel === 'string' && (
         <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel}</span>
+      )}
+      {status === 'filled' && filledLabel && typeof filledLabel === 'object' && (
+        <>
+          {filledLabel.sampleLabel && (
+            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel.sampleLabel}</span>
+          )}
+          {filledLabel.markerLabel && (
+            <span className="text-[9px] leading-tight truncate max-w-full font-semibold text-emerald-900">{filledLabel.markerLabel}</span>
+          )}
+        </>
       )}
       {status === 'reserved' && (
         <span className="text-[9px] leading-tight text-gray-700">Reserved</span>

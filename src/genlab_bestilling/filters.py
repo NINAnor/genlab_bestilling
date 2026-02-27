@@ -25,6 +25,7 @@ class SampleFilter(filters.FilterSet):
     markers = filters.ModelMultipleChoiceFilter(
         method="filter_markers_in_list", queryset=Marker.objects.all()
     )
+    search = filters.CharFilter(method="filter_search")
 
     class Meta:
         model = Sample
@@ -38,7 +39,20 @@ class SampleFilter(filters.FilterSet):
             "name": ["istartswith"],
             "genlab_id": ["istartswith"],
             "guid": ["in"],
+            "is_isolated": ["exact"],
+            "is_invalid": ["exact"],
+            "position": ["isnull"],
         }
+
+    def filter_search(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.filter(Q(genlab_id__istartswith=value) | Q(guid__iexact=value))
 
     def filter_markers_in_list(
         self,
@@ -132,20 +146,34 @@ class LocationFilter(filters.FilterSet):
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
+    search = filters.CharFilter(method="filter_search")
+
     class Meta:
         model = SampleMarkerAnalysis
-        fields = [
-            "order",
-            "marker",
-            "sample__guid",
-            "sample__name",
-            "sample__genlab_id",
-            "sample__species",
-            "sample__type",
-            "sample__year",
-            "sample__location",
-            "sample__pop_id",
-        ]
+        fields = {
+            "order": ["exact"],
+            "marker": ["exact"],
+            "sample__guid": ["exact", "in"],
+            "sample__name": ["exact", "istartswith"],
+            "sample__genlab_id": ["exact", "istartswith"],
+            "sample__species": ["exact"],
+            "sample__type": ["exact"],
+            "sample__year": ["exact"],
+            "sample__location": ["exact"],
+            "sample__pop_id": ["exact"],
+        }
+
+    def filter_search(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.filter(
+            Q(sample__genlab_id__istartswith=value) | Q(sample__guid__iexact=value)
+        )
 
 
 class OrderFilter(filters.FilterSet):

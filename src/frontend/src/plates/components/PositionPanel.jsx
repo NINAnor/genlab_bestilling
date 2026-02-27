@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import usePlateStore from '../store';
 import { usePositionAction } from '../hooks/usePositionAction';
 import { getStatus } from './Well';
+import SearchPanel from './SearchPanel';
 
 /* ── tiny inline SVG icons ───────────────────────────────────── */
 
@@ -202,17 +203,24 @@ export default function PositionPanel({ plateType, children }) {
           )}
 
           {status === 'empty' && !confirmAction && (
-            <button
-              onClick={() => handleAction('reserve', `${selectedCoordinate} reserved`)}
-              disabled={actionMutation.isPending}
-              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
-                         bg-amber-500 text-white shadow-sm
-                         hover:bg-amber-600 active:bg-amber-700
-                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <IconLock />
-              Reserve Position
-            </button>
+            <>
+              <SearchPanel
+                positionId={position.id}
+                plateType={plateType}
+                coordinate={selectedCoordinate}
+              />
+              <button
+                onClick={() => handleAction('reserve', `${selectedCoordinate} reserved`)}
+                disabled={actionMutation.isPending}
+                className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                           bg-amber-500 text-white shadow-sm
+                           hover:bg-amber-600 active:bg-amber-700
+                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <IconLock />
+                Reserve Position
+              </button>
+            </>
           )}
 
           {status === 'reserved' && !confirmAction && (

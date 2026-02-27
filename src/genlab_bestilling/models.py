@@ -1268,10 +1268,34 @@ class AnalysisPlate(Plate):
     )
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
 
+    class SampleMarkerNotAllowed(Exception):
+        """Raised when a sample marker does not match the plate's marker whitelist."""
+
+    def validate_sample_marker(self, sample_marker: "SampleMarkerAnalysis") -> None:
+        """Validate that `sample_marker` matches the marker whitelist.
+
+        Empty whitelist means all markers are allowed.
+        Raises `SampleMarkerNotAllowed` with a descriptive message on failure.
+        """
+        allowed_markers = self.markers.all()
+        if (
+            allowed_markers.exists()
+            and sample_marker.marker_id
+            not in allowed_markers.values_list("id", flat=True)
+        ):
+            allowed = ", ".join(str(m) for m in allowed_markers)
+            msg = (
+                f"Marker '{sample_marker.marker}' is not allowed for plate {self}. "
+                f"Allowed markers: {allowed}"
+            )
+            raise self.SampleMarkerNotAllowed(msg)
+
     def __str__(self) -> str:
         return f"{self.id}"
 
     def populate(self, items: list) -> None:
+        for sample_marker in items:
+            self.validate_sample_marker(sample_marker)
         super().populate(items, "sample_marker")
 
 

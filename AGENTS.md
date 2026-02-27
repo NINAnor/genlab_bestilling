@@ -1,0 +1,4 @@
+- ALWAYS use docker and docker compose to run any command
+- ALWAYS source the `aliases.sh` script, check out the commands in there
+- ALWAYS use the development profile
+- ALWAYS use `pnmp` to install and handle javascript dependencies

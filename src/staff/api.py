@@ -60,6 +60,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
         "plate", "sample_raw", "sample_marker"
     ).all()
     serializer_class = PlatePositionSerializer
+    filterset_fields = ["plate"]
 
     @action(detail=True, methods=["post"])
     def reserve(self, request: Request, pk: int | str) -> Response:

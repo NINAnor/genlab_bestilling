@@ -6,40 +6,46 @@ const STATUS_STYLES = {
   reserved: 'bg-amber-300 border-amber-500 hover:bg-amber-400',
 };
 
-export function getStatus(position) {
+export function getStatus(position, plateType) {
   if (!position) return 'empty';
   if (position.is_reserved) return 'reserved';
+  if (plateType === 'extraction' && position.sample_raw) return 'filled';
+  if (plateType === 'analysis' && position.sample_marker) return 'filled';
+  // fallback for generic check
   if (position.sample_raw || position.sample_marker) return 'filled';
   return 'empty';
 }
 
-function getSampleLabel(position) {
-  if (position?.sample_raw) {
-    return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
+function getFilledLabel(position, plateType) {
+  if (plateType === 'extraction' && position?.sample_raw) {
+    return position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
   }
-  if (position?.sample_marker) {
-    return position.sample_marker.sample ?? `M#${position.sample_marker.id}`;
+  if (plateType === 'analysis' && position?.sample_marker) {
+    const sampleId = position.sample_marker.sample;
+    const markerId = position.sample_marker.marker;
+    return sampleId ? `S${sampleId}/M${markerId}` : `M#${position.sample_marker.id}`;
   }
   return null;
 }
 
-function getTooltip(position, coordinate, status) {
+function getTooltip(position, coordinate, status, plateType) {
   if (status === 'filled') {
-    if (position.sample_raw) {
-      return `${coordinate} — ${position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample'}`;
+    if (plateType === 'extraction' && position.sample_raw) {
+      const id = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+      return `${coordinate} — ${id}`;
     }
-    if (position.sample_marker) {
-      return `${coordinate} — Marker #${position.sample_marker.id}`;
+    if (plateType === 'analysis' && position.sample_marker) {
+      return `${coordinate} — Marker #${position.sample_marker.id} (Sample ${position.sample_marker.sample ?? '?'})`;
     }
   }
   if (status === 'reserved') return `${coordinate} — Reserved`;
   return `${coordinate} — Empty`;
 }
 
-export default function Well({ position, coordinate, onClick }) {
-  const status = getStatus(position);
-  const sampleLabel = getSampleLabel(position);
-  const tooltip = getTooltip(position, coordinate, status);
+export default function Well({ position, coordinate, plateType, onClick }) {
+  const status = getStatus(position, plateType);
+  const filledLabel = getFilledLabel(position, plateType);
+  const tooltip = getTooltip(position, coordinate, status, plateType);
 
   return (
     <button
@@ -52,8 +58,8 @@ export default function Well({ position, coordinate, onClick }) {
       onClick={() => onClick && onClick(position, coordinate, status)}
     >
       <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
-      {status === 'filled' && sampleLabel && (
-        <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{sampleLabel}</span>
+      {status === 'filled' && filledLabel && (
+        <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">{filledLabel}</span>
       )}
       {status === 'reserved' && (
         <span className="text-[9px] leading-tight text-gray-700">Reserved</span>

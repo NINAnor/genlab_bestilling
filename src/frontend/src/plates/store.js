@@ -8,12 +8,16 @@ import { create } from 'zustand';
  */
 const usePlateStore = create((set) => ({
   plateId: null,
+  plateType: null,
+  plateLabel: null,
   positions: {},
 
   /** Initialise from config injected by Django template */
   init: (cfg) =>
     set({
       plateId: cfg.plate_id,
+      plateType: cfg.plate_type,
+      plateLabel: cfg.plate_label,
     }),
 
   /** Bulk-set positions from API response */

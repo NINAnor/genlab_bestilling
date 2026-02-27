@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import usePlateStore from '../store';
 import { usePositionAction } from '../hooks/usePositionAction';
@@ -26,6 +27,12 @@ const IconLock = () => (
 const IconUnlock = () => (
   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
   </svg>
 );
 
@@ -67,6 +74,12 @@ export default function PositionPanel({ plateType, children }) {
   const selectedCoordinate = usePlateStore((s) => s.selectedCoordinate);
   const clearSelection = usePlateStore((s) => s.clearSelection);
   const actionMutation = usePositionAction();
+  const [confirmAction, setConfirmAction] = useState(null);
+
+  // Reset confirmation when selection changes
+  useEffect(() => {
+    setConfirmAction(null);
+  }, [selectedPositionIdx]);
 
   const position = selectedPositionIdx != null ? positions[selectedPositionIdx] : null;
   const status = getStatus(position, plateType);
@@ -154,41 +167,108 @@ export default function PositionPanel({ plateType, children }) {
         )}
 
         {/* Actions */}
-        {(status === 'empty' || status === 'reserved') && (
-          <div className="px-5 py-4 space-y-2">
-            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Actions
-            </h5>
+        <div className="px-5 py-4 space-y-2">
+          <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            Actions
+          </h5>
 
-            {status === 'empty' && (
-              <button
-                onClick={() => handleAction('reserve', `${selectedCoordinate} reserved`)}
-                disabled={actionMutation.isPending}
-                className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
-                           bg-amber-500 text-white shadow-sm
-                           hover:bg-amber-600 active:bg-amber-700
-                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <IconLock />
-                Reserve Position
-              </button>
-            )}
+          {/* Confirmation dialog */}
+          {confirmAction && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 mb-2">
+              <p className="text-sm text-red-800 mb-3">{confirmAction.message}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    handleAction(confirmAction.action, confirmAction.successMsg);
+                    setConfirmAction(null);
+                  }}
+                  disabled={actionMutation.isPending}
+                  className="flex-1 px-3 py-1.5 rounded-md text-sm font-medium
+                             bg-red-600 text-white hover:bg-red-700 active:bg-red-800
+                             transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setConfirmAction(null)}
+                  className="flex-1 px-3 py-1.5 rounded-md text-sm font-medium
+                             bg-white text-gray-700 ring-1 ring-inset ring-gray-300
+                             hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
-            {status === 'reserved' && (
-              <button
-                onClick={() => handleAction('unreserve', `${selectedCoordinate} unreserved`)}
-                disabled={actionMutation.isPending}
-                className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
-                           bg-white text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300
-                           hover:bg-gray-50 active:bg-gray-100
-                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <IconUnlock />
-                Remove Reservation
-              </button>
-            )}
-          </div>
-        )}
+          {status === 'empty' && !confirmAction && (
+            <button
+              onClick={() => handleAction('reserve', `${selectedCoordinate} reserved`)}
+              disabled={actionMutation.isPending}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                         bg-amber-500 text-white shadow-sm
+                         hover:bg-amber-600 active:bg-amber-700
+                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <IconLock />
+              Reserve Position
+            </button>
+          )}
+
+          {status === 'reserved' && !confirmAction && (
+            <button
+              onClick={() => handleAction('unreserve', `${selectedCoordinate} unreserved`)}
+              disabled={actionMutation.isPending}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                         bg-white text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300
+                         hover:bg-gray-50 active:bg-gray-100
+                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <IconUnlock />
+              Remove Reservation
+            </button>
+          )}
+
+          {status === 'filled' && position.sample_raw && !confirmAction && (
+            <button
+              onClick={() =>
+                setConfirmAction({
+                  action: 'remove_sample',
+                  message: `Remove the sample from position ${selectedCoordinate}? This will free the position but won't delete the sample.`,
+                  successMsg: `Sample removed from ${selectedCoordinate}`,
+                })
+              }
+              disabled={actionMutation.isPending}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                         bg-white text-red-700 shadow-sm ring-1 ring-inset ring-red-300
+                         hover:bg-red-50 active:bg-red-100
+                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <IconTrash />
+              Remove Sample
+            </button>
+          )}
+
+          {status === 'filled' && position.sample_marker && !confirmAction && (
+            <button
+              onClick={() =>
+                setConfirmAction({
+                  action: 'remove_analysis',
+                  message: `Remove the sample marker from position ${selectedCoordinate}? This will free the position but won't delete the marker analysis.`,
+                  successMsg: `Sample marker removed from ${selectedCoordinate}`,
+                })
+              }
+              disabled={actionMutation.isPending}
+              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                         bg-white text-red-700 shadow-sm ring-1 ring-inset ring-red-300
+                         hover:bg-red-50 active:bg-red-100
+                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <IconTrash />
+              Remove Sample Marker
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

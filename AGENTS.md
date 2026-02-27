@@ -6,3 +6,4 @@
 - ALWAYS make sure the javascript/react code follows eslint/prettier configuration
 - PREFER backward compatible changes to APIs
 - PREFER adding readonly fields for related fields in the REST API
+- PREFER fat models over logic in the views

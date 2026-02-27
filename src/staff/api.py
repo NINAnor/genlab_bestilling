@@ -8,7 +8,13 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from capps.users.models import User
-from genlab_bestilling.models import Order, PlatePosition, Sample, SampleMarkerAnalysis
+from genlab_bestilling.models import (
+    ExtractionPlate,
+    Order,
+    PlatePosition,
+    Sample,
+    SampleMarkerAnalysis,
+)
 
 from .serializers import PlatePositionSerializer
 
@@ -182,6 +188,18 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
                 return Response(
                     {"error": "Sample not found or not available"},
                     status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Enforce extraction plate species / sample_type whitelists
+            try:
+                plate = ExtractionPlate.objects.get(pk=position.plate_id)
+                plate.validate_sample(sample)
+            except ExtractionPlate.DoesNotExist:
+                pass  # Not an extraction plate, skip whitelist checks
+            except ExtractionPlate.SampleNotAllowed as exc:
+                return Response(
+                    {"error": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             position.sample_raw = sample

@@ -1182,10 +1182,44 @@ class ExtractionPlate(Plate):
     sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
     isolated_at = models.DateTimeField(null=True, blank=True)
 
+    class SampleNotAllowed(Exception):
+        """Raised when a sample does not match the plate's whitelists."""
+
+    def validate_sample(self, sample: "Sample") -> None:
+        """Validate that `sample` matches the species and sample_type whitelists.
+
+        Empty whitelist means all values are allowed.
+        Raises `SampleNotAllowed` with a descriptive message on failure.
+        """
+        allowed_species = self.species.all()
+        if (
+            allowed_species.exists()
+            and sample.species_id not in allowed_species.values_list("id", flat=True)
+        ):
+            allowed = ", ".join(str(s) for s in allowed_species)
+            msg = (
+                f"Species '{sample.species}' is not allowed for plate {self}. "
+                f"Allowed species: {allowed}"
+            )
+            raise self.SampleNotAllowed(msg)
+
+        allowed_types = self.sample_types.all()
+        if allowed_types.exists() and sample.type_id not in allowed_types.values_list(
+            "id", flat=True
+        ):
+            allowed = ", ".join(str(t) for t in allowed_types)
+            msg = (
+                f"Sample type '{sample.type}' is not allowed for plate {self}. "
+                f"Allowed types: {allowed}"
+            )
+            raise self.SampleNotAllowed(msg)
+
     def __str__(self):
         return f"#Q{self.qiagen_id}"
 
     def populate(self, items: list) -> None:
+        for sample in items:
+            self.validate_sample(sample)
         super().populate(items, "sample_raw")
 
     def deferred_isolate_all_samples(self) -> None:

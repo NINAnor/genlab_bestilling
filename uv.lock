@@ -410,13 +410,16 @@ wheels = [
 
 [[package]]
 name = "django-allauth"
-version = "65.4.0"
+version = "65.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b4/f0/8aca7cc8c63b432565472e231ace2edfe3966304884f0ab106362e586ff8/django_allauth-65.4.0.tar.gz", hash = "sha256:1b6eb5d4a781a9a18dcd5ccf2bcae7ae542a56baea8e7b8f33a54c743cb54b0a", size = 1559056, upload-time = "2025-02-06T09:29:42.93Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7c/05/36b9de6d0109948717ee0fa8076d5b57396bc838d5239f5b44b7d4c29fb0/django_allauth-65.13.0.tar.gz", hash = "sha256:7d7b7e7ad603eb3864c142f051e2cce7be2f9a9c6945a51172ec83d48c6c843b", size = 1987616, upload-time = "2025-10-31T10:20:03.954Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ff/17/f2fd703781aeeb6d314059408df77360f09625cc3ce85f264b104443108c/django_allauth-65.13.0-py3-none-any.whl", hash = "sha256:119c0cf1cc2e0d1a0fe2f13588f30951d64989256084de2d60f13ab9308f9fa0", size = 1787213, upload-time = "2025-10-31T10:20:00.587Z" },
+]
 
 [[package]]
 name = "django-allauth-ui"
@@ -1043,7 +1046,7 @@ requires-dist = [
     { name = "crispy-tailwind" },
     { name = "dj-rest-auth" },
     { name = "django", specifier = ">=5.2.0" },
-    { name = "django-allauth", specifier = "==65.4" },
+    { name = "django-allauth", specifier = "==65.13.0" },
     { name = "django-allauth-ui", specifier = "==1.1.6" },
     { name = "django-appconf", specifier = ">=1.0.6" },
     { name = "django-autocomplete-light" },

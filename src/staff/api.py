@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,7 +29,19 @@ from .serializers import (
 )
 
 
+class IsGenlabStaffOrSuperuser(BasePermission):
+    """Allow access only to users in the 'genlab' group or superusers."""
+
+    def has_permission(self, request: Request, view: APIView) -> bool:
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
+        return user.is_superuser or user.is_genlab_staff()
+
+
 class OrderAPIView(APIView):
+    permission_classes = [IsGenlabStaffOrSuperuser]
+
     class RequestJson:
         user_ids = "user_ids"
 
@@ -71,6 +84,7 @@ class OrderAPIView(APIView):
 class PlatePositionViewSet(viewsets.ModelViewSet):
     """ViewSet for managing plate positions."""
 
+    permission_classes = [IsGenlabStaffOrSuperuser]
     queryset = PlatePosition.objects.select_related(
         "plate",
         "sample_raw",
@@ -278,6 +292,7 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
 class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
     """Staff API for listing sample markers of an analysis order."""
 
+    permission_classes = [IsGenlabStaffOrSuperuser]
     serializer_class = OrderSampleMarkerSerializer
     filterset_class = SampleMarkerAnalysisAPIFilter
 
@@ -304,6 +319,7 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
 class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
     """List all analysis plates."""
 
+    permission_classes = [IsGenlabStaffOrSuperuser]
     queryset = (
         AnalysisPlate.objects.all()
         .prefetch_related("positions")

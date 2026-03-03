@@ -24,6 +24,7 @@ from genlab_bestilling.models import (
 
 from .filters import AnalysisPlateAPIFilter, SampleMarkerAnalysisAPIFilter
 from .serializers import (
+    AnalysisOrderListSerializer,
     AnalysisPlateListSerializer,
     OrderSampleMarkerSerializer,
     PlatePositionSerializer,
@@ -393,6 +394,43 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
             )
             .order_by("sample__genlab_id", "marker__name")
         )
+
+
+class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
+    """Staff API for listing all sample markers with optional filters."""
+
+    permission_classes = [IsGenlabStaffOrSuperuser]
+    serializer_class = OrderSampleMarkerSerializer
+    filterset_class = SampleMarkerAnalysisAPIFilter
+    pagination_class = LimitOffsetPagination
+
+    def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
+        return (
+            SampleMarkerAnalysis.objects.all()
+            .select_related(
+                "sample",
+                "sample__species",
+                "sample__type",
+                "sample__position",
+                "sample__position__plate",
+                "marker",
+                "order",
+            )
+            .prefetch_related(
+                "sample__isolation_method",
+                "positions__plate",
+            )
+            .order_by("sample__genlab_id", "marker__name")
+        )
+
+
+class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
+    """Staff API for listing analysis orders (for filter dropdowns)."""
+
+    permission_classes = [IsGenlabStaffOrSuperuser]
+    serializer_class = AnalysisOrderListSerializer
+    queryset = AnalysisOrder.objects.all().order_by("-id")
+    pagination_class = LimitOffsetPagination
 
 
 class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):

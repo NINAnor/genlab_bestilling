@@ -1,15 +1,21 @@
 import {
+  useAnalysisOrderFilterOptions,
   useMarkerFilterOptions,
   useSpeciesFilterOptions,
   useSampleTypeFilterOptions,
   useIsolationMethodFilterOptions,
 } from '../hooks/useFilterOptions';
+import useOrderStore from '../store';
 
 /**
  * Filter bar for sample markers list.
- * Allows filtering by marker, species, sample type, isolation method, and genlab_id.
+ * Allows filtering by analysis order, marker, species, sample type, isolation method, and genlab_id.
  */
 export default function FilterBar({ filters, onFiltersChange, onReset }) {
+  const orderId = useOrderStore((s) => s.orderId);
+  const setSelectedOrder = useOrderStore((s) => s.setSelectedOrder);
+
+  const { data: analysisOrders = [], isLoading: ordersLoading } = useAnalysisOrderFilterOptions();
   const { data: markers = [], isLoading: markersLoading } = useMarkerFilterOptions();
   const { data: species = [], isLoading: speciesLoading } = useSpeciesFilterOptions();
   const { data: sampleTypes = [], isLoading: typesLoading } = useSampleTypeFilterOptions();
@@ -20,7 +26,21 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
     onFiltersChange({ ...filters, [key]: value || '' });
   };
 
-  const hasActiveFilters = Object.values(filters).some((v) => v !== '');
+  const handleOrderChange = (value) => {
+    if (value) {
+      const order = analysisOrders.find((o) => o.id === Number(value));
+      setSelectedOrder(Number(value), order?.label || value);
+    } else {
+      setSelectedOrder(null, null);
+    }
+  };
+
+  const handleReset = () => {
+    setSelectedOrder(null, null);
+    onReset();
+  };
+
+  const hasActiveFilters = orderId || Object.values(filters).some((v) => v !== '');
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
@@ -29,7 +49,7 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
         {hasActiveFilters && (
           <button
             type="button"
-            onClick={onReset}
+            onClick={handleReset}
             className="text-xs text-blue-600 hover:text-blue-800"
           >
             Clear all
@@ -37,7 +57,25 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+        {/* Analysis Order filter */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Analysis Order</label>
+          <select
+            value={orderId || ''}
+            onChange={(e) => handleOrderChange(e.target.value)}
+            disabled={ordersLoading}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All orders</option>
+            {analysisOrders.map((o, idx) => (
+              <option key={o.id ?? `order-${idx}`} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Marker filter */}
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Marker</label>

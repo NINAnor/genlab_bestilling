@@ -3,18 +3,18 @@ from rest_framework.routers import DefaultRouter
 
 from staff.api import (
     AnalysisOrderSampleMarkerViewSet,
+    AnalysisOrdersListViewSet,
     AnalysisPlatesViewSet,
     OrderAPIView,
     PositiveControlViewSet,
+    SampleMarkerViewSet,
 )
 
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
-    AnalysisOrderSampleMarkersView,
     AnalysisPlateCreateView,
     AnalysisPlateDetailView,
-    AnalysisPlateListView,
     AnalysisPlatePositionsView,
     AnalysisPlateUpdateView,
     AnalysisPlateUploadView,
@@ -41,6 +41,7 @@ from .views import (
     ProjectValidateActionView,
     SampleDetailView,
     SampleLabView,
+    SampleMarkersView,
     SamplesListView,
     StaffEditView,
     UpdateInternalNote,
@@ -54,6 +55,12 @@ router.register(
 )
 router.register(
     "api/positive-controls", PositiveControlViewSet, basename="api-positive-controls"
+)
+router.register(
+    "api/sample-markers", SampleMarkerViewSet, basename="api-sample-markers"
+)
+router.register(
+    "api/analysis-orders", AnalysisOrdersListViewSet, basename="api-analysis-orders"
 )
 
 urlpatterns = [
@@ -175,7 +182,7 @@ urlpatterns = [
     ),
     path(
         "analysis-plates/",
-        AnalysisPlateListView.as_view(),
+        SampleMarkersView.as_view(),
         name="analysis-plates-list",
     ),
     path(
@@ -217,12 +224,6 @@ urlpatterns = [
         "analysis-plates/<uuid:pk>/positions/",
         AnalysisPlatePositionsView.as_view(),
         name="analysis-plates-positions",
-    ),
-    # Analysis order sample markers management (React frontend)
-    path(
-        "orders/analysis/<int:pk>/manage-markers/",
-        AnalysisOrderSampleMarkersView.as_view(),
-        name="order-analysis-manage-markers",
     ),
     # API: list sample markers for an analysis order
     path(

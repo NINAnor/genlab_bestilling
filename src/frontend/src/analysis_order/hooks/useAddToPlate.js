@@ -22,7 +22,7 @@ export function useAddToPlate() {
       toast.success(data.message || 'Sample markers added to plate');
       clearSelection();
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['order-sample-markers'] });
+      queryClient.invalidateQueries({ queryKey: ['sample-markers'] });
       queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
       queryClient.invalidateQueries({ queryKey: ['analysisPlatePositions'] });
     },

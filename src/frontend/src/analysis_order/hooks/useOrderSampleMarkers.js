@@ -16,27 +16,32 @@ function buildFilterParams(filters) {
 }
 
 /**
- * Fetch all sample markers for the current analysis order with optional filters.
+ * Fetch all sample markers with optional filters including order.
  * Syncs results into Zustand store.
  *
- * @param {Object} filters - Filter parameters (marker, species, sample_type, isolation_method, genlab_id)
+ * @param {Object} filters - Filter parameters (order, marker, species, sample_type, isolation_method, genlab_id)
  */
 export function useOrderSampleMarkers(filters = {}) {
   const orderId = useOrderStore((s) => s.orderId);
   const setSampleMarkers = useOrderStore((s) => s.setSampleMarkers);
 
-  const filterParams = buildFilterParams(filters);
+  // Include orderId in filters if set
+  const allFilters = { ...filters };
+  if (orderId) {
+    allFilters.order = orderId;
+  }
+
+  const filterParams = buildFilterParams(allFilters);
 
   return useQuery({
-    queryKey: ['order-sample-markers', orderId, filterParams],
+    queryKey: ['sample-markers', filterParams],
     queryFn: async () => {
-      const { data } = await client.get(`/staff/api/analysis-orders/${orderId}/sample-markers/`, {
+      const { data } = await client.get('/staff/api/sample-markers/', {
         params: filterParams,
       });
       const results = Array.isArray(data) ? data : data.results ?? [];
       setSampleMarkers(results);
       return results;
     },
-    enabled: !!orderId,
   });
 }

@@ -15,8 +15,15 @@ const useOrderStore = create((set) => ({
   /** Initialise from config injected by Django template */
   init: (cfg) =>
     set({
-      orderId: cfg.order_id,
-      orderLabel: cfg.order_label,
+      orderId: cfg.order_id ?? null,
+      orderLabel: cfg.order_label ?? null,
+    }),
+
+  /** Set the selected order for filtering */
+  setSelectedOrder: (orderId, orderLabel) =>
+    set({
+      orderId: orderId ?? null,
+      orderLabel: orderLabel ?? null,
     }),
 
   /** Set the currently selected plate (for adding sample markers) */

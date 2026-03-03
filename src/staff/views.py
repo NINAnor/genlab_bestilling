@@ -1106,19 +1106,26 @@ class AnalysisPlatePositionsView(PlatePositionsView):
         return self.object.name or str(self.object.pk)
 
 
-class AnalysisOrderSampleMarkersView(StaffMixin, DetailView):
-    """Staff view for managing analysis order sample markers (React frontend)."""
+class SampleMarkersView(StaffMixin, TemplateView):
+    """Staff view for browsing all sample markers (React frontend)."""
 
-    model = AnalysisOrder
-    template_name = "staff/analysisorder_manage_markers.html"
+    template_name = "staff/sample_markers.html"
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["frontend_args"] = {
-            "order_id": self.object.pk,
-            "order_label": str(self.object),
+        frontend_args = {
             "csrf": get_token(self.request),
         }
+        # Support pre-setting the order filter via query string
+        order_id = self.request.GET.get("order")
+        if order_id:
+            try:
+                order = AnalysisOrder.objects.get(pk=order_id)
+                frontend_args["order_id"] = order.pk
+                frontend_args["order_label"] = str(order)
+            except AnalysisOrder.DoesNotExist:
+                pass
+        context["frontend_args"] = frontend_args
         return context
 
 

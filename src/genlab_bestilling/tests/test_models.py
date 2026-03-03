@@ -865,3 +865,145 @@ def test_position_to_coordinates_edge_cases():
 
         # Clean up
         plate_position.delete()
+
+
+# --- AnalysisPlate.add_sample_markers tests ---
+
+
+@pytest.fixture
+def analysis_order_with_markers(extraction):
+    """Create an analysis order with sample markers."""
+    extraction.confirm_order()
+    ao = AnalysisOrder.objects.create(genrequest_id=1, from_order=extraction)
+    m = Marker.objects.filter(name__startswith="Salamander").first()
+    ao.markers.add(m)
+    ao.populate_from_order()
+    return ao
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_success(analysis_order_with_markers):
+    """Test adding sample markers to an analysis plate successfully."""
+    plate = AnalysisPlate.objects.create()
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2]
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    assert len(added) == 2
+    for item in added:
+        assert "position" in item
+        assert "coordinate" in item
+        assert "sample_marker_id" in item
+
+    # Verify markers are actually added to positions
+    for sm_id in sample_markers:
+        assert PlatePosition.objects.filter(
+            plate=plate, sample_marker_id=sm_id
+        ).exists()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_not_enough_positions(
+    analysis_order_with_markers,
+):
+    """Test that NotEnoughPositions is raised when too many markers requested."""
+    plate = AnalysisPlate.objects.create()
+
+    # Reserve all but one position
+    for pos in plate.positions.all()[1:]:
+        pos.is_reserved = True
+        pos.save()
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2]
+    )
+
+    with (
+        pytest.raises(AnalysisPlate.NotEnoughPositions) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers(sample_markers)
+
+    assert "Not enough positions" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_not_found(genlab_setup):
+    """Test that SampleMarkerNotFound is raised for invalid IDs."""
+    plate = AnalysisPlate.objects.create()
+
+    with (
+        pytest.raises(AnalysisPlate.SampleMarkerNotFound) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers([999999])
+
+    assert "999999" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_whitelist_violation(
+    analysis_order_with_markers,
+):
+    """Test that SampleMarkerNotAllowed is raised for markers not in whitelist."""
+    plate = AnalysisPlate.objects.create()
+    # Set whitelist to a different marker
+    other_marker = Marker.objects.exclude(
+        pk__in=analysis_order_with_markers.markers.values_list("pk", flat=True)
+    ).first()
+    plate.markers.add(other_marker)
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:1]
+    )
+
+    with (
+        pytest.raises(AnalysisPlate.SampleMarkerNotAllowed) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers(sample_markers)
+
+    assert "not allowed" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_fills_in_order(analysis_order_with_markers):
+    """Test that markers are added to positions in order starting from first."""
+    plate = AnalysisPlate.objects.create()
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2]
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    # Verify positions are filled in order (0, 1 = A1, B1)
+    assert added[0]["position"] == 0
+    assert added[0]["coordinate"] == "A1"
+    assert added[1]["position"] == 1
+    assert added[1]["coordinate"] == "B1"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_skips_reserved(analysis_order_with_markers):
+    """Test that reserved positions are skipped."""
+    plate = AnalysisPlate.objects.create()
+
+    # Reserve the first position
+    first_pos = plate.positions.order_by("position").first()
+    first_pos.is_reserved = True
+    first_pos.save()
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:1]
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    # Should skip A1 (position 0) and use B1 (position 1)
+    assert added[0]["position"] == 1
+    assert added[0]["coordinate"] == "B1"

@@ -1272,6 +1272,12 @@ class AnalysisPlate(Plate):
     class SampleMarkerNotAllowed(Exception):
         """Raised when a sample marker does not match the plate's marker whitelist."""
 
+    class NotEnoughPositions(Exception):
+        """Raised when there aren't enough available positions."""
+
+    class SampleMarkerNotFound(Exception):
+        """Raised when a sample marker ID doesn't exist."""
+
     def validate_sample_marker(self, sample_marker: "SampleMarkerAnalysis") -> None:
         """Validate that `sample_marker` matches the marker whitelist.
 
@@ -1282,7 +1288,7 @@ class AnalysisPlate(Plate):
         if (
             allowed_markers.exists()
             and sample_marker.marker_id
-            not in allowed_markers.values_list("id", flat=True)
+            not in allowed_markers.values_list("pk", flat=True)
         ):
             allowed = ", ".join(str(m) for m in allowed_markers)
             msg = (
@@ -1298,6 +1304,73 @@ class AnalysisPlate(Plate):
         for sample_marker in items:
             self.validate_sample_marker(sample_marker)
         super().populate(items, "sample_marker")
+
+    def add_sample_markers(
+        self, sample_marker_ids: list[int]
+    ) -> list[dict[str, int | str]]:
+        """Add sample markers to plate, filling from first available position.
+
+        Args:
+            sample_marker_ids: List of SampleMarkerAnalysis IDs to add.
+
+        Returns:
+            List of dicts with position, coordinate, and sample_marker_id.
+
+        Raises:
+            NotEnoughPositions: If there aren't enough available positions.
+            SampleMarkerNotFound: If a sample marker ID doesn't exist.
+            SampleMarkerNotAllowed: If a marker doesn't match the whitelist.
+        """
+        # Get available positions ordered by position number
+        available_positions = list(
+            self.positions.select_for_update()
+            .filter(
+                sample_raw__isnull=True,
+                sample_marker__isnull=True,
+                is_reserved=False,
+            )
+            .order_by("position")
+        )
+
+        if len(available_positions) < len(sample_marker_ids):
+            need = len(sample_marker_ids)
+            have = len(available_positions)
+            msg = f"Not enough positions. Need {need}, have {have}"
+            raise self.NotEnoughPositions(msg)
+
+        # Batch fetch sample markers preserving order
+        markers_qs = SampleMarkerAnalysis.objects.select_for_update().filter(
+            pk__in=sample_marker_ids
+        )
+        markers_by_id = {sm.id: sm for sm in markers_qs}
+
+        # Check all markers exist and build ordered list
+        sample_markers = []
+        for marker_id in sample_marker_ids:
+            sm = markers_by_id.get(marker_id)
+            if sm is None:
+                msg = f"Sample marker {marker_id} not found"
+                raise self.SampleMarkerNotFound(msg)
+            sample_markers.append(sm)
+
+        # Validate all markers against plate whitelist
+        for sm in sample_markers:
+            self.validate_sample_marker(sm)
+
+        # Add markers to positions
+        added = []
+        for position, sm in zip(available_positions, sample_markers, strict=False):
+            position.sample_marker = sm
+            position.save(update_fields=["sample_marker"])
+            added.append(
+                {
+                    "position": position.position,
+                    "coordinate": position.position_to_coordinates(),
+                    "sample_marker_id": sm.id,
+                }
+            )
+
+        return added
 
     class Meta:
         constraints = [

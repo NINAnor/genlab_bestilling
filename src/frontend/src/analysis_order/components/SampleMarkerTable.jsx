@@ -117,6 +117,77 @@ const columns = [
       <span className="text-sm font-mono text-gray-600">{getValue() ?? '—'}</span>
     ),
   },
+  {
+    id: 'pcr',
+    header: 'PCR',
+    accessorFn: (row) => !!row.analysis_position,
+    cell: ({ getValue }) => (
+      <span className={`text-sm font-medium ${getValue() ? 'text-emerald-600' : 'text-gray-400'}`}>
+        {getValue() ? '✓' : '—'}
+      </span>
+    ),
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.analysis_position ? 1 : 0;
+      const b = rowB.original.analysis_position ? 1 : 0;
+      return a - b;
+    },
+  },
+  {
+    id: 'analyzing',
+    header: 'Analyzing',
+    accessorFn: (row) => row.is_analyzing,
+    cell: ({ getValue }) => {
+      const { count, total } = getValue() || { count: 0, total: 0 };
+      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+      const pct = Math.round((count / total) * 100);
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-600">{count}/{total}</span>
+        </div>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.is_analyzing;
+      const b = rowB.original.is_analyzing;
+      const pctA = a?.total ? a.count / a.total : 0;
+      const pctB = b?.total ? b.count / b.total : 0;
+      return pctA - pctB;
+    },
+  },
+  {
+    id: 'output',
+    header: 'Output',
+    accessorFn: (row) => row.has_output,
+    cell: ({ getValue }) => {
+      const { count, total } = getValue() || { count: 0, total: 0 };
+      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+      const pct = Math.round((count / total) * 100);
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-600">{count}/{total}</span>
+        </div>
+      );
+    },
+    sortingFn: (rowA, rowB) => {
+      const a = rowA.original.has_output;
+      const b = rowB.original.has_output;
+      const pctA = a?.total ? a.count / a.total : 0;
+      const pctB = b?.total ? b.count / b.total : 0;
+      return pctA - pctB;
+    },
+  },
 ];
 
 export default function SampleMarkerTable() {

@@ -7,7 +7,7 @@ import { client } from '../config';
  */
 function invalidatePositionQueries(queryClient, { includePlates = true } = {}) {
   queryClient.invalidateQueries({ queryKey: ['analysisPlatePositions'] });
-  queryClient.invalidateQueries({ queryKey: ['order-sample-markers'] });
+  queryClient.invalidateQueries({ queryKey: ['sample-markers'] });
   if (includePlates) {
     queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
   }

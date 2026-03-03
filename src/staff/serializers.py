@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from genlab_bestilling.models import (
+    AnalysisOrder,
     AnalysisPlate,
     ExtractionPlate,
     PlatePosition,
@@ -8,6 +9,19 @@ from genlab_bestilling.models import (
     Sample,
     SampleMarkerAnalysis,
 )
+
+
+class AnalysisOrderListSerializer(serializers.ModelSerializer):
+    """Simple serializer for listing analysis orders in filter dropdowns."""
+
+    label = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AnalysisOrder
+        fields = ("id", "label")
+
+    def get_label(self, obj: AnalysisOrder) -> str:
+        return str(obj)
 
 
 class PositiveControlSerializer(serializers.ModelSerializer):

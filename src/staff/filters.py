@@ -841,6 +841,7 @@ class AnalysisPlateFilter(filters.FilterSet):
 class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     """Filter for SampleMarkerAnalysis API."""
 
+    order = filters.NumberFilter(field_name="order_id")
     marker = CharFilter(field_name="marker__name")
     species = filters.NumberFilter(field_name="sample__species_id")
     sample_type = filters.NumberFilter(field_name="sample__type_id")
@@ -853,6 +854,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     class Meta:
         model = SampleMarkerAnalysis
         fields = [
+            "order",
             "marker",
             "species",
             "sample_type",

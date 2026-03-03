@@ -48,7 +48,9 @@ function OrderApp() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-4xl font-bold">Analysis Order {orderLabel}</h2>
+        <h2 className="text-4xl font-bold">
+          {orderLabel ? `Analysis Order ${orderLabel}` : 'Sample Markers'}
+        </h2>
         <a href="../" className="btn btn-sm btn-tertiary">
           <i className="fas fa-arrow-left mr-1"></i> Back
         </a>

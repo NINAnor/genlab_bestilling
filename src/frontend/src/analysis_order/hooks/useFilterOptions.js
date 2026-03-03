@@ -3,37 +3,55 @@ import { client } from '../config';
 import useOrderStore from '../store';
 
 /**
- * Fetch markers allowed for this analysis order.
+ * Fetch analysis orders for filter dropdown.
+ */
+export function useAnalysisOrderFilterOptions() {
+  return useQuery({
+    queryKey: ['filter-analysis-orders'],
+    queryFn: async () => {
+      const { data } = await client.get('/staff/api/analysis-orders/', {
+        params: { limit: 100 },
+      });
+      return data.results ?? data;
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Fetch markers allowed for this analysis order (or all if no order selected).
  */
 export function useMarkerFilterOptions() {
   const orderId = useOrderStore((s) => s.orderId);
   return useQuery({
     queryKey: ['filter-markers', orderId],
     queryFn: async () => {
-      const { data } = await client.get('/api/markers/', {
-        params: { analysis_order: orderId },
-      });
+      const params = {};
+      if (orderId) {
+        params.analysis_order = orderId;
+      }
+      const { data } = await client.get('/api/markers/', { params });
       return data.results ?? data;
     },
-    enabled: !!orderId,
     staleTime: 60_000,
   });
 }
 
 /**
- * Fetch species available in this analysis order.
+ * Fetch species available in this analysis order (or all if no order selected).
  */
 export function useSpeciesFilterOptions() {
   const orderId = useOrderStore((s) => s.orderId);
   return useQuery({
     queryKey: ['filter-species', orderId],
     queryFn: async () => {
-      const { data } = await client.get('/api/species/', {
-        params: { analysis_order: orderId },
-      });
+      const params = {};
+      if (orderId) {
+        params.analysis_order = orderId;
+      }
+      const { data } = await client.get('/api/species/', { params });
       return data.results ?? data;
     },
-    enabled: !!orderId,
     staleTime: 60_000,
   });
 }

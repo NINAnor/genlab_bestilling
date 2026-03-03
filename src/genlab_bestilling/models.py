@@ -60,6 +60,19 @@ class Area(AdminUrlsMixin, models.Model):
         return self.name
 
 
+class PositiveControl(AdminUrlsMixin, models.Model):
+    """Positive control types used for reserved positions on analysis plates."""
+
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Marker(AdminUrlsMixin, models.Model):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
@@ -1394,6 +1407,14 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(null=True, blank=True)
     is_reserved = models.BooleanField(default=False)
+    positive_control = models.ForeignKey(
+        f"{an}.PositiveControl",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="positions",
+        help_text="Positive control type for reserved positions on analysis plates",
+    )
     filled_at = models.DateTimeField(null=True, blank=True)
 
     sample_raw = models.OneToOneField(
@@ -1435,19 +1456,21 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
                 name="position_contain_marker_xor_raw_xor_reserved",
                 condition=(
                     # Exactly one of these conditions must be true:
-                    # 1. Has sample_raw only
+                    # 1. Has sample_raw only (no positive_control)
                     (
                         Q(sample_raw__isnull=False)
                         & Q(sample_marker__isnull=True)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
-                    # 2. Has sample_marker only
+                    # 2. Has sample_marker only (no positive_control)
                     | (
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=False)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
-                    # 3. Is reserved only
+                    # 3. Is reserved (can optionally have positive_control)
                     | (
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=True)
@@ -1458,6 +1481,7 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=True)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
                 ),
             ),

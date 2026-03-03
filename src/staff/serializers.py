@@ -4,9 +4,18 @@ from genlab_bestilling.models import (
     AnalysisPlate,
     ExtractionPlate,
     PlatePosition,
+    PositiveControl,
     Sample,
     SampleMarkerAnalysis,
 )
+
+
+class PositiveControlSerializer(serializers.ModelSerializer):
+    """Serializer for positive control options."""
+
+    class Meta:
+        model = PositiveControl
+        fields = ("id", "name", "description")
 
 
 class SampleSerializer(serializers.ModelSerializer):
@@ -91,6 +100,9 @@ class PlatePositionSerializer(serializers.ModelSerializer):
     sample_marker = SampleMarkerSerializer(read_only=True)
     possible_actions = serializers.SerializerMethodField()
     filled_at = serializers.DateTimeField(format="%d/%m/%Y", read_only=True)
+    positive_control_name = serializers.CharField(
+        source="positive_control.name", read_only=True, allow_null=True
+    )
 
     class Meta:
         model = PlatePosition
@@ -100,6 +112,8 @@ class PlatePositionSerializer(serializers.ModelSerializer):
             "coordinate",
             "is_full",
             "is_reserved",
+            "positive_control",
+            "positive_control_name",
             "filled_at",
             "sample_raw",
             "sample_marker",

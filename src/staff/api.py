@@ -17,6 +17,7 @@ from genlab_bestilling.models import (
     ExtractionPlate,
     Order,
     PlatePosition,
+    PositiveControl,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -26,6 +27,7 @@ from .serializers import (
     AnalysisPlateListSerializer,
     OrderSampleMarkerSerializer,
     PlatePositionSerializer,
+    PositiveControlSerializer,
 )
 
 
@@ -318,6 +320,52 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
                     "target": self.get_serializer(target).data,
                 }
             )
+
+    @action(detail=True, methods=["post"])
+    def set_positive_control(self, request: Request, pk: int | str) -> Response:
+        """Set positive control on a reserved position."""
+        positive_control_id = request.data.get("positive_control_id")
+
+        with transaction.atomic():
+            position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+            if not position.is_reserved:
+                return Response(
+                    {"error": "Position must be reserved to set a positive control"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            if positive_control_id:
+                try:
+                    positive_control = PositiveControl.objects.get(
+                        pk=positive_control_id
+                    )
+                except PositiveControl.DoesNotExist:
+                    return Response(
+                        {"error": "Positive control not found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                position.positive_control = positive_control
+            else:
+                position.positive_control = None
+
+            position.save(update_fields=["positive_control"])
+
+            serializer = self.get_serializer(position)
+            return Response(
+                {
+                    "message": "Positive control updated successfully",
+                    "position": serializer.data,
+                }
+            )
+
+
+class PositiveControlViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for listing positive control options."""
+
+    permission_classes = [IsGenlabStaffOrSuperuser]
+    queryset = PositiveControl.objects.all()
+    serializer_class = PositiveControlSerializer
 
 
 class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):

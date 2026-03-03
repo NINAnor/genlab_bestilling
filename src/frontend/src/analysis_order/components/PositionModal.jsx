@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   useReservePosition,
   useUnreservePosition,
   useRemoveSampleMarker,
   useEditPositionNotes,
+  useSetPositiveControl,
 } from '../hooks/usePositionActions';
+import { usePositiveControls } from '../hooks/useFilterOptions';
 
 /**
  * Modal for managing a plate position.
@@ -13,15 +16,21 @@ import {
 export default function PositionModal({ position, onClose }) {
   const [notes, setNotes] = useState(position?.notes ?? '');
   const [showNotesForm, setShowNotesForm] = useState(false);
+  const [selectedPositiveControl, setSelectedPositiveControl] = useState(
+    position?.positive_control ?? null,
+  );
 
   const reserve = useReservePosition();
   const unreserve = useUnreservePosition();
   const removeSampleMarker = useRemoveSampleMarker();
   const editNotes = useEditPositionNotes();
+  const setPositiveControl = useSetPositiveControl();
+  const { data: positiveControls = [] } = usePositiveControls();
 
   useEffect(() => {
     setNotes(position?.notes ?? '');
     setShowNotesForm(false);
+    setSelectedPositiveControl(position?.positive_control ?? null);
   }, [position]);
 
   if (!position) return null;
@@ -72,11 +81,23 @@ export default function PositionModal({ position, onClose }) {
     );
   };
 
+  const handlePositiveControlChange = (e) => {
+    const newValue = e.target.value ? parseInt(e.target.value, 10) : null;
+    setSelectedPositiveControl(newValue);
+    if (hasId) {
+      setPositiveControl.mutate({
+        positionId: position.id,
+        positiveControlId: newValue,
+      });
+    }
+  };
+
   const isPending =
     reserve.isPending ||
     unreserve.isPending ||
     removeSampleMarker.isPending ||
-    editNotes.isPending;
+    editNotes.isPending ||
+    setPositiveControl.isPending;
 
   return (
     <div
@@ -115,7 +136,7 @@ export default function PositionModal({ position, onClose }) {
             )}
             {status === 'reserved' && (
               <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Reserved
+                Reserved{position.positive_control_name ? ` (${position.positive_control_name})` : ''}
               </span>
             )}
             {status === 'filled' && (
@@ -124,6 +145,35 @@ export default function PositionModal({ position, onClose }) {
               </span>
             )}
           </div>
+
+          {/* Positive control selector for reserved positions */}
+          {hasId && status === 'reserved' && positiveControls.length > 0 && (
+            <div>
+              <label
+                htmlFor="positive-control-select"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Positive Control
+              </label>
+              <select
+                id="positive-control-select"
+                value={selectedPositiveControl ?? ''}
+                onChange={handlePositiveControlChange}
+                disabled={setPositiveControl.isPending}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+              >
+                <option value="">None</option>
+                {positiveControls.map((pc) => (
+                  <option key={pc.id} value={pc.id}>
+                    {pc.name}
+                  </option>
+                ))}
+              </select>
+              {setPositiveControl.isPending && (
+                <span className="text-xs text-gray-500 mt-1">Saving…</span>
+              )}
+            </div>
+          )}
 
           {/* Sample marker info */}
           {position.sample_marker && (
@@ -242,15 +292,38 @@ export default function PositionModal({ position, onClose }) {
         </div>
 
         {/* Error messages */}
-        {(reserve.error || unreserve.error || removeSampleMarker.error || editNotes.error) && (
+        {(reserve.error ||
+          unreserve.error ||
+          removeSampleMarker.error ||
+          editNotes.error ||
+          setPositiveControl.error) && (
           <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-sm text-red-700">
             {reserve.error?.message ||
               unreserve.error?.message ||
               removeSampleMarker.error?.message ||
-              editNotes.error?.message}
+              editNotes.error?.message ||
+              setPositiveControl.error?.message}
           </div>
         )}
       </div>
     </div>
   );
 }
+
+PositionModal.propTypes = {
+  position: PropTypes.shape({
+    id: PropTypes.number,
+    coordinate: PropTypes.string,
+    is_reserved: PropTypes.bool,
+    positive_control: PropTypes.number,
+    positive_control_name: PropTypes.string,
+    notes: PropTypes.string,
+    sample_marker: PropTypes.shape({
+      sample_genlab_id: PropTypes.string,
+      sample_name: PropTypes.string,
+      marker_name: PropTypes.string,
+      order_id: PropTypes.number,
+    }),
+  }),
+  onClose: PropTypes.func.isRequired,
+};

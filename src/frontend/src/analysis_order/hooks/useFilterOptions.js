@@ -106,3 +106,17 @@ export function usePlatePositions(plateId) {
     staleTime: 30_000,
   });
 }
+
+/**
+ * Fetch all positive control options.
+ */
+export function usePositiveControls() {
+  return useQuery({
+    queryKey: ['positive-controls'],
+    queryFn: async () => {
+      const { data } = await client.get('/staff/api/positive-controls/');
+      return data.results ?? data;
+    },
+    staleTime: 60_000, // Cache for 1 minute
+  });
+}

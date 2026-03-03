@@ -5,6 +5,7 @@ from staff.api import (
     AnalysisOrderSampleMarkerViewSet,
     AnalysisPlatesViewSet,
     OrderAPIView,
+    PositiveControlViewSet,
 )
 
 from .views import (
@@ -51,6 +52,9 @@ app_name = "staff"
 router = DefaultRouter()
 router.register(
     "api/analysis-plates", AnalysisPlatesViewSet, basename="api-analysis-plates"
+)
+router.register(
+    "api/positive-controls", PositiveControlViewSet, basename="api-positive-controls"
 )
 
 urlpatterns = [

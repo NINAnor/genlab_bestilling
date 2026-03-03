@@ -1,4 +1,5 @@
 import classnames from 'classnames';
+import PropTypes from 'prop-types';
 
 const STATUS_STYLES = {
   empty: 'bg-gray-100 border-gray-300 hover:bg-gray-200',
@@ -49,7 +50,9 @@ function getTooltip(position, coordinate, status, plateType) {
       base = `${coordinate} — Filled`;
     }
   } else if (status === 'reserved') {
-    base = `${coordinate} — Reserved`;
+    base = position?.positive_control_name
+      ? `${coordinate} — Reserved (${position.positive_control_name})`
+      : `${coordinate} — Reserved`;
   } else {
     base = `${coordinate} — Empty`;
   }
@@ -99,8 +102,27 @@ export default function Well({ position, coordinate, plateType, selected, onClic
         </>
       )}
       {status === 'reserved' && (
-        <span className="text-[9px] leading-tight text-gray-700">Reserved</span>
+        <>
+          <span className="text-[9px] leading-tight text-gray-700">Reserved</span>
+          {position?.positive_control_name && (
+            <span className="text-[8px] leading-tight truncate max-w-full text-amber-800">{position.positive_control_name}</span>
+          )}
+        </>
       )}
     </button>
   );
 }
+
+Well.propTypes = {
+  position: PropTypes.shape({
+    notes: PropTypes.string,
+    positive_control_name: PropTypes.string,
+    is_reserved: PropTypes.bool,
+    sample_raw: PropTypes.object,
+    sample_marker: PropTypes.object,
+  }),
+  coordinate: PropTypes.string.isRequired,
+  plateType: PropTypes.oneOf(['extraction', 'analysis']).isRequired,
+  selected: PropTypes.bool,
+  onClick: PropTypes.func,
+};

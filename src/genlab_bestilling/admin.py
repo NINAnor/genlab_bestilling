@@ -25,6 +25,7 @@ from .models import (
     Organization,
     Plate,
     PlatePosition,
+    PositiveControl,
     Sample,
     SampleMarkerAnalysis,
     SampleType,
@@ -50,6 +51,14 @@ class AreaAdmin(ModelAdmin):
     ]
     list_filter_submit = True
     list_filter_sheet = False
+
+
+@admin.register(PositiveControl)
+class PositiveControlAdmin(ModelAdmin):
+    M = PositiveControl
+    search_help_text = "Search for positive control name"
+    search_fields = [M.name.field.name]
+    list_display = [M.name.field.name, M.description.field.name]
 
 
 @admin.register(Order)

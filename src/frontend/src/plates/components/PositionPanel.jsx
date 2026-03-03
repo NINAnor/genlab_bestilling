@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
 import usePlateStore from '../store';
 import { usePositionAction } from '../hooks/usePositionAction';
+import { usePositiveControls, useSetPositiveControl } from '../hooks/usePositiveControls';
 import { getStatus } from './Well';
 import SearchPanel from './SearchPanel';
 
@@ -69,11 +71,6 @@ const STATUS_CONFIG = {
  *   plateType – "extraction" | "analysis"
  *   children  – render-prop receiving { position, coordinate, status }
  */
-const IconNote = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-  </svg>
-);
 
 export default function PositionPanel({ plateType, children }) {
   const positions = usePlateStore((s) => s.positions);
@@ -84,14 +81,19 @@ export default function PositionPanel({ plateType, children }) {
   const [confirmAction, setConfirmAction] = useState(null);
   const [editingNotes, setEditingNotes] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
+  const [selectedPositiveControl, setSelectedPositiveControl] = useState(null);
+  const { data: positiveControls = [] } = usePositiveControls();
+  const setPositiveControlMutation = useSetPositiveControl();
+
+  const position = selectedPositionIdx != null ? positions[selectedPositionIdx] : null;
 
   // Reset confirmation and notes editor when selection changes
   useEffect(() => {
     setConfirmAction(null);
     setEditingNotes(false);
-  }, [selectedPositionIdx]);
+    setSelectedPositiveControl(position?.positive_control ?? null);
+  }, [selectedPositionIdx, position?.positive_control]);
 
-  const position = selectedPositionIdx != null ? positions[selectedPositionIdx] : null;
   const status = getStatus(position, plateType);
   const cfg = STATUS_CONFIG[status];
 
@@ -134,10 +136,15 @@ export default function PositionPanel({ plateType, children }) {
           <span className="text-2xl font-bold text-gray-900 tracking-tight">
             {selectedCoordinate}
           </span>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.badge}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-            {cfg.label}
-          </span>
+          <div className="flex flex-col gap-1">
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.badge}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+              {cfg.label}
+            </span>
+            {status === 'reserved' && position.positive_control_name && (
+              <span className="text-xs text-gray-600 pl-1">{position.positive_control_name}</span>
+            )}
+          </div>
         </div>
         <button
           type="button"
@@ -298,17 +305,59 @@ export default function PositionPanel({ plateType, children }) {
           )}
 
           {status === 'reserved' && !confirmAction && (
-            <button
-              onClick={() => handleAction('unreserve', `${selectedCoordinate} unreserved`)}
-              disabled={actionMutation.isPending}
-              className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
-                         bg-white text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300
-                         hover:bg-gray-50 active:bg-gray-100
-                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <IconUnlock />
-              Remove Reservation
-            </button>
+            <>
+              {/* Positive control selector */}
+              {positiveControls.length > 0 && (
+                <div className="mb-3">
+                  <label
+                    htmlFor="positive-control-select"
+                    className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2"
+                  >
+                    Positive Control
+                  </label>
+                  <select
+                    id="positive-control-select"
+                    value={selectedPositiveControl ?? ''}
+                    onChange={(e) => {
+                      const newValue = e.target.value ? parseInt(e.target.value, 10) : null;
+                      setSelectedPositiveControl(newValue);
+                      setPositiveControlMutation.mutate(
+                        { positionId: position.id, positiveControlId: newValue },
+                        {
+                          onSuccess: () => toast.success('Positive control updated'),
+                          onError: (err) => toast.error(err.response?.data?.error ?? 'Failed to update positive control'),
+                        },
+                      );
+                    }}
+                    disabled={setPositiveControlMutation.isPending}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg
+                               focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
+                               disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <option value="">None</option>
+                    {positiveControls.map((pc) => (
+                      <option key={pc.id} value={pc.id}>
+                        {pc.name}
+                      </option>
+                    ))}
+                  </select>
+                  {setPositiveControlMutation.isPending && (
+                    <span className="text-xs text-gray-500 mt-1">Saving…</span>
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => handleAction('unreserve', `${selectedCoordinate} unreserved`)}
+                disabled={actionMutation.isPending}
+                className="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium
+                           bg-white text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300
+                           hover:bg-gray-50 active:bg-gray-100
+                           transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <IconUnlock />
+                Remove Reservation
+              </button>
+            </>
           )}
 
           {status === 'filled' && position.sample_raw && !confirmAction && (
@@ -355,3 +404,8 @@ export default function PositionPanel({ plateType, children }) {
     </div>
   );
 }
+
+PositionPanel.propTypes = {
+  plateType: PropTypes.oneOf(['extraction', 'analysis']).isRequired,
+  children: PropTypes.func,
+};

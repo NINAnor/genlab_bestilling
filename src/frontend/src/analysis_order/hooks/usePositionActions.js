@@ -93,3 +93,23 @@ export function useMovePosition() {
     },
   });
 }
+
+/**
+ * Hook for setting a positive control on a reserved position.
+ */
+export function useSetPositiveControl() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ positionId, positiveControlId }) => {
+      const { data } = await client.post(
+        `/api/plate-positions/${positionId}/set_positive_control/`,
+        { positive_control_id: positiveControlId },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      invalidatePositionQueries(queryClient, { includePlates: false });
+    },
+  });
+}

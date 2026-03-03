@@ -49,3 +49,59 @@ export function useSetAnalysisDate() {
     },
   });
 }
+
+/**
+ * Mutation hook to upload a result file for a plate.
+ */
+export function useUploadResultFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, file }) => {
+      const formData = new FormData();
+      formData.append('result_file', file);
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/upload-result-file/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Result file uploaded');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to upload result file';
+      toast.error(message);
+    },
+  });
+}
+
+/**
+ * Mutation hook to delete a result file for a plate.
+ */
+export function useDeleteResultFile() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId }) => {
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/delete-result-file/`,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Result file deleted');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to delete result file';
+      toast.error(message);
+    },
+  });
+}

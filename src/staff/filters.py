@@ -876,10 +876,10 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
         fields = ["search", "status", "min_available_positions"]
 
     def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
-        """Filter by status: not_analyzed, analyzed, results."""
-        if value == "not_analyzed":
+        """Filter by status: pending, analyzing, results."""
+        if value == "pending":
             return queryset.filter(analysis_date__isnull=True)
-        if value == "analyzed":
+        if value == "analyzing":
             return queryset.filter(analysis_date__isnull=False, result_file="")
         if value == "results":
             return queryset.exclude(result_file="")

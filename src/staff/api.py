@@ -509,3 +509,40 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=["post"], url_path="upload-result-file")
+    def upload_result_file(self, request: Request, pk: str) -> Response:
+        """Upload a result file for a plate."""
+        result_file = request.FILES.get("result_file")
+
+        if not result_file:
+            return Response(
+                {"error": "No file provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plate = self.get_object()
+        plate.result_file = result_file
+        plate.save(update_fields=["result_file"])
+
+        return Response(
+            {
+                "message": "Result file uploaded",
+                "result_file": plate.result_file.url if plate.result_file else None,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="delete-result-file")
+    def delete_result_file(self, request: Request, pk: str) -> Response:
+        """Delete the result file for a plate."""
+        plate = self.get_object()
+        if plate.result_file:
+            plate.result_file.delete(save=False)
+        plate.result_file = None
+        plate.save(update_fields=["result_file"])
+
+        return Response(
+            {"message": "Result file deleted"},
+            status=status.HTTP_200_OK,
+        )

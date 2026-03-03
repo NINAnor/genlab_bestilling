@@ -1,10 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import classnames from 'classnames';
 import {
   useAnalysisPlateSearch,
   usePlatePositions,
 } from '../hooks/useFilterOptions';
-import { useCreatePlate, useSetAnalysisDate } from '../hooks/useCreatePlate';
+import {
+  useCreatePlate,
+  useSetAnalysisDate,
+  useUploadResultFile,
+  useDeleteResultFile,
+} from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
@@ -31,6 +36,7 @@ export default function PlateSearch() {
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
+  const fileInputRef = useRef(null);
 
   // Sync selected plate to store and update analysis date field
   useEffect(() => {
@@ -59,6 +65,8 @@ export default function PlateSearch() {
 
   const createPlate = useCreatePlate();
   const setAnalysisDateMutation = useSetAnalysisDate();
+  const uploadResultFile = useUploadResultFile();
+  const deleteResultFile = useDeleteResultFile();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -141,6 +149,54 @@ export default function PlateSearch() {
     );
   };
 
+  const handleFileUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedPlate?.id) return;
+
+    uploadResultFile.mutate(
+      {
+        plateId: selectedPlate.id,
+        file,
+      },
+      {
+        onSuccess: (data) => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            has_results: true,
+            result_file: data.result_file,
+          }));
+          // Clear file input
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        },
+      },
+    );
+  };
+
+  const handleDeleteResultFile = () => {
+    if (!selectedPlate?.id) return;
+
+    if (!window.confirm('Are you sure you want to delete this result file?')) {
+      return;
+    }
+
+    deleteResultFile.mutate(
+      {
+        plateId: selectedPlate.id,
+      },
+      {
+        onSuccess: () => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            has_results: false,
+            result_file: null,
+          }));
+        },
+      },
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg border border-gray-200">
       <div className="grid grid-cols-1 lg:grid-cols-3 min-h-[500px]">
@@ -174,8 +230,8 @@ export default function PlateSearch() {
                 className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">All statuses</option>
-                <option value="not_analyzed">Not analyzed</option>
-                <option value="analyzed">Analyzed</option>
+                <option value="pending">Pending</option>
+                <option value="analyzing">Analyzing</option>
                 <option value="results">Results</option>
               </select>
               <input
@@ -221,7 +277,7 @@ export default function PlateSearch() {
                     </span>
                   ) : plate.analysis_date ? (
                     <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                      Analyzed
+                      Analyzing
                     </span>
                   ) : (
                     <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
@@ -257,11 +313,11 @@ export default function PlateSearch() {
                     </span>
                   ) : selectedPlate.analysis_date ? (
                     <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
-                      Analyzed
+                      Analyzing
                     </span>
                   ) : (
                     <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                      Not analyzed
+                      Pending
                     </span>
                   )}
                 </div>
@@ -293,6 +349,45 @@ export default function PlateSearch() {
                   )}
                 </div>
               </div>
+              {/* Result file upload - only show if plate has been analyzed */}
+              {(selectedPlate.has_results || selectedPlate.analysis_date) && (
+                <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Result File:</span>
+                  {selectedPlate.has_results ? (
+                    <>
+                      <a
+                        href={selectedPlate.result_file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        View File
+                      </a>
+                      <button
+                        type="button"
+                        onClick={handleDeleteResultFile}
+                        disabled={deleteResultFile.isPending}
+                        className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 disabled:opacity-50"
+                      >
+                        {deleteResultFile.isPending ? 'Deleting…' : 'Delete'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={uploadResultFile.isPending}
+                        className="text-sm text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-medium file:bg-blue-100 file:text-blue-700 file:rounded file:cursor-pointer hover:file:bg-blue-200"
+                      />
+                      {uploadResultFile.isPending && (
+                        <span className="text-xs text-gray-500">Uploading…</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
               <PlatePreview
                 positions={platePositions}
                 plateType="analysis"

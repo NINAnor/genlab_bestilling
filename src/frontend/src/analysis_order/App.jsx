@@ -35,7 +35,16 @@ function OrderApp() {
   }, [init]);
 
   // Fetch sample markers into the store with filters applied
-  const { isLoading, isError } = useOrderSampleMarkers(filters);
+  const {
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    data,
+  } = useOrderSampleMarkers(filters);
+
+  const totalCount = data?.pages?.[0]?.count;
 
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
@@ -64,7 +73,7 @@ function OrderApp() {
             <h3 className="text-lg font-semibold text-gray-800">Sample Markers</h3>
             {Object.keys(sampleMarkers).length > 0 && (
               <span className="text-sm text-gray-500">
-                {Object.keys(sampleMarkers).length} item(s)
+                {Object.keys(sampleMarkers).length}{totalCount ? ` / ${totalCount}` : ''} item(s)
               </span>
             )}
           </div>
@@ -79,7 +88,14 @@ function OrderApp() {
 
           {isLoading && <p className="text-gray-400 mt-4">Loading…</p>}
           {isError && <p className="text-red-500 mt-4">Error loading sample markers</p>}
-          {!isLoading && !isError && <SampleMarkerTable />}
+          {!isLoading && !isError && (
+            <SampleMarkerTable
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              totalCount={totalCount}
+            />
+          )}
         </div>
       </div>
     </div>

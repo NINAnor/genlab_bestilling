@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import CursorPagination, LimitOffsetPagination
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -396,13 +396,22 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
+class SampleMarkerCursorPagination(CursorPagination):
+    """Cursor pagination for sample markers."""
+
+    ordering = "id"
+    page_size = 10
+    page_size_query_param = "page_size"
+    max_page_size = 200
+
+
 class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
     """Staff API for listing all sample markers with optional filters."""
 
     permission_classes = [IsGenlabStaffOrSuperuser]
     serializer_class = OrderSampleMarkerSerializer
     filterset_class = SampleMarkerAnalysisAPIFilter
-    pagination_class = LimitOffsetPagination
+    pagination_class = SampleMarkerCursorPagination
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
         return (
@@ -420,7 +429,6 @@ class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
                 "sample__isolation_method",
                 "positions__plate",
             )
-            .order_by("sample__genlab_id", "marker__name")
         )
 
 

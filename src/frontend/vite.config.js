@@ -15,7 +15,8 @@ export default defineConfig({
       input: {
         samples: resolve(__dirname, 'src/samples/main.jsx'),
         analysisSamples: resolve(__dirname, 'src/analysis_samples/main.jsx'),
-        plates: resolve(__dirname, 'src/plates/main.jsx')
+        plates: resolve(__dirname, 'src/plates/main.jsx'),
+        analysisOrder: resolve(__dirname, 'src/analysis_order/main.jsx')
       }
     }
   }

@@ -1263,6 +1263,22 @@ class AnalysisPlatePositionsView(PlatePositionsView):
         return self.object.name or str(self.object.pk)
 
 
+class AnalysisOrderSampleMarkersView(StaffMixin, DetailView):
+    """Staff view for managing analysis order sample markers (React frontend)."""
+
+    model = AnalysisOrder
+    template_name = "staff/analysisorder_manage_markers.html"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["frontend_args"] = {
+            "order_id": self.object.pk,
+            "order_label": str(self.object),
+            "csrf": get_token(self.request),
+        }
+        return context
+
+
 class ExtractionPlateIsolateActionView(SingleObjectMixin, ActionView):
     model = ExtractionPlate
 

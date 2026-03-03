@@ -1,14 +1,17 @@
 from django.contrib import messages
 from django.db import transaction
 from django.db.models.query import QuerySet
-from rest_framework import status, viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from capps.users.models import User
 from genlab_bestilling.models import (
+    AnalysisOrder,
     AnalysisPlate,
     ExtractionPlate,
     Order,
@@ -17,7 +20,12 @@ from genlab_bestilling.models import (
     SampleMarkerAnalysis,
 )
 
-from .serializers import PlatePositionSerializer
+from .filters import AnalysisPlateAPIFilter, SampleMarkerAnalysisAPIFilter
+from .serializers import (
+    AnalysisPlateListSerializer,
+    OrderSampleMarkerSerializer,
+    PlatePositionSerializer,
+)
 
 
 class OrderAPIView(APIView):
@@ -234,7 +242,6 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             try:
                 sample_marker = SampleMarkerAnalysis.objects.select_for_update().get(
                     pk=sample_marker_id,
-                    sample__position__isnull=False,
                 )
             except SampleMarkerAnalysis.DoesNotExist:
                 return Response(
@@ -265,4 +272,131 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
                     "message": "Sample marker added successfully",
                     "position": serializer.data,
                 }
+            )
+
+
+class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
+    """Staff API for listing sample markers of an analysis order."""
+
+    serializer_class = OrderSampleMarkerSerializer
+    filterset_class = SampleMarkerAnalysisAPIFilter
+
+    def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
+        order = get_object_or_404(AnalysisOrder, pk=self.kwargs["order_pk"])
+        return (
+            SampleMarkerAnalysis.objects.filter(order=order)
+            .select_related(
+                "sample",
+                "sample__species",
+                "sample__type",
+                "sample__position",
+                "sample__position__plate",
+                "marker",
+            )
+            .prefetch_related(
+                "sample__isolation_method",
+                "positions__plate",
+            )
+            .order_by("sample__genlab_id", "marker__name")
+        )
+
+
+class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+    """List all analysis plates."""
+
+    queryset = (
+        AnalysisPlate.objects.all()
+        .prefetch_related("positions")
+        .order_by("-created_at")
+    )
+    serializer_class = AnalysisPlateListSerializer
+    filterset_class = AnalysisPlateAPIFilter
+    pagination_class = LimitOffsetPagination
+
+    @action(detail=True, methods=["post"], url_path="add-sample-markers")
+    def add_sample_markers(self, request: Request, pk: str) -> Response:
+        """Add sample markers to plate, filling from first available position."""
+        sample_marker_ids = request.data.get("sample_marker_ids", [])
+
+        if not sample_marker_ids:
+            return Response(
+                {"error": "No sample markers provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            try:
+                plate = AnalysisPlate.objects.get(pk=pk)
+            except AnalysisPlate.DoesNotExist:
+                return Response(
+                    {"error": "Plate not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            # Get available positions ordered by position number
+            available_positions = list(
+                PlatePosition.objects.select_for_update()
+                .filter(
+                    plate=plate,
+                    sample_raw__isnull=True,
+                    sample_marker__isnull=True,
+                    is_reserved=False,
+                )
+                .order_by("position")
+            )
+
+            if len(available_positions) < len(sample_marker_ids):
+                need = len(sample_marker_ids)
+                have = len(available_positions)
+                return Response(
+                    {"error": f"Not enough positions. Need {need}, have {have}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Batch fetch sample markers preserving order
+            markers_qs = SampleMarkerAnalysis.objects.select_for_update().filter(
+                pk__in=sample_marker_ids
+            )
+            markers_by_id = {sm.id: sm for sm in markers_qs}
+
+            # Check all markers exist and build ordered list
+            sample_markers = []
+            for marker_id in sample_marker_ids:
+                sm = markers_by_id.get(marker_id)
+                if sm is None:
+                    return Response(
+                        {"error": f"Sample marker {marker_id} not found"},
+                        status=status.HTTP_404_NOT_FOUND,
+                    )
+                sample_markers.append(sm)
+
+            # Validate all markers against plate whitelist
+            for sm in sample_markers:
+                try:
+                    plate.validate_sample_marker(sm)
+                except AnalysisPlate.SampleMarkerNotAllowed as exc:  # noqa: PERF203
+                    return Response(
+                        {"error": str(exc)},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # Add markers to positions
+            added = []
+            for position, sm in zip(available_positions, sample_markers, strict=False):
+                position.sample_marker = sm
+                position.save(update_fields=["sample_marker"])
+                added.append(
+                    {
+                        "position": position.position,
+                        "coordinate": position.position_to_coordinates(),
+                        "sample_marker_id": sm.id,
+                    }
+                )
+
+            return Response(
+                {
+                    "message": f"Added {len(added)} sample markers to plate",
+                    "added": added,
+                },
+                status=status.HTTP_200_OK,
             )

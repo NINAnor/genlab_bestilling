@@ -1258,6 +1258,7 @@ def UPLOAD_ANALYSIS_RESULTS(instance: "AnalysisPlate", filename: str) -> str:
 
 class AnalysisPlate(Plate):
     name = models.CharField(null=True, blank=True, help_text="Human readable label")
+    analysis_number = IntegerSequenceField(primary_key=False)
     analysis_date = models.DateTimeField(null=True, blank=True)
     result_file = models.FileField(
         null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS, max_length=500
@@ -1291,12 +1292,23 @@ class AnalysisPlate(Plate):
             raise self.SampleMarkerNotAllowed(msg)
 
     def __str__(self) -> str:
-        return f"{self.id}"
+        return f"#A{self.analysis_number}"
 
     def populate(self, items: list) -> None:
         for sample_marker in items:
             self.validate_sample_marker(sample_marker)
         super().populate(items, "sample_marker")
+
+    class Meta:
+        constraints = [
+            IntSequenceConstraint(
+                name="%(app_label)s_%(class)s_analysis_number_seq",
+                sequence="analysis_number_seq",
+                drop=True,
+                fields=["analysis_number"],
+                start=1,
+            )
+        ]
 
 
 class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):

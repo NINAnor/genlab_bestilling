@@ -91,9 +91,26 @@ class SampleTypeFilter(BaseOrderFilter):
 
 
 class SpeciesFilter(BaseOrderFilter):
+    analysis_order = filters.NumberFilter(
+        field_name="analysis_order", method="filter_analysis_order"
+    )
+
     class Meta:
         model = Species
         fields = {"name": ["icontains"]}
+
+    def filter_analysis_order(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if value:
+            # Filter to species that have samples in this analysis order
+            return queryset.filter(
+                sample__samplemarkeranalysis__order_id=value
+            ).distinct()
+        return queryset
 
 
 class MarkerFilter(BaseOrderFilter):

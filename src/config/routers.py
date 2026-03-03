@@ -9,6 +9,7 @@ from rest_framework.routers import DefaultRouter
 from genlab_bestilling.api.views import (
     AnalysisTypeViewset,
     ExtractionOrderViewset,
+    IsolationMethodViewset,
     LocationViewset,
     MarkerViewset,
     SampleMarkerAnalysisViewset,
@@ -25,6 +26,9 @@ router.register("species", SpeciesViewset, basename="species")
 router.register("markers", MarkerViewset, basename="markers")
 router.register("sample-types", SampleTypeViewset, basename="sample_types")
 router.register("analysis-types", AnalysisTypeViewset, basename="analysis_types")
+router.register(
+    "isolation-methods", IsolationMethodViewset, basename="isolation_methods"
+)
 router.register("locations", LocationViewset, basename="locations")
 router.register("extraction-order", ExtractionOrderViewset, basename="extraction-order")
 router.register(

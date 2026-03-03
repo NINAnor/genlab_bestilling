@@ -836,3 +836,37 @@ class AnalysisPlateFilter(filters.FilterSet):
     class Meta:
         model = AnalysisPlate
         fields = ["id", "name", "analysis_date"]
+
+
+class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
+    """Filter for SampleMarkerAnalysis API."""
+
+    marker = CharFilter(field_name="marker__name")
+    species = filters.NumberFilter(field_name="sample__species_id")
+    sample_type = filters.NumberFilter(field_name="sample__type_id")
+    isolation_method = filters.NumberFilter(field_name="sample__isolation_method")
+    genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
+    plate = CharFilter(
+        field_name="sample__position__plate__name", lookup_expr="icontains"
+    )
+
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = [
+            "marker",
+            "species",
+            "sample_type",
+            "isolation_method",
+            "genlab_id",
+            "plate",
+        ]
+
+
+class AnalysisPlateAPIFilter(filters.FilterSet):
+    """Filter for AnalysisPlate API."""
+
+    search = CharFilter(field_name="name", lookup_expr="icontains")
+
+    class Meta:
+        model = AnalysisPlate
+        fields = ["search"]

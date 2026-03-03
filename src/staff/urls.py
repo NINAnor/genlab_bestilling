@@ -1,10 +1,16 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from staff.api import OrderAPIView
+from staff.api import (
+    AnalysisOrderSampleMarkerViewSet,
+    AnalysisPlatesViewSet,
+    OrderAPIView,
+)
 
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
+    AnalysisOrderSampleMarkersView,
     AnalysisPlateCreateView,
     AnalysisPlateDetailView,
     AnalysisPlateListView,
@@ -41,6 +47,11 @@ from .views import (
 )
 
 app_name = "staff"
+
+router = DefaultRouter()
+router.register(
+    "api/analysis-plates", AnalysisPlatesViewSet, basename="api-analysis-plates"
+)
 
 urlpatterns = [
     path("", DashboardView.as_view(), name="dashboard"),
@@ -209,4 +220,18 @@ urlpatterns = [
         AnalysisPlatePositionsView.as_view(),
         name="analysis-plates-positions",
     ),
+    # Analysis order sample markers management (React frontend)
+    path(
+        "orders/analysis/<int:pk>/manage-markers/",
+        AnalysisOrderSampleMarkersView.as_view(),
+        name="order-analysis-manage-markers",
+    ),
+    # API: list sample markers for an analysis order
+    path(
+        "api/analysis-orders/<int:order_pk>/sample-markers/",
+        AnalysisOrderSampleMarkerViewSet.as_view({"get": "list"}),
+        name="api-analysis-order-sample-markers",
+    ),
+    # Router-based API endpoints
+    path("", include(router.urls)),
 ]

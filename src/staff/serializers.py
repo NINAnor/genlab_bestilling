@@ -205,3 +205,112 @@ class PlatePositionActionSerializer(serializers.Serializer):
         ]
     )
     notes = serializers.CharField(required=False, allow_blank=True)
+
+
+class OrderSampleMarkerSerializer(serializers.ModelSerializer):
+    """Serializer for managing sample markers within an analysis order."""
+
+    sample_genlab_id = serializers.CharField(
+        source="sample.genlab_id", read_only=True, default=None
+    )
+    sample_name = serializers.CharField(
+        source="sample.name", read_only=True, default=None
+    )
+    sample_species_name = serializers.CharField(
+        source="sample.species.name", read_only=True, default=None
+    )
+    sample_species_id = serializers.PrimaryKeyRelatedField(
+        source="sample.species", read_only=True
+    )
+    sample_type_name = serializers.CharField(
+        source="sample.type.name", read_only=True, default=None
+    )
+    sample_type_id = serializers.PrimaryKeyRelatedField(
+        source="sample.type", read_only=True
+    )
+    marker_name = serializers.CharField(
+        source="marker.name", read_only=True, default=None
+    )
+    sample_isolation_methods = serializers.SerializerMethodField()
+    sample_position = serializers.SerializerMethodField()
+    sample_position_index = serializers.IntegerField(
+        source="sample.position.position", read_only=True, default=None
+    )
+    analysis_position = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = (
+            "id",
+            "sample",
+            "sample_genlab_id",
+            "sample_name",
+            "sample_species_id",
+            "sample_species_name",
+            "sample_type_id",
+            "sample_type_name",
+            "sample_isolation_methods",
+            "marker",
+            "marker_name",
+            "has_pcr",
+            "is_analysed",
+            "is_outputted",
+            "is_invalid",
+            "sample_position",
+            "sample_position_index",
+            "analysis_position",
+        )
+
+    def get_sample_isolation_methods(self, obj: SampleMarkerAnalysis) -> list[dict]:
+        return [
+            {"id": im.id, "name": im.name} for im in obj.sample.isolation_method.all()
+        ]
+
+    def get_sample_position(self, obj: SampleMarkerAnalysis) -> str | None:
+        """Return the sample's extraction plate position (e.g., 'PlateName@A1')."""
+        position = getattr(obj.sample, "position", None)
+        if position:
+            return str(position)
+        return None
+
+    def get_analysis_position(self, obj: SampleMarkerAnalysis) -> str | None:
+        """Return all analysis plate positions (e.g., '#A123@A1, #A123@B2')."""
+        # Use prefetched positions if available
+        positions = getattr(obj, "positions", None)
+        if positions is not None:
+            pos_list = [str(pos) for pos in positions.all()]
+            if pos_list:
+                return ", ".join(pos_list)
+        return None
+
+
+class AnalysisPlateListSerializer(serializers.ModelSerializer):
+    """Simple serializer for listing analysis plates (for plate selection)."""
+
+    label = serializers.SerializerMethodField()
+    available_positions = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AnalysisPlate
+        fields = (
+            "id",
+            "name",
+            "label",
+            "available_positions",
+            "created_at",
+        )
+        extra_kwargs = {
+            "name": {"required": False, "allow_blank": True},
+        }
+
+    def validate_name(self, value: str | None) -> str | None:
+        """Strip whitespace and convert empty string to None."""
+        if value:
+            value = value.strip()
+        return value or None
+
+    def get_label(self, obj: AnalysisPlate) -> str:
+        return str(obj)
+
+    def get_available_positions(self, obj: AnalysisPlate) -> int:
+        return obj.positions.filter(is_full=False).count()

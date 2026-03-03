@@ -29,6 +29,7 @@
         {% endif %}
 
         <a class="btn btn-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
+        <a class="btn btn-secondary" href="{% url 'staff:order-analysis-manage-markers' pk=object.id %}"><i class="fa-solid fa-list-check"></i> Manage Markers</a>
 
         {% if not object.is_seen %}
           <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">

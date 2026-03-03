@@ -39,6 +39,7 @@ from ..models import (
     AnalysisOrder,
     AnalysisType,
     ExtractionOrder,
+    IsolationMethod,
     Location,
     Marker,
     Sample,
@@ -357,6 +358,11 @@ class SampleTypeViewset(mixins.ListModelMixin, GenericViewSet):
 class AnalysisTypeViewset(mixins.ListModelMixin, GenericViewSet):
     queryset = AnalysisType.objects.all().order_by("name")
     serializer_class = KoncivSerializer
+
+
+class IsolationMethodViewset(mixins.ListModelMixin, GenericViewSet):
+    queryset = IsolationMethod.objects.all().order_by("name")
+    serializer_class = EnumSerializer
 
 
 class SpeciesViewset(mixins.ListModelMixin, GenericViewSet):

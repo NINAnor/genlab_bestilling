@@ -3,9 +3,9 @@ from typing import Any
 import django_filters as filters
 from dal import autocomplete
 from django import forms
-from django.db.models import QuerySet
+from django.db.models import Count, Q, QuerySet
 from django.http import HttpRequest
-from django_filters import CharFilter, ChoiceFilter
+from django_filters import CharFilter, ChoiceFilter, NumberFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -868,7 +868,30 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
     """Filter for AnalysisPlate API."""
 
     search = CharFilter(field_name="analysis_number", lookup_expr="icontains")
+    status = CharFilter(method="filter_status")
+    min_available_positions = NumberFilter(method="filter_min_available_positions")
 
     class Meta:
         model = AnalysisPlate
-        fields = ["search"]
+        fields = ["search", "status", "min_available_positions"]
+
+    def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        """Filter by status: not_analyzed, analyzed, results."""
+        if value == "not_analyzed":
+            return queryset.filter(analysis_date__isnull=True)
+        if value == "analyzed":
+            return queryset.filter(analysis_date__isnull=False, result_file="")
+        if value == "results":
+            return queryset.exclude(result_file="")
+        return queryset
+
+    def filter_min_available_positions(
+        self, queryset: QuerySet, name: str, value: int
+    ) -> QuerySet:
+        """Filter plates with at least the given number of available positions."""
+        if value is None:
+            return queryset
+        # Annotate with available positions count (positions where is_full=False)
+        return queryset.annotate(
+            available_count=Count("positions", filter=Q(positions__is_full=False))
+        ).filter(available_count__gte=value)

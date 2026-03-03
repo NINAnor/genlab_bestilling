@@ -25,6 +25,8 @@ function getTodayDatetime() {
  */
 export default function PlateSearch() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [minPositions, setMinPositions] = useState('');
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
@@ -45,8 +47,12 @@ export default function PlateSearch() {
   }, [selectedPlate, setStoreSelectedPlate]);
 
   // Fetch plates (empty search returns all)
+  const filters = {
+    status: statusFilter || undefined,
+    minAvailablePositions: minPositions || undefined,
+  };
   const { data: plates = [], isFetching: isLoading } =
-    useAnalysisPlateSearch(searchTerm);
+    useAnalysisPlateSearch(searchTerm, filters);
 
   const { data: platePositions = [], isLoading: positionsLoading } =
     usePlatePositions(selectedPlate?.id);
@@ -161,6 +167,27 @@ export default function PlateSearch() {
               placeholder="Search plates…"
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+            <div className="mt-2 flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All statuses</option>
+                <option value="not_analyzed">Not analyzed</option>
+                <option value="analyzed">Analyzed</option>
+                <option value="results">Results</option>
+              </select>
+              <input
+                type="number"
+                min="0"
+                value={minPositions}
+                onChange={(e) => setMinPositions(e.target.value)}
+                placeholder="Min pos."
+                title="Minimum available positions"
+                className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -189,16 +216,16 @@ export default function PlateSearch() {
                     {plate.label}
                   </span>
                   {plate.has_results ? (
-                    <span className="text-xs text-blue-600" title="Results uploaded">
-                      ✓✓
+                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                      Results
                     </span>
                   ) : plate.analysis_date ? (
-                    <span className="text-xs text-emerald-600" title="Analysis date set">
-                      ✓
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
+                      Analyzed
                     </span>
                   ) : (
-                    <span className="text-xs text-amber-500" title="No analysis date">
-                      ○
+                    <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                      Pending
                     </span>
                   )}
                 </div>

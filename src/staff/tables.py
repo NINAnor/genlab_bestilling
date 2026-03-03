@@ -946,11 +946,12 @@ class AnalysisPlateTable(tables.Table):
 
     def render_result_file(self, value: str | None) -> str:
         if value:
-            return (
-                f'<a href="{value}" class="text-blue-600 hover:underline">'
-                '<i class="fas fa-download"></i> Download</a>'
+            return format_html(
+                '<a href="{}" class="text-blue-600 hover:underline">'
+                '<i class="fas fa-download"></i> Download</a>',
+                value,
             )
-        return '<span class="text-gray-500">No file</span>'
+        return mark_safe('<span class="text-gray-500">No file</span>')
 
     class Meta:
         model = AnalysisPlate

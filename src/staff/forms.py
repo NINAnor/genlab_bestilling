@@ -103,11 +103,19 @@ class AnalysisPlateForm(FormMixin, forms.ModelForm):
             "name",
             "analysis_type",
             "markers",
+            "analysis_date",
             "notes",
         )
         widgets = {
             "name": forms.TextInput(
                 attrs={"class": "form-control", "placeholder": "Enter plate name"}
+            ),
+            "analysis_date": forms.DateTimeInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "datetime-local",
+                    "placeholder": "Select analysis date",
+                }
             ),
             "notes": forms.Textarea(
                 attrs={
@@ -132,16 +140,4 @@ class AnalysisPlateResultForm(forms.ModelForm):
 
     class Meta:
         model = AnalysisPlate
-        fields = (
-            "analysis_date",
-            "result_file",
-        )
-        widgets = {
-            "analysis_date": forms.DateTimeInput(
-                attrs={
-                    "class": "form-control",
-                    "type": "datetime-local",
-                    "placeholder": "Select analysis date",
-                }
-            ),
-        }
+        fields = ("result_file",)

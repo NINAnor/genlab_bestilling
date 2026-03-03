@@ -1467,6 +1467,15 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
             ),
         ]
 
+    class NoSampleMarkerToMove(Exception):
+        """Raised when trying to move from a position with no sample marker."""
+
+    class TargetPositionNotEmpty(Exception):
+        """Raised when target position is not empty."""
+
+    class TargetPositionNotFound(Exception):
+        """Raised when target position doesn't exist."""
+
     def __str__(self) -> str:
         if self.sample_raw:
             plate = (
@@ -1497,6 +1506,46 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
             self.position // len(Plate.ROWS)
         ) + 1  # Every 8 positions moves to next column
         return f"{row_label}{column_label}"
+
+    def move_sample_marker_to(self, target_position_index: int) -> "PlatePosition":
+        """Move sample marker from this position to target position on same plate.
+
+        Args:
+            target_position_index: The position index to move to
+
+        Returns:
+            The target PlatePosition after the move
+
+        Raises:
+            NoSampleMarkerToMove: If this position has no sample marker
+            TargetPositionNotFound: If target position doesn't exist on this plate
+            TargetPositionNotEmpty: If target position is occupied or reserved
+        """
+        if not self.sample_marker:
+            msg = "Source position has no sample marker"
+            raise self.NoSampleMarkerToMove(msg)
+
+        try:
+            target = PlatePosition.objects.select_for_update().get(
+                plate=self.plate, position=target_position_index
+            )
+        except PlatePosition.DoesNotExist as e:
+            msg = f"Position {target_position_index} not found on plate {self.plate}"
+            raise self.TargetPositionNotFound(msg) from e
+
+        if target.is_full:
+            msg = f"Position {target_position_index} is not empty"
+            raise self.TargetPositionNotEmpty(msg)
+
+        # Move the sample marker
+        target.sample_marker = self.sample_marker
+        target.is_reserved = False
+        self.sample_marker = None
+
+        target.save(update_fields=["sample_marker", "is_reserved"])
+        self.save(update_fields=["sample_marker"])
+
+        return target
 
     @hook(
         AFTER_UPDATE,

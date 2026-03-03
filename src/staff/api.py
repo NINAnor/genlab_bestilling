@@ -288,6 +288,37 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
                 }
             )
 
+    @action(detail=True, methods=["post"])
+    def move_to(self, request: Request, pk: int | str) -> Response:
+        """Move sample marker from this position to a target position."""
+        target_position_index = request.data.get("target_position")
+
+        if target_position_index is None:
+            return Response(
+                {"error": "Target position index is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            source = PlatePosition.objects.select_for_update().get(pk=pk)
+
+            try:
+                target = source.move_sample_marker_to(target_position_index)
+            except PlatePosition.NoSampleMarkerToMove as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            except PlatePosition.TargetPositionNotFound as e:
+                return Response({"error": str(e)}, status=status.HTTP_404_NOT_FOUND)
+            except PlatePosition.TargetPositionNotEmpty as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(
+                {
+                    "message": "Sample marker moved successfully",
+                    "source": self.get_serializer(source).data,
+                    "target": self.get_serializer(target).data,
+                }
+            )
+
 
 class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
     """Staff API for listing sample markers of an analysis order."""

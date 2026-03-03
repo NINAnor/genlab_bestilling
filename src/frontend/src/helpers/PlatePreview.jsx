@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import classnames from 'classnames';
 
 const ROWS = 'ABCDEFGH'.split('');
@@ -79,12 +80,71 @@ function getTooltip(position, coordinate, status, plateType) {
 /**
  * Well component for plate preview.
  */
-function Well({ position, coordinate, plateType, onClick }) {
+function Well({
+  position,
+  coordinate,
+  plateType,
+  onClick,
+  positionIndex,
+  isDraggable,
+  isDropTarget,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  isDragging,
+  isDragOver,
+}) {
   const status = getStatus(position, plateType);
   const filledLabel = getFilledLabel(position, plateType);
   const tooltip = getTooltip(position, coordinate, status, plateType);
   const hasNote = !!position?.notes;
   const isClickable = !!onClick;
+  const canDrag = isDraggable && status === 'filled';
+  const canDrop = isDropTarget && status === 'empty';
+
+  const handleDragStart = useCallback(
+    (e) => {
+      if (!canDrag) return;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', JSON.stringify({ positionIndex }));
+      onDragStart?.(positionIndex);
+    },
+    [canDrag, positionIndex, onDragStart],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    onDragEnd?.();
+  }, [onDragEnd]);
+
+  const handleDragOver = useCallback(
+    (e) => {
+      if (!canDrop) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      onDragOver?.(positionIndex);
+    },
+    [canDrop, positionIndex, onDragOver],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    onDragLeave?.();
+  }, [onDragLeave]);
+
+  const handleDrop = useCallback(
+    (e) => {
+      if (!canDrop) return;
+      e.preventDefault();
+      try {
+        const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        onDrop?.(data.positionIndex, positionIndex);
+      } catch {
+        // ignore invalid data
+      }
+    },
+    [canDrop, positionIndex, onDrop],
+  );
 
   return (
     <div
@@ -93,10 +153,20 @@ function Well({ position, coordinate, plateType, onClick }) {
       role={isClickable ? 'button' : undefined}
       tabIndex={isClickable ? 0 : undefined}
       onKeyDown={isClickable ? (e) => e.key === 'Enter' && onClick() : undefined}
+      draggable={canDrag}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       className={classnames(
         'relative w-full h-full rounded-lg border-2 flex flex-col items-center justify-center p-0.5',
         STATUS_STYLES[status],
-        isClickable && 'cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-offset-1 transition-shadow',
+        isClickable &&
+          'cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-offset-1 transition-shadow',
+        canDrag && 'cursor-grab active:cursor-grabbing',
+        isDragging && 'opacity-50 ring-2 ring-blue-500',
+        isDragOver && canDrop && 'ring-2 ring-green-500 ring-offset-1 bg-green-100',
       )}
     >
       {hasNote && (
@@ -145,6 +215,29 @@ function Well({ position, coordinate, plateType, onClick }) {
   );
 }
 
+Well.propTypes = {
+  position: PropTypes.shape({
+    position: PropTypes.number,
+    is_reserved: PropTypes.bool,
+    sample_raw: PropTypes.object,
+    sample_marker: PropTypes.object,
+    notes: PropTypes.string,
+  }),
+  coordinate: PropTypes.string.isRequired,
+  plateType: PropTypes.oneOf(['extraction', 'analysis']),
+  onClick: PropTypes.func,
+  positionIndex: PropTypes.number.isRequired,
+  isDraggable: PropTypes.bool,
+  isDropTarget: PropTypes.bool,
+  onDragStart: PropTypes.func,
+  onDragEnd: PropTypes.func,
+  onDragOver: PropTypes.func,
+  onDragLeave: PropTypes.func,
+  onDrop: PropTypes.func,
+  isDragging: PropTypes.bool,
+  isDragOver: PropTypes.bool,
+};
+
 /**
  * Plate grid component.
  * Shows a complete visualization of the plate with filled/empty/reserved positions.
@@ -154,18 +247,52 @@ function Well({ position, coordinate, plateType, onClick }) {
  *   plateType  – "extraction" | "analysis" (determines filled check)
  *   isLoading  – whether the plate is still loading
  *   onPositionClick – optional callback when a position is clicked (position, coordinate, idx) => void
+ *   onPositionMove – optional callback when a position is moved via drag/drop (fromIdx, toIdx) => void
  */
 export default function PlatePreview({
   positions = [],
   plateType = 'analysis',
   isLoading,
   onPositionClick,
+  onPositionMove,
 }) {
+  const [draggingIdx, setDraggingIdx] = useState(null);
+  const [dragOverIdx, setDragOverIdx] = useState(null);
+
   // Index positions by their position index
   const positionsByIdx = {};
   positions.forEach((p) => {
     positionsByIdx[p.position] = p;
   });
+
+  // Drag handlers
+  const handleDragStart = useCallback((idx) => {
+    setDraggingIdx(idx);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggingIdx(null);
+    setDragOverIdx(null);
+  }, []);
+
+  const handleDragOver = useCallback((idx) => {
+    setDragOverIdx(idx);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverIdx(null);
+  }, []);
+
+  const handleDrop = useCallback(
+    (fromIdx, toIdx) => {
+      setDraggingIdx(null);
+      setDragOverIdx(null);
+      if (fromIdx !== toIdx && onPositionMove) {
+        onPositionMove(fromIdx, toIdx);
+      }
+    },
+    [onPositionMove],
+  );
 
   // Calculate counts
   const counts = positions.reduce(
@@ -245,7 +372,21 @@ export default function PlatePreview({
                   position={position}
                   coordinate={coordinate}
                   plateType={plateType}
-                  onClick={onPositionClick ? () => onPositionClick(position, coordinate, idx) : undefined}
+                  positionIndex={idx}
+                  onClick={
+                    onPositionClick
+                      ? () => onPositionClick(position, coordinate, idx)
+                      : undefined
+                  }
+                  isDraggable={!!onPositionMove}
+                  isDropTarget={!!onPositionMove}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  isDragging={draggingIdx === idx}
+                  isDragOver={dragOverIdx === idx}
                 />
               );
             })}
@@ -256,3 +397,19 @@ export default function PlatePreview({
     </div>
   );
 }
+
+PlatePreview.propTypes = {
+  positions: PropTypes.arrayOf(
+    PropTypes.shape({
+      position: PropTypes.number,
+      is_reserved: PropTypes.bool,
+      sample_raw: PropTypes.object,
+      sample_marker: PropTypes.object,
+      notes: PropTypes.string,
+    }),
+  ),
+  plateType: PropTypes.oneOf(['extraction', 'analysis']),
+  isLoading: PropTypes.bool,
+  onPositionClick: PropTypes.func,
+  onPositionMove: PropTypes.func,
+};

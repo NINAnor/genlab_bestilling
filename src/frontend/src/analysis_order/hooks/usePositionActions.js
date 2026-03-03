@@ -73,3 +73,23 @@ export function useEditPositionNotes() {
     },
   });
 }
+
+/**
+ * Hook for moving a sample marker from one position to another.
+ */
+export function useMovePosition() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ sourcePositionId, targetPositionIndex }) => {
+      const { data } = await client.post(
+        `/api/plate-positions/${sourcePositionId}/move_to/`,
+        { target_position: targetPositionIndex },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      invalidatePositionQueries(queryClient);
+    },
+  });
+}

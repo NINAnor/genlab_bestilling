@@ -47,13 +47,17 @@ const useOrderStore = create((set) => ({
   clearSelection: () =>
     set({ selectedMarkerIds: {} }),
 
-  /** Bulk-set sample markers from API response */
+  /** Bulk-set sample markers from API response (replaces all) */
   setSampleMarkers: (markerList) =>
     set({
       sampleMarkers: Object.fromEntries(
         markerList.map((m) => [m.id, m]),
       ),
     }),
+
+  /** Clear all sample markers */
+  clearSampleMarkers: () =>
+    set({ sampleMarkers: {} }),
 }));
 
 export default useOrderStore;

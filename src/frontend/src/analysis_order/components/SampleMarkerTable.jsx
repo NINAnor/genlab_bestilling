@@ -1,32 +1,15 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
   flexRender,
 } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import classnames from 'classnames';
 import useOrderStore from '../store';
 
-function SortIcon({ isSorted }) {
-  if (!isSorted) {
-    return (
-      <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M7 3l3-3 3 3H7zm0 14l3 3 3-3H7z" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="w-3 h-3 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-      {isSorted === 'asc' ? (
-        <path d="M7 10l3-3 3 3H7z" />
-      ) : (
-        <path d="M7 10l3 3 3-3H7z" />
-      )}
-    </svg>
-  );
-}
-
+// eslint-disable-next-line react/prop-types
 function IndeterminateCheckbox({ indeterminate, checked, onChange, ...rest }) {
   return (
     <input
@@ -190,7 +173,12 @@ const columns = [
   },
 ];
 
-export default function SampleMarkerTable() {
+export default function SampleMarkerTable({
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+  totalCount,
+}) {
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
   const selectedMarkerIds = useOrderStore((s) => s.selectedMarkerIds);
   const toggleMarkerSelection = useOrderStore((s) => s.toggleMarkerSelection);
@@ -210,7 +198,6 @@ export default function SampleMarkerTable() {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     enableRowSelection: true,
     getRowId: (row) => String(row.id),
     state: {
@@ -238,69 +225,148 @@ export default function SampleMarkerTable() {
     },
   });
 
+  const { rows } = table.getRowModel();
+  const parentRef = useRef(null);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 44, // Approximate row height in pixels
+    overscan: 10,
+  });
+
+  const virtualRows = virtualizer.getVirtualItems();
+
+  // Load more when scrolling near bottom
+  const handleScroll = useCallback(() => {
+    if (!parentRef.current || !hasNextPage || isFetchingNextPage) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = parentRef.current;
+    // Load more when within 200px of the bottom
+    if (scrollHeight - scrollTop - clientHeight < 200) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Attach scroll listener
+  useEffect(() => {
+    const el = parentRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
   const selectedCount = Object.keys(selectedMarkerIds).length;
 
   if (data.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400 italic">
-        No sample markers in this order yet
+        No sample markers found
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  onClick={header.column.getCanSort() ? header.column.getToggleSortingHandler() : undefined}
+    <div className="overflow-hidden">
+      <div
+        ref={parentRef}
+        className="overflow-auto max-h-[600px]"
+      >
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 sticky top-0 z-10">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider select-none bg-gray-50"
+                  >
+                    <div className="flex items-center gap-1">
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {/* Top padding row */}
+            {virtualRows.length > 0 && virtualRows[0].start > 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  style={{ height: virtualRows[0].start }}
+                />
+              </tr>
+            )}
+            {virtualRows.map((virtualRow) => {
+              const row = rows[virtualRow.index];
+              return (
+                <tr
+                  key={row.original.id ?? row.id}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  onClick={() => toggleMarkerSelection(row.original.id)}
                   className={classnames(
-                    'px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider select-none',
-                    header.column.getCanSort() && 'cursor-pointer hover:bg-gray-100',
+                    'cursor-pointer hover:bg-gray-50 transition-colors',
+                    row.getIsSelected() && 'bg-blue-50',
                   )}
                 >
-                  <div className="flex items-center gap-1">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {header.column.getCanSort() && (
-                      <SortIcon isSorted={header.column.getIsSorted()} />
-                    )}
-                  </div>
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {table.getRowModel().rows.map((row) => (
-            <tr
-              key={row.original.id ?? row.id}
-              onClick={() => toggleMarkerSelection(row.original.id)}
-              className={classnames(
-                'cursor-pointer hover:bg-gray-50 transition-colors',
-                row.getIsSelected() && 'bg-blue-50',
-              )}
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="px-3 py-2 whitespace-nowrap">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+            {/* Bottom padding row */}
+            {virtualRows.length > 0 && (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  style={{
+                    height:
+                      virtualizer.getTotalSize() -
+                      (virtualRows[virtualRows.length - 1]?.end ?? 0),
+                  }}
+                />
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-2 text-xs text-gray-400 text-right flex items-center justify-between">
+        <div>
+          {isFetchingNextPage && (
+            <span className="text-blue-500">Loading more...</span>
+          )}
+          {!isFetchingNextPage && hasNextPage && (
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              className="text-blue-600 hover:underline"
             >
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-3 py-2 whitespace-nowrap">
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-2 text-xs text-gray-400 text-right">
-        {selectedCount > 0 && (
-          <span className="mr-2 text-blue-600 font-medium">
-            {selectedCount} selected
-          </span>
-        )}
-        {data.length} sample marker{data.length !== 1 ? 's' : ''}
+              Load more
+            </button>
+          )}
+        </div>
+        <div>
+          {selectedCount > 0 && (
+            <span className="mr-2 text-blue-600 font-medium">
+              {selectedCount} selected
+            </span>
+          )}
+          {data.length}{totalCount ? ` / ${totalCount}` : ''} sample marker{data.length !== 1 ? 's' : ''}
+        </div>
       </div>
     </div>
   );
 }
+
+SampleMarkerTable.propTypes = {
+  fetchNextPage: PropTypes.func.isRequired,
+  hasNextPage: PropTypes.bool,
+  isFetchingNextPage: PropTypes.bool,
+  totalCount: PropTypes.number,
+};

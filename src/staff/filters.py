@@ -848,7 +848,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     isolation_method = filters.NumberFilter(field_name="sample__isolation_method")
     genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
     plate = CharFilter(
-        field_name="sample__position__plate__name", lookup_expr="icontains"
+        field_name="sample__position__plate__analysis_number", lookup_expr="icontains"
     )
 
     class Meta:
@@ -867,7 +867,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
 class AnalysisPlateAPIFilter(filters.FilterSet):
     """Filter for AnalysisPlate API."""
 
-    search = CharFilter(field_name="name", lookup_expr="icontains")
+    search = CharFilter(field_name="analysis_number", lookup_expr="icontains")
 
     class Meta:
         model = AnalysisPlate

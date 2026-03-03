@@ -24,3 +24,28 @@ export function useCreatePlate() {
     },
   });
 }
+
+/**
+ * Mutation hook to set the analysis date for a plate.
+ */
+export function useSetAnalysisDate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, analysisDate }) => {
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/set-analysis-date/`,
+        { analysis_date: analysisDate },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Analysis date updated');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to update analysis date';
+      toast.error(message);
+    },
+  });
+}

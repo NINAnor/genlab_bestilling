@@ -85,17 +85,27 @@ export function useIsolationMethodFilterOptions() {
 }
 
 /**
- * Search analysis plates by name.
- * When searchTerm is empty, returns the last 10 plates.
+ * Search analysis plates by name with optional filters.
+ * @param {string} searchTerm - Search term for plate name
+ * @param {object} filters - Optional filters: { status, minAvailablePositions }
  */
-export function useAnalysisPlateSearch(searchTerm) {
+export function useAnalysisPlateSearch(searchTerm, filters = {}) {
   return useQuery({
-    queryKey: ['analysis-plates-search', searchTerm],
+    queryKey: ['analysis-plates-search', searchTerm, filters],
     queryFn: async () => {
       const params = {};
       if (searchTerm) {
         params.search = searchTerm;
-      } else {
+      }
+      if (filters.status) {
+        params.status = filters.status;
+      }
+      if (filters.minAvailablePositions) {
+        params.min_available_positions = filters.minAvailablePositions;
+      }
+      // Only limit results when no filters are active
+      const hasFilters = searchTerm || filters.status || filters.minAvailablePositions;
+      if (!hasFilters) {
         params.limit = 10;
       }
       const { data } = await client.get('/staff/api/analysis-plates/', {

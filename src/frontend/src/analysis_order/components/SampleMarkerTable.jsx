@@ -145,7 +145,7 @@ const columns = [
   },
   {
     id: 'output',
-    header: 'Output',
+    header: 'Results',
     accessorFn: (row) => row.has_output,
     cell: ({ getValue }) => {
       const { count, total } = getValue() || { count: 0, total: 0 };

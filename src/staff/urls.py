@@ -31,7 +31,6 @@ from .views import (
     ExtractionPlateUpdateView,
     GenerateGenlabIDsView,
     MarkAsSeenView,
-    OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
     OrderToDraftActionView,
@@ -123,11 +122,6 @@ urlpatterns = [
         "orders/samples/update/internal-note/",
         UpdateInternalNote.as_view(),
         name="update-internal-note",
-    ),
-    path(
-        "orders/analysis/<int:pk>/samples/",
-        OrderAnalysisSamplesListView.as_view(),
-        name="order-analysis-samples",
     ),
     path(
         "samples/",

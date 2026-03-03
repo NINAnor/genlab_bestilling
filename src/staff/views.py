@@ -31,7 +31,6 @@ from genlab_bestilling.models import (
     Plate,
     Sample,
     SampleIsolationMethod,
-    SampleMarkerAnalysis,
 )
 from nina.models import Project
 from shared.sentry import report_errors
@@ -48,7 +47,6 @@ from .filters import (
     ProjectFilter,
     SampleFilter,
     SampleLabFilter,
-    SampleMarkerOrderFilter,
 )
 from .forms import (
     AnalysisPlateForm,
@@ -62,7 +60,6 @@ from .tables import (
     EquipmentOrderTable,
     ExtractionOrderTable,
     ExtractionPlateTable,
-    OrderAnalysisSampleTable,
     OrderExtractionSampleTable,
     ProjectTable,
     SampleStatusTable,
@@ -374,160 +371,6 @@ class OrderExtractionSamplesListView(
         return self.get(
             request, *args, **kwargs
         )  # Re-render the view with updated data
-
-
-class OrderAnalysisSamplesListView(
-    StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
-):
-    PCR = "pcr"
-    ANALYSED = "analysed"
-    NOT_ANALYSED = "invalid"
-    OUTPUT = "output"
-    VALID_STATUSES = [PCR, ANALYSED, OUTPUT, NOT_ANALYSED]
-
-    table_pagination = False
-    model = SampleMarkerAnalysis
-    table_class = OrderAnalysisSampleTable
-    filterset_class = SampleMarkerOrderFilter
-
-    class Params:
-        status = "status"
-
-    def get_order(self) -> AnalysisOrder:
-        return get_object_or_404(AnalysisOrder, pk=self.kwargs["pk"])
-
-    def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
-        return (
-            SampleMarkerAnalysis.objects.filter(order=self.get_order())
-            .select_related(
-                "sample",
-                "sample__type",
-                "sample__location",
-                "sample__species",
-                "marker",
-                "marker__analysis_type",
-                "sample__order",
-                "order",
-            )
-            .prefetch_related("sample__isolation_method")
-        )
-
-    def get_base_fields(self) -> list[str]:
-        return self.VALID_STATUSES
-
-    def get_context_data(self, **kwargs) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-
-        context.update(
-            {
-                "order": self.get_order(),
-                "statuses": self.get_base_fields(),
-            }
-        )
-        return context
-
-    def get_fallback_url(self) -> str:
-        return reverse(
-            "staff:order-analysis-samples", kwargs={"pk": self.get_order().pk}
-        )
-
-    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        status_name = request.POST.get(self.Params.status)
-        selected_ids = request.POST.getlist(f"checked-analysis-{self.get_order().pk}")
-
-        if not selected_ids:
-            messages.error(request, "No samples selected.")
-            return HttpResponseRedirect(self.get_next_url())
-
-        order = self.get_order()
-
-        # Get the selected samples
-        analyses = SampleMarkerAnalysis.objects.filter(id__in=selected_ids)
-
-        if status_name:
-            self.assign_status_to_samples(analyses, status_name, request)
-            if status_name == self.OUTPUT:
-                self.check_all_output(SampleMarkerAnalysis.objects.filter(order=order))
-            else:
-                self.get_order().to_processing()
-        return HttpResponseRedirect(self.get_next_url())
-
-    def statuses_with_lower_or_equal_priority(self, status_name: str) -> list[str]:
-        if status_name != self.NOT_ANALYSED:
-            index = self.VALID_STATUSES.index(status_name)
-            return self.VALID_STATUSES[: index + 1]
-        return [status_name]
-
-    def assign_status_to_samples(
-        self,
-        analyses: QuerySet[SampleMarkerAnalysis],
-        status_name: str,
-        request: HttpRequest,
-    ) -> None:
-        if status_name not in self.VALID_STATUSES:
-            messages.error(request, f"Status '{status_name}' is not valid.")
-            return
-
-        statuses_to_turn_on = self.statuses_with_lower_or_equal_priority(status_name)
-
-        if status_name == self.PCR:
-            field_name = "has_pcr"
-        elif status_name == self.ANALYSED:
-            field_name = "is_analysed"
-        elif status_name == self.OUTPUT:
-            field_name = "is_outputted"
-        elif status_name == self.NOT_ANALYSED:
-            field_name = "is_invalid"
-        else:
-            msg = "Unexpected status value"
-            raise ValueError(msg)
-
-        samples_to_turn_off_ids = list(
-            analyses.filter(**{field_name: True}).values_list("id", flat=True)
-        )
-        samples_to_turn_on_ids = list(
-            analyses.filter(**{field_name: False}).values_list("id", flat=True)
-        )
-
-        SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_off_ids).update(
-            **{field_name: False}
-        )
-
-        update_dict = {}
-        if self.PCR in statuses_to_turn_on:
-            update_dict["has_pcr"] = True
-        if self.ANALYSED in statuses_to_turn_on:
-            update_dict["is_analysed"] = True
-        if self.OUTPUT in statuses_to_turn_on:
-            update_dict["is_outputted"] = True
-        if self.NOT_ANALYSED in statuses_to_turn_on:
-            update_dict["is_invalid"] = True
-
-        SampleMarkerAnalysis.objects.filter(id__in=samples_to_turn_on_ids).update(
-            **update_dict
-        )
-        messages.success(
-            request,
-            f"Set statuses {', '.join(statuses_to_turn_on)} for {analyses.count()} analyses.",  # noqa: E501
-        )
-
-    # Checks if all samples in the order have output
-    # If they are, it updates the order status to completed
-    def check_all_output(self, analyses: QuerySet[SampleMarkerAnalysis]) -> None:
-        order = self.get_order()
-
-        if not analyses.exclude(is_invalid=True).filter(is_outputted=False).exists():
-            order.to_completed()
-            messages.success(
-                self.request,
-                "All samples have an output. The order status is updated to completed.",
-            )
-        elif order.status in (Order.OrderStatus.COMPLETED, Order.OrderStatus.DELIVERED):
-            order.to_processing()
-            messages.success(
-                self.request,
-                "Not all samples have output. The order status is updated to processing.",  # noqa: E501
-            )
 
 
 class SamplesListView(StaffMixin, SingleTableMixin, FilterView):

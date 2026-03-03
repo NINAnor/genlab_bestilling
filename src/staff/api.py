@@ -341,72 +341,23 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
             )
 
         with transaction.atomic():
+            plate = self.get_object()
             try:
-                plate = AnalysisPlate.objects.get(pk=pk)
-            except AnalysisPlate.DoesNotExist:
+                added = plate.add_sample_markers(sample_marker_ids)
+            except AnalysisPlate.NotEnoughPositions as exc:
                 return Response(
-                    {"error": "Plate not found"},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            # Get available positions ordered by position number
-            available_positions = list(
-                PlatePosition.objects.select_for_update()
-                .filter(
-                    plate=plate,
-                    sample_raw__isnull=True,
-                    sample_marker__isnull=True,
-                    is_reserved=False,
-                )
-                .order_by("position")
-            )
-
-            if len(available_positions) < len(sample_marker_ids):
-                need = len(sample_marker_ids)
-                have = len(available_positions)
-                return Response(
-                    {"error": f"Not enough positions. Need {need}, have {have}"},
+                    {"error": str(exc)},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-            # Batch fetch sample markers preserving order
-            markers_qs = SampleMarkerAnalysis.objects.select_for_update().filter(
-                pk__in=sample_marker_ids
-            )
-            markers_by_id = {sm.id: sm for sm in markers_qs}
-
-            # Check all markers exist and build ordered list
-            sample_markers = []
-            for marker_id in sample_marker_ids:
-                sm = markers_by_id.get(marker_id)
-                if sm is None:
-                    return Response(
-                        {"error": f"Sample marker {marker_id} not found"},
-                        status=status.HTTP_404_NOT_FOUND,
-                    )
-                sample_markers.append(sm)
-
-            # Validate all markers against plate whitelist
-            for sm in sample_markers:
-                try:
-                    plate.validate_sample_marker(sm)
-                except AnalysisPlate.SampleMarkerNotAllowed as exc:  # noqa: PERF203
-                    return Response(
-                        {"error": str(exc)},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-            # Add markers to positions
-            added = []
-            for position, sm in zip(available_positions, sample_markers, strict=False):
-                position.sample_marker = sm
-                position.save(update_fields=["sample_marker"])
-                added.append(
-                    {
-                        "position": position.position,
-                        "coordinate": position.position_to_coordinates(),
-                        "sample_marker_id": sm.id,
-                    }
+            except AnalysisPlate.SampleMarkerNotFound as exc:
+                return Response(
+                    {"error": str(exc)},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            except AnalysisPlate.SampleMarkerNotAllowed as exc:
+                return Response(
+                    {"error": str(exc)},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             return Response(

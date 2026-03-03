@@ -484,3 +484,20 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
                 },
                 status=status.HTTP_200_OK,
             )
+
+    @action(detail=True, methods=["post"], url_path="set-analysis-date")
+    def set_analysis_date(self, request: Request, pk: str) -> Response:
+        """Set the analysis date for a plate."""
+        analysis_date = request.data.get("analysis_date")
+
+        plate = self.get_object()
+        plate.analysis_date = analysis_date
+        plate.save(update_fields=["analysis_date"])
+
+        return Response(
+            {
+                "message": "Analysis date updated",
+                "analysis_date": plate.analysis_date,
+            },
+            status=status.HTTP_200_OK,
+        )

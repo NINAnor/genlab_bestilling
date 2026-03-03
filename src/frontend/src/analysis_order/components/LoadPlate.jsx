@@ -4,11 +4,20 @@ import {
   useAnalysisPlateSearch,
   usePlatePositions,
 } from '../hooks/useFilterOptions';
-import { useCreatePlate } from '../hooks/useCreatePlate';
+import { useCreatePlate, useSetAnalysisDate } from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
 import useOrderStore from '../store';
+
+/**
+ * Get today's date in YYYY-MM-DD format for datetime-local input.
+ */
+function getTodayDatetime() {
+  const now = new Date();
+  // Format as YYYY-MM-DDTHH:mm
+  return now.toISOString().slice(0, 16);
+}
 
 /**
  * Component for browsing and previewing analysis plates.
@@ -18,11 +27,21 @@ export default function PlateSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
+  const [analysisDate, setAnalysisDate] = useState('');
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
 
-  // Sync selected plate to store
+  // Sync selected plate to store and update analysis date field
   useEffect(() => {
     setStoreSelectedPlate(selectedPlate);
+    if (selectedPlate?.analysis_date) {
+      // Format the date for datetime-local input
+      setAnalysisDate(selectedPlate.analysis_date.slice(0, 16));
+    } else if (selectedPlate) {
+      // Default to today when selecting a plate without analysis_date
+      setAnalysisDate(getTodayDatetime());
+    } else {
+      setAnalysisDate('');
+    }
   }, [selectedPlate, setStoreSelectedPlate]);
 
   // Fetch plates (empty search returns all)
@@ -33,6 +52,7 @@ export default function PlateSearch() {
     usePlatePositions(selectedPlate?.id);
 
   const createPlate = useCreatePlate();
+  const setAnalysisDateMutation = useSetAnalysisDate();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -74,6 +94,45 @@ export default function PlateSearch() {
 
   const handleCloseModal = () => {
     setSelectedPosition(null);
+  };
+
+  const handleSaveAnalysisDate = () => {
+    if (!selectedPlate?.id || !analysisDate) return;
+    setAnalysisDateMutation.mutate(
+      {
+        plateId: selectedPlate.id,
+        analysisDate,
+      },
+      {
+        onSuccess: (data) => {
+          // Update selectedPlate with new analysis_date
+          setSelectedPlate((prev) => ({
+            ...prev,
+            analysis_date: data.analysis_date,
+            has_results: prev.has_results,
+          }));
+        },
+      },
+    );
+  };
+
+  const handleClearAnalysisDate = () => {
+    if (!selectedPlate?.id) return;
+    setAnalysisDateMutation.mutate(
+      {
+        plateId: selectedPlate.id,
+        analysisDate: null,
+      },
+      {
+        onSuccess: () => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            analysis_date: null,
+          }));
+          setAnalysisDate('');
+        },
+      },
+    );
   };
 
   return (
@@ -125,8 +184,23 @@ export default function PlateSearch() {
                     : 'hover:bg-gray-50',
                 )}
               >
-                <div className="font-medium text-sm text-gray-900">
-                  {plate.label}
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm text-gray-900">
+                    {plate.label}
+                  </span>
+                  {plate.has_results ? (
+                    <span className="text-xs text-blue-600" title="Results uploaded">
+                      ✓✓
+                    </span>
+                  ) : plate.analysis_date ? (
+                    <span className="text-xs text-emerald-600" title="Analysis date set">
+                      ✓
+                    </span>
+                  ) : (
+                    <span className="text-xs text-amber-500" title="No analysis date">
+                      ○
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5">
                   {plate.available_positions} available positions
@@ -145,9 +219,53 @@ export default function PlateSearch() {
           )}
           {selectedPlate && (
             <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                {selectedPlate.label}
-              </h4>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    {selectedPlate.label}
+                  </h4>
+                  {selectedPlate.has_results ? (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                      Results
+                    </span>
+                  ) : selectedPlate.analysis_date ? (
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                      Analyzed
+                    </span>
+                  ) : (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                      Not analyzed
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-600">Analysis Date:</label>
+                  <input
+                    type="datetime-local"
+                    value={analysisDate}
+                    onChange={(e) => setAnalysisDate(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSaveAnalysisDate}
+                    disabled={setAnalysisDateMutation.isPending || !analysisDate}
+                    className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {setAnalysisDateMutation.isPending ? 'Saving…' : 'Save'}
+                  </button>
+                  {selectedPlate.analysis_date && (
+                    <button
+                      type="button"
+                      onClick={handleClearAnalysisDate}
+                      disabled={setAnalysisDateMutation.isPending}
+                      className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
               <PlatePreview
                 positions={platePositions}
                 plateType="analysis"

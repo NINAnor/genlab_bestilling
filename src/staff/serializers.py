@@ -349,6 +349,7 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
 
     label = serializers.SerializerMethodField()
     available_positions = serializers.SerializerMethodField()
+    has_results = serializers.SerializerMethodField()
 
     class Meta:
         model = AnalysisPlate
@@ -358,6 +359,8 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
             "label",
             "available_positions",
             "created_at",
+            "analysis_date",
+            "has_results",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_blank": True},
@@ -374,3 +377,6 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
 
     def get_available_positions(self, obj: AnalysisPlate) -> int:
         return obj.positions.filter(is_full=False).count()
+
+    def get_has_results(self, obj: AnalysisPlate) -> bool:
+        return bool(obj.result_file)

@@ -361,6 +361,7 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
             "created_at",
             "analysis_date",
             "has_results",
+            "result_file",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_blank": True},

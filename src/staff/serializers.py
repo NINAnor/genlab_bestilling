@@ -251,6 +251,8 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
         source="sample.position.position", read_only=True, default=None
     )
     analysis_position = serializers.SerializerMethodField()
+    is_analyzing = serializers.SerializerMethodField()
+    has_output = serializers.SerializerMethodField()
 
     class Meta:
         model = SampleMarkerAnalysis
@@ -273,6 +275,8 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             "sample_position",
             "sample_position_index",
             "analysis_position",
+            "is_analyzing",
+            "has_output",
         )
 
     def get_sample_isolation_methods(self, obj: SampleMarkerAnalysis) -> list[dict]:
@@ -296,6 +300,34 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             if pos_list:
                 return ", ".join(pos_list)
         return None
+
+    def get_is_analyzing(self, obj: SampleMarkerAnalysis) -> dict:
+        """Return count of positions on plates with analysis_date."""
+        positions = getattr(obj, "positions", None)
+        if positions is not None:
+            pos_list = list(positions.all())
+            if pos_list:
+                count = sum(
+                    1
+                    for pos in pos_list
+                    if getattr(pos.plate, "analysis_date", None) is not None
+                )
+                return {"count": count, "total": len(pos_list)}
+        return {"count": 0, "total": 0}
+
+    def get_has_output(self, obj: SampleMarkerAnalysis) -> dict:
+        """Return count of positions on plates with result_file."""
+        positions = getattr(obj, "positions", None)
+        if positions is not None:
+            pos_list = list(positions.all())
+            if pos_list:
+                count = sum(
+                    1
+                    for pos in pos_list
+                    if bool(getattr(pos.plate, "result_file", None))
+                )
+                return {"count": count, "total": len(pos_list)}
+        return {"count": 0, "total": 0}
 
 
 class AnalysisPlateListSerializer(serializers.ModelSerializer):

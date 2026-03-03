@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import classnames from 'classnames';
-import { useAnalysisPlateSearch, usePlatePositions } from '../hooks/useFilterOptions';
+import {
+  useAnalysisPlateSearch,
+  usePlatePositions,
+} from '../hooks/useFilterOptions';
 import { useCreatePlate } from '../hooks/useCreatePlate';
+import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
 import useOrderStore from '../store';
@@ -29,13 +33,23 @@ export default function PlateSearch() {
     usePlatePositions(selectedPlate?.id);
 
   const createPlate = useCreatePlate();
+  const movePosition = useMovePosition();
+
+  // Index positions by their position index for quick lookup
+  const positionsByIdx = {};
+  platePositions.forEach((p) => {
+    positionsByIdx[p.position] = p;
+  });
 
   const handleCreatePlate = () => {
-    createPlate.mutate({}, {
-      onSuccess: (newPlate) => {
-        setSelectedPlate(newPlate);
+    createPlate.mutate(
+      {},
+      {
+        onSuccess: (newPlate) => {
+          setSelectedPlate(newPlate);
+        },
       },
-    });
+    );
   };
 
   const handlePositionClick = (position, coordinate, positionIndex) => {
@@ -46,6 +60,16 @@ export default function PlateSearch() {
     } else {
       setSelectedPosition({ ...position, coordinate });
     }
+  };
+
+  const handlePositionMove = (fromIdx, toIdx) => {
+    const sourcePosition = positionsByIdx[fromIdx];
+    if (!sourcePosition?.id) return;
+
+    movePosition.mutate({
+      sourcePositionId: sourcePosition.id,
+      targetPositionIndex: toIdx,
+    });
   };
 
   const handleCloseModal = () => {
@@ -129,6 +153,7 @@ export default function PlateSearch() {
                 plateType="analysis"
                 isLoading={positionsLoading}
                 onPositionClick={handlePositionClick}
+                onPositionMove={handlePositionMove}
               />
             </div>
           )}

@@ -5,6 +5,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import CursorPagination, LimitOffsetPagination
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
@@ -509,6 +510,8 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = AnalysisOrderListSerializer
     queryset = AnalysisOrder.objects.all().order_by("-id")
     pagination_class = LimitOffsetPagination
+    filter_backends = [SearchFilter]
+    search_fields = ["=id", "name", "genrequest__name"]
 
 
 class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):

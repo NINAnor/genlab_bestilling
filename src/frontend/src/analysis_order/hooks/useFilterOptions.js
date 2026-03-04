@@ -3,19 +3,37 @@ import { client } from '../config';
 import useOrderStore from '../store';
 
 /**
- * Fetch analysis orders for filter dropdown.
+ * Fetch analysis orders for filter dropdown with optional search.
  */
-export function useAnalysisOrderFilterOptions() {
+export function useAnalysisOrderFilterOptions(searchTerm = '') {
   return useQuery({
-    queryKey: ['filter-analysis-orders'],
+    queryKey: ['filter-analysis-orders', searchTerm],
     queryFn: async () => {
-      const { data } = await client.get('/staff/api/analysis-orders/', {
-        params: { limit: 100 },
-      });
+      const params = { limit: 50 };
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      const { data } = await client.get('/staff/api/analysis-orders/', { params });
       return data.results ?? data;
     },
     staleTime: 60_000,
   });
+}
+
+/**
+ * Search analysis orders (for async select).
+ */
+export async function searchAnalysisOrders(searchTerm = '') {
+  const params = { limit: 50 };
+  if (searchTerm) {
+    params.search = searchTerm;
+  }
+  const { data } = await client.get('/staff/api/analysis-orders/', { params });
+  const results = data.results ?? data;
+  return results.map((o) => ({
+    value: o.id,
+    label: o.label,
+  }));
 }
 
 /**

@@ -314,10 +314,15 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
         ]
 
     def get_sample_position(self, obj: SampleMarkerAnalysis) -> str | None:
-        """Return the sample's extraction plate position (e.g., 'PlateName@A1')."""
+        """Return the sample's extraction plate position (e.g., '#Q123@A1')."""
         position = getattr(obj.sample, "position", None)
         if position:
-            return str(position)
+            # Use annotated qiagen_id to avoid polymorphic N+1
+            qiagen_id = getattr(obj, "_sample_extraction_qiagen_id", None)
+            coord = position.position_to_coordinates()
+            if qiagen_id:
+                return f"#Q{qiagen_id}@{coord}"
+            return f"?@{coord}"
         return None
 
     def get_analysis_position(self, obj: SampleMarkerAnalysis) -> str | None:
@@ -325,9 +330,18 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
         # Use prefetched positions if available
         positions = getattr(obj, "positions", None)
         if positions is not None:
-            pos_list = [str(pos) for pos in positions.all()]
+            pos_list = list(positions.all())
             if pos_list:
-                return ", ".join(pos_list)
+                # Use annotated plate_analysis_number to avoid polymorphic N+1
+                result = []
+                for pos in pos_list:
+                    plate_num = getattr(pos, "plate_analysis_number", None)
+                    coord = pos.position_to_coordinates()
+                    if plate_num:
+                        result.append(f"#A{plate_num}@{coord}")
+                    else:
+                        result.append(f"?@{coord}")
+                return ", ".join(result)
         return None
 
     def get_is_analyzing(self, obj: SampleMarkerAnalysis) -> dict:
@@ -336,10 +350,11 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
         if positions is not None:
             pos_list = list(positions.all())
             if pos_list:
+                # Use annotated plate_analysis_date to avoid polymorphic N+1
                 count = sum(
                     1
                     for pos in pos_list
-                    if getattr(pos.plate, "analysis_date", None) is not None
+                    if getattr(pos, "plate_analysis_date", None) is not None
                 )
                 return {"count": count, "total": len(pos_list)}
         return {"count": 0, "total": 0}
@@ -350,10 +365,11 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
         if positions is not None:
             pos_list = list(positions.all())
             if pos_list:
+                # Use annotated plate_result_file to avoid polymorphic N+1
                 count = sum(
                     1
                     for pos in pos_list
-                    if bool(getattr(pos.plate, "result_file", None))
+                    if bool(getattr(pos, "plate_result_file", None))
                 )
                 return {"count": count, "total": len(pos_list)}
         return {"count": 0, "total": 0}

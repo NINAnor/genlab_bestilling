@@ -1407,6 +1407,9 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(null=True, blank=True)
     is_reserved = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(
+        default=False, help_text="Mark this position as invalid"
+    )
     positive_control = models.ForeignKey(
         f"{an}.PositiveControl",
         null=True,

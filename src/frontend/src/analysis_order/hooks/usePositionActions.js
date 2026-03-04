@@ -113,3 +113,22 @@ export function useSetPositiveControl() {
     },
   });
 }
+
+/**
+ * Hook for toggling the invalid status of a plate position.
+ */
+export function useTogglePositionInvalid() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (positionId) => {
+      const { data } = await client.post(
+        `/api/plate-positions/${positionId}/toggle-invalid/`,
+      );
+      return data;
+    },
+    onSuccess: () => {
+      invalidatePositionQueries(queryClient, { includePlates: false });
+    },
+  });
+}

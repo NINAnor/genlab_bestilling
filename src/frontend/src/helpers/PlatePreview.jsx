@@ -17,10 +17,12 @@ const STATUS_STYLES = {
   empty: 'bg-gray-100 border-gray-300',
   filled: 'bg-emerald-400 border-emerald-600',
   reserved: 'bg-amber-300 border-amber-500',
+  invalid: 'bg-red-400 border-red-600',
 };
 
 function getStatus(position, plateType) {
   if (!position) return 'empty';
+  if (position.is_invalid) return 'invalid';
   if (position.is_reserved) return 'reserved';
   if (plateType === 'extraction' && position.sample_raw) return 'filled';
   if (plateType === 'analysis' && position.sample_marker) return 'filled';
@@ -48,7 +50,19 @@ function getFilledLabel(position, plateType) {
 
 function getTooltip(position, coordinate, status, plateType) {
   let base;
-  if (status === 'filled') {
+  if (status === 'invalid') {
+    if (plateType === 'analysis' && position.sample_marker) {
+      const markerName =
+        position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
+      const sampleName =
+        position.sample_marker.sample_genlab_id ??
+        position.sample_marker.sample_name ??
+        '?';
+      base = `${coordinate} — ${markerName} (${sampleName}) [INVALID]`;
+    } else {
+      base = `${coordinate} — Invalid`;
+    }
+  } else if (status === 'filled') {
     if (plateType === 'extraction' && position.sample_raw) {
       const id =
         position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
@@ -184,7 +198,7 @@ function Well({
       <span className="text-[10px] font-bold leading-tight text-gray-700">
         {coordinate}
       </span>
-      {status === 'filled' && filledLabel && (
+      {(status === 'filled' || status === 'invalid') && filledLabel && (
         <>
           {filledLabel.mainLabel && (
             <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">
@@ -197,19 +211,24 @@ function Well({
             </span>
           )}
           {filledLabel.markerLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full font-semibold text-emerald-900">
+            <span
+              className={classnames(
+                'text-[9px] leading-tight truncate max-w-full font-semibold',
+                status === 'invalid' ? 'text-red-900' : 'text-emerald-900',
+              )}
+            >
               {filledLabel.markerLabel}
             </span>
           )}
           {filledLabel.orderLabel && (
-            <span className="text-[8px] leading-tight truncate max-w-full text-gray-600 italic">
+            <span className="text-[10px] leading-tight truncate max-w-full text-gray-600 italic">
               #{filledLabel.orderLabel}
             </span>
           )}
         </>
       )}
       {status === 'reserved' && (
-        <span className="text-[8px] text-amber-700 font-medium">Reserved</span>
+        <span className="text-[10px] text-amber-700 font-medium">Reserved</span>
       )}
     </div>
   );
@@ -219,6 +238,7 @@ Well.propTypes = {
   position: PropTypes.shape({
     position: PropTypes.number,
     is_reserved: PropTypes.bool,
+    is_invalid: PropTypes.bool,
     sample_raw: PropTypes.object,
     sample_marker: PropTypes.object,
     notes: PropTypes.string,

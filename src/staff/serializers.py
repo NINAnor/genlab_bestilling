@@ -373,9 +373,15 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
     """Simple serializer for listing analysis plates (for plate selection)."""
 
     label = serializers.SerializerMethodField()
-    available_positions = serializers.SerializerMethodField()
-    filled_positions = serializers.SerializerMethodField()
-    invalid_positions = serializers.SerializerMethodField()
+    available_positions = serializers.IntegerField(
+        source="available_positions_count", read_only=True
+    )
+    filled_positions = serializers.IntegerField(
+        source="filled_positions_count", read_only=True
+    )
+    invalid_positions = serializers.IntegerField(
+        source="invalid_positions_count", read_only=True
+    )
     has_results = serializers.SerializerMethodField()
     analysis_type_name = serializers.CharField(
         source="analysis_type.name", read_only=True
@@ -414,17 +420,9 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
     def get_label(self, obj: AnalysisPlate) -> str:
         return str(obj)
 
-    def get_available_positions(self, obj: AnalysisPlate) -> int:
-        return obj.positions.filter(is_full=False).count()
-
-    def get_filled_positions(self, obj: AnalysisPlate) -> int:
-        return obj.positions.filter(is_full=True).count()
-
-    def get_invalid_positions(self, obj: AnalysisPlate) -> int:
-        return obj.positions.filter(is_invalid=True).count()
-
     def get_has_results(self, obj: AnalysisPlate) -> bool:
         return bool(obj.result_file)
 
     def get_marker_names(self, obj: AnalysisPlate) -> list[str]:
-        return list(obj.markers.values_list("name", flat=True))
+        # Use prefetched markers to avoid extra queries
+        return [m.name for m in obj.markers.all()]

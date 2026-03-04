@@ -150,6 +150,27 @@ const columns = [
       );
     },
   },
+  {
+    id: 'invalid',
+    header: 'Invalid',
+    accessorFn: (row) => row.invalid_positions,
+    cell: ({ getValue }) => {
+      const { count, total } = getValue() || { count: 0, total: 0 };
+      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+      const pct = Math.round((count / total) * 100);
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${count === 0 ? 'bg-emerald-500' : 'bg-red-500'}`}
+              style={{ width: `${count === 0 ? 100 : pct}%` }}
+            />
+          </div>
+          <span className="text-xs text-gray-600">{count}/{total}</span>
+        </div>
+      );
+    },
+  },
 ];
 
 // Sort indicator component

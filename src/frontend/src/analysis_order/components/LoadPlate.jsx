@@ -288,6 +288,29 @@ export default function PlateSearch() {
                 <div className="text-xs text-gray-500 mt-0.5">
                   {plate.available_positions} available positions
                 </div>
+                {/* Invalid positions progress bar */}
+                {plate.filled_positions > 0 && (
+                  <div className="mt-1.5">
+                    <div className="flex items-center justify-between text-xs mb-0.5">
+                      <span className="text-gray-500">
+                        {plate.invalid_positions} / {plate.filled_positions} invalid
+                      </span>
+                      {plate.invalid_positions > 0 && (
+                        <span className="text-red-600 font-medium">
+                          {Math.round((plate.invalid_positions / plate.filled_positions) * 100)}%
+                        </span>
+                      )}
+                    </div>
+                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-red-500 transition-all duration-300"
+                        style={{
+                          width: `${(plate.invalid_positions / plate.filled_positions) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </button>
             ))}
           </div>

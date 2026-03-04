@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import F
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
@@ -397,12 +398,56 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class SampleMarkerCursorPagination(CursorPagination):
-    """Cursor pagination for sample markers."""
+    """Cursor pagination for sample markers with dynamic ordering.
 
-    ordering = "id"
+    Supports ordering by: genlab_id, marker, species, sample_position.
+    Always appends 'id' to ensure stable cursor pagination.
+    Use '-field' prefix for descending order.
+    """
+
     page_size = 10
-    page_size_query_param = "page_size"
-    max_page_size = 200
+
+    # Map frontend field names to annotated flat field names
+    FIELD_MAPPING: dict[str, str] = {
+        "genlab_id": "_sort_genlab_id",
+        "marker": "_sort_marker",
+        "species": "_sort_species",
+        "sample_position": "_sort_position",
+    }
+
+    def get_ordering(
+        self, request: Request, queryset: QuerySet, view: viewsets.ViewSet
+    ) -> tuple[str, ...]:
+        """Get ordering from request param, map to annotated fields, append 'id'."""
+        ordering_param = request.query_params.get("ordering", "")
+
+        if not ordering_param:
+            return ("id",)
+
+        ordering_fields: list[str] = []
+        for raw_field in ordering_param.split(","):
+            field = raw_field.strip()
+            if not field:
+                continue
+
+            # Handle descending order prefix
+            descending = field.startswith("-")
+            field_name = field.lstrip("-")
+
+            # Map to annotated field if valid
+            annotated_field = self.FIELD_MAPPING.get(field_name)
+            if annotated_field:
+                if descending:
+                    ordering_fields.append(f"-{annotated_field}")
+                else:
+                    ordering_fields.append(annotated_field)
+
+        # Always append 'id' for stable cursor pagination
+        if ordering_fields:
+            ordering_fields.append("id")
+            return tuple(ordering_fields)
+
+        return ("id",)
 
 
 class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
@@ -428,6 +473,14 @@ class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
             .prefetch_related(
                 "sample__isolation_method",
                 "positions__plate",
+            )
+            # Annotate flat fields for cursor pagination
+            # (avoids double underscore getattr issues)
+            .annotate(
+                _sort_genlab_id=F("sample__genlab_id"),
+                _sort_marker=F("marker__name"),
+                _sort_species=F("sample__species__name"),
+                _sort_position=F("sample__position__position"),
             )
         )
 

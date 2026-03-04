@@ -38,6 +38,7 @@ function extractCursor(url) {
  */
 export function useOrderSampleMarkers(filters = {}) {
   const orderId = useOrderStore((s) => s.orderId);
+  const sorting = useOrderStore((s) => s.sorting);
   const setSampleMarkers = useOrderStore((s) => s.setSampleMarkers);
 
   // Include orderId in filters if set
@@ -46,18 +47,32 @@ export function useOrderSampleMarkers(filters = {}) {
     allFilters.order = orderId;
   }
 
+  // Build ordering param from sorting state
+  let ordering = null;
+  if (sorting.field) {
+    ordering = sorting.direction === 'desc' ? `-${sorting.field}` : sorting.field;
+  }
+
+  // DEBUG: Log sorting state and ordering
+  console.log('[useOrderSampleMarkers] sorting:', sorting, 'ordering:', ordering);
+
   const filterParams = buildFilterParams(allFilters);
 
   const query = useInfiniteQuery({
-    queryKey: ['sample-markers', filterParams],
+    queryKey: ['sample-markers', filterParams, ordering],
     queryFn: async ({ pageParam }) => {
       const params = { ...filterParams };
       if (pageParam) {
         params.cursor = pageParam;
       }
+      if (ordering) {
+        params.ordering = ordering;
+      }
+      console.log('[useOrderSampleMarkers] Fetching with params:', params);
       const { data } = await client.get('/staff/api/sample-markers/', {
         params,
       });
+      console.log('[useOrderSampleMarkers] Got response with', data.results?.length, 'results');
       return data;
     },
     initialPageParam: null,

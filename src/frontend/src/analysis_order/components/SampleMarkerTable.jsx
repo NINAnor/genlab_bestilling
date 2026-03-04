@@ -45,6 +45,7 @@ const columns = [
     enableSorting: false,
   },
   {
+    id: 'genlab_id',
     accessorKey: 'sample_genlab_id',
     header: 'Sample',
     cell: ({ row }) => (
@@ -52,25 +53,25 @@ const columns = [
         {row.original.sample_genlab_id ?? row.original.sample_name ?? '—'}
       </span>
     ),
-    sortingFn: (rowA, rowB) => {
-      const a = (rowA.original.sample_genlab_id ?? rowA.original.sample_name ?? '').toLowerCase();
-      const b = (rowB.original.sample_genlab_id ?? rowB.original.sample_name ?? '').toLowerCase();
-      return a.localeCompare(b);
-    },
+    sortField: 'genlab_id',
   },
   {
+    id: 'marker',
     accessorKey: 'marker_name',
     header: 'Marker',
     cell: ({ getValue }) => (
       <span className="text-sm text-gray-900">{getValue() ?? '—'}</span>
     ),
+    sortField: 'marker',
   },
   {
+    id: 'species',
     accessorKey: 'sample_species_name',
     header: 'Species',
     cell: ({ getValue }) => (
       <span className="text-sm text-gray-600">{getValue() ?? '—'}</span>
     ),
+    sortField: 'species',
   },
   {
     accessorKey: 'sample_isolation_methods',
@@ -82,16 +83,13 @@ const columns = [
     },
   },
   {
+    id: 'sample_position',
     accessorKey: 'sample_position',
     header: 'Sample Position',
     cell: ({ getValue }) => (
       <span className="text-sm font-mono text-gray-600">{getValue() ?? '—'}</span>
     ),
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.sample_position_index ?? Infinity;
-      const b = rowB.original.sample_position_index ?? Infinity;
-      return a - b;
-    },
+    sortField: 'sample_position',
   },
   {
     accessorKey: 'analysis_position',
@@ -109,11 +107,6 @@ const columns = [
         {getValue() ? '✓' : '—'}
       </span>
     ),
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.analysis_position ? 1 : 0;
-      const b = rowB.original.analysis_position ? 1 : 0;
-      return a - b;
-    },
   },
   {
     id: 'analyzing',
@@ -134,13 +127,6 @@ const columns = [
           <span className="text-xs text-gray-600">{count}/{total}</span>
         </div>
       );
-    },
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.is_analyzing;
-      const b = rowB.original.is_analyzing;
-      const pctA = a?.total ? a.count / a.total : 0;
-      const pctB = b?.total ? b.count / b.total : 0;
-      return pctA - pctB;
     },
   },
   {
@@ -163,15 +149,23 @@ const columns = [
         </div>
       );
     },
-    sortingFn: (rowA, rowB) => {
-      const a = rowA.original.has_output;
-      const b = rowB.original.has_output;
-      const pctA = a?.total ? a.count / a.total : 0;
-      const pctB = b?.total ? b.count / b.total : 0;
-      return pctA - pctB;
-    },
   },
 ];
+
+// Sort indicator component
+// eslint-disable-next-line react/prop-types
+function SortIndicator({ direction }) {
+  if (!direction) {
+    return (
+      <span className="text-gray-300 ml-1">↕</span>
+    );
+  }
+  return (
+    <span className="text-blue-600 ml-1">
+      {direction === 'asc' ? '↑' : '↓'}
+    </span>
+  );
+}
 
 export default function SampleMarkerTable({
   fetchNextPage,
@@ -180,10 +174,17 @@ export default function SampleMarkerTable({
   totalCount,
 }) {
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
+  const sampleMarkerIds = useOrderStore((s) => s.sampleMarkerIds);
   const selectedMarkerIds = useOrderStore((s) => s.selectedMarkerIds);
   const toggleMarkerSelection = useOrderStore((s) => s.toggleMarkerSelection);
+  const sorting = useOrderStore((s) => s.sorting);
+  const toggleSorting = useOrderStore((s) => s.toggleSorting);
 
-  const data = useMemo(() => Object.values(sampleMarkers), [sampleMarkers]);
+  // Build ordered data array from ids and object
+  const data = useMemo(
+    () => sampleMarkerIds.map((id) => sampleMarkers[id]).filter(Boolean),
+    [sampleMarkerIds, sampleMarkers],
+  );
 
   // Convert store selection to TanStack Table format (keyed by row id)
   const rowSelection = useMemo(() => {
@@ -276,16 +277,28 @@ export default function SampleMarkerTable({
           <thead className="bg-gray-50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider select-none bg-gray-50"
-                  >
-                    <div className="flex items-center gap-1">
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </div>
-                  </th>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const { sortField } = header.column.columnDef;
+                  const isSortable = !!sortField;
+                  const isSorted = sorting.field === sortField;
+                  const sortDirection = isSorted ? sorting.direction : null;
+
+                  return (
+                    <th
+                      key={header.id}
+                      className={classnames(
+                        'px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider select-none bg-gray-50',
+                        isSortable && 'cursor-pointer hover:bg-gray-100',
+                      )}
+                      onClick={isSortable ? () => toggleSorting(sortField) : undefined}
+                    >
+                      <div className="flex items-center">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {isSortable && <SortIndicator direction={sortDirection} />}
+                      </div>
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>

@@ -185,6 +185,23 @@ class PlatePositionViewSet(viewsets.ModelViewSet):
             {"message": "Notes updated successfully", "position": serializer.data}
         )
 
+    @action(detail=True, methods=["post"], url_path="toggle-invalid")
+    def toggle_invalid(self, request: Request, pk: int | str) -> Response:
+        """Toggle the invalid status of a plate position."""
+        position = PlatePosition.objects.select_for_update().get(pk=pk)
+
+        position.is_invalid = not position.is_invalid
+        position.save(update_fields=["is_invalid"])
+
+        status_text = "invalid" if position.is_invalid else "valid"
+        serializer = self.get_serializer(position)
+        return Response(
+            {
+                "message": f"Position marked as {status_text}",
+                "position": serializer.data,
+            }
+        )
+
     @action(detail=True, methods=["post"])
     def add_sample(self, request: Request, pk: int | str) -> Response:
         """Add a sample to a plate position."""

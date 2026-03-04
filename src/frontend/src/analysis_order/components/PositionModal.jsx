@@ -6,6 +6,7 @@ import {
   useRemoveSampleMarker,
   useEditPositionNotes,
   useSetPositiveControl,
+  useTogglePositionInvalid,
 } from '../hooks/usePositionActions';
 import { usePositiveControls } from '../hooks/useFilterOptions';
 
@@ -25,6 +26,7 @@ export default function PositionModal({ position, onClose }) {
   const removeSampleMarker = useRemoveSampleMarker();
   const editNotes = useEditPositionNotes();
   const setPositiveControl = useSetPositiveControl();
+  const toggleInvalid = useTogglePositionInvalid();
   const { data: positiveControls = [] } = usePositiveControls();
 
   useEffect(() => {
@@ -36,6 +38,7 @@ export default function PositionModal({ position, onClose }) {
   if (!position) return null;
 
   const hasId = position.id != null;
+  const isInvalid = position.is_invalid;
   const status = position.is_reserved
     ? 'reserved'
     : position.sample_marker
@@ -92,12 +95,20 @@ export default function PositionModal({ position, onClose }) {
     }
   };
 
+  const handleToggleInvalid = () => {
+    if (!hasId) return;
+    toggleInvalid.mutate(position.id, {
+      onSuccess: onClose,
+    });
+  };
+
   const isPending =
     reserve.isPending ||
     unreserve.isPending ||
     removeSampleMarker.isPending ||
     editNotes.isPending ||
-    setPositiveControl.isPending;
+    setPositiveControl.isPending ||
+    toggleInvalid.isPending;
 
   return (
     <div
@@ -139,9 +150,14 @@ export default function PositionModal({ position, onClose }) {
                 Reserved{position.positive_control_name ? ` (${position.positive_control_name})` : ''}
               </span>
             )}
-            {status === 'filled' && (
+            {status === 'filled' && !isInvalid && (
               <span className="px-2 py-0.5 text-xs font-medium bg-emerald-100 text-emerald-700 rounded">
                 Filled
+              </span>
+            )}
+            {status === 'filled' && isInvalid && (
+              <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
+                Invalid
               </span>
             )}
           </div>
@@ -280,14 +296,32 @@ export default function PositionModal({ position, onClose }) {
           )}
 
           {hasId && status === 'filled' && (
-            <button
-              type="button"
-              onClick={handleRemoveSampleMarker}
-              disabled={isPending}
-              className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 rounded hover:bg-red-200 disabled:opacity-50"
-            >
-              {removeSampleMarker.isPending ? 'Removing…' : 'Remove Sample Marker'}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleRemoveSampleMarker}
+                disabled={isPending}
+                className="px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 rounded hover:bg-red-200 disabled:opacity-50"
+              >
+                {removeSampleMarker.isPending ? 'Removing…' : 'Remove Sample Marker'}
+              </button>
+              <button
+                type="button"
+                onClick={handleToggleInvalid}
+                disabled={isPending}
+                className={`px-3 py-1.5 text-sm font-medium rounded disabled:opacity-50 ${
+                  isInvalid
+                    ? 'text-emerald-700 bg-emerald-100 hover:bg-emerald-200'
+                    : 'text-amber-700 bg-amber-100 hover:bg-amber-200'
+                }`}
+              >
+                {toggleInvalid.isPending
+                  ? 'Updating…'
+                  : isInvalid
+                    ? 'Mark Valid'
+                    : 'Mark Invalid'}
+              </button>
+            </>
           )}
         </div>
 
@@ -296,13 +330,15 @@ export default function PositionModal({ position, onClose }) {
           unreserve.error ||
           removeSampleMarker.error ||
           editNotes.error ||
-          setPositiveControl.error) && (
+          setPositiveControl.error ||
+          toggleInvalid.error) && (
           <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-sm text-red-700">
             {reserve.error?.message ||
               unreserve.error?.message ||
               removeSampleMarker.error?.message ||
               editNotes.error?.message ||
-              setPositiveControl.error?.message}
+              setPositiveControl.error?.message ||
+              toggleInvalid.error?.message}
           </div>
         )}
       </div>
@@ -315,6 +351,7 @@ PositionModal.propTypes = {
     id: PropTypes.number,
     coordinate: PropTypes.string,
     is_reserved: PropTypes.bool,
+    is_invalid: PropTypes.bool,
     positive_control: PropTypes.number,
     positive_control_name: PropTypes.string,
     notes: PropTypes.string,

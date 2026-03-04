@@ -126,6 +126,7 @@ class PlatePositionSerializer(serializers.ModelSerializer):
             "coordinate",
             "is_full",
             "is_reserved",
+            "is_invalid",
             "positive_control",
             "positive_control_name",
             "filled_at",
@@ -176,6 +177,11 @@ class PlatePositionSerializer(serializers.ModelSerializer):
                         "action": "view_analysis",
                         "label": "View Sample Marker Details",
                         "type": "info",
+                    },
+                    {
+                        "action": "toggle_invalid",
+                        "label": "Mark Valid" if obj.is_invalid else "Mark Invalid",
+                        "type": "warning",
                     },
                 ]
             )
@@ -230,6 +236,7 @@ class PlatePositionActionSerializer(serializers.Serializer):
             "remove_sample",
             "remove_analysis",
             "edit_notes",
+            "toggle_invalid",
         ]
     )
     notes = serializers.CharField(required=False, allow_blank=True)

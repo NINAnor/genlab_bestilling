@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, F, Q
+from django.db.models import Count, F, Prefetch, Q
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
@@ -397,6 +397,15 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
         order = get_object_or_404(AnalysisOrder, pk=self.kwargs["order_pk"])
+        # Prefetch positions with plate fields annotated to avoid N+1 from polymorphic
+        positions_prefetch = Prefetch(
+            "positions",
+            queryset=PlatePosition.objects.annotate(
+                plate_analysis_date=F("plate__analysisplate__analysis_date"),
+                plate_result_file=F("plate__analysisplate__result_file"),
+                plate_analysis_number=F("plate__analysisplate__analysis_number"),
+            ),
+        )
         return (
             SampleMarkerAnalysis.objects.filter(order=order)
             .select_related(
@@ -404,12 +413,17 @@ class AnalysisOrderSampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
                 "sample__species",
                 "sample__type",
                 "sample__position",
-                "sample__position__plate",
                 "marker",
             )
             .prefetch_related(
                 "sample__isolation_method",
-                "positions__plate",
+                positions_prefetch,
+            )
+            # Annotate extraction plate qiagen_id to avoid polymorphic lookup
+            .annotate(
+                _sample_extraction_qiagen_id=F(
+                    "sample__position__plate__extractionplate__qiagen_id"
+                ),
             )
             .order_by("sample__genlab_id", "marker__name")
         )
@@ -477,6 +491,15 @@ class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = SampleMarkerCursorPagination
 
     def get_queryset(self) -> QuerySet[SampleMarkerAnalysis]:
+        # Prefetch positions with plate fields annotated to avoid N+1 from polymorphic
+        positions_prefetch = Prefetch(
+            "positions",
+            queryset=PlatePosition.objects.annotate(
+                plate_analysis_date=F("plate__analysisplate__analysis_date"),
+                plate_result_file=F("plate__analysisplate__result_file"),
+                plate_analysis_number=F("plate__analysisplate__analysis_number"),
+            ),
+        )
         return (
             SampleMarkerAnalysis.objects.all()
             .select_related(
@@ -484,21 +507,23 @@ class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
                 "sample__species",
                 "sample__type",
                 "sample__position",
-                "sample__position__plate",
                 "marker",
                 "order",
             )
             .prefetch_related(
                 "sample__isolation_method",
-                "positions__plate",
+                positions_prefetch,
             )
-            # Annotate flat fields for cursor pagination
-            # (avoids double underscore getattr issues)
+            # Annotate flat fields for cursor pagination and to avoid polymorphic N+1
             .annotate(
                 _sort_genlab_id=F("sample__genlab_id"),
                 _sort_marker=F("marker__name"),
                 _sort_species=F("sample__species__name"),
                 _sort_position=F("sample__position__position"),
+                # Annotate extraction plate qiagen_id to avoid polymorphic lookup
+                _sample_extraction_qiagen_id=F(
+                    "sample__position__plate__extractionplate__qiagen_id"
+                ),
             )
         )
 

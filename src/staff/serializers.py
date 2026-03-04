@@ -266,6 +266,10 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
     marker_name = serializers.CharField(
         source="marker.name", read_only=True, default=None
     )
+    order_id = serializers.IntegerField(source="order.id", read_only=True)
+    order_name = serializers.CharField(
+        source="order.name", read_only=True, default=None
+    )
     sample_isolation_methods = serializers.SerializerMethodField()
     sample_position = serializers.SerializerMethodField()
     sample_position_index = serializers.IntegerField(
@@ -290,6 +294,8 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             "sample_isolation_methods",
             "marker",
             "marker_name",
+            "order_id",
+            "order_name",
             "has_pcr",
             "is_analysed",
             "is_outputted",

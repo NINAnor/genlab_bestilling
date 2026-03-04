@@ -56,6 +56,16 @@ const columns = [
     sortField: 'genlab_id',
   },
   {
+    id: 'order',
+    accessorKey: 'order_id',
+    header: 'Order',
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-600">
+        {row.original.order_name ?? `#${row.original.order_id}`}
+      </span>
+    ),
+  },
+  {
     id: 'marker',
     accessorKey: 'marker_name',
     header: 'Marker',

@@ -56,6 +56,20 @@ export function useMarkerFilterOptions() {
 }
 
 /**
+ * Fetch all markers (for plate filtering).
+ */
+export function useAllMarkers() {
+  return useQuery({
+    queryKey: ['all-markers'],
+    queryFn: async () => {
+      const { data } = await client.get('/api/markers/');
+      return data.results ?? data;
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
  * Fetch species available in this analysis order (or all if no order selected).
  */
 export function useSpeciesFilterOptions() {
@@ -105,7 +119,7 @@ export function useIsolationMethodFilterOptions() {
 /**
  * Search analysis plates by name with optional filters.
  * @param {string} searchTerm - Search term for plate name
- * @param {object} filters - Optional filters: { status, minAvailablePositions }
+ * @param {object} filters - Optional filters: { status, minAvailablePositions, analysisType, marker }
  */
 export function useAnalysisPlateSearch(searchTerm, filters = {}) {
   return useQuery({
@@ -121,8 +135,19 @@ export function useAnalysisPlateSearch(searchTerm, filters = {}) {
       if (filters.minAvailablePositions) {
         params.min_available_positions = filters.minAvailablePositions;
       }
+      if (filters.analysisType) {
+        params.analysis_type = filters.analysisType;
+      }
+      if (filters.marker) {
+        params.marker = filters.marker;
+      }
       // Only limit results when no filters are active
-      const hasFilters = searchTerm || filters.status || filters.minAvailablePositions;
+      const hasFilters =
+        searchTerm ||
+        filters.status ||
+        filters.minAvailablePositions ||
+        filters.analysisType ||
+        filters.marker;
       if (!hasFilters) {
         params.limit = 10;
       }

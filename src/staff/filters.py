@@ -870,10 +870,18 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
     search = CharFilter(field_name="analysis_number", lookup_expr="icontains")
     status = CharFilter(method="filter_status")
     min_available_positions = NumberFilter(method="filter_min_available_positions")
+    analysis_type = NumberFilter(field_name="analysis_type_id")
+    marker = CharFilter(field_name="markers", lookup_expr="exact")
 
     class Meta:
         model = AnalysisPlate
-        fields = ["search", "status", "min_available_positions"]
+        fields = [
+            "search",
+            "status",
+            "min_available_positions",
+            "analysis_type",
+            "marker",
+        ]
 
     def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         """Filter by status: pending, analyzing, results."""

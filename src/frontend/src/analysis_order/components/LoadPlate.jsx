@@ -3,6 +3,8 @@ import classnames from 'classnames';
 import {
   useAnalysisPlateSearch,
   usePlatePositions,
+  useAnalysisTypes,
+  useAllMarkers,
 } from '../hooks/useFilterOptions';
 import {
   useSetAnalysisDate,
@@ -32,12 +34,18 @@ export default function PlateSearch() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [minPositions, setMinPositions] = useState('');
+  const [analysisTypeFilter, setAnalysisTypeFilter] = useState('');
+  const [markerFilter, setMarkerFilter] = useState('');
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
   const fileInputRef = useRef(null);
+
+  // Fetch filter options
+  const { data: analysisTypes = [] } = useAnalysisTypes();
+  const { data: allMarkers = [] } = useAllMarkers();
 
   // Sync selected plate to store and update analysis date field
   useEffect(() => {
@@ -57,6 +65,8 @@ export default function PlateSearch() {
   const filters = {
     status: statusFilter || undefined,
     minAvailablePositions: minPositions || undefined,
+    analysisType: analysisTypeFilter || undefined,
+    marker: markerFilter || undefined,
   };
   const { data: plates = [], isFetching: isLoading } =
     useAnalysisPlateSearch(searchTerm, filters);
@@ -240,6 +250,32 @@ export default function PlateSearch() {
                 className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+            <div className="mt-2 flex gap-2">
+              <select
+                value={analysisTypeFilter}
+                onChange={(e) => setAnalysisTypeFilter(e.target.value)}
+                className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All analysis types</option>
+                {analysisTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={markerFilter}
+                onChange={(e) => setMarkerFilter(e.target.value)}
+                className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All markers</option>
+                {allMarkers.map((marker) => (
+                  <option key={marker.name} value={marker.name}>
+                    {marker.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -281,8 +317,11 @@ export default function PlateSearch() {
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {plate.available_positions} available positions
+                <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-between">
+                  <span>{plate.available_positions} available positions</span>
+                  {plate.analysis_type_name && (
+                    <span className="text-gray-400">{plate.analysis_type_name}</span>
+                  )}
                 </div>
                 {/* Invalid positions progress bar */}
                 {plate.filled_positions > 0 && (
@@ -367,6 +406,28 @@ export default function PlateSearch() {
                     </button>
                   )}
                 </div>
+              </div>
+              {/* Analysis type and markers badges */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {selectedPlate.analysis_type_name && (
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">
+                    {selectedPlate.analysis_type_name}
+                  </span>
+                )}
+                {selectedPlate.marker_names?.length > 0 ? (
+                  selectedPlate.marker_names.map((marker) => (
+                    <span
+                      key={marker}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
+                    >
+                      {marker}
+                    </span>
+                  ))
+                ) : selectedPlate.analysis_type_name ? (
+                  <span className="text-xs text-gray-500 italic">
+                    All markers allowed
+                  </span>
+                ) : null}
               </div>
               {/* Result file upload - only show if plate has been analyzed */}
               {(selectedPlate.has_results || selectedPlate.analysis_date) && (

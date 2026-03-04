@@ -5,7 +5,6 @@ import {
   usePlatePositions,
 } from '../hooks/useFilterOptions';
 import {
-  useCreatePlate,
   useSetAnalysisDate,
   useUploadResultFile,
   useDeleteResultFile,
@@ -13,6 +12,7 @@ import {
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
+import CreatePlateModal from './CreatePlateModal';
 import useOrderStore from '../store';
 
 /**
@@ -35,6 +35,7 @@ export default function PlateSearch() {
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
   const fileInputRef = useRef(null);
 
@@ -63,7 +64,6 @@ export default function PlateSearch() {
   const { data: platePositions = [], isLoading: positionsLoading } =
     usePlatePositions(selectedPlate?.id);
 
-  const createPlate = useCreatePlate();
   const setAnalysisDateMutation = useSetAnalysisDate();
   const uploadResultFile = useUploadResultFile();
   const deleteResultFile = useDeleteResultFile();
@@ -76,14 +76,11 @@ export default function PlateSearch() {
   });
 
   const handleCreatePlate = () => {
-    createPlate.mutate(
-      {},
-      {
-        onSuccess: (newPlate) => {
-          setSelectedPlate(newPlate);
-        },
-      },
-    );
+    setShowCreateModal(true);
+  };
+
+  const handleCreatePlateSuccess = (newPlate) => {
+    setSelectedPlate(newPlate);
   };
 
   const handlePositionClick = (position, coordinate, positionIndex) => {
@@ -210,10 +207,9 @@ export default function PlateSearch() {
               <button
                 type="button"
                 onClick={handleCreatePlate}
-                disabled={createPlate.isPending}
-                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+                className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
               >
-                {createPlate.isPending ? 'Creating…' : '+ New Plate'}
+                + New Plate
               </button>
             </div>
             <input
@@ -427,6 +423,13 @@ export default function PlateSearch() {
       {selectedPosition && (
         <PositionModal position={selectedPosition} onClose={handleCloseModal} />
       )}
+
+      {/* Create plate modal */}
+      <CreatePlateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={handleCreatePlateSuccess}
+      />
     </div>
   );
 }

@@ -117,6 +117,7 @@ class MarkerFilter(BaseOrderFilter):
     analysis_order = filters.NumberFilter(
         field_name="analysis_order", method="filter_analysis_order"
     )
+    analysis_type = filters.NumberFilter(field_name="analysis_type_id")
 
     class Meta:
         model = Marker

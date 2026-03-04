@@ -274,6 +274,7 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
     analysis_position = serializers.SerializerMethodField()
     is_analyzing = serializers.SerializerMethodField()
     has_output = serializers.SerializerMethodField()
+    invalid_positions = serializers.SerializerMethodField()
 
     class Meta:
         model = SampleMarkerAnalysis
@@ -298,6 +299,7 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             "analysis_position",
             "is_analyzing",
             "has_output",
+            "invalid_positions",
         )
 
     def get_sample_isolation_methods(self, obj: SampleMarkerAnalysis) -> list[dict]:
@@ -350,12 +352,24 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
                 return {"count": count, "total": len(pos_list)}
         return {"count": 0, "total": 0}
 
+    def get_invalid_positions(self, obj: SampleMarkerAnalysis) -> dict:
+        """Return count of invalid positions for this sample marker."""
+        positions = getattr(obj, "positions", None)
+        if positions is not None:
+            pos_list = list(positions.all())
+            if pos_list:
+                count = sum(1 for pos in pos_list if pos.is_invalid)
+                return {"count": count, "total": len(pos_list)}
+        return {"count": 0, "total": 0}
+
 
 class AnalysisPlateListSerializer(serializers.ModelSerializer):
     """Simple serializer for listing analysis plates (for plate selection)."""
 
     label = serializers.SerializerMethodField()
     available_positions = serializers.SerializerMethodField()
+    filled_positions = serializers.SerializerMethodField()
+    invalid_positions = serializers.SerializerMethodField()
     has_results = serializers.SerializerMethodField()
 
     class Meta:
@@ -365,6 +379,8 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
             "name",
             "label",
             "available_positions",
+            "filled_positions",
+            "invalid_positions",
             "created_at",
             "analysis_date",
             "has_results",
@@ -385,6 +401,12 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
 
     def get_available_positions(self, obj: AnalysisPlate) -> int:
         return obj.positions.filter(is_full=False).count()
+
+    def get_filled_positions(self, obj: AnalysisPlate) -> int:
+        return obj.positions.filter(is_full=True).count()
+
+    def get_invalid_positions(self, obj: AnalysisPlate) -> int:
+        return obj.positions.filter(is_invalid=True).count()
 
     def get_has_results(self, obj: AnalysisPlate) -> bool:
         return bool(obj.result_file)

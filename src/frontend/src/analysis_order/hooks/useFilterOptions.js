@@ -166,3 +166,37 @@ export function usePositiveControls() {
     staleTime: 60_000, // Cache for 1 minute
   });
 }
+
+/**
+ * Fetch all analysis types for plate creation.
+ */
+export function useAnalysisTypes() {
+  return useQuery({
+    queryKey: ['analysis-types'],
+    queryFn: async () => {
+      const { data } = await client.get('/api/analysis-types/');
+      return data.results ?? data;
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Fetch markers filtered by analysis type.
+ * @param {number|null} analysisTypeId - Filter by analysis type, or null for all
+ */
+export function useMarkersForAnalysisType(analysisTypeId) {
+  return useQuery({
+    queryKey: ['markers-for-analysis-type', analysisTypeId],
+    queryFn: async () => {
+      const params = {};
+      if (analysisTypeId) {
+        params.analysis_type = analysisTypeId;
+      }
+      const { data } = await client.get('/api/markers/', { params });
+      return data.results ?? data;
+    },
+    staleTime: 60_000,
+    enabled: !!analysisTypeId,
+  });
+}

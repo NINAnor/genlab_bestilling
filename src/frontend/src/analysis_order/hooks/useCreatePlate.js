@@ -4,13 +4,21 @@ import { client } from '../config';
 
 /**
  * Mutation hook to create a new analysis plate.
+ * @param {Object} params
+ * @param {string} params.name - Optional plate name
+ * @param {number} params.analysis_type - Required analysis type ID
+ * @param {string[]} params.markers - Optional array of marker names (primary keys)
  */
 export function useCreatePlate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name } = {}) => {
-      const { data } = await client.post('/staff/api/analysis-plates/', { name });
+    mutationFn: async ({ name, analysis_type, markers = [] } = {}) => {
+      const { data } = await client.post('/staff/api/analysis-plates/', {
+        name,
+        analysis_type,
+        markers,
+      });
       return data;
     },
     onSuccess: (data) => {

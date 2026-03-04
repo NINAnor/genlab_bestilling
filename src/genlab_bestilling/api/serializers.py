@@ -30,9 +30,11 @@ class KoncivSerializer(EnumSerializer):
 
 
 class MarkerSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source="name", read_only=True)
+
     class Meta:
         model = Marker
-        fields = ("name",)
+        fields = ("id", "name")
 
 
 class SampleTypeSerializer(serializers.ModelSerializer):

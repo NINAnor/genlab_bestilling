@@ -377,6 +377,10 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
     filled_positions = serializers.SerializerMethodField()
     invalid_positions = serializers.SerializerMethodField()
     has_results = serializers.SerializerMethodField()
+    analysis_type_name = serializers.CharField(
+        source="analysis_type.name", read_only=True
+    )
+    marker_names = serializers.SerializerMethodField()
 
     class Meta:
         model = AnalysisPlate
@@ -391,9 +395,14 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
             "analysis_date",
             "has_results",
             "result_file",
+            "analysis_type",
+            "analysis_type_name",
+            "markers",
+            "marker_names",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_blank": True},
+            "analysis_type": {"required": True},
         }
 
     def validate_name(self, value: str | None) -> str | None:
@@ -416,3 +425,6 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
 
     def get_has_results(self, obj: AnalysisPlate) -> bool:
         return bool(obj.result_file)
+
+    def get_marker_names(self, obj: AnalysisPlate) -> list[str]:
+        return list(obj.markers.values_list("name", flat=True))

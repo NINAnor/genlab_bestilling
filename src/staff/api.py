@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F, Q
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
@@ -520,7 +520,19 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
     permission_classes = [IsGenlabStaffOrSuperuser]
     queryset = (
         AnalysisPlate.objects.all()
-        .prefetch_related("positions")
+        .select_related("analysis_type")
+        .prefetch_related("markers", "positions")
+        .annotate(
+            available_positions_count=Count(
+                "positions", filter=Q(positions__is_full=False)
+            ),
+            filled_positions_count=Count(
+                "positions", filter=Q(positions__is_full=True)
+            ),
+            invalid_positions_count=Count(
+                "positions", filter=Q(positions__is_invalid=True)
+            ),
+        )
         .order_by("-created_at")
     )
     serializer_class = AnalysisPlateListSerializer

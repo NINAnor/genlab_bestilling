@@ -3,7 +3,7 @@ from typing import Any
 import django_filters as filters
 from dal import autocomplete
 from django import forms
-from django.db.models import Count, Q, QuerySet
+from django.db.models import QuerySet
 from django.http import HttpRequest
 from django_filters import CharFilter, ChoiceFilter, NumberFilter
 
@@ -899,7 +899,5 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
         """Filter plates with at least the given number of available positions."""
         if value is None:
             return queryset
-        # Annotate with available positions count (positions where is_full=False)
-        return queryset.annotate(
-            available_count=Count("positions", filter=Q(positions__is_full=False))
-        ).filter(available_count__gte=value)
+        # Use the already annotated field from the viewset queryset
+        return queryset.filter(available_positions_count__gte=value)

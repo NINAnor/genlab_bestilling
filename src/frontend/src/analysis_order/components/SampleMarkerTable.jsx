@@ -61,7 +61,7 @@ const columns = [
     header: 'Order',
     cell: ({ row }) => (
       <span className="text-sm text-gray-600">
-        {row.original.order_name ?? `#${row.original.order_id}`}
+        {row.original.order_name ?? `#ANL_${row.original.order_id}`}
       </span>
     ),
   },

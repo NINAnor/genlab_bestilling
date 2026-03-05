@@ -104,9 +104,44 @@ const columns = [
   {
     accessorKey: 'analysis_position',
     header: 'Analysis Position',
-    cell: ({ getValue }) => (
-      <span className="text-sm font-mono text-gray-600">{getValue() ?? '—'}</span>
-    ),
+    cell: ({ getValue }) => {
+      const value = getValue();
+      if (!value) return <span className="text-sm text-gray-400">—</span>;
+
+      // Split by comma and trim whitespace
+      const positions = value
+        .split(',')
+        .map((p) => p.trim())
+        .filter(Boolean);
+
+      if (positions.length === 0) return <span className="text-sm text-gray-400">—</span>;
+
+      // Show first 3 positions as tags, rest as "+N more"
+      const maxVisible = 3;
+      const visiblePositions = positions.slice(0, maxVisible);
+      const hiddenCount = positions.length - maxVisible;
+
+      return (
+        <div className="flex flex-wrap gap-1 max-w-48">
+          {visiblePositions.map((pos, idx) => (
+            <span
+              key={idx}
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-blue-100 text-blue-800"
+            >
+              {pos}
+            </span>
+          ))}
+          {hiddenCount > 0 && (
+            <span
+              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+              title={positions.slice(maxVisible).join(', ')}
+            >
+              +{hiddenCount}
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     id: 'pcr',

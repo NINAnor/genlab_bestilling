@@ -323,14 +323,21 @@ export default function PlateSearch() {
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-sm text-gray-900">
-                    {plate.label}
-                    {plate.name && (
-                      <span className="font-normal text-gray-500 ml-1">
-                        {plate.name}
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm text-gray-900">
+                      {plate.label}
+                      {plate.name && (
+                        <span className="font-normal text-gray-500 ml-1">
+                          {plate.name}
+                        </span>
+                      )}
+                    </span>
+                    {plate.analysis_type_name && (
+                      <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                        {plate.analysis_type_name}
                       </span>
                     )}
-                  </span>
+                  </div>
                   {plate.has_results ? (
                     <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
                       Results
@@ -347,44 +354,42 @@ export default function PlateSearch() {
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-between">
                   <span>{plate.available_positions} available positions</span>
-                  {plate.analysis_type_name && (
-                    <span className="text-gray-400">{plate.analysis_type_name}</span>
+                  {plate.marker_names?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {plate.marker_names.map((marker) => (
+                        <span
+                          key={marker}
+                          className="text-xs bg-gray-100 text-gray-600 px-1 py-0.5 rounded"
+                        >
+                          {marker}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
-                {/* Invalid positions progress bar */}
+                {/* Sample counts - show valid count with progress bar for results, invalid count text only otherwise */}
                 {plate.filled_positions > 0 && (
                   <div className="mt-1.5">
-                    <div className="flex items-center justify-between text-xs mb-0.5">
-                      <span className="text-gray-500">
-                        {plate.invalid_positions} / {plate.filled_positions} invalid
-                      </span>
-                      {plate.invalid_positions > 0 && (
-                        <span className="text-red-600 font-medium">
-                          {Math.round((plate.invalid_positions / plate.filled_positions) * 100)}%
-                        </span>
-                      )}
-                    </div>
-                    <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-red-500 transition-all duration-300"
-                        style={{
-                          width: `${(plate.invalid_positions / plate.filled_positions) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-                {/* Allowed markers */}
-                {plate.marker_names?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1.5">
-                    {plate.marker_names.map((marker) => (
-                      <span
-                        key={marker}
-                        className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
-                      >
-                        {marker}
-                      </span>
-                    ))}
+                    {plate.has_results ? (
+                      <>
+                        <div className="flex items-center justify-between text-xs mb-0.5">
+                          <span className="text-gray-500">
+                            {plate.filled_positions - plate.invalid_positions} / {plate.filled_positions} valid
+                          </span>
+                          <span className="text-emerald-600 font-medium">
+                            {Math.round(((plate.filled_positions - plate.invalid_positions) / plate.filled_positions) * 100)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-emerald-500 transition-all duration-300"
+                            style={{
+                              width: `${((plate.filled_positions - plate.invalid_positions) / plate.filled_positions) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </>
+                    ) : null}
                   </div>
                 )}
               </button>

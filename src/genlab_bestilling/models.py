@@ -1127,7 +1127,8 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
                     plate=self,
                 )
                 for i in range(96)
-            ]
+            ],
+            ignore_conflicts=True,
         )
 
     class NotEnoughPositions(Exception):
@@ -1385,6 +1386,67 @@ class AnalysisPlate(Plate):
             )
 
         return added
+
+    @transaction.atomic
+    def clone(self: "AnalysisPlate") -> "AnalysisPlate":
+        """Clone plate with same name, markers, and filled positions.
+
+        The new plate will have:
+        - Same name (if any)
+        - Same analysis_type
+        - Same markers
+        - Same filled positions (sample_marker, is_reserved, positive_control)
+        - NO analysis_date
+        - NO result_file
+
+        Returns:
+            The newly created AnalysisPlate.
+        """
+        # Create new plate
+        new_plate = AnalysisPlate.objects.create(
+            name=self.name,
+            analysis_type=self.analysis_type,
+        )
+        # Copy markers
+        new_plate.markers.set(self.markers.all())
+
+        # Create positions if they don't exist yet (the AFTER_CREATE hook uses
+        # on_commit=True, so positions may not be available in a transaction).
+        # Use ignore_conflicts to handle race condition with the on_commit hook.
+        PlatePosition.objects.bulk_create(
+            [
+                PlatePosition(
+                    position=i,
+                    plate=new_plate,
+                )
+                for i in range(96)
+            ],
+            ignore_conflicts=True,
+        )
+
+        # Get source positions that are filled
+        source_positions = {p.position: p for p in self.positions.filter(is_full=True)}
+
+        if source_positions:
+            # Build mapping of new positions by index
+            new_positions = {p.position: p for p in new_plate.positions.all()}
+
+            # Update new plate positions to match source
+            positions_to_update = []
+            for pos_index, source_pos in source_positions.items():
+                new_pos = new_positions[pos_index]
+                new_pos.sample_marker = source_pos.sample_marker
+                new_pos.is_reserved = source_pos.is_reserved
+                new_pos.positive_control = source_pos.positive_control
+                new_pos.notes = source_pos.notes
+                positions_to_update.append(new_pos)
+
+            PlatePosition.objects.bulk_update(
+                positions_to_update,
+                fields=["sample_marker", "is_reserved", "positive_control", "notes"],
+            )
+
+        return new_plate
 
     class Meta:
         constraints = [

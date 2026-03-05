@@ -374,6 +374,19 @@ export default function PlateSearch() {
                     </div>
                   </div>
                 )}
+                {/* Allowed markers */}
+                {plate.marker_names?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {plate.marker_names.map((marker) => (
+                      <span
+                        key={marker}
+                        className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
+                      >
+                        {marker}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </button>
             ))}
           </div>

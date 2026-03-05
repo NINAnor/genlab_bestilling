@@ -3,7 +3,8 @@ from typing import Any
 import django_filters as filters
 from dal import autocomplete
 from django import forms
-from django.db.models import QuerySet
+from django.db.models import CharField, QuerySet
+from django.db.models.functions import Cast
 from django.http import HttpRequest
 from django_filters import CharFilter, ChoiceFilter, NumberFilter
 
@@ -868,11 +869,19 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
 class AnalysisPlateAPIFilter(filters.FilterSet):
     """Filter for AnalysisPlate API."""
 
-    search = CharFilter(field_name="analysis_number", lookup_expr="icontains")
+    search = CharFilter(method="filter_search")
     status = CharFilter(method="filter_status")
     min_available_positions = NumberFilter(method="filter_min_available_positions")
     analysis_type = NumberFilter(field_name="analysis_type_id")
     marker = CharFilter(field_name="markers", lookup_expr="exact")
+
+    def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        """Filter by analysis_number (cast to string for partial matching)."""
+        if not value:
+            return queryset
+        return queryset.annotate(
+            analysis_number_str=Cast("analysis_number", output_field=CharField())
+        ).filter(analysis_number_str__icontains=value)
 
     class Meta:
         model = AnalysisPlate

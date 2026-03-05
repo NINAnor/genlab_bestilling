@@ -11,6 +11,7 @@ import {
   useUploadResultFile,
   useDeleteResultFile,
   useUpdatePlateName,
+  useClonePlate,
 } from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
@@ -82,6 +83,7 @@ export default function PlateSearch() {
   const uploadResultFile = useUploadResultFile();
   const deleteResultFile = useDeleteResultFile();
   const updatePlateName = useUpdatePlateName();
+  const clonePlate = useClonePlate();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -96,6 +98,28 @@ export default function PlateSearch() {
 
   const handleCreatePlateSuccess = (newPlate) => {
     setSelectedPlate(newPlate);
+  };
+
+  const handleClonePlate = () => {
+    if (!selectedPlate?.id) return;
+    if (
+      !window.confirm(
+        'Are you sure you want to clone this plate? A new plate will be created with the same positions but without analysis results.',
+      )
+    ) {
+      return;
+    }
+    clonePlate.mutate(
+      { plateId: selectedPlate.id },
+      {
+        onSuccess: (data) => {
+          // Select the newly cloned plate
+          if (data.plate) {
+            setSelectedPlate(data.plate);
+          }
+        },
+      },
+    );
   };
 
   const handlePositionClick = (position, coordinate, positionIndex) => {
@@ -429,6 +453,15 @@ export default function PlateSearch() {
                       Pending
                     </span>
                   )}
+                  <button
+                    type="button"
+                    onClick={handleClonePlate}
+                    disabled={clonePlate.isPending}
+                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+                    title="Clone this plate (same positions, no results)"
+                  >
+                    {clonePlate.isPending ? 'Cloning…' : 'Clone'}
+                  </button>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-gray-600">Analysis Date:</label>

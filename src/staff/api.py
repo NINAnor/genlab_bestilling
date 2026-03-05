@@ -677,3 +677,19 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
             {"message": "Result file deleted"},
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=["post"], url_path="clone")
+    def clone(self, request: Request, pk: str) -> Response:
+        """Clone a plate with same name, markers, and filled positions."""
+        source_plate = self.get_object()
+        new_plate = source_plate.clone()
+
+        # Return the new plate using the serializer
+        serializer = self.get_serializer(new_plate)
+        return Response(
+            {
+                "message": f"Cloned plate {source_plate} to {new_plate}",
+                "plate": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+        )

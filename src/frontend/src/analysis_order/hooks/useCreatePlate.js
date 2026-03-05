@@ -138,3 +138,29 @@ export function useUpdatePlateName() {
     },
   });
 }
+
+/**
+ * Mutation hook to clone a plate.
+ * Creates a new plate with same name, analysis_type, markers, and filled positions,
+ * but without analysis_date and result_file.
+ */
+export function useClonePlate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId }) => {
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/clone/`,
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Plate cloned successfully');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to clone plate';
+      toast.error(message);
+    },
+  });
+}

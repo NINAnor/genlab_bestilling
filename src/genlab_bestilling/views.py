@@ -604,7 +604,7 @@ class ConfirmOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionVie
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {','.join(map(str, e.detail))}",
             )
         return super().form_valid(form)
 
@@ -634,7 +634,7 @@ class CloneOrderActionView(GenrequestNestedMixin, SingleObjectMixin, ActionView)
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                f"Error: {','.join(map(lambda error: str(error), e.detail))}",
+                f"Error: {','.join(map(str, e.detail))}",
             )
 
         return super().form_valid(form)

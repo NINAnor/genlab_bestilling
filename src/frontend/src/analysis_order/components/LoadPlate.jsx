@@ -10,6 +10,7 @@ import {
   useSetAnalysisDate,
   useUploadResultFile,
   useDeleteResultFile,
+  useUpdatePlateName,
 } from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
@@ -39,6 +40,7 @@ export default function PlateSearch() {
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
+  const [plateName, setPlateName] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
   const fileInputRef = useRef(null);
@@ -59,6 +61,8 @@ export default function PlateSearch() {
     } else {
       setAnalysisDate('');
     }
+    // Sync plate name
+    setPlateName(selectedPlate?.name || '');
   }, [selectedPlate, setStoreSelectedPlate]);
 
   // Fetch plates (empty search returns all)
@@ -77,6 +81,7 @@ export default function PlateSearch() {
   const setAnalysisDateMutation = useSetAnalysisDate();
   const uploadResultFile = useUploadResultFile();
   const deleteResultFile = useDeleteResultFile();
+  const updatePlateName = useUpdatePlateName();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -151,6 +156,24 @@ export default function PlateSearch() {
             analysis_date: null,
           }));
           setAnalysisDate('');
+        },
+      },
+    );
+  };
+
+  const handleSavePlateName = () => {
+    if (!selectedPlate?.id) return;
+    updatePlateName.mutate(
+      {
+        plateId: selectedPlate.id,
+        name: plateName.trim() || null,
+      },
+      {
+        onSuccess: (data) => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            name: data.name,
+          }));
         },
       },
     );
@@ -302,6 +325,11 @@ export default function PlateSearch() {
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm text-gray-900">
                     {plate.label}
+                    {plate.name && (
+                      <span className="font-normal text-gray-500 ml-1">
+                        {plate.name}
+                      </span>
+                    )}
                   </span>
                   {plate.has_results ? (
                     <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
@@ -364,6 +392,11 @@ export default function PlateSearch() {
                 <div className="flex items-center gap-2">
                   <h4 className="text-lg font-semibold text-gray-900">
                     {selectedPlate.label}
+                    {selectedPlate.name && (
+                      <span className="font-normal text-gray-500 ml-2 text-base">
+                        ({selectedPlate.name})
+                      </span>
+                    )}
                   </h4>
                   {selectedPlate.has_results ? (
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
@@ -406,6 +439,27 @@ export default function PlateSearch() {
                     </button>
                   )}
                 </div>
+              </div>
+              {/* Plate name edit */}
+              <div className="flex items-center gap-2 mb-4">
+                <label className="text-sm text-gray-600 whitespace-nowrap">
+                  Plate Name:
+                </label>
+                <input
+                  type="text"
+                  value={plateName}
+                  onChange={(e) => setPlateName(e.target.value)}
+                  placeholder="Human readable label…"
+                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleSavePlateName}
+                  disabled={updatePlateName.isPending}
+                  className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {updatePlateName.isPending ? 'Saving…' : 'Save'}
+                </button>
               </div>
               {/* Analysis type and markers badges */}
               <div className="flex flex-wrap items-center gap-2 mb-4">

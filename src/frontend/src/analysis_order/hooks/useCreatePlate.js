@@ -113,3 +113,28 @@ export function useDeleteResultFile() {
     },
   });
 }
+
+/**
+ * Mutation hook to update the name of a plate.
+ */
+export function useUpdatePlateName() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, name }) => {
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/set-name/`,
+        { name },
+      );
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Plate name updated');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to update plate name';
+      toast.error(message);
+    },
+  });
+}

@@ -620,6 +620,27 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["post"], url_path="set-name")
+    def set_name(self, request: Request, pk: str) -> Response:
+        """Set the name for a plate."""
+        name = request.data.get("name")
+        # Strip whitespace and convert empty string to None
+        if name:
+            name = name.strip()
+        name = name or None
+
+        plate = self.get_object()
+        plate.name = name
+        plate.save(update_fields=["name"])
+
+        return Response(
+            {
+                "message": "Plate name updated",
+                "name": plate.name,
+            },
+            status=status.HTTP_200_OK,
+        )
+
     @action(detail=True, methods=["post"], url_path="upload-result-file")
     def upload_result_file(self, request: Request, pk: str) -> Response:
         """Upload a result file for a plate."""

@@ -13,6 +13,7 @@ import { useCreatePlate } from '../hooks/useCreatePlate';
 export default function CreatePlateModal({ isOpen, onClose, onSuccess }) {
   const [analysisTypeId, setAnalysisTypeId] = useState('');
   const [selectedMarkers, setSelectedMarkers] = useState([]);
+  const [plateName, setPlateName] = useState('');
 
   const { data: analysisTypes = [], isLoading: typesLoading } =
     useAnalysisTypes();
@@ -25,6 +26,7 @@ export default function CreatePlateModal({ isOpen, onClose, onSuccess }) {
     if (isOpen) {
       setAnalysisTypeId('');
       setSelectedMarkers([]);
+      setPlateName('');
     }
   }, [isOpen]);
 
@@ -57,6 +59,7 @@ export default function CreatePlateModal({ isOpen, onClose, onSuccess }) {
 
     createPlate.mutate(
       {
+        name: plateName.trim() || undefined,
         analysis_type: parseInt(analysisTypeId, 10),
         markers: selectedMarkers,
       },
@@ -110,6 +113,26 @@ export default function CreatePlateModal({ isOpen, onClose, onSuccess }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
+          {/* Plate Name (optional) */}
+          <div>
+            <label
+              htmlFor="plate-name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Plate Name{' '}
+              <span className="font-normal text-gray-500">(optional)</span>
+            </label>
+            <input
+              type="text"
+              id="plate-name"
+              value={plateName}
+              onChange={(e) => setPlateName(e.target.value)}
+              disabled={isPending}
+              placeholder="Human readable label…"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+            />
+          </div>
+
           {/* Analysis Type (required) */}
           <div>
             <label

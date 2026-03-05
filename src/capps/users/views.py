@@ -1,5 +1,6 @@
 from typing import Any, Self
 
+from capps.ui.views import UIDetailView, UIListView, UIUpdateView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
@@ -8,8 +9,6 @@ from django.db.models import QuerySet
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, RedirectView, UpdateView
-
-from capps.ui.views import UIDetailView, UIListView, UIUpdateView
 
 from .filters import UserFilterSet
 from .tables import UserTable

@@ -19,7 +19,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
     --mount=target=/var/cache/apt,type=cache,sharing=locked \
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get update && \
-    apt-get install -y --fix-missing nodejs
+    apt-get install -y --fix-missing nodejs && \
+    corepack enable && corepack prepare pnpm@latest --activate
 
 
 FROM scratch AS source
@@ -29,8 +30,9 @@ COPY src src
 
 FROM node:22-slim AS frontend-base
 WORKDIR /app
-COPY src/frontend/package.json src/frontend/package-lock.json ./
-RUN npm install
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY src/frontend/package.json src/frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 
 FROM frontend-base AS frontend
@@ -38,7 +40,7 @@ COPY src/frontend/src src
 COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs ./
 
 FROM frontend AS frontend-prod
-RUN npm run build
+RUN pnpm run build
 
 
 FROM base AS production

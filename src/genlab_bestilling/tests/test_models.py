@@ -3,17 +3,21 @@ import uuid
 
 import pytest
 from django.core import mail
+from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 from pytest_django.asserts import assertQuerySetEqual
 
 from genlab_bestilling.models import (
     AnalysisOrder,
     AnalysisPlate,
+    AnalysisType,
     ExtractionOrder,
     ExtractionPlate,
     GIDSequence,
     Marker,
     PlatePosition,
+    PositiveControl,
     Sample,
     SampleMarkerAnalysis,
 )
@@ -68,7 +72,9 @@ def test_gid_sequence_for_species_year(extraction):
     assert GIDSequence.objects.exists() is False
     sample = extraction.samples.first()
     gid = GIDSequence.objects.get_sequence_for_species_year(
-        year=extraction.confirmed_at.year, species=sample.species, lock=False
+        year=extraction.confirmed_at.year,
+        species=sample.species,
+        lock=False,
     )
     assert gid.id == f"G{extraction.confirmed_at.year % 100}{sample.species.code}"
     assert gid.last_value == 0
@@ -84,7 +90,8 @@ def test_gid_sequence_increment(extraction):
 
     with transaction.atomic():
         gid = GIDSequence.objects.get_sequence_for_species_year(
-            year=extraction.confirmed_at.year, species=sample.species
+            year=extraction.confirmed_at.year,
+            species=sample.species,
         )
         assert gid.id == f"G{extraction.confirmed_at.year % 100}{sample.species.code}"
         assert gid.last_value == 0
@@ -103,7 +110,8 @@ def test_gid_sequence_rollback(extraction):
     assert GIDSequence.objects.exists() is False
     sample = extraction.samples.first()
     gid = GIDSequence.objects.get_sequence_for_species_year(
-        year=extraction.confirmed_at.year, species=sample.species
+        year=extraction.confirmed_at.year,
+        species=sample.species,
     )
     with pytest.raises(IntegrityError), transaction.atomic():
         gid = GIDSequence.objects.select_for_update().get(id=gid.id)
@@ -161,8 +169,9 @@ def test_full_order_ids_generation(extraction):
 
         sample_ids = list(
             Sample.objects.filter(order_id=extraction.id).values_list(
-                "id", flat=True
-            )  # selected_samples is always a list
+                "id",
+                flat=True,
+            ),  # selected_samples is always a list
         )
 
         Sample.objects.generate_genlab_ids(
@@ -220,7 +229,7 @@ def test_ids_generation_with_only_numeric_names(genlab_setup):
         extraction.sample_types.add(*extraction.genrequest.sample_types.all())
 
         combo = list(
-            itertools.product(extraction.species.all(), extraction.sample_types.all())
+            itertools.product(extraction.species.all(), extraction.sample_types.all()),
         )
         year = 2020
 
@@ -272,7 +281,9 @@ def test_ids_generation_with_only_numeric_names(genlab_setup):
         )
 
         gid = GIDSequence.objects.get_sequence_for_species_year(
-            species=combo[0][0], year=extraction.confirmed_at.year, lock=False
+            species=combo[0][0],
+            year=extraction.confirmed_at.year,
+            lock=False,
         )
 
         s1.refresh_from_db()
@@ -300,7 +311,7 @@ def test_ids_generation_order_by_pop_id(genlab_setup):
         extraction.sample_types.add(*extraction.genrequest.sample_types.all())
 
         combo = list(
-            itertools.product(extraction.species.all(), extraction.sample_types.all())
+            itertools.product(extraction.species.all(), extraction.sample_types.all()),
         )
         year = 2020
 
@@ -356,7 +367,9 @@ def test_ids_generation_order_by_pop_id(genlab_setup):
         )
 
         gid = GIDSequence.objects.get_sequence_for_species_year(
-            species=combo[0][0], year=extraction.confirmed_at.year, lock=False
+            species=combo[0][0],
+            year=extraction.confirmed_at.year,
+            lock=False,
         )
 
         s1.refresh_from_db()
@@ -430,7 +443,8 @@ def test_get_sequence_for_replication_with_lock(extraction):
         sample.generate_genlab_id()
 
         sequence = GIDSequence.objects.get_sequence_for_replication(
-            sample=sample, lock=True
+            sample=sample,
+            lock=True,
         )
 
         assert sequence.id == f"{sample.genlab_id}-"
@@ -505,7 +519,8 @@ def test_replicate_function_without_genlab_id_fails(extraction):
         assert sample.genlab_id is None
 
         with pytest.raises(
-            ValueError, match="Cannot replicate a sample without genlab id"
+            ValueError,
+            match="Cannot replicate a sample without genlab id",
         ):
             sample.replicate(count=2)
 
@@ -578,7 +593,7 @@ def test_replicate_creates_analysis_markers_for_incomplete_orders(genlab_setup):
 
         # Create a sample with specific attributes for testing
         combo = list(
-            itertools.product(extraction.species.all(), extraction.sample_types.all())
+            itertools.product(extraction.species.all(), extraction.sample_types.all()),
         )
         sample = Sample.objects.create(
             order=extraction,
@@ -653,19 +668,23 @@ def test_replicate_creates_analysis_markers_for_incomplete_orders(genlab_setup):
 
         # Count analysis markers for each status
         draft_markers_count = SampleMarkerAnalysis.objects.filter(
-            sample__in=replica_samples, order=draft_analysis
+            sample__in=replica_samples,
+            order=draft_analysis,
         ).count()
 
         delivered_markers_count = SampleMarkerAnalysis.objects.filter(
-            sample__in=replica_samples, order=delivered_analysis
+            sample__in=replica_samples,
+            order=delivered_analysis,
         ).count()
 
         processing_markers_count = SampleMarkerAnalysis.objects.filter(
-            sample__in=replica_samples, order=processing_analysis
+            sample__in=replica_samples,
+            order=processing_analysis,
         ).count()
 
         completed_markers_count = SampleMarkerAnalysis.objects.filter(
-            sample__in=replica_samples, order=completed_analysis
+            sample__in=replica_samples,
+            order=completed_analysis,
         ).count()
 
         # Should have created markers for draft and delivered orders
@@ -807,7 +826,8 @@ def test_plate_position_to_coordinates():
     for position_index, expected_coordinate in test_cases:
         # Create a plate position with the given index
         plate_position = PlatePosition.objects.create(
-            plate=plate, position=position_index
+            plate=plate,
+            position=position_index,
         )
 
         # Test the position_to_coordinates method
@@ -854,7 +874,8 @@ def test_position_to_coordinates_edge_cases():
 
     for position_index, expected_coordinate in test_cases:
         plate_position = PlatePosition.objects.create(
-            plate=plate, position=position_index
+            plate=plate,
+            position=position_index,
         )
 
         coordinate = plate_position.position_to_coordinates()
@@ -865,3 +886,255 @@ def test_position_to_coordinates_edge_cases():
 
         # Clean up
         plate_position.delete()
+
+
+# --- AnalysisPlate.add_sample_markers tests ---
+
+
+@pytest.fixture
+def analysis_order_with_markers(extraction):
+    """Create an analysis order with sample markers."""
+    extraction.confirm_order()
+    ao = AnalysisOrder.objects.create(genrequest_id=1, from_order=extraction)
+    m = Marker.objects.filter(name__startswith="Salamander").first()
+    ao.markers.add(m)
+    ao.populate_from_order()
+    return ao
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_success(analysis_order_with_markers):
+    """Test adding sample markers to an analysis plate successfully."""
+    plate = AnalysisPlate.objects.create()
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2],
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    assert len(added) == 2
+    for item in added:
+        assert "position" in item
+        assert "coordinate" in item
+        assert "sample_marker_id" in item
+
+    # Verify markers are actually added to positions
+    for sm_id in sample_markers:
+        assert PlatePosition.objects.filter(
+            plate=plate,
+            sample_marker_id=sm_id,
+        ).exists()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_not_enough_positions(
+    analysis_order_with_markers,
+):
+    """Test that NotEnoughPositions is raised when too many markers requested."""
+    plate = AnalysisPlate.objects.create()
+
+    # Reserve all but one position
+    for pos in plate.positions.all()[1:]:
+        pos.is_reserved = True
+        pos.save()
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2],
+    )
+
+    with (
+        pytest.raises(AnalysisPlate.NotEnoughPositions) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers(sample_markers)
+
+    assert "Not enough positions" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_not_found(genlab_setup):
+    """Test that SampleMarkerNotFound is raised for invalid IDs."""
+    plate = AnalysisPlate.objects.create()
+
+    with (
+        pytest.raises(AnalysisPlate.SampleMarkerNotFound) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers([999999])
+
+    assert "999999" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_whitelist_violation(
+    analysis_order_with_markers,
+):
+    """Test that SampleMarkerNotAllowed is raised for markers not in whitelist."""
+    plate = AnalysisPlate.objects.create()
+    # Set whitelist to a different marker
+    other_marker = Marker.objects.exclude(
+        pk__in=analysis_order_with_markers.markers.values_list("pk", flat=True),
+    ).first()
+    plate.markers.add(other_marker)
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:1],
+    )
+
+    with (
+        pytest.raises(AnalysisPlate.SampleMarkerNotAllowed) as exc_info,
+        transaction.atomic(),
+    ):
+        plate.add_sample_markers(sample_markers)
+
+    assert "not allowed" in str(exc_info.value)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_fills_in_order(analysis_order_with_markers):
+    """Test that markers are added to positions in order starting from first."""
+    plate = AnalysisPlate.objects.create()
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2],
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    # Verify positions are filled in order (0, 1 = A1, B1)
+    assert added[0]["position"] == 0
+    assert added[0]["coordinate"] == "A1"
+    assert added[1]["position"] == 1
+    assert added[1]["coordinate"] == "B1"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_add_sample_markers_skips_reserved(analysis_order_with_markers):
+    """Test that reserved positions are skipped."""
+    plate = AnalysisPlate.objects.create()
+
+    # Reserve the first position
+    first_pos = plate.positions.order_by("position").first()
+    first_pos.is_reserved = True
+    first_pos.save()
+
+    sample_markers = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:1],
+    )
+
+    with transaction.atomic():
+        added = plate.add_sample_markers(sample_markers)
+
+    # Should skip A1 (position 0) and use B1 (position 1)
+    assert added[0]["position"] == 1
+    assert added[0]["coordinate"] == "B1"
+
+
+# --- AnalysisPlate.clone tests ---
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_basic(genlab_setup):
+    """Test cloning an empty analysis plate."""
+    plate = AnalysisPlate.objects.create(name="Test Plate")
+
+    cloned = plate.clone()
+
+    assert cloned.id != plate.id
+    assert cloned.analysis_number != plate.analysis_number
+    assert cloned.name == plate.name
+    assert cloned.analysis_date is None
+    assert not cloned.result_file
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_with_analysis_type(genlab_setup):
+    """Test cloning preserves analysis_type."""
+    analysis_type = AnalysisType.objects.first()
+    plate = AnalysisPlate.objects.create(name="Test Plate", analysis_type=analysis_type)
+
+    cloned = plate.clone()
+
+    assert cloned.analysis_type == analysis_type
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_with_markers(genlab_setup):
+    """Test cloning preserves allowed markers."""
+    markers = list(Marker.objects.all()[:2])
+    plate = AnalysisPlate.objects.create(name="Test Plate")
+    plate.markers.set(markers)
+
+    cloned = plate.clone()
+
+    assert list(cloned.markers.all()) == markers
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_with_sample_markers(analysis_order_with_markers):
+    """Test cloning preserves filled positions with sample markers."""
+    plate = AnalysisPlate.objects.create(name="Test Plate")
+    sample_marker_ids = list(
+        analysis_order_with_markers.sample_markers.values_list("id", flat=True)[:2],
+    )
+
+    with transaction.atomic():
+        plate.add_sample_markers(sample_marker_ids)
+
+    cloned = plate.clone()
+
+    # Check cloned plate has same sample markers at same positions
+    source_positions = plate.positions.filter(sample_marker__isnull=False)
+    for source_pos in source_positions:
+        cloned_pos = cloned.positions.get(position=source_pos.position)
+        assert cloned_pos.sample_marker_id == source_pos.sample_marker_id
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_with_reserved_positions(genlab_setup):
+    """Test cloning preserves reserved positions."""
+    plate = AnalysisPlate.objects.create(name="Test Plate")
+    pos = plate.positions.first()
+    pos.is_reserved = True
+    positive_control = PositiveControl.objects.first()
+    if positive_control:
+        pos.positive_control = positive_control
+    pos.notes = "Reserved for control"
+    pos.save()
+
+    cloned = plate.clone()
+
+    cloned_pos = cloned.positions.get(position=pos.position)
+    assert cloned_pos.is_reserved is True
+    assert cloned_pos.positive_control == pos.positive_control
+    assert cloned_pos.notes == pos.notes
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_does_not_copy_analysis_date(genlab_setup):
+    """Test that cloned plate has no analysis_date even if source has one."""
+    plate = AnalysisPlate.objects.create(
+        name="Test Plate",
+        analysis_date=timezone.now(),
+    )
+
+    cloned = plate.clone()
+
+    assert plate.analysis_date is not None
+    assert cloned.analysis_date is None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_analysis_plate_clone_does_not_copy_result_file(genlab_setup):
+    """Test that cloned plate has no result_file even if source has one."""
+    plate = AnalysisPlate.objects.create(name="Test Plate")
+    plate.result_file.save("test.txt", ContentFile(b"test content"))
+
+    cloned = plate.clone()
+
+    assert plate.result_file
+    assert not cloned.result_file
+
+    # Clean up
+    plate.result_file.delete()

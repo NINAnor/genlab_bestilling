@@ -3,9 +3,10 @@ from typing import Any
 import django_filters as filters
 from dal import autocomplete
 from django import forms
-from django.db.models import QuerySet
+from django.db.models import CharField, Q, QuerySet
+from django.db.models.functions import Cast
 from django.http import HttpRequest
-from django_filters import CharFilter, ChoiceFilter
+from django_filters import CharFilter, ChoiceFilter, NumberFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -836,3 +837,84 @@ class AnalysisPlateFilter(filters.FilterSet):
     class Meta:
         model = AnalysisPlate
         fields = ["id", "name", "analysis_date"]
+
+
+class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
+    """Filter for SampleMarkerAnalysis API."""
+
+    order = filters.NumberFilter(field_name="order_id")
+    marker = CharFilter(field_name="marker__name")
+    species = filters.NumberFilter(field_name="sample__species_id")
+    sample_type = filters.NumberFilter(field_name="sample__type_id")
+    isolation_method = filters.NumberFilter(field_name="sample__isolation_method")
+    genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
+    plate = CharFilter(method="filter_plate")
+
+    def filter_plate(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.annotate(
+            qiagen_id=Cast(
+                "sample__position__plate__extractionplate__qiagen_id",
+                output_field=CharField(),
+            )
+        ).filter(qiagen_id__icontains=value)
+
+    class Meta:
+        model = SampleMarkerAnalysis
+        fields = [
+            "order",
+            "marker",
+            "species",
+            "sample_type",
+            "isolation_method",
+            "genlab_id",
+            "plate",
+        ]
+
+
+class AnalysisPlateAPIFilter(filters.FilterSet):
+    """Filter for AnalysisPlate API."""
+
+    search = CharFilter(method="filter_search")
+    status = CharFilter(method="filter_status")
+    min_available_positions = NumberFilter(method="filter_min_available_positions")
+    analysis_type = NumberFilter(field_name="analysis_type_id")
+    marker = CharFilter(field_name="markers", lookup_expr="exact")
+
+    def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        """Filter by name or analysis_number (cast to string for partial matching)."""
+        if not value:
+            return queryset
+        return queryset.annotate(
+            analysis_number_str=Cast("analysis_number", output_field=CharField())
+        ).filter(Q(name__icontains=value) | Q(analysis_number_str__icontains=value))
+
+    class Meta:
+        model = AnalysisPlate
+        fields = [
+            "search",
+            "status",
+            "min_available_positions",
+            "analysis_type",
+            "marker",
+        ]
+
+    def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        """Filter by status: pending, analyzing, results."""
+        if value == "pending":
+            return queryset.filter(analysis_date__isnull=True)
+        if value == "analyzing":
+            return queryset.filter(analysis_date__isnull=False, result_file="")
+        if value == "results":
+            return queryset.exclude(result_file="")
+        return queryset
+
+    def filter_min_available_positions(
+        self, queryset: QuerySet, name: str, value: int
+    ) -> QuerySet:
+        """Filter plates with at least the given number of available positions."""
+        if value is None:
+            return queryset
+        # Use the already annotated field from the viewset queryset
+        return queryset.filter(available_positions_count__gte=value)

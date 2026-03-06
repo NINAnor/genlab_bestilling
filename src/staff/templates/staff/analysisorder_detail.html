@@ -28,7 +28,7 @@
             <a class="btn btn-secondary" href="{% url 'staff:order-extraction-detail' pk=extraction_orders.first.id %}">Go to {{ extraction_orders.first }}</a>
         {% endif %}
 
-        <a class="btn btn-primary" href="{% url 'staff:order-analysis-samples' pk=object.id %}"><i class="fa-solid fa-vial"></i> Samples</a>
+        <a class="btn btn-secondary" href="{% url 'staff:analysis-plates-list' %}?order={{ object.id }}"><i class="fa-solid fa-list-check"></i> Manage Markers</a>
 
         {% if not object.is_seen %}
           <form method="post" action="{% url 'staff:mark-as-seen' pk=object.id %}">

@@ -1,0 +1,9 @@
+[
+  {
+    "model": "genlab_bestilling.positivecontrol",
+    "pk": 1,
+    "fields": {
+      "name": "Generic"
+    }
+  }
+]

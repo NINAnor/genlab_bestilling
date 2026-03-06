@@ -1,13 +1,20 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
-from staff.api import OrderAPIView
+from staff.api import (
+    AnalysisOrderSampleMarkerViewSet,
+    AnalysisOrdersListViewSet,
+    AnalysisPlatesViewSet,
+    OrderAPIView,
+    PositiveControlViewSet,
+    SampleMarkerViewSet,
+)
 
 from .views import (
     AnalysisOrderDetailView,
     AnalysisOrderListView,
     AnalysisPlateCreateView,
     AnalysisPlateDetailView,
-    AnalysisPlateListView,
     AnalysisPlatePositionsView,
     AnalysisPlateUpdateView,
     AnalysisPlateUploadView,
@@ -24,7 +31,6 @@ from .views import (
     ExtractionPlateUpdateView,
     GenerateGenlabIDsView,
     MarkAsSeenView,
-    OrderAnalysisSamplesListView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
     OrderToDraftActionView,
@@ -35,12 +41,27 @@ from .views import (
     ProjectValidateActionView,
     SampleDetailView,
     SampleLabView,
+    SampleMarkersView,
     SamplesListView,
     StaffEditView,
     UpdateInternalNote,
 )
 
 app_name = "staff"
+
+router = DefaultRouter()
+router.register(
+    "api/analysis-plates", AnalysisPlatesViewSet, basename="api-analysis-plates"
+)
+router.register(
+    "api/positive-controls", PositiveControlViewSet, basename="api-positive-controls"
+)
+router.register(
+    "api/sample-markers", SampleMarkerViewSet, basename="api-sample-markers"
+)
+router.register(
+    "api/analysis-orders", AnalysisOrdersListViewSet, basename="api-analysis-orders"
+)
 
 urlpatterns = [
     path("", DashboardView.as_view(), name="dashboard"),
@@ -110,11 +131,6 @@ urlpatterns = [
         name="update-internal-note",
     ),
     path(
-        "orders/analysis/<int:pk>/samples/",
-        OrderAnalysisSamplesListView.as_view(),
-        name="order-analysis-samples",
-    ),
-    path(
         "samples/",
         SamplesListView.as_view(),
         name="samples-list",
@@ -166,7 +182,7 @@ urlpatterns = [
     ),
     path(
         "analysis-plates/",
-        AnalysisPlateListView.as_view(),
+        SampleMarkersView.as_view(),
         name="analysis-plates-list",
     ),
     path(
@@ -209,4 +225,12 @@ urlpatterns = [
         AnalysisPlatePositionsView.as_view(),
         name="analysis-plates-positions",
     ),
+    # API: list sample markers for an analysis order
+    path(
+        "api/analysis-orders/<int:order_pk>/sample-markers/",
+        AnalysisOrderSampleMarkerViewSet.as_view({"get": "list"}),
+        name="api-analysis-order-sample-markers",
+    ),
+    # Router-based API endpoints
+    path("", include(router.urls)),
 ]

@@ -60,6 +60,19 @@ class Area(AdminUrlsMixin, models.Model):
         return self.name
 
 
+class PositiveControl(AdminUrlsMixin, models.Model):
+    """Positive control types used for reserved positions on analysis plates."""
+
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Marker(AdminUrlsMixin, models.Model):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
@@ -1114,7 +1127,8 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
                     plate=self,
                 )
                 for i in range(96)
-            ]
+            ],
+            ignore_conflicts=True,
         )
 
     class NotEnoughPositions(Exception):
@@ -1182,10 +1196,44 @@ class ExtractionPlate(Plate):
     sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
     isolated_at = models.DateTimeField(null=True, blank=True)
 
+    class SampleNotAllowed(Exception):
+        """Raised when a sample does not match the plate's whitelists."""
+
+    def validate_sample(self, sample: "Sample") -> None:
+        """Validate that `sample` matches the species and sample_type whitelists.
+
+        Empty whitelist means all values are allowed.
+        Raises `SampleNotAllowed` with a descriptive message on failure.
+        """
+        allowed_species = self.species.all()
+        if (
+            allowed_species.exists()
+            and sample.species_id not in allowed_species.values_list("id", flat=True)
+        ):
+            allowed = ", ".join(str(s) for s in allowed_species)
+            msg = (
+                f"Species '{sample.species}' is not allowed for plate {self}. "
+                f"Allowed species: {allowed}"
+            )
+            raise self.SampleNotAllowed(msg)
+
+        allowed_types = self.sample_types.all()
+        if allowed_types.exists() and sample.type_id not in allowed_types.values_list(
+            "id", flat=True
+        ):
+            allowed = ", ".join(str(t) for t in allowed_types)
+            msg = (
+                f"Sample type '{sample.type}' is not allowed for plate {self}. "
+                f"Allowed types: {allowed}"
+            )
+            raise self.SampleNotAllowed(msg)
+
     def __str__(self):
         return f"#Q{self.qiagen_id}"
 
     def populate(self, items: list) -> None:
+        for sample in items:
+            self.validate_sample(sample)
         super().populate(items, "sample_raw")
 
     def deferred_isolate_all_samples(self) -> None:
@@ -1217,13 +1265,15 @@ class ExtractionPlate(Plate):
 
 def UPLOAD_ANALYSIS_RESULTS(instance: "AnalysisPlate", filename: str) -> str:
     ext = Path(filename).suffix
-    return (
-        f"analysis_orders/results/type={instance.analysis_type.name}/{instance.id}{ext}"
+    analysis_type_name = (
+        instance.analysis_type.name if instance.analysis_type else "unknown"
     )
+    return f"analysis_orders/results/type={analysis_type_name}/{instance.id}{ext}"
 
 
 class AnalysisPlate(Plate):
     name = models.CharField(null=True, blank=True, help_text="Human readable label")
+    analysis_number = IntegerSequenceField(primary_key=False)
     analysis_date = models.DateTimeField(null=True, blank=True)
     result_file = models.FileField(
         null=True, blank=True, upload_to=UPLOAD_ANALYSIS_RESULTS, max_length=500
@@ -1234,11 +1284,180 @@ class AnalysisPlate(Plate):
     )
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
 
+    class SampleMarkerNotAllowed(Exception):
+        """Raised when a sample marker does not match the plate's marker whitelist."""
+
+    class NotEnoughPositions(Exception):
+        """Raised when there aren't enough available positions."""
+
+    class SampleMarkerNotFound(Exception):
+        """Raised when a sample marker ID doesn't exist."""
+
+    def validate_sample_marker(self, sample_marker: "SampleMarkerAnalysis") -> None:
+        """Validate that `sample_marker` matches the marker whitelist.
+
+        Empty whitelist means all markers are allowed.
+        Raises `SampleMarkerNotAllowed` with a descriptive message on failure.
+        """
+        allowed_markers = self.markers.all()
+        if (
+            allowed_markers.exists()
+            and sample_marker.marker_id
+            not in allowed_markers.values_list("pk", flat=True)
+        ):
+            allowed = ", ".join(str(m) for m in allowed_markers)
+            msg = (
+                f"Marker '{sample_marker.marker}' is not allowed for plate {self}. "
+                f"Allowed markers: {allowed}"
+            )
+            raise self.SampleMarkerNotAllowed(msg)
+
     def __str__(self) -> str:
-        return f"{self.id}"
+        return f"#A{self.analysis_number}"
 
     def populate(self, items: list) -> None:
+        for sample_marker in items:
+            self.validate_sample_marker(sample_marker)
         super().populate(items, "sample_marker")
+
+    def add_sample_markers(
+        self, sample_marker_ids: list[int]
+    ) -> list[dict[str, int | str]]:
+        """Add sample markers to plate, filling from first available position.
+
+        Args:
+            sample_marker_ids: List of SampleMarkerAnalysis IDs to add.
+
+        Returns:
+            List of dicts with position, coordinate, and sample_marker_id.
+
+        Raises:
+            NotEnoughPositions: If there aren't enough available positions.
+            SampleMarkerNotFound: If a sample marker ID doesn't exist.
+            SampleMarkerNotAllowed: If a marker doesn't match the whitelist.
+        """
+        # Get available positions ordered by position number
+        available_positions = list(
+            self.positions.select_for_update()
+            .filter(
+                sample_raw__isnull=True,
+                sample_marker__isnull=True,
+                is_reserved=False,
+            )
+            .order_by("position")
+        )
+
+        if len(available_positions) < len(sample_marker_ids):
+            need = len(sample_marker_ids)
+            have = len(available_positions)
+            msg = f"Not enough positions. Need {need}, have {have}"
+            raise self.NotEnoughPositions(msg)
+
+        # Batch fetch sample markers preserving order
+        markers_qs = SampleMarkerAnalysis.objects.select_for_update().filter(
+            pk__in=sample_marker_ids
+        )
+        markers_by_id = {sm.id: sm for sm in markers_qs}
+
+        # Check all markers exist and build ordered list
+        sample_markers = []
+        for marker_id in sample_marker_ids:
+            sm = markers_by_id.get(marker_id)
+            if sm is None:
+                msg = f"Sample marker {marker_id} not found"
+                raise self.SampleMarkerNotFound(msg)
+            sample_markers.append(sm)
+
+        # Validate all markers against plate whitelist
+        for sm in sample_markers:
+            self.validate_sample_marker(sm)
+
+        # Add markers to positions
+        added = []
+        for position, sm in zip(available_positions, sample_markers, strict=False):
+            position.sample_marker = sm
+            position.save(update_fields=["sample_marker"])
+            added.append(
+                {
+                    "position": position.position,
+                    "coordinate": position.position_to_coordinates(),
+                    "sample_marker_id": sm.id,
+                }
+            )
+
+        return added
+
+    @transaction.atomic
+    def clone(self: "AnalysisPlate") -> "AnalysisPlate":
+        """Clone plate with same name, markers, and filled positions.
+
+        The new plate will have:
+        - Same name (if any)
+        - Same analysis_type
+        - Same markers
+        - Same filled positions (sample_marker, is_reserved, positive_control)
+        - NO analysis_date
+        - NO result_file
+
+        Returns:
+            The newly created AnalysisPlate.
+        """
+        # Create new plate
+        new_plate = AnalysisPlate.objects.create(
+            name=self.name,
+            analysis_type=self.analysis_type,
+        )
+        # Copy markers
+        new_plate.markers.set(self.markers.all())
+
+        # Create positions if they don't exist yet (the AFTER_CREATE hook uses
+        # on_commit=True, so positions may not be available in a transaction).
+        # Use ignore_conflicts to handle race condition with the on_commit hook.
+        PlatePosition.objects.bulk_create(
+            [
+                PlatePosition(
+                    position=i,
+                    plate=new_plate,
+                )
+                for i in range(96)
+            ],
+            ignore_conflicts=True,
+        )
+
+        # Get source positions that are filled
+        source_positions = {p.position: p for p in self.positions.filter(is_full=True)}
+
+        if source_positions:
+            # Build mapping of new positions by index
+            new_positions = {p.position: p for p in new_plate.positions.all()}
+
+            # Update new plate positions to match source
+            positions_to_update = []
+            for pos_index, source_pos in source_positions.items():
+                new_pos = new_positions[pos_index]
+                new_pos.sample_marker = source_pos.sample_marker
+                new_pos.is_reserved = source_pos.is_reserved
+                new_pos.positive_control = source_pos.positive_control
+                new_pos.notes = source_pos.notes
+                positions_to_update.append(new_pos)
+
+            PlatePosition.objects.bulk_update(
+                positions_to_update,
+                fields=["sample_marker", "is_reserved", "positive_control", "notes"],
+            )
+
+        return new_plate
+
+    class Meta:
+        constraints = [
+            IntSequenceConstraint(
+                name="%(app_label)s_%(class)s_analysis_number_seq",
+                sequence="analysis_number_seq",
+                drop=True,
+                fields=["analysis_number"],
+                start=1,
+            )
+        ]
 
 
 class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
@@ -1251,6 +1470,17 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     notes = models.CharField(null=True, blank=True)
     is_reserved = models.BooleanField(default=False)
+    is_invalid = models.BooleanField(
+        default=False, help_text="Mark this position as invalid"
+    )
+    positive_control = models.ForeignKey(
+        f"{an}.PositiveControl",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="positions",
+        help_text="Positive control type for reserved positions on analysis plates",
+    )
     filled_at = models.DateTimeField(null=True, blank=True)
 
     sample_raw = models.OneToOneField(
@@ -1292,19 +1522,21 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
                 name="position_contain_marker_xor_raw_xor_reserved",
                 condition=(
                     # Exactly one of these conditions must be true:
-                    # 1. Has sample_raw only
+                    # 1. Has sample_raw only (no positive_control)
                     (
                         Q(sample_raw__isnull=False)
                         & Q(sample_marker__isnull=True)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
-                    # 2. Has sample_marker only
+                    # 2. Has sample_marker only (no positive_control)
                     | (
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=False)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
-                    # 3. Is reserved only
+                    # 3. Is reserved (can optionally have positive_control)
                     | (
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=True)
@@ -1315,6 +1547,7 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
                         Q(sample_raw__isnull=True)
                         & Q(sample_marker__isnull=True)
                         & Q(is_reserved=False)
+                        & Q(positive_control__isnull=True)
                     )
                 ),
             ),
@@ -1323,6 +1556,15 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
                 name="position_in_plate_value_range",
             ),
         ]
+
+    class NoSampleMarkerToMove(Exception):
+        """Raised when trying to move from a position with no sample marker."""
+
+    class TargetPositionNotEmpty(Exception):
+        """Raised when target position is not empty."""
+
+    class TargetPositionNotFound(Exception):
+        """Raised when target position doesn't exist."""
 
     def __str__(self) -> str:
         if self.sample_raw:
@@ -1354,6 +1596,46 @@ class PlatePosition(AdminUrlsMixin, LifecycleModelMixin, models.Model):
             self.position // len(Plate.ROWS)
         ) + 1  # Every 8 positions moves to next column
         return f"{row_label}{column_label}"
+
+    def move_sample_marker_to(self, target_position_index: int) -> "PlatePosition":
+        """Move sample marker from this position to target position on same plate.
+
+        Args:
+            target_position_index: The position index to move to
+
+        Returns:
+            The target PlatePosition after the move
+
+        Raises:
+            NoSampleMarkerToMove: If this position has no sample marker
+            TargetPositionNotFound: If target position doesn't exist on this plate
+            TargetPositionNotEmpty: If target position is occupied or reserved
+        """
+        if not self.sample_marker:
+            msg = "Source position has no sample marker"
+            raise self.NoSampleMarkerToMove(msg)
+
+        try:
+            target = PlatePosition.objects.select_for_update().get(
+                plate=self.plate, position=target_position_index
+            )
+        except PlatePosition.DoesNotExist as e:
+            msg = f"Position {target_position_index} not found on plate {self.plate}"
+            raise self.TargetPositionNotFound(msg) from e
+
+        if target.is_full:
+            msg = f"Position {target_position_index} is not empty"
+            raise self.TargetPositionNotEmpty(msg)
+
+        # Move the sample marker
+        target.sample_marker = self.sample_marker
+        target.is_reserved = False
+        self.sample_marker = None
+
+        target.save(update_fields=["sample_marker", "is_reserved"])
+        self.save(update_fields=["sample_marker"])
+
+        return target
 
     @hook(
         AFTER_UPDATE,

@@ -1,0 +1,9 @@
+- ALWAYS use docker and docker compose to run any command
+- ALWAYS source the `aliases.sh` script, check out the commands in there
+- ALWAYS use the development profile
+- ALWAYS use `pnmp` to install and handle javascript dependencies
+- ALWAYS write python code compatible with the `ruff` configuration, execute it to make sure
+- ALWAYS make sure the javascript/react code follows eslint/prettier configuration
+- PREFER backward compatible changes to APIs
+- PREFER adding readonly fields for related fields in the REST API
+- PREFER fat models over logic in the views

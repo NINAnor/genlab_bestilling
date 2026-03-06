@@ -316,17 +316,19 @@ export default function SampleMarkerTable({
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const dataLength = data.length;
+
   // Attach scroll listener
   useEffect(() => {
     const el = parentRef.current;
     if (!el) return;
     el.addEventListener('scroll', handleScroll);
     return () => el.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+  }, [handleScroll, dataLength]);
 
   const selectedCount = Object.keys(selectedMarkerIds).length;
 
-  if (data.length === 0) {
+  if (dataLength === 0) {
     return (
       <div className="text-center py-12 text-gray-400 italic">
         No sample markers found

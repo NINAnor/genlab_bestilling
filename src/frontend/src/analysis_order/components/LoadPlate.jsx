@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import classnames from 'classnames';
 import {
   useAnalysisPlateSearch,
@@ -45,6 +46,15 @@ export default function PlateSearch() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
   const fileInputRef = useRef(null);
+  const printRef = useRef(null);
+
+  // Print functionality
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: selectedPlate
+      ? `Plate_${selectedPlate.label}${selectedPlate.name ? '_' + selectedPlate.name : ''}`
+      : 'Plate',
+  });
 
   // Fetch filter options
   const { data: analysisTypes = [] } = useAnalysisTypes();
@@ -462,6 +472,14 @@ export default function PlateSearch() {
                   >
                     {clonePlate.isPending ? 'Cloning…' : 'Clone'}
                   </button>
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                    title="Print plate preview"
+                  >
+                    Print
+                  </button>
                 </div>
                 <div className="flex items-center gap-2">
                   <label className="text-sm text-gray-600">Analysis Date:</label>
@@ -573,13 +591,37 @@ export default function PlateSearch() {
                   )}
                 </div>
               )}
-              <PlatePreview
-                positions={platePositions}
-                plateType="analysis"
-                isLoading={positionsLoading}
-                onPositionClick={handlePositionClick}
-                onPositionMove={handlePositionMove}
-              />
+              <div ref={printRef} className="print:p-4">
+                <div className="hidden print:block print:mb-4">
+                  <h2 className="text-lg font-bold">
+                    {selectedPlate.label}
+                    {selectedPlate.name && ` - ${selectedPlate.name}`}
+                  </h2>
+                  {selectedPlate.analysis_type_name && (
+                    <p className="text-sm text-gray-600">
+                      Analysis Type: {selectedPlate.analysis_type_name}
+                    </p>
+                  )}
+                  {selectedPlate.marker_names?.length > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Markers: {selectedPlate.marker_names.join(', ')}
+                    </p>
+                  )}
+                  {selectedPlate.analysis_date && (
+                    <p className="text-sm text-gray-600">
+                      Analysis Date:{' '}
+                      {new Date(selectedPlate.analysis_date).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                <PlatePreview
+                  positions={platePositions}
+                  plateType="analysis"
+                  isLoading={positionsLoading}
+                  onPositionClick={handlePositionClick}
+                  onPositionMove={handlePositionMove}
+                />
+              </div>
             </div>
           )}
         </div>

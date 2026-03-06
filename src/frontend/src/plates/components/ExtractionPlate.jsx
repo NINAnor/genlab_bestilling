@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import PlateGrid from './PlateGrid';
 import PositionPanel from './PositionPanel';
 import usePlateStore from '../store';
@@ -22,6 +24,12 @@ export default function ExtractionPlate() {
     const idx = s.selectedPositionIdx;
     return idx != null ? s.positions[idx]?.id ?? null : null;
   });
+  const printRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Extraction_Plate_${plateLabel}`,
+  });
 
   const handleWellClick = (position, coordinate) => {
     selectPosition(position, coordinate);
@@ -29,9 +37,21 @@ export default function ExtractionPlate() {
 
   return (
     <div>
-      <h2 className="text-4xl font-bold mb-5">Extraction Plate #{plateLabel}</h2>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-4xl font-bold">Extraction Plate #{plateLabel}</h2>
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 print:hidden"
+        >
+          Print Plate
+        </button>
+      </div>
       <div className="grid grid-cols-3 gap-4">
-        <div className="col-span-2 p-4 bg-white rounded">
+        <div ref={printRef} className="col-span-2 p-4 bg-white rounded print:col-span-3">
+          <div className="hidden print:block print:mb-4">
+            <h2 className="text-lg font-bold">Extraction Plate #{plateLabel}</h2>
+          </div>
           <PlateGrid
             plateType="extraction"
             onWellClick={handleWellClick}

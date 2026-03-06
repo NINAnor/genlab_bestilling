@@ -171,7 +171,7 @@ services:
       - dev
     build:
       target: frontend
-    command: pnpm run dev -- --host 0.0.0.0 --cors
+    command: pnpm run dev --host 0.0.0.0 --cors
     ports:
       - 5173:5173
     volumes:

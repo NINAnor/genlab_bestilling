@@ -437,7 +437,7 @@ class SampleMarkerCursorPagination(CursorPagination):
     Use '-field' prefix for descending order.
     """
 
-    page_size = 10
+    page_size = 30
 
     # Map frontend field names to annotated flat field names
     FIELD_MAPPING: dict[str, str] = {

@@ -15,6 +15,7 @@ const useOrderStore = create((set) => ({
   selectedMarkerIds: {},
   selectedPlate: null,
   sorting: { field: null, direction: 'asc' }, // 'asc' or 'desc'
+  showFishId: false, // Toggle between fish_id and genlab_id display
 
   /** Initialise from config injected by Django template */
   init: (cfg) =>
@@ -22,6 +23,10 @@ const useOrderStore = create((set) => ({
       orderId: cfg.order_id ?? null,
       orderLabel: cfg.order_label ?? null,
     }),
+
+  /** Toggle between showing fish_id and genlab_id */
+  toggleShowFishId: () =>
+    set((state) => ({ showFishId: !state.showFishId })),
 
   /** Set the selected order for filtering */
   setSelectedOrder: (orderId, orderLabel) =>

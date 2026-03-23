@@ -81,6 +81,9 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
     sample_genlab_id = serializers.CharField(
         source="sample.genlab_id", read_only=True, default=None
     )
+    sample_fish_id = serializers.CharField(
+        source="sample.fish_id", read_only=True, default=None
+    )
     sample_name = serializers.CharField(
         source="sample.name", read_only=True, default=None
     )
@@ -98,6 +101,7 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
             "id",
             "sample",
             "sample_genlab_id",
+            "sample_fish_id",
             "sample_name",
             "sample_species_name",
             "marker",
@@ -248,6 +252,9 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
     sample_genlab_id = serializers.CharField(
         source="sample.genlab_id", read_only=True, default=None
     )
+    sample_fish_id = serializers.CharField(
+        source="sample.fish_id", read_only=True, default=None
+    )
     sample_name = serializers.CharField(
         source="sample.name", read_only=True, default=None
     )
@@ -286,6 +293,7 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             "id",
             "sample",
             "sample_genlab_id",
+            "sample_fish_id",
             "sample_name",
             "sample_species_id",
             "sample_species_name",

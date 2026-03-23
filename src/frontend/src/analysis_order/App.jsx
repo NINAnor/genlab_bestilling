@@ -27,6 +27,8 @@ function OrderApp() {
   const init = useOrderStore((s) => s.init);
   const orderLabel = useOrderStore((s) => s.orderLabel);
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
+  const showFishId = useOrderStore((s) => s.showFishId);
+  const toggleShowFishId = useOrderStore((s) => s.toggleShowFishId);
 
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
@@ -71,11 +73,22 @@ function OrderApp() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-800">Sample Markers</h3>
-            {Object.keys(sampleMarkers).length > 0 && (
-              <span className="text-sm text-gray-500">
-                {Object.keys(sampleMarkers).length}{totalCount ? ` / ${totalCount}` : ''} item(s)
-              </span>
-            )}
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showFishId}
+                  onChange={toggleShowFishId}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                Show Fish ID
+              </label>
+              {Object.keys(sampleMarkers).length > 0 && (
+                <span className="text-sm text-gray-500">
+                  {Object.keys(sampleMarkers).length}{totalCount ? ` / ${totalCount}` : ''} item(s)
+                </span>
+              )}
+            </div>
           </div>
 
           <FilterBar

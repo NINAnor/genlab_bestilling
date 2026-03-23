@@ -25,199 +25,209 @@ function IndeterminateCheckbox({ indeterminate, checked, onChange, ...rest }) {
   );
 }
 
-const columns = [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <IndeterminateCheckbox
-        checked={table.getIsAllRowsSelected()}
-        indeterminate={table.getIsSomeRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) => (
-      <IndeterminateCheckbox
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        onClick={(e) => e.stopPropagation()}
-      />
-    ),
-    enableSorting: false,
-  },
-  {
-    id: 'genlab_id',
-    accessorKey: 'sample_genlab_id',
-    header: 'Sample',
-    cell: ({ row }) => (
-      <span className="text-sm font-mono text-gray-900">
-        {row.original.sample_genlab_id ?? row.original.sample_name ?? '—'}
-      </span>
-    ),
-    sortField: 'genlab_id',
-  },
-  {
-    id: 'order',
-    accessorKey: 'order_id',
-    header: 'Order',
-    cell: ({ row }) => (
-      <span className="text-sm text-gray-600">
-        {row.original.order_name ?? `#ANL_${row.original.order_id}`}
-      </span>
-    ),
-  },
-  {
-    id: 'marker',
-    accessorKey: 'marker_name',
-    header: 'Marker',
-    cell: ({ getValue }) => (
-      <span className="text-sm text-gray-900">{getValue() ?? '—'}</span>
-    ),
-    sortField: 'marker',
-  },
-  {
-    id: 'species',
-    accessorKey: 'sample_species_name',
-    header: 'Species',
-    cell: ({ getValue }) => (
-      <span className="text-sm text-gray-600">{getValue() ?? '—'}</span>
-    ),
-    sortField: 'species',
-  },
-  {
-    accessorKey: 'sample_isolation_methods',
-    header: 'Isolation',
-    cell: ({ getValue }) => {
-      const methods = getValue();
-      const text = methods?.length ? methods.map((m) => m.name).join(', ') : '—';
-      return <span className="text-sm text-gray-600">{text}</span>;
+/**
+ * Generate columns array with showFishId baked in.
+ */
+function getColumns(showFishId) {
+  return [
+    {
+      id: 'select',
+      header: ({ table }) => (
+        <IndeterminateCheckbox
+          checked={table.getIsAllRowsSelected()}
+          indeterminate={table.getIsSomeRowsSelected()}
+          onChange={table.getToggleAllRowsSelectedHandler()}
+        />
+      ),
+      cell: ({ row }) => (
+        <IndeterminateCheckbox
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+      enableSorting: false,
     },
-  },
-  {
-    id: 'sample_position',
-    accessorKey: 'sample_position',
-    header: 'Sample Position',
-    cell: ({ getValue }) => (
-      <span className="text-sm font-mono text-gray-600">{getValue() ?? '—'}</span>
-    ),
-    sortField: 'sample_position',
-  },
-  {
-    accessorKey: 'analysis_position',
-    header: 'Analysis Position',
-    cell: ({ getValue }) => {
-      const value = getValue();
-      if (!value) return <span className="text-sm text-gray-400">—</span>;
-
-      // Split by comma and trim whitespace
-      const positions = value
-        .split(',')
-        .map((p) => p.trim())
-        .filter(Boolean);
-
-      if (positions.length === 0) return <span className="text-sm text-gray-400">—</span>;
-
-      // Show first 3 positions as tags, rest as "+N more"
-      const maxVisible = 3;
-      const visiblePositions = positions.slice(0, maxVisible);
-      const hiddenCount = positions.length - maxVisible;
-
-      return (
-        <div className="flex flex-wrap gap-1 max-w-48">
-          {visiblePositions.map((pos, idx) => (
-            <span
-              key={idx}
-              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-blue-100 text-blue-800"
-            >
-              {pos}
-            </span>
-          ))}
-          {hiddenCount > 0 && (
-            <span
-              className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
-              title={positions.slice(maxVisible).join(', ')}
-            >
-              +{hiddenCount}
-            </span>
-          )}
-        </div>
-      );
+    {
+      id: 'genlab_id',
+      accessorKey: 'sample_genlab_id',
+      header: 'Sample',
+      cell: ({ row }) => {
+        const displayId = showFishId
+          ? (row.original.sample_fish_id ?? row.original.sample_genlab_id ?? row.original.sample_name)
+          : (row.original.sample_genlab_id ?? row.original.sample_name);
+        return (
+          <span className="text-sm font-mono text-gray-900">
+            {displayId ?? '—'}
+          </span>
+        );
+      },
+      sortField: 'genlab_id',
     },
-  },
-  {
-    id: 'pcr',
-    header: 'PCR',
-    accessorFn: (row) => !!row.analysis_position,
-    cell: ({ getValue }) => (
-      <span className={`text-sm font-medium ${getValue() ? 'text-emerald-600' : 'text-gray-400'}`}>
-        {getValue() ? '✓' : '—'}
-      </span>
-    ),
-  },
-  {
-    id: 'analyzing',
-    header: 'Analyzing',
-    accessorFn: (row) => row.is_analyzing,
-    cell: ({ getValue }) => {
-      const { count, total } = getValue() || { count: 0, total: 0 };
-      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-      const pct = Math.round((count / total) * 100);
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-              style={{ width: `${pct}%` }}
-            />
+    {
+      id: 'order',
+      accessorKey: 'order_id',
+      header: 'Order',
+      cell: ({ row }) => (
+        <span className="text-sm text-gray-600">
+          {row.original.order_name ?? `#ANL_${row.original.order_id}`}
+        </span>
+      ),
+    },
+    {
+      id: 'marker',
+      accessorKey: 'marker_name',
+      header: 'Marker',
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-900">{getValue() ?? '—'}</span>
+      ),
+      sortField: 'marker',
+    },
+    {
+      id: 'species',
+      accessorKey: 'sample_species_name',
+      header: 'Species',
+      cell: ({ getValue }) => (
+        <span className="text-sm text-gray-600">{getValue() ?? '—'}</span>
+      ),
+      sortField: 'species',
+    },
+    {
+      accessorKey: 'sample_isolation_methods',
+      header: 'Isolation',
+      cell: ({ getValue }) => {
+        const methods = getValue();
+        const text = methods?.length ? methods.map((m) => m.name).join(', ') : '—';
+        return <span className="text-sm text-gray-600">{text}</span>;
+      },
+    },
+    {
+      id: 'sample_position',
+      accessorKey: 'sample_position',
+      header: 'Sample Position',
+      cell: ({ getValue }) => (
+        <span className="text-sm font-mono text-gray-600">{getValue() ?? '—'}</span>
+      ),
+      sortField: 'sample_position',
+    },
+    {
+      accessorKey: 'analysis_position',
+      header: 'Analysis Position',
+      cell: ({ getValue }) => {
+        const value = getValue();
+        if (!value) return <span className="text-sm text-gray-400">—</span>;
+
+        // Split by comma and trim whitespace
+        const positions = value
+          .split(',')
+          .map((p) => p.trim())
+          .filter(Boolean);
+
+        if (positions.length === 0) return <span className="text-sm text-gray-400">—</span>;
+
+        // Show first 3 positions as tags, rest as "+N more"
+        const maxVisible = 3;
+        const visiblePositions = positions.slice(0, maxVisible);
+        const hiddenCount = positions.length - maxVisible;
+
+        return (
+          <div className="flex flex-wrap gap-1 max-w-48">
+            {visiblePositions.map((pos, idx) => (
+              <span
+                key={idx}
+                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-blue-100 text-blue-800"
+              >
+                {pos}
+              </span>
+            ))}
+            {hiddenCount > 0 && (
+              <span
+                className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                title={positions.slice(maxVisible).join(', ')}
+              >
+                +{hiddenCount}
+              </span>
+            )}
           </div>
-          <span className="text-xs text-gray-600">{count}/{total}</span>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    id: 'output',
-    header: 'Results',
-    accessorFn: (row) => row.has_output,
-    cell: ({ getValue }) => {
-      const { count, total } = getValue() || { count: 0, total: 0 };
-      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-      const pct = Math.round((count / total) * 100);
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-              style={{ width: `${pct}%` }}
-            />
+    {
+      id: 'pcr',
+      header: 'PCR',
+      accessorFn: (row) => !!row.analysis_position,
+      cell: ({ getValue }) => (
+        <span className={`text-sm font-medium ${getValue() ? 'text-emerald-600' : 'text-gray-400'}`}>
+          {getValue() ? '✓' : '—'}
+        </span>
+      ),
+    },
+    {
+      id: 'analyzing',
+      header: 'Analyzing',
+      accessorFn: (row) => row.is_analyzing,
+      cell: ({ getValue }) => {
+        const { count, total } = getValue() || { count: 0, total: 0 };
+        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+        const pct = Math.round((count / total) * 100);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600">{count}/{total}</span>
           </div>
-          <span className="text-xs text-gray-600">{count}/{total}</span>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    id: 'valid',
-    header: 'Valid',
-    accessorFn: (row) => row.invalid_positions,
-    cell: ({ getValue }) => {
-      const { count: invalidCount, total } = getValue() || { count: 0, total: 0 };
-      if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-      const validCount = total - invalidCount;
-      const pct = Math.round((validCount / total) * 100);
-      return (
-        <div className="flex items-center gap-2">
-          <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-              style={{ width: `${pct}%` }}
-            />
+    {
+      id: 'output',
+      header: 'Results',
+      accessorFn: (row) => row.has_output,
+      cell: ({ getValue }) => {
+        const { count, total } = getValue() || { count: 0, total: 0 };
+        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+        const pct = Math.round((count / total) * 100);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600">{count}/{total}</span>
           </div>
-          <span className="text-xs text-gray-600">{validCount}/{total}</span>
-        </div>
-      );
+        );
+      },
     },
-  },
-];
+    {
+      id: 'valid',
+      header: 'Valid',
+      accessorFn: (row) => row.invalid_positions,
+      cell: ({ getValue }) => {
+        const { count: invalidCount, total } = getValue() || { count: 0, total: 0 };
+        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
+        const validCount = total - invalidCount;
+        const pct = Math.round((validCount / total) * 100);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-600">{validCount}/{total}</span>
+          </div>
+        );
+      },
+    },
+  ];
+}
 
 // Sort indicator component
 // eslint-disable-next-line react/prop-types
@@ -246,12 +256,16 @@ export default function SampleMarkerTable({
   const toggleMarkerSelection = useOrderStore((s) => s.toggleMarkerSelection);
   const sorting = useOrderStore((s) => s.sorting);
   const toggleSorting = useOrderStore((s) => s.toggleSorting);
+  const showFishId = useOrderStore((s) => s.showFishId);
 
   // Build ordered data array from ids and object
   const data = useMemo(
     () => sampleMarkerIds.map((id) => sampleMarkers[id]).filter(Boolean),
     [sampleMarkerIds, sampleMarkers],
   );
+
+  // Memoize columns with showFishId to trigger re-render when toggled
+  const columns = useMemo(() => getColumns(showFishId), [showFishId]);
 
   // Convert store selection to TanStack Table format (keyed by row id)
   const rowSelection = useMemo(() => {

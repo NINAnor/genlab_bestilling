@@ -49,6 +49,7 @@ export default function PlateSearch() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
+  const showFishId = useOrderStore((s) => s.showFishId);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
 
@@ -664,6 +665,7 @@ export default function PlateSearch() {
                   isLoading={positionsLoading}
                   onPositionClick={handlePositionClick}
                   onPositionMove={handlePositionMove}
+                  showFishId={showFishId}
                 />
               </div>
             </div>

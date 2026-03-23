@@ -13,6 +13,7 @@ import {
   useDeleteResultFile,
   useUpdatePlateName,
   useClonePlate,
+  useDeletePlate,
 } from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
@@ -95,6 +96,7 @@ export default function PlateSearch() {
   const deleteResultFile = useDeleteResultFile();
   const updatePlateName = useUpdatePlateName();
   const clonePlate = useClonePlate();
+  const deletePlate = useDeletePlate();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -128,6 +130,26 @@ export default function PlateSearch() {
           if (data.plate) {
             setSelectedPlate(data.plate);
           }
+        },
+      },
+    );
+  };
+
+  const handleDeletePlate = () => {
+    if (!selectedPlate?.id) return;
+    const plateLabel = selectedPlate.label + (selectedPlate.name ? ` (${selectedPlate.name})` : '');
+    if (
+      !window.confirm(
+        `Are you sure you want to delete plate ${plateLabel}? This action cannot be undone and will remove all positions on this plate.`,
+      )
+    ) {
+      return;
+    }
+    deletePlate.mutate(
+      { plateId: selectedPlate.id },
+      {
+        onSuccess: () => {
+          setSelectedPlate(null);
         },
       },
     );
@@ -480,6 +502,15 @@ export default function PlateSearch() {
                     title="Print plate preview"
                   >
                     Print
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeletePlate}
+                    disabled={deletePlate.isPending}
+                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 disabled:opacity-50"
+                    title="Delete this plate"
+                  >
+                    {deletePlate.isPending ? 'Deleting…' : 'Delete'}
                   </button>
                 </div>
                 <div className="flex items-center gap-2">

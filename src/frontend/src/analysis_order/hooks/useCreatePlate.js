@@ -222,3 +222,27 @@ export function useReservePositions() {
     },
   });
 }
+
+/**
+ * Mutation hook to delete a plate.
+ */
+export function useDeletePlate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId }) => {
+      const { data } = await client.delete(
+        `/staff/api/analysis-plates/${plateId}/delete/`,
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message || 'Plate deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to delete plate';
+      toast.error(message);
+    },
+  });
+}

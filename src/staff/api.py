@@ -597,6 +597,20 @@ class PlateRowColumnActionsMixin:
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["delete"])
+    def delete(self, request: Request, pk: str) -> Response:
+        """Delete the plate and all its positions."""
+        plate = self.get_object()
+        plate_label = str(plate)
+        with transaction.atomic():
+            plate.positions.all().delete()
+            plate.delete()
+
+        return Response(
+            {"message": f"Deleted plate {plate_label}"},
+            status=status.HTTP_200_OK,
+        )
+
 
 class AnalysisPlatesViewSet(
     PlateRowColumnActionsMixin, mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet

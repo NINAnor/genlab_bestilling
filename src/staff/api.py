@@ -539,6 +539,16 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [SearchFilter]
     search_fields = ["=id", "name", "genrequest__name"]
 
+    @action(detail=True, methods=["post"], url_path="complete")
+    def complete(self, request: Request, pk: str) -> Response:
+        """Mark the analysis order as completed."""
+        order = self.get_object()
+        order.to_completed()
+        return Response(
+            {"message": f"Order {order} marked as completed"},
+            status=status.HTTP_200_OK,
+        )
+
 
 class PlateRowColumnActionsMixin:
     """Mixin providing row/column empty and reserve actions for plate viewsets."""

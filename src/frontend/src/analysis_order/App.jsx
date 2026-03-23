@@ -11,6 +11,7 @@ import FilterBar from './components/FilterBar';
 import PlateSearch from './components/LoadPlate';
 import SelectionActions from './components/SelectionActions';
 import { useOrderSampleMarkers } from './hooks/useOrderSampleMarkers';
+import { useCompleteOrder } from './hooks/useCompleteOrder';
 
 const queryClient = new QueryClient();
 
@@ -25,12 +26,20 @@ const INITIAL_FILTERS = {
 
 function OrderApp() {
   const init = useOrderStore((s) => s.init);
+  const orderId = useOrderStore((s) => s.orderId);
   const orderLabel = useOrderStore((s) => s.orderLabel);
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
   const showFishId = useOrderStore((s) => s.showFishId);
   const toggleShowFishId = useOrderStore((s) => s.toggleShowFishId);
 
   const [filters, setFilters] = useState(INITIAL_FILTERS);
+
+  const { mutate: completeOrder, isPending: isCompleting } = useCompleteOrder({
+    onSuccess: () => {
+      // Redirect to the analysis order detail page
+      window.location.href = `/staff/orders/analysis/${orderId}/`;
+    },
+  });
 
   useEffect(() => {
     init(config);
@@ -56,15 +65,42 @@ function OrderApp() {
     setFilters(INITIAL_FILTERS);
   };
 
+  const handleCompleteOrder = () => {
+    if (!orderId) return;
+    if (window.confirm(`Are you sure you want to mark this order as completed?`)) {
+      completeOrder(orderId);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-4xl font-bold">
           {orderLabel ? `Analysis Order ${orderLabel}` : 'Sample Markers'}
         </h2>
-        <a href="../" className="btn btn-sm btn-tertiary">
-          <i className="fas fa-arrow-left mr-1"></i> Back
-        </a>
+        <div className="flex items-center gap-2">
+          {orderId && (
+            <button
+              type="button"
+              onClick={handleCompleteOrder}
+              disabled={isCompleting}
+              className="btn btn-sm btn-primary"
+            >
+              {isCompleting ? (
+                <>
+                  <i className="fas fa-spinner fa-spin mr-1"></i> Completing...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-check mr-1"></i> Mark as Completed
+                </>
+              )}
+            </button>
+          )}
+          <a href="../" className="btn btn-sm btn-tertiary">
+            <i className="fas fa-arrow-left mr-1"></i> Back
+          </a>
+        </div>
       </div>
 
       <div className="space-y-4">

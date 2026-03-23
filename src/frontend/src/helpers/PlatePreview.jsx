@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 
@@ -89,6 +89,25 @@ function getTooltip(position, coordinate, status, plateType) {
   }
   if (position?.notes) base += `\n📝 ${position.notes}`;
   return base;
+}
+
+/**
+ * Get the text content for a cell (for copy/paste to Excel).
+ */
+function getCellText(position, plateType) {
+  if (!position) return '';
+  if (position.is_reserved) return 'Reserved';
+  if (plateType === 'extraction' && position.sample_raw) {
+    return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
+  }
+  if (plateType === 'analysis' && position.sample_marker) {
+    return (
+      position.sample_marker.sample_genlab_id ??
+      position.sample_marker.sample_name ??
+      ''
+    );
+  }
+  return '';
 }
 
 /**
@@ -278,12 +297,43 @@ export default function PlatePreview({
 }) {
   const [draggingIdx, setDraggingIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
+  const [copyStatus, setCopyStatus] = useState(null); // 'success' | 'error' | null
 
-  // Index positions by their position index
-  const positionsByIdx = {};
-  positions.forEach((p) => {
-    positionsByIdx[p.position] = p;
-  });
+  // Index positions by their position index (memoized)
+  const positionsByIdx = useMemo(() => {
+    const indexed = {};
+    positions.forEach((p) => {
+      indexed[p.position] = p;
+    });
+    return indexed;
+  }, [positions]);
+
+  // Generate TSV grid for clipboard
+  const handleCopyToClipboard = useCallback(async () => {
+    // Build header row: empty cell + column numbers
+    const headerRow = ['', ...COLS].join('\t');
+
+    // Build data rows
+    const dataRows = ROWS.map((row) => {
+      const cells = COLS.map((col) => {
+        const idx = toPositionIndex(row, col);
+        const position = positionsByIdx[idx] ?? null;
+        return getCellText(position, plateType);
+      });
+      return [row, ...cells].join('\t');
+    });
+
+    const tsvContent = [headerRow, ...dataRows].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(tsvContent);
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus(null), 2000);
+    } catch {
+      setCopyStatus('error');
+      setTimeout(() => setCopyStatus(null), 2000);
+    }
+  }, [positionsByIdx, plateType]);
 
   // Drag handlers
   const handleDragStart = useCallback((idx) => {
@@ -338,7 +388,7 @@ export default function PlatePreview({
   return (
     <div>
       {/* Legend */}
-      <div className="flex gap-6 mb-4 text-sm flex-wrap">
+      <div className="flex gap-6 mb-4 text-sm flex-wrap items-center">
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-4 rounded-lg bg-gray-100 border-2 border-gray-300" />
           Empty ({counts.empty})
@@ -351,6 +401,25 @@ export default function PlatePreview({
           <span className="inline-block w-4 h-4 rounded-lg bg-amber-300 border-2 border-amber-500" />
           Reserved ({counts.reserved})
         </span>
+        <button
+          type="button"
+          onClick={handleCopyToClipboard}
+          className={classnames(
+            'ml-auto px-3 py-1 text-xs rounded border transition-colors',
+            copyStatus === 'success'
+              ? 'bg-green-100 border-green-400 text-green-700'
+              : copyStatus === 'error'
+                ? 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200',
+          )}
+          title="Copy plate layout as tab-separated grid (for Excel)"
+        >
+          {copyStatus === 'success'
+            ? 'Copied!'
+            : copyStatus === 'error'
+              ? 'Failed'
+              : 'Copy for Excel'}
+        </button>
       </div>
 
       {/* Grid - scrollable container */}

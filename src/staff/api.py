@@ -613,7 +613,10 @@ class PlateRowColumnActionsMixin:
 
 
 class AnalysisPlatesViewSet(
-    PlateRowColumnActionsMixin, mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet
+    PlateRowColumnActionsMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.ReadOnlyModelViewSet,
 ):
     """List all analysis plates."""
 

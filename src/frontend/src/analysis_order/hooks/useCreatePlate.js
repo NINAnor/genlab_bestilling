@@ -246,3 +246,37 @@ export function useDeletePlate() {
     },
   });
 }
+
+/**
+ * Mutation hook to update a plate's properties (name, analysis_type, markers).
+ * @param {Object} params
+ * @param {number} params.plateId - The plate ID to update
+ * @param {string} [params.name] - Optional plate name
+ * @param {number} [params.analysis_type] - Optional analysis type ID
+ * @param {string[]} [params.markers] - Optional array of marker names
+ */
+export function useUpdatePlate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, name, analysis_type, markers }) => {
+      const payload = {};
+      if (name !== undefined) payload.name = name;
+      if (analysis_type !== undefined) payload.analysis_type = analysis_type;
+      if (markers !== undefined) payload.markers = markers;
+      const { data } = await client.patch(
+        `/staff/api/analysis-plates/${plateId}/`,
+        payload,
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(`Updated plate ${data.label}`);
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to update plate';
+      toast.error(message);
+    },
+  });
+}

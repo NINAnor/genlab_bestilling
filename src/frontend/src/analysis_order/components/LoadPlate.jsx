@@ -19,6 +19,7 @@ import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
 import CreatePlateModal from './CreatePlateModal';
+import EditPlateModal from './EditPlateModal';
 import PlateActionsPanel from './PlateActionsPanel';
 import useOrderStore from '../store';
 
@@ -46,6 +47,7 @@ export default function PlateSearch() {
   const [analysisDate, setAnalysisDate] = useState('');
   const [plateName, setPlateName] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
@@ -488,6 +490,14 @@ export default function PlateSearch() {
                   )}
                   <button
                     type="button"
+                    onClick={() => setShowEditModal(true)}
+                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                    title="Edit plate name, analysis type, and markers"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleClonePlate}
                     disabled={clonePlate.isPending}
                     className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
@@ -671,6 +681,14 @@ export default function PlateSearch() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleCreatePlateSuccess}
+      />
+
+      {/* Edit plate modal */}
+      <EditPlateModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        plate={selectedPlate}
+        onSuccess={(updatedPlate) => setSelectedPlate(updatedPlate)}
       />
     </div>
   );

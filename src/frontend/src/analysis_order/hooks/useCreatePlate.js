@@ -164,3 +164,61 @@ export function useClonePlate() {
     },
   });
 }
+
+/**
+ * Mutation hook to empty positions on a plate by row and/or column.
+ */
+export function useEmptyPositions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, row, column }) => {
+      const payload = {};
+      if (row) payload.row = row;
+      if (column !== undefined && column !== null) payload.column = column;
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/empty/`,
+        payload,
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+      queryClient.invalidateQueries({ queryKey: ['analysisPlatePositions'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to empty positions';
+      toast.error(message);
+    },
+  });
+}
+
+/**
+ * Mutation hook to reserve positions on a plate by row and/or column.
+ */
+export function useReservePositions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, row, column }) => {
+      const payload = {};
+      if (row) payload.row = row;
+      if (column !== undefined && column !== null) payload.column = column;
+      const { data } = await client.post(
+        `/staff/api/analysis-plates/${plateId}/reserve/`,
+        payload,
+      );
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+      queryClient.invalidateQueries({ queryKey: ['analysisPlatePositions'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to reserve positions';
+      toast.error(message);
+    },
+  });
+}

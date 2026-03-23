@@ -18,6 +18,7 @@ import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
 import PositionModal from './PositionModal';
 import CreatePlateModal from './CreatePlateModal';
+import PlateActionsPanel from './PlateActionsPanel';
 import useOrderStore from '../store';
 
 /**
@@ -591,6 +592,8 @@ export default function PlateSearch() {
                   )}
                 </div>
               )}
+              {/* Bulk row/column actions */}
+              <PlateActionsPanel plateId={selectedPlate.id} />
               <div ref={printRef} className="print:p-4">
                 <div className="hidden print:block print:mb-4">
                   <h2 className="text-lg font-bold">

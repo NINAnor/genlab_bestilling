@@ -2,7 +2,7 @@ import uuid
 from collections.abc import Sequence
 from datetime import timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 from django.conf import settings
 from django.db import models, transaction
@@ -1136,6 +1136,153 @@ class Plate(LifecycleModelMixin, PolymorphicModel):
         Exception raised when there are not enough positions available in the plate
         to accommodate the items being populated.
         """
+
+    class InvalidRow(ValueError):
+        """Exception raised when an invalid row letter is provided."""
+
+    class InvalidColumn(ValueError):
+        """Exception raised when an invalid column number is provided."""
+
+    @transaction.atomic
+    def empty_row(self, row: str) -> int:
+        """Empty all positions in a row.
+
+        Args:
+            row: Row letter (A-H)
+
+        Returns:
+            Number of positions emptied
+
+        Raises:
+            InvalidRow: If row is not a valid row letter
+        """
+        row = row.upper()
+        if row not in self.ROWS:
+            msg = f"Invalid row '{row}'. Must be one of {self.ROWS}"
+            raise self.InvalidRow(msg)
+
+        row_index = self.ROWS.index(row)
+        # Positions in a row: col * 8 + row_index for col in 0..11
+        position_indices = [
+            col * len(self.ROWS) + row_index for col in range(self.COLUMNS)
+        ]
+
+        return self._empty_positions(position_indices)
+
+    @transaction.atomic
+    def empty_column(self, column: int) -> int:
+        """Empty all positions in a column.
+
+        Args:
+            column: Column number (1-12)
+
+        Returns:
+            Number of positions emptied
+
+        Raises:
+            InvalidColumn: If column is not in range 1-12
+        """
+        if not 1 <= column <= self.COLUMNS:
+            msg = f"Invalid column {column}. Must be between 1 and {self.COLUMNS}"
+            raise self.InvalidColumn(msg)
+
+        col_index = column - 1  # Convert to 0-based
+        # Positions in a column: 8 consecutive positions starting from col_index * 8
+        start = col_index * len(self.ROWS)
+        position_indices = list(range(start, start + len(self.ROWS)))
+
+        return self._empty_positions(position_indices)
+
+    def _empty_positions(self: Self, position_indices: list[int]) -> int:
+        """Empty positions at the given indices.
+
+        Args:
+            position_indices: List of position indices to empty
+
+        Returns:
+            Number of positions that were actually emptied (had content)
+        """
+        positions = self.positions.select_for_update().filter(
+            position__in=position_indices,
+            is_full=True,
+        )
+
+        return positions.update(
+            sample_raw=None,
+            sample_marker=None,
+            is_reserved=False,
+            positive_control=None,
+        )
+
+    @transaction.atomic
+    def reserve_row(self, row: str) -> int:
+        """Reserve all empty positions in a row.
+
+        Args:
+            row: Row letter (A-H)
+
+        Returns:
+            Number of positions reserved
+
+        Raises:
+            InvalidRow: If row is not a valid row letter
+        """
+        row = row.upper()
+        if row not in self.ROWS:
+            msg = f"Invalid row '{row}'. Must be one of {self.ROWS}"
+            raise self.InvalidRow(msg)
+
+        row_index = self.ROWS.index(row)
+        # Positions in a row: col * 8 + row_index for col in 0..11
+        position_indices = [
+            col * len(self.ROWS) + row_index for col in range(self.COLUMNS)
+        ]
+
+        return self._reserve_positions(position_indices)
+
+    @transaction.atomic
+    def reserve_column(self, column: int) -> int:
+        """Reserve all empty positions in a column.
+
+        Args:
+            column: Column number (1-12)
+
+        Returns:
+            Number of positions reserved
+
+        Raises:
+            InvalidColumn: If column is not in range 1-12
+        """
+        if not 1 <= column <= self.COLUMNS:
+            msg = f"Invalid column {column}. Must be between 1 and {self.COLUMNS}"
+            raise self.InvalidColumn(msg)
+
+        col_index = column - 1  # Convert to 0-based
+        # Positions in a column: 8 consecutive positions starting from col_index * 8
+        start = col_index * len(self.ROWS)
+        position_indices = list(range(start, start + len(self.ROWS)))
+
+        return self._reserve_positions(position_indices)
+
+    def _reserve_positions(self, position_indices: list[int]) -> int:
+        """Reserve positions at the given indices.
+
+        Only reserves positions that are currently empty (not full).
+
+        Args:
+            position_indices: List of position indices to reserve
+
+        Returns:
+            Number of positions that were actually reserved
+        """
+        return (
+            self.positions.select_for_update()
+            .filter(
+                position__in=position_indices,
+                is_full=False,
+            )
+            .update(is_reserved=True)
+        )
 
     @transaction.atomic
     def populate(self, items: list, field_name: str) -> None:

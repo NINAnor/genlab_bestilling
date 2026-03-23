@@ -5,6 +5,7 @@ from staff.api import (
     AnalysisOrderSampleMarkerViewSet,
     AnalysisOrdersListViewSet,
     AnalysisPlatesViewSet,
+    ExtractionPlatesViewSet,
     OrderAPIView,
     PositiveControlViewSet,
     SampleMarkerViewSet,
@@ -52,6 +53,9 @@ app_name = "staff"
 router = DefaultRouter()
 router.register(
     "api/analysis-plates", AnalysisPlatesViewSet, basename="api-analysis-plates"
+)
+router.register(
+    "api/extraction-plates", ExtractionPlatesViewSet, basename="api-extraction-plates"
 )
 router.register(
     "api/positive-controls", PositiveControlViewSet, basename="api-positive-controls"

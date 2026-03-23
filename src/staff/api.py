@@ -30,6 +30,7 @@ from .serializers import (
     AnalysisPlateListSerializer,
     OrderSampleMarkerSerializer,
     PlatePositionSerializer,
+    PlateRowColumnSerializer,
     PositiveControlSerializer,
 )
 
@@ -539,7 +540,67 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["=id", "name", "genrequest__name"]
 
 
-class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+class PlateRowColumnActionsMixin:
+    """Mixin providing row/column empty and reserve actions for plate viewsets."""
+
+    @action(detail=True, methods=["post"], url_path="empty")
+    def empty(self, request: Request, pk: str) -> Response:
+        """Empty all positions in a row and/or column."""
+        serializer = PlateRowColumnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        row = serializer.validated_data.get("row")
+        column = serializer.validated_data.get("column")
+
+        plate = self.get_object()
+        total = 0
+        messages = []
+
+        if row:
+            count = plate.empty_row(row)
+            total += count
+            messages.append(f"row {row}: {count}")
+
+        if column is not None:
+            count = plate.empty_column(column)
+            total += count
+            messages.append(f"column {column}: {count}")
+
+        return Response(
+            {"message": f"Emptied {total} positions ({', '.join(messages)})"},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="reserve")
+    def reserve(self, request: Request, pk: str) -> Response:
+        """Reserve all empty positions in a row and/or column."""
+        serializer = PlateRowColumnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        row = serializer.validated_data.get("row")
+        column = serializer.validated_data.get("column")
+
+        plate = self.get_object()
+        total = 0
+        messages = []
+
+        if row:
+            count = plate.reserve_row(row)
+            total += count
+            messages.append(f"row {row}: {count}")
+
+        if column is not None:
+            count = plate.reserve_column(column)
+            total += count
+            messages.append(f"column {column}: {count}")
+
+        return Response(
+            {"message": f"Reserved {total} positions ({', '.join(messages)})"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class AnalysisPlatesViewSet(
+    PlateRowColumnActionsMixin, mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet
+):
     """List all analysis plates."""
 
     permission_classes = [IsGenlabStaffOrSuperuser]
@@ -693,3 +754,25 @@ class AnalysisPlatesViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewS
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class ExtractionPlatesViewSet(
+    PlateRowColumnActionsMixin, viewsets.ReadOnlyModelViewSet
+):
+    """List all extraction plates."""
+
+    permission_classes = [IsGenlabStaffOrSuperuser]
+    queryset = (
+        ExtractionPlate.objects.all()
+        .prefetch_related("positions", "species", "sample_types")
+        .annotate(
+            available_positions_count=Count(
+                "positions", filter=Q(positions__is_full=False)
+            ),
+            filled_positions_count=Count(
+                "positions", filter=Q(positions__is_full=True)
+            ),
+        )
+        .order_by("-created_at")
+    )
+    pagination_class = LimitOffsetPagination

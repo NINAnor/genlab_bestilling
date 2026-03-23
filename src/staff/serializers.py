@@ -442,3 +442,47 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
     def get_marker_names(self, obj: AnalysisPlate) -> list[str]:
         # Use prefetched markers to avoid extra queries
         return [m.name for m in obj.markers.all()]
+
+
+class PlateRowColumnSerializer(serializers.Serializer):
+    """Serializer for row/column operations on plates."""
+
+    VALID_ROWS = "ABCDEFGH"
+    MIN_COLUMN = 1
+    MAX_COLUMN = 12
+
+    row = serializers.CharField(required=False, allow_null=True)
+    column = serializers.IntegerField(required=False, allow_null=True)
+
+    def validate_row(self, value: str | None) -> str | None:
+        """Validate and normalize the row letter."""
+        if value is None:
+            return None
+        value = value.upper().strip()
+        if not value:
+            return None
+        if value not in self.VALID_ROWS:
+            msg = f"Invalid row '{value}'. Must be one of {self.VALID_ROWS}"
+            raise serializers.ValidationError(msg)
+        return value
+
+    def validate_column(self, value: int | None) -> int | None:
+        """Validate the column number."""
+        if value is None:
+            return None
+        if not self.MIN_COLUMN <= value <= self.MAX_COLUMN:
+            msg = (
+                f"Invalid column {value}. "
+                f"Must be between {self.MIN_COLUMN} and {self.MAX_COLUMN}"
+            )
+            raise serializers.ValidationError(msg)
+        return value
+
+    def validate(self, attrs: dict) -> dict:
+        """Ensure at least one of row or column is provided."""
+        row = attrs.get("row")
+        column = attrs.get("column")
+        if not row and column is None:
+            msg = "At least one of 'row' or 'column' must be provided"
+            raise serializers.ValidationError(msg)
+        return attrs

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import PlateGrid from './PlateGrid';
 import PositionPanel from './PositionPanel';
+import PlateActionsPanel from './PlateActionsPanel';
 import usePlateStore from '../store';
 
 function DetailRow({ label, value, mono }) {
@@ -58,7 +59,7 @@ export default function ExtractionPlate() {
             selectedPositionId={selectedPositionId}
           />
         </div>
-        <div className="col-span-1 sticky top-4 self-start">
+        <div className="col-span-1 sticky top-4 self-start space-y-4">
           <PositionPanel plateType="extraction">
             {({ position, status }) => (
               <>
@@ -99,6 +100,7 @@ export default function ExtractionPlate() {
               </>
             )}
           </PositionPanel>
+          <PlateActionsPanel />
         </div>
       </div>
     </div>

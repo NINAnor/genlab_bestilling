@@ -642,10 +642,19 @@ class AnalysisPlatesViewSet(
     filterset_class = AnalysisPlateAPIFilter
     pagination_class = LimitOffsetPagination
 
+    MAX_REPLICATES = 12
+
     @action(detail=True, methods=["post"], url_path="add-sample-markers")
     def add_sample_markers(self, request: Request, pk: str) -> Response:
-        """Add sample markers to plate, filling from first available position."""
+        """Add sample markers to plate.
+
+        When replicates > 1, places samples horizontally:
+        - Each unique sample gets its own row (A-H)
+        - Replicas go horizontally across columns
+        - Max 8 samples with replicates
+        """
         sample_marker_ids = request.data.get("sample_marker_ids", [])
+        replicates = request.data.get("replicates", 1)
 
         if not sample_marker_ids:
             return Response(
@@ -653,21 +662,38 @@ class AnalysisPlatesViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        # Validate replicates
+        try:
+            replicates = int(replicates)
+            if replicates < 1 or replicates > self.MAX_REPLICATES:
+                msg = f"Replicates must be between 1 and {self.MAX_REPLICATES}"
+                return Response(
+                    {"error": msg},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except (TypeError, ValueError):
+            return Response(
+                {"error": "Invalid replicates value"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         with transaction.atomic():
             plate = self.get_object()
             try:
-                added = plate.add_sample_markers(sample_marker_ids)
-            except AnalysisPlate.NotEnoughPositions as exc:
-                return Response(
-                    {"error": str(exc)},
-                    status=status.HTTP_400_BAD_REQUEST,
+                added = plate.add_sample_markers_with_replicas(
+                    sample_marker_ids, replicates=replicates
                 )
             except AnalysisPlate.SampleMarkerNotFound as exc:
                 return Response(
                     {"error": str(exc)},
                     status=status.HTTP_404_NOT_FOUND,
                 )
-            except AnalysisPlate.SampleMarkerNotAllowed as exc:
+            except (
+                AnalysisPlate.NotEnoughPositions,
+                AnalysisPlate.SampleMarkerNotAllowed,
+                AnalysisPlate.TooManySamplesForReplicas,
+                AnalysisPlate.CannotPlaceReplicasHorizontally,
+            ) as exc:
                 return Response(
                     {"error": str(exc)},
                     status=status.HTTP_400_BAD_REQUEST,

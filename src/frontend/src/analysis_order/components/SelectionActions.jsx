@@ -32,23 +32,22 @@ export default function SelectionActions() {
     })
     .map((m) => m.id);
 
-  // Repeat each ID by replicates count
-  const replicatedIds = [];
-  for (let i = 0; i < replicates; i++) {
-    replicatedIds.push(...orderedIds);
-  }
-
   const handleAddToPlate = () => {
     if (!selectedPlate) {
       return;
     }
     addToPlate.mutate({
       plateId: selectedPlate.id,
-      sampleMarkerIds: replicatedIds,
+      sampleMarkerIds: orderedIds,
+      replicates,
     });
   };
 
   const totalToAdd = selectedCount * replicates;
+
+  // When using replicates > 1, max 8 sample markers can be selected
+  const maxSamplesForReplicates = 8;
+  const exceedsReplicateLimit = replicates > 1 && selectedCount > maxSamplesForReplicates;
 
   return (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between gap-4 mt-3">
@@ -83,10 +82,15 @@ export default function SelectionActions() {
               />
               <span className="text-gray-500">replicates</span>
             </label>
+            {exceedsReplicateLimit && (
+              <span className="text-xs text-red-600">
+                Max {maxSamplesForReplicates} samples with replicates
+              </span>
+            )}
             <button
               type="button"
               onClick={handleAddToPlate}
-              disabled={addToPlate.isPending}
+              disabled={addToPlate.isPending || exceedsReplicateLimit}
               className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {addToPlate.isPending ? 'Adding…' : `Add ${totalToAdd} to plate`}

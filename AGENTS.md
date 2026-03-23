@@ -3,6 +3,7 @@
 - ALWAYS use the development profile
 - ALWAYS use `pnmp` to install and handle javascript dependencies
 - ALWAYS write python code compatible with the `ruff` configuration, execute it to make sure
+- ALWAYS run `pre-commit` when you are done with changes
 - ALWAYS make sure the javascript/react code follows eslint/prettier configuration
 - PREFER backward compatible changes to APIs
 - PREFER adding readonly fields for related fields in the REST API

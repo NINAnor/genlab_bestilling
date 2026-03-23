@@ -1534,6 +1534,169 @@ class AnalysisPlate(Plate):
 
         return added
 
+    class CannotPlaceReplicasHorizontally(Exception):
+        """Raised when replicas cannot be placed horizontally."""
+
+    class TooManySamplesForReplicas(Exception):
+        """Raised when more than 8 samples are selected for replica placement."""
+
+    def _find_start_column_for_replicas(
+        self, all_positions: dict[int, "PlatePosition"]
+    ) -> int | None:
+        """Find the first column where row A is empty."""
+        for col in range(self.COLUMNS):
+            row_a_position = col * len(self.ROWS)  # Row A in this column
+            pos = all_positions.get(row_a_position)
+            is_empty = (
+                pos
+                and not pos.sample_raw
+                and not pos.sample_marker
+                and not pos.is_reserved
+            )
+            if is_empty:
+                return col
+        return None
+
+    def _build_replica_positions(
+        self,
+        unique_ids: list[int],
+        start_column: int,
+        replicates: int,
+        all_positions: dict[int, "PlatePosition"],
+    ) -> list[tuple["PlatePosition", int]]:
+        """Build target positions grid for horizontal replica placement."""
+        target_positions: list[tuple[PlatePosition, int]] = []
+
+        for sample_idx, marker_id in enumerate(unique_ids):
+            row_index = sample_idx  # A=0, B=1, etc.
+            for replica_idx in range(replicates):
+                col = start_column + replica_idx
+                position_idx = col * len(self.ROWS) + row_index
+                pos = all_positions.get(position_idx)
+
+                if pos is None:
+                    coordinate = f"{self.ROWS[row_index]}{col + 1}"
+                    msg = f"Position {coordinate} not found."
+                    raise self.CannotPlaceReplicasHorizontally(msg)
+
+                if pos.sample_raw or pos.sample_marker or pos.is_reserved:
+                    coordinate = f"{self.ROWS[row_index]}{col + 1}"
+                    msg = (
+                        f"Position {coordinate} is not empty. "
+                        "Cannot place replicas horizontally."
+                    )
+                    raise self.CannotPlaceReplicasHorizontally(msg)
+
+                target_positions.append((pos, marker_id))
+
+        return target_positions
+
+    def add_sample_markers_with_replicas(
+        self, sample_marker_ids: list[int], replicates: int = 1
+    ) -> list[dict[str, int | str]]:
+        """Add sample markers to plate with horizontal replica placement.
+
+        When replicates > 1:
+        - Find the first column where row A is empty
+        - Place each unique sample in its own row (A-H)
+        - Replicas of each sample go horizontally across columns
+        - Max 8 unique samples allowed (8 rows)
+
+        When replicates == 1:
+        - Falls back to standard add_sample_markers behavior
+
+        Args:
+            sample_marker_ids: List of unique SampleMarkerAnalysis IDs to add.
+            replicates: Number of replicates per sample (1-12).
+
+        Returns:
+            List of dicts with position, coordinate, and sample_marker_id.
+
+        Raises:
+            TooManySamplesForReplicas: If more than 8 unique samples.
+            CannotPlaceReplicasHorizontally: If not enough columns.
+            NotEnoughPositions: If not enough positions available.
+            SampleMarkerNotFound: If a sample marker ID doesn't exist.
+            SampleMarkerNotAllowed: If a marker doesn't match the whitelist.
+        """
+        if replicates == 1:
+            # Fall back to standard sequential filling
+            return self.add_sample_markers(sample_marker_ids)
+
+        # Get unique sample marker IDs (preserve order)
+        unique_ids = list(dict.fromkeys(sample_marker_ids))
+        num_samples = len(unique_ids)
+
+        if num_samples > len(self.ROWS):
+            msg = (
+                f"Cannot place more than {len(self.ROWS)} samples "
+                f"with replicas. Got {num_samples}."
+            )
+            raise self.TooManySamplesForReplicas(msg)
+
+        if replicates > self.COLUMNS:
+            msg = f"Cannot have more than {self.COLUMNS} replicates. Got {replicates}."
+            raise self.CannotPlaceReplicasHorizontally(msg)
+
+        # Get all positions indexed by position number
+        all_positions = {
+            p.position: p for p in self.positions.select_for_update().all()
+        }
+
+        # Find the first column where row A is empty
+        start_column = self._find_start_column_for_replicas(all_positions)
+
+        if start_column is None:
+            msg = "No empty position found in row A to start replica placement."
+            raise self.CannotPlaceReplicasHorizontally(msg)
+
+        # Check we have enough consecutive columns for replicas
+        if start_column + replicates > self.COLUMNS:
+            available = self.COLUMNS - start_column
+            msg = (
+                f"Not enough consecutive columns for {replicates} replicates. "
+                f"Starting at column {start_column + 1}, "
+                f"only {available} columns available."
+            )
+            raise self.CannotPlaceReplicasHorizontally(msg)
+
+        # Build the target positions grid: samples in rows, replicas in cols
+        target_positions = self._build_replica_positions(
+            unique_ids, start_column, replicates, all_positions
+        )
+
+        # Batch fetch sample markers
+        markers_qs = SampleMarkerAnalysis.objects.select_for_update().filter(
+            pk__in=unique_ids
+        )
+        markers_by_id = {sm.id: sm for sm in markers_qs}
+
+        # Check all markers exist
+        for marker_id in unique_ids:
+            if marker_id not in markers_by_id:
+                msg = f"Sample marker {marker_id} not found"
+                raise self.SampleMarkerNotFound(msg)
+
+        # Validate all markers against plate whitelist
+        for sm in markers_by_id.values():
+            self.validate_sample_marker(sm)
+
+        # Place sample markers
+        added = []
+        for position, marker_id in target_positions:
+            sm = markers_by_id[marker_id]
+            position.sample_marker = sm
+            position.save(update_fields=["sample_marker"])
+            added.append(
+                {
+                    "position": position.position,
+                    "coordinate": position.position_to_coordinates(),
+                    "sample_marker_id": sm.id,
+                }
+            )
+
+        return added
+
     @transaction.atomic
     def clone(self: "AnalysisPlate") -> "AnalysisPlate":
         """Clone plate with same name, markers, and filled positions.

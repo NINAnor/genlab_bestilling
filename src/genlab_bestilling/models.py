@@ -1111,7 +1111,7 @@ class GIDSequence(AdminUrlsMixin, models.Model):
         self.last_value += 1
         self.save(update_fields=["last_value"])
         if self.sample:
-            return f"{self.id}{self.last_value}"
+            return f"{self.id}{self.last_value:03d}"
         return f"{self.id}{self.last_value:05d}"
 
 

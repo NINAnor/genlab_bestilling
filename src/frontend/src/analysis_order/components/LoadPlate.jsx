@@ -458,7 +458,7 @@ export default function PlateSearch() {
         </div>
 
         {/* Right column: Plate preview */}
-        <div className="lg:col-span-2 p-4">
+        <div className="lg:col-span-2 p-4 min-w-0">
           {!selectedPlate && (
             <div className="h-full flex items-center justify-center text-gray-400 italic">
               Select a plate to preview

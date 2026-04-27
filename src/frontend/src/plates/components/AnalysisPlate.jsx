@@ -48,8 +48,8 @@ export default function AnalysisPlate() {
           Print Plate
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div ref={printRef} className="col-span-2 p-4 bg-white rounded print:col-span-3">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div ref={printRef} className="xl:col-span-2 p-4 bg-white rounded print:col-span-3 min-w-0">
           <div className="hidden print:block print:mb-4">
             <h2 className="text-lg font-bold">Analysis Plate {plateLabel}</h2>
           </div>
@@ -59,7 +59,7 @@ export default function AnalysisPlate() {
             selectedPositionId={selectedPositionId}
           />
         </div>
-        <div className="col-span-1 sticky top-4 self-start space-y-4">
+        <div className="xl:col-span-1 sticky top-4 self-start space-y-4 print:hidden">
           <PositionPanel plateType="analysis">
             {({ position, status }) => (
               <>

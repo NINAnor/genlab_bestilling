@@ -68,14 +68,15 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
         </span>
       </div>
 
-      {/* Grid */}
-      <div
-        className="inline-grid gap-0.5"
-        style={{
-          gridTemplateColumns: `2rem repeat(${COLS.length}, 5rem)`,
-          gridTemplateRows: `auto repeat(${ROWS.length}, 4rem)`,
-        }}
-      >
+      {/* Grid - scrollable container */}
+      <div className="overflow-x-auto">
+        <div
+          className="inline-grid gap-0.5"
+          style={{
+            gridTemplateColumns: `2rem repeat(${COLS.length}, 5rem)`,
+            gridTemplateRows: `auto repeat(${ROWS.length}, 4rem)`,
+          }}
+        >
         {/* Top-left empty cell */}
         <div />
         {/* Column headers */}
@@ -116,6 +117,7 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
             })}
           </>
         ))}
+        </div>
       </div>
     </div>
   );

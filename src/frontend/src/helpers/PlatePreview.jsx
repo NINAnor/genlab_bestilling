@@ -408,7 +408,7 @@ export default function PlatePreview({
   }
 
   return (
-    <div>
+    <div className="max-w-full">
       {/* Legend */}
       <div className="flex gap-6 mb-4 text-sm flex-wrap items-center">
         <span className="flex items-center gap-1">

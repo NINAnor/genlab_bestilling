@@ -1540,37 +1540,54 @@ class AnalysisPlate(Plate):
     class TooManySamplesForReplicas(Exception):
         """Raised when more than 8 samples are selected for replica placement."""
 
-    def _find_start_column_for_replicas(
-        self, all_positions: dict[int, "PlatePosition"]
+    def _find_start_slot_for_replicas(
+        self,
+        all_positions: dict[int, "PlatePosition"],
     ) -> int | None:
-        """Find the first column where row A is empty."""
-        for col in range(self.COLUMNS):
-            row_a_position = col * len(self.ROWS)  # Row A in this column
-            pos = all_positions.get(row_a_position)
-            is_empty = (
+        """Find the first available slot.
+
+        Iterates through all positions in order (column by column)
+        to find the first empty slot. Returns the position index.
+        The caller is responsible for ensuring all required positions are free.
+
+        Args:
+            all_positions: Dict mapping position index to PlatePosition.
+
+        Returns:
+            The position index of the first empty slot, or None if not found.
+        """
+        for position_idx in range(len(self.ROWS) * self.COLUMNS):
+            pos = all_positions.get(position_idx)
+            if (
                 pos
                 and not pos.sample_raw
                 and not pos.sample_marker
                 and not pos.is_reserved
-            )
-            if is_empty:
-                return col
+            ):
+                return position_idx
         return None
 
     def _build_replica_positions(
         self,
         unique_ids: list[int],
-        start_column: int,
+        start_slot: int,
         replicates: int,
         all_positions: dict[int, "PlatePosition"],
     ) -> list[tuple["PlatePosition", int]]:
-        """Build target positions grid for horizontal replica placement."""
+        """Build target positions grid for horizontal replica placement.
+
+        Starting from start_slot, places each sample in consecutive rows
+        with replicas going horizontally across columns.
+        """
         target_positions: list[tuple[PlatePosition, int]] = []
 
+        start_col = start_slot // len(self.ROWS)
+        start_row = start_slot % len(self.ROWS)
+
         for sample_idx, marker_id in enumerate(unique_ids):
-            row_index = sample_idx  # A=0, B=1, etc.
+            row_index = start_row + sample_idx
             for replica_idx in range(replicates):
-                col = start_column + replica_idx
+                col = start_col + replica_idx
                 position_idx = col * len(self.ROWS) + row_index
                 pos = all_positions.get(position_idx)
 
@@ -1592,15 +1609,16 @@ class AnalysisPlate(Plate):
         return target_positions
 
     def add_sample_markers_with_replicas(
-        self, sample_marker_ids: list[int], replicates: int = 1
+        self: Self, sample_marker_ids: list[int], replicates: int = 1
     ) -> list[dict[str, int | str]]:
         """Add sample markers to plate with horizontal replica placement.
 
         When replicates > 1:
-        - Find the first column where row A is empty
-        - Place each unique sample in its own row (A-H)
+        - Find the first available slot on the plate
+        - Place each unique sample in consecutive rows starting from that slot
         - Replicas of each sample go horizontally across columns
         - Max 8 unique samples allowed (8 rows)
+        - Fails if any target position is occupied (caller must ensure space)
 
         When replicates == 1:
         - Falls back to standard add_sample_markers behavior
@@ -1614,7 +1632,7 @@ class AnalysisPlate(Plate):
 
         Raises:
             TooManySamplesForReplicas: If more than 8 unique samples.
-            CannotPlaceReplicasHorizontally: If not enough columns.
+            CannotPlaceReplicasHorizontally: If not enough columns or overlap.
             NotEnoughPositions: If not enough positions available.
             SampleMarkerNotFound: If a sample marker ID doesn't exist.
             SampleMarkerNotAllowed: If a marker doesn't match the whitelist.
@@ -1643,26 +1661,16 @@ class AnalysisPlate(Plate):
             p.position: p for p in self.positions.select_for_update().all()
         }
 
-        # Find the first column where row A is empty
-        start_column = self._find_start_column_for_replicas(all_positions)
+        # Find the first available slot
+        start_slot = self._find_start_slot_for_replicas(all_positions)
 
-        if start_column is None:
-            msg = "No empty position found in row A to start replica placement."
-            raise self.CannotPlaceReplicasHorizontally(msg)
-
-        # Check we have enough consecutive columns for replicas
-        if start_column + replicates > self.COLUMNS:
-            available = self.COLUMNS - start_column
-            msg = (
-                f"Not enough consecutive columns for {replicates} replicates. "
-                f"Starting at column {start_column + 1}, "
-                f"only {available} columns available."
-            )
+        if start_slot is None:
+            msg = "No empty position found to start replica placement."
             raise self.CannotPlaceReplicasHorizontally(msg)
 
         # Build the target positions grid: samples in rows, replicas in cols
         target_positions = self._build_replica_positions(
-            unique_ids, start_column, replicates, all_positions
+            unique_ids, start_slot, replicates, all_positions
         )
 
         # Batch fetch sample markers

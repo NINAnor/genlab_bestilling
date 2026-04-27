@@ -61,10 +61,19 @@
       <li>
         <a
           href="{% url 'order-analysis-list' %}"
-          class="flex items-center gap-3.5 px-3 py-2 text-sm font-medium duration-300 ease-in-out hover:text-brand-primary lg:text-base"
+          class="flex items-center gap-3.5 px-3 border-b py-2 text-sm font-medium duration-300 ease-in-out hover:text-brand-primary lg:text-base"
         >
           <i class="fas fa-dna"></i>
           Analysis
+        </a>
+      </li>
+      <li>
+        <a
+          href="{% url 'samples-list' %}"
+          class="flex items-center gap-3.5 px-3 py-2 text-sm font-medium duration-300 ease-in-out hover:text-brand-primary lg:text-base"
+        >
+          <i class="fas fa-vial"></i>
+          Samples
         </a>
       </li>
     </ul>

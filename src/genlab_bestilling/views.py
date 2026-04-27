@@ -30,6 +30,7 @@ from shared.views import ActionView, FormsetCreateView, FormsetUpdateView
 from .api.serializers import AnalysisSerializer, ExtractionSerializer
 from .filters import (
     GenrequestFilter,
+    MySampleFilter,
     OrderAnalysisFilter,
     OrderEquipmentFilter,
     OrderExtractionFilter,
@@ -60,6 +61,7 @@ from .tables import (
     EquipmentOrderTable,
     ExtractionOrderTable,
     GenrequestTable,
+    MySampleTable,
     OrderTable,
     SampleTable,
 )
@@ -287,6 +289,63 @@ class OrderListView(SingleTableMixin, LoginRequiredMixin, FilterView):
             .get_queryset()
             .filter_allowed(self.request.user)
             .select_related("genrequest", "polymorphic_ctype", "genrequest__project")
+        )
+
+
+class MySamplesListView(
+    BaseBreadcrumbMixin, LoginRequiredMixin, SingleTableMixin, FilterView
+):
+    """Samples list view for My orders > Samples page."""
+
+    model = Sample
+    table_class = MySampleTable
+    filterset_class = MySampleFilter
+    table_pagination = {"per_page": 50}
+    template_name = "genlab_bestilling/my_sample_list.html"
+    add_home = False
+
+    @cached_property
+    def crumbs(self) -> list[tuple]:
+        return [("Samples", reverse("samples-list"))]
+
+    def get_queryset(self) -> QuerySet[Sample]:
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)
+            .select_related(
+                "type",
+                "location",
+                "species",
+                "order",
+                "order__genrequest",
+                "order__genrequest__project",
+            )
+            .only(
+                "id",
+                "genlab_id",
+                "guid",
+                "name",
+                "year",
+                "pop_id",
+                "type__id",
+                "type__name",
+                "location__id",
+                "location__name",
+                "location__river_id",
+                "species__id",
+                "species__name",
+                "order__id",
+                "order__name",
+                "order__status",
+                "order__genrequest_id",
+                "order__genrequest__id",
+                "order__genrequest__project_id",
+                "order__genrequest__project__number",
+                "order__genrequest__project__name",
+            )
+            .exclude(order__status=Order.OrderStatus.DRAFT)
+            .order_by("-order__id", "id")
         )
 
 

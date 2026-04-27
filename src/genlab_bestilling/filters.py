@@ -1,6 +1,7 @@
 from typing import Any
 
 from dal import autocomplete
+from django import forms
 from django.db.models import Q, QuerySet
 from django.http import HttpRequest
 from django_filters import rest_framework as filters
@@ -43,6 +44,109 @@ class SampleFilter(filters.FilterSet):
             "is_invalid": ["exact"],
             "position": ["isnull"],
         }
+
+
+class MySampleFilter(filters.FilterSet):
+    """Filter for user's samples list (My orders > Samples)."""
+
+    guid = filters.CharFilter(
+        label="GUID",
+        lookup_expr="icontains",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search by GUID",
+            }
+        ),
+    )
+    project_number = filters.CharFilter(
+        label="UBW Project Number",
+        method="filter_project_number",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search by project number",
+            }
+        ),
+    )
+    name = filters.CharFilter(
+        label="Name",
+        lookup_expr="istartswith",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter name",
+            }
+        ),
+    )
+    genlab_id = filters.CharFilter(
+        label="Genlab ID",
+        lookup_expr="istartswith",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Genlab ID",
+            }
+        ),
+    )
+    year = filters.CharFilter(
+        label="Year",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter year",
+            }
+        ),
+    )
+    pop_id = filters.CharFilter(
+        label="Pop ID",
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Pop ID",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Sample
+        fields = (
+            "guid",
+            "project_number",
+            "name",
+            "genlab_id",
+            "species",
+            "type",
+            "year",
+            "location",
+            "pop_id",
+        )
+
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["species"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:species",
+            attrs={"data-placeholder": "Filter by species"},
+        )
+        self.filters["type"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:sample-type",
+            attrs={"data-placeholder": "Filter by sample type"},
+        )
+        self.filters["location"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:location",
+            attrs={"data-placeholder": "Filter by location"},
+        )
+
+    def filter_project_number(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.filter(order__genrequest__project__number__icontains=value)
 
     def filter_search(
         self,

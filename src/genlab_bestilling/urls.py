@@ -29,6 +29,7 @@ from .views import (
     GenrequestOrderDeleteView,
     GenrequestOrderListView,
     GenrequestUpdateView,
+    MySamplesListView,
     OrderListView,
     SamplesFrontendView,
     SamplesListView,
@@ -55,6 +56,11 @@ urlpatterns = [
         "orders/analysis/",
         AnalysisOrderListView.as_view(),
         name="order-analysis-list",
+    ),
+    path(
+        "samples/",
+        MySamplesListView.as_view(),
+        name="samples-list",
     ),
     path(
         "orders/equipment/",

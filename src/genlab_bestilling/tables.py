@@ -1,6 +1,8 @@
 from typing import Any
 
 import django_tables2 as tables
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import (
     AnalysisOrder,
@@ -120,6 +122,107 @@ class SampleTable(tables.Table):
         attrs = {"class": "w-full table-auto tailwind-table table-sm"}
 
         empty_text = "No Samples"
+
+
+class MySampleTable(tables.Table):
+    """Sample table for My orders > Samples page."""
+
+    genlab_id = tables.Column(
+        verbose_name="Genlab ID",
+        orderable=True,
+        empty_values=(None,),
+    )
+
+    guid = tables.Column(verbose_name="GUID")
+
+    order__id = tables.Column(
+        verbose_name="Order ID",
+        empty_values=(),
+    )
+
+    order__genrequest = tables.Column(
+        verbose_name="Genetic Request",
+    )
+
+    order__genrequest__project = tables.Column(
+        verbose_name="Project",
+    )
+
+    order__status = tables.Column(
+        verbose_name="Order Status",
+        orderable=True,
+    )
+
+    class Meta:
+        model = Sample
+        fields = (
+            "genlab_id",
+            "guid",
+            "name",
+            "species",
+            "type",
+            "year",
+            "pop_id",
+            "location",
+            "order__id",
+            "order__genrequest",
+            "order__genrequest__project",
+            "order__status",
+        )
+        attrs = {"class": "w-full table-auto tailwind-table table-sm"}
+        sequence = (
+            "genlab_id",
+            "guid",
+            "name",
+            "species",
+            "type",
+            "year",
+            "pop_id",
+            "location",
+            "order__id",
+            "order__genrequest",
+            "order__genrequest__project",
+            "order__status",
+        )
+        empty_text = "No Samples"
+
+    def render_genlab_id(self, value: str, record: Sample) -> str:
+        if value and record.order:
+            url = reverse(
+                "genrequest-extraction-samples",
+                kwargs={
+                    "genrequest_id": record.order.genrequest_id,
+                    "pk": record.order.pk,
+                },
+            )
+            return format_html('<a href="{}">{}</a>', url, value)
+        return value or "-"
+
+    def render_order__id(self, value: int, record: Sample) -> str:
+        if record.order:
+            url = reverse(
+                "genrequest-extraction-detail",
+                kwargs={
+                    "genrequest_id": record.order.genrequest_id,
+                    "pk": record.order.pk,
+                },
+            )
+            return format_html('<a href="{}">{}</a>', url, record.order)
+        return "-"
+
+    def render_order__genrequest(self, value: str, record: Sample) -> str:
+        if record.order and record.order.genrequest:
+            genrequest = record.order.genrequest
+            url = reverse("genrequest-detail", kwargs={"pk": genrequest.pk})
+            return format_html('<a href="{}">{}</a>', url, genrequest)
+        return "-"
+
+    def render_order__genrequest__project(self, value: str, record: Sample) -> str:
+        if record.order and record.order.genrequest and record.order.genrequest.project:
+            project = record.order.genrequest.project
+            url = reverse("nina:project-detail", kwargs={"pk": project.pk})
+            return format_html('<a href="{}">{}</a>', url, project)
+        return "-"
 
 
 class AnalysisSampleTable(tables.Table):

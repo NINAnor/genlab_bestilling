@@ -36,6 +36,7 @@ class BaseOrderTable(tables.Table):
 
 class OrderTable(BaseOrderTable):
     polymorphic_ctype = tables.Column(verbose_name="Type")
+    genrequest = tables.Column(linkify=True)
 
     class Meta:
         model = Order
@@ -64,13 +65,16 @@ class OrderTable(BaseOrderTable):
 
 
 class GenrequestTable(tables.Table):
+    id = tables.Column(linkify=True, orderable=False, empty_values=())
     project_id = tables.Column(linkify=True)
+    is_archived = tables.Column(verbose_name="Status", orderable=False)
 
     class Meta:
         model = Genrequest
         fields = (
             "project_id",
             "name",
+            "is_archived",
             "area",
             "species",
             "sample_types",
@@ -78,8 +82,22 @@ class GenrequestTable(tables.Table):
             "expected_samples_delivery_date",
             "expected_analysis_delivery_date",
         )
+        sequence = (
+            "id",
+            "project_id",
+            "name",
+            "is_archived",
+        )
 
         empty_text = "No projects"
+
+    def render_id(self, record: Any) -> str:
+        return record.display_id()
+
+    def render_is_archived(self, value: bool) -> str:
+        if value:
+            return "Archived"
+        return "Active"
 
     def render_tags(self, record: Any) -> str:
         return ",".join(map(str, record.tags.all()))

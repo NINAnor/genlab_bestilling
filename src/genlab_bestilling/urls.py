@@ -19,6 +19,7 @@ from .views import (
     ExtractionOrderEditView,
     ExtractionOrderListView,
     GenrequestAnalysisOrderListView,
+    GenrequestArchiveActionView,
     GenrequestCreateView,
     GenrequestDeleteView,
     GenrequestDetailView,
@@ -79,6 +80,11 @@ urlpatterns = [
         "genrequests/<int:pk>/delete/",
         GenrequestDeleteView.as_view(),
         name="genrequest-delete",
+    ),
+    path(
+        "genrequests/<int:pk>/archive/",
+        GenrequestArchiveActionView.as_view(),
+        name="genrequest-archive",
     ),
     path(
         "genrequests/<int:genrequest_id>/orders/",

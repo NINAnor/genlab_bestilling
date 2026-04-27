@@ -240,6 +240,10 @@ class Genrequest(AdminUrlsMixin, models.Model):  # type: ignore[django-manager-m
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_at = models.DateTimeField(auto_now=True)
+    is_archived = models.BooleanField(
+        default=False,
+        help_text="Archive the genetic project to hide it from the default list view",
+    )
 
     objects = managers.GenrequestQuerySet.as_manager()
     tags = TaggableManager(blank=True)
@@ -270,6 +274,11 @@ class Genrequest(AdminUrlsMixin, models.Model):  # type: ignore[django-manager-m
         return (
             self.expected_analysis_delivery_date - self.expected_samples_delivery_date
         ) < timedelta(days=30)
+
+    def toggle_archived(self) -> None:
+        """Toggle the archived status of the genetic project."""
+        self.is_archived = not self.is_archived
+        self.save(update_fields=["is_archived"])
 
 
 class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):

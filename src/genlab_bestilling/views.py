@@ -150,6 +150,35 @@ class GenrequestDeleteView(BaseBreadcrumbMixin, LoginRequiredMixin, DeleteView):
         )
 
 
+class GenrequestArchiveActionView(LoginRequiredMixin, SingleObjectMixin, ActionView):
+    """Allow users to archive/unarchive a genetic project."""
+
+    model = Genrequest
+
+    def get_queryset(self) -> QuerySet:
+        return Genrequest.objects.filter_allowed(self.request.user)
+
+    def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        self.object = self.get_object()
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form: Form) -> HttpResponse:
+        self.object.toggle_archived()
+        status = _("unarchived") if not self.object.is_archived else _("archived")
+        messages.add_message(
+            self.request,
+            messages.SUCCESS,
+            _(f"The genetic project has been {status}"),
+        )
+        return super().form_valid(form)
+
+    def get_success_url(self) -> str:
+        return reverse("genrequest-detail", kwargs={"pk": self.object.pk})
+
+    def form_invalid(self, form: Form) -> HttpResponse:
+        return HttpResponseRedirect(self.get_success_url())
+
+
 class GenrequestCreateView(BaseBreadcrumbMixin, FormsetCreateView):
     model = Genrequest
     form_class = GenrequestForm

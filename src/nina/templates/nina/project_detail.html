@@ -44,5 +44,17 @@
 
     {% render_table table %}
   </div>
+
+  {% if object.verified_at %}
+  <div class="mt-5">
+    <h4 class="text-3xl">Genetic Projects</h4>
+    {% render_table genrequests_table %}
+  </div>
+
+  <div class="mt-5">
+    <h4 class="text-3xl">Orders</h4>
+    {% render_table orders_table %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

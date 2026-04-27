@@ -9,6 +9,8 @@ from formset.views import (
     BulkEditCollectionView,
 )
 
+from genlab_bestilling.models import Genrequest, Order
+from genlab_bestilling.tables import GenrequestTable, OrderTable
 from shared.views import FormsetCreateView, FormsetUpdateView
 
 from .forms import ProjectCreateForm, ProjectMembershipCollection, ProjectUpdateForm
@@ -38,6 +40,23 @@ class ProjectDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         ctx = super().get_context_data(**kwargs)
         ctx["table"] = MembersTable(data=self.object.members.all())
+
+        # Get genetic projects (genrequests) for this project
+        genrequests = (
+            Genrequest.objects.filter(project=self.object)
+            .select_related("area")
+            .prefetch_related("species", "sample_types")
+        )
+        ctx["genrequests_table"] = GenrequestTable(data=genrequests)
+
+        # Get orders for all genetic projects under this project
+        orders = (
+            Order.objects.filter(genrequest__project=self.object)
+            .select_related("genrequest", "genrequest__project", "polymorphic_ctype")
+            .order_by("-created_at")
+        )
+        ctx["orders_table"] = OrderTable(data=orders)
+
         return ctx
 
 

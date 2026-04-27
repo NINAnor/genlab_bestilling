@@ -284,6 +284,11 @@ class OrderAnalysisFilter(OrderFilter):
 
 
 class GenrequestFilter(filters.FilterSet):
+    is_archived = filters.BooleanFilter(
+        field_name="is_archived",
+        label="Archived",
+    )
+
     def __init__(
         self,
         data: dict[str, Any] | None = None,
@@ -292,6 +297,11 @@ class GenrequestFilter(filters.FilterSet):
         request: HttpRequest | None = None,
         prefix: str | None = None,
     ):
+        # Default to showing only non-archived projects if not specified
+        if data is None:
+            data = {}
+        if "is_archived" not in data:
+            data = {**data, "is_archived": "false"}
         super().__init__(data, queryset, request=request, prefix=prefix)
         self.filters["project"].extra["widget"] = autocomplete.ModelSelect2(
             url="autocomplete:project"

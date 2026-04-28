@@ -99,6 +99,18 @@ def filter_order_by_id_only(queryset: QuerySet, name: str, value: str) -> QueryS
     return queryset
 
 
+def filter_order_by_sample_id(queryset: QuerySet, name: str, value: str) -> QuerySet:
+    """
+    Filter orders by sample genlab_id or guid.
+
+    Delegates to the queryset's filter_by_sample_id method.
+    """
+    if not value:
+        return queryset
+
+    return queryset.filter_by_sample_id(value)
+
+
 class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = filters.CharFilter(
         label="Order ID",
@@ -106,6 +118,16 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Enter Order ID",
+            }
+        ),
+    )
+
+    sample_id = filters.CharFilter(
+        label="Genlab ID / GUID",
+        method=filter_order_by_sample_id,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Genlab ID or GUID",
             }
         ),
     )
@@ -171,6 +193,7 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         model = AnalysisOrder
         fields = (
             "id",
+            "sample_id",
             "status",
             "genrequest__area",
             "responsible_staff",
@@ -250,6 +273,16 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         ),
     )
 
+    sample_id = filters.CharFilter(
+        label="Genlab ID / GUID",
+        method=filter_order_by_sample_id,
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Enter Genlab ID or GUID",
+            }
+        ),
+    )
+
     status = filters.MultipleChoiceFilter(
         field_name="status",
         label="Status",
@@ -302,6 +335,7 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
         model = ExtractionOrder
         fields = (
             "id",
+            "sample_id",
             "status",
             "genrequest__area",
             "responsible_staff",

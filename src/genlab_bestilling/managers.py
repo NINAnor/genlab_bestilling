@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
-from django.db.models import BigIntegerField, Case, QuerySet, Value, When
+from django.db.models import BigIntegerField, Case, Q, QuerySet, Value, When
 from django.db.models.functions import Cast
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
@@ -40,6 +40,19 @@ class OrderQuerySet(PolymorphicQuerySet):
         Get only orders in draft
         """
         return self.filter(status=self.model.OrderStatus.DRAFT)
+
+    def filter_by_sample_id(self, value: str) -> QuerySet:
+        """
+        Filter orders by sample genlab_id or guid.
+
+        Searches for samples where genlab_id or guid contains the given value.
+        """
+        if not value:
+            return self
+
+        return self.filter(
+            Q(samples__genlab_id__icontains=value) | Q(samples__guid__icontains=value)
+        ).distinct()
 
 
 OrderManager = PolymorphicManager.from_queryset(OrderQuerySet)

@@ -900,6 +900,7 @@ class ProjectDetailView(StaffMixin, DetailView):
                 "polymorphic_ctype",
             )
             .prefetch_related("species", "responsible_staff")
+            .annotate(total_samples=Count("samples"))
             .order_by("-created_at")
         )
         ctx["orders_table"] = ProjectOrderTable(data=orders)

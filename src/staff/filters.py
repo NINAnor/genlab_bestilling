@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 import django_filters as filters
@@ -56,10 +57,52 @@ class StaticModelSelect2Multiple(autocomplete.ModelSelect2Multiple):
         return self.model.objects.none()
 
 
+def parse_order_id(value: str) -> int | None:
+    """
+    Parse an order ID from various formats.
+
+    Supports:
+    - Plain integers: "123"
+    - Order display format: "#EXT_123", "#ANA_123", "#EQU_123"
+    """
+    if not value:
+        return None
+
+    # Try plain integer first
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    # Try order display format (#EXT_123, #ANA_123, etc.)
+    match = re.match(r"^#?(?:EXT|ANA|EQU)_(\d+)$", value, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+
+    return None
+
+
+def filter_order_by_id_only(queryset: QuerySet, name: str, value: str) -> QuerySet:
+    """
+    Filter orders by ID only.
+
+    Safely parses order ID formats and ignores invalid values.
+    """
+    if not value:
+        return queryset
+
+    order_id = parse_order_id(value)
+    if order_id is not None:
+        return queryset.filter(id=order_id)
+
+    # Invalid order ID format - ignore the filter
+    return queryset
+
+
 class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = filters.CharFilter(
-        field_name="id",
         label="Order ID",
+        method=filter_order_by_id_only,
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Enter Order ID",
@@ -138,8 +181,8 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
 
 class EquipmentOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = filters.CharFilter(
-        field_name="id",
         label="Order ID",
+        method=filter_order_by_id_only,
         widget=forms.TextInput(
             attrs={
                 "class": "bg-white border border-gray-300 rounded-lg py-2 px-4 w-full text-gray-700",  # noqa: E501
@@ -198,8 +241,8 @@ class EquipmentOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
 
 class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     id = CharFilter(
-        field_name="id",
         label="Order ID",
+        method=filter_order_by_id_only,
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Enter Order ID",

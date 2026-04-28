@@ -337,7 +337,7 @@ class OrderExtractionSamplesListView(
         return (
             super()
             .get_queryset()
-            .select_related("type", "location", "species")
+            .select_related("type", "location", "species", "order")
             .filter(order=self.kwargs["pk"])
             .annotate_numeric_name()
         )
@@ -346,8 +346,13 @@ class OrderExtractionSamplesListView(
         context = super().get_context_data(**kwargs)
         order = ExtractionOrder.objects.get(pk=self.kwargs.get("pk"))
         context["order"] = order
+
+        # Pre-compute counts to avoid N+1 queries in template
         total_samples = order.samples.count()
-        filled_count = order.filled_genlab_count
+        filled_count = order.samples.filter(genlab_id__isnull=False).count()
+
+        context["total_samples"] = total_samples
+        context["filled_count"] = filled_count
         context["progress_percent"] = (
             (float(filled_count) / float(total_samples)) * 100
             if total_samples > 0

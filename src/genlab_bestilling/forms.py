@@ -55,6 +55,9 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             "markers"
         ].help_text = "If you do not know which markers to use, add all"
 
+        # Optimize queryset to avoid N+1 on Marker.__str__
+        self.fields["markers"].queryset = Marker.objects.select_related("analysis_type")
+
     def save(self, commit: bool = True) -> Genrequest:
         obj = super().save(commit=False)
         if self.user:
@@ -106,7 +109,7 @@ class GenrequestEditForm(GenrequestForm):
 
         self.fields["markers"].queryset = Marker.objects.filter(
             species__id__in=self.instance.species.all(),
-        )
+        ).select_related("analysis_type")
 
     class Meta(GenrequestForm.Meta):
         fields = (

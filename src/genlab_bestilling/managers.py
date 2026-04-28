@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import TYPE_CHECKING
 
 from django.db import models, transaction
@@ -132,6 +133,16 @@ class SampleQuerySet(models.QuerySet):
         self.bulk_update(updates, ["genlab_id"])
 
 
+class AnalysisStatus(StrEnum):
+    """Status of a sample marker analysis based on plate positions."""
+
+    NOT_STARTED = "not_started"
+    PCR = "pcr"
+    ANALYZING = "analyzing"
+    RESULTS = "results"
+    INVALID = "invalid"
+
+
 class SampleAnalysisMarkerQuerySet(models.QuerySet):
     def filter_allowed(self, user: User) -> QuerySet:
         """
@@ -146,6 +157,59 @@ class SampleAnalysisMarkerQuerySet(models.QuerySet):
         return self.select_related("order").filter(
             order__status=self.model.OrderStatus.DRAFT
         )
+
+    def filter_status_not_started(self) -> QuerySet:
+        """Filter sample markers with no positions on analysis plates."""
+        return self.filter(positions__isnull=True)
+
+    def filter_status_pcr(self) -> QuerySet:
+        """Filter markers with positions but none on plates with analysis_date."""
+        return (
+            self.filter(positions__isnull=False)
+            .exclude(positions__plate__analysisplate__analysis_date__isnull=False)
+            .distinct()
+        )
+
+    def filter_status_analyzing(self) -> QuerySet:
+        """Filter sample markers on plates with analysis_date but no result_file."""
+        return self.filter(
+            positions__plate__analysisplate__analysis_date__isnull=False,
+            positions__plate__analysisplate__result_file="",
+        ).distinct()
+
+    def filter_status_results(self) -> QuerySet:
+        """Filter sample markers on plates with result_file."""
+        return (
+            self.exclude(positions__plate__analysisplate__result_file="")
+            .filter(positions__plate__analysisplate__result_file__isnull=False)
+            .distinct()
+        )
+
+    def filter_status_invalid(self) -> QuerySet:
+        """Filter sample markers with at least one invalid position."""
+        return self.filter(positions__is_invalid=True).distinct()
+
+    def filter_by_status(self, status: str | AnalysisStatus) -> QuerySet:
+        """Filter by analysis status based on plate positions.
+
+        Status is determined by the sample marker's positions on analysis plates:
+        - not_started: No positions on analysis plates
+        - pcr: Has positions, but none on plates with analysis_date
+        - analyzing: Has positions on plates with analysis_date but no result_file
+        - results: Has positions on plates with result_file
+        - invalid: Has at least one invalid position
+        """
+        if status == AnalysisStatus.NOT_STARTED:
+            return self.filter_status_not_started()
+        if status == AnalysisStatus.PCR:
+            return self.filter_status_pcr()
+        if status == AnalysisStatus.ANALYZING:
+            return self.filter_status_analyzing()
+        if status == AnalysisStatus.RESULTS:
+            return self.filter_status_results()
+        if status == AnalysisStatus.INVALID:
+            return self.filter_status_invalid()
+        return self
 
 
 class GIDSequenceQuerySet(models.QuerySet):

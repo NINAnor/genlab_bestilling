@@ -849,6 +849,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     isolation_method = filters.NumberFilter(field_name="sample__isolation_method")
     genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
     plate = CharFilter(method="filter_plate")
+    status = CharFilter(method="filter_status")
 
     def filter_plate(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         if not value:
@@ -860,6 +861,9 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
             )
         ).filter(qiagen_id__icontains=value)
 
+    def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        return queryset.filter_by_status(value)
+
     class Meta:
         model = SampleMarkerAnalysis
         fields = [
@@ -870,6 +874,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
             "isolation_method",
             "genlab_id",
             "plate",
+            "status",
         ]
 
 

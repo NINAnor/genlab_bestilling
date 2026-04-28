@@ -106,7 +106,7 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-3">
         {/* Analysis Order filter - searchable async select */}
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Analysis Order</label>
@@ -122,6 +122,23 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
             styles={selectStyles}
             classNamePrefix="react-select"
           />
+        </div>
+
+        {/* Analysis Status filter */}
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Analysis Status</label>
+          <select
+            value={filters.status || ''}
+            onChange={(e) => updateFilter('status', e.target.value)}
+            className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">All statuses</option>
+            <option value="not_started">Not Started</option>
+            <option value="pcr">PCR</option>
+            <option value="analyzing">Analyzing</option>
+            <option value="results">Results</option>
+            <option value="invalid">Invalid</option>
+          </select>
         </div>
 
         {/* Marker filter */}
@@ -234,6 +251,7 @@ FilterBar.propTypes = {
     isolation_method: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     genlab_id: PropTypes.string,
     plate: PropTypes.string,
+    status: PropTypes.string,
   }).isRequired,
   onFiltersChange: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,

@@ -22,6 +22,7 @@ const INITIAL_FILTERS = {
   isolation_method: '',
   genlab_id: '',
   plate: '',
+  status: '',
 };
 
 function OrderApp() {

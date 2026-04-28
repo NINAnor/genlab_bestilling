@@ -3,7 +3,7 @@ from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
-from django.db.models import Count, Prefetch, QuerySet
+from django.db.models import Count, OuterRef, Prefetch, QuerySet, Subquery
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.middleware.csrf import get_token
@@ -466,6 +466,13 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
                     queryset=IsolationMethod.objects.order_by("name").distinct(),
                 ),
             )
+            .annotate(
+                plate_qiagen_id=Subquery(
+                    ExtractionPlate.objects.filter(
+                        plate_ptr=OuterRef("position__plate")
+                    ).values("qiagen_id")[:1]
+                )
+            )
         )
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
@@ -482,10 +489,13 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
+
+        # Pre-compute counts to avoid N+1 queries in template
         total_samples = order.samples.count()
-        filled_count = order.isolated_count
+        isolated_count = order.samples.filter(is_isolated=True).count()
+
         context["progress_percent"] = (
-            (float(filled_count) / float(total_samples)) * 100
+            (float(isolated_count) / float(total_samples)) * 100
             if total_samples > 0
             else 0
         )
@@ -493,6 +503,8 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         context.update(
             {
                 "order": order,
+                "total_samples": total_samples,
+                "isolated_count": isolated_count,
                 "statuses": self.get_base_fields(),
                 "isolation_methods": self.get_isolation_methods(),
             }

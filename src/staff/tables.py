@@ -507,9 +507,15 @@ class SampleStatusTable(tables.Table):
     )
 
     def render_position(self, value: Any, record: Any) -> str:
-        if value:
-            return str(value)
-        return ""
+        if not value:
+            return ""
+        # Use annotated plate_qiagen_id to avoid N+1 on polymorphic plate
+        qiagen_id = getattr(record, "plate_qiagen_id", None)
+        if qiagen_id is not None:
+            plate_str = f"#Q{qiagen_id}"
+        else:
+            plate_str = str(value.plate.id)[:8]
+        return f"{plate_str}@{value.position_to_coordinates()}"
 
     class Meta:
         model = Sample

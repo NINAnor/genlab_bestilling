@@ -8,3 +8,4 @@
 - PREFER backward compatible changes to APIs
 - PREFER adding readonly fields for related fields in the REST API
 - PREFER fat models over logic in the views
+- AVOID using `select_related` with polymorphic models (e.g., `Plate` -> `ExtractionPlate`). It doesn't properly cache the subclass data and causes N+1 queries. Use `Subquery` with `OuterRef` to annotate the needed fields instead.

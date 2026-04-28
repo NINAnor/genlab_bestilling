@@ -1,4 +1,3 @@
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import exceptions, serializers
 
 from ..models import (
@@ -149,21 +148,23 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         return obj.bird_id or "-"
 
     def get_qiagen(self, obj: Sample) -> str:
-        try:
-            return obj.position.plate.get_real_instance()
-        except ObjectDoesNotExist:
-            return "-"
+        # Use annotated plate_qiagen_id to avoid N+1 polymorphic lookups
+        qiagen_id = getattr(obj, "plate_qiagen_id", None)
+        if qiagen_id is not None:
+            return f"#Q{qiagen_id}"
+        return "-"
 
     def get_analysis_orders(self, obj: Sample) -> list[str]:
         if not obj.order:
             return []
 
-        analysis_orders = obj.order.analysis_orders.all()
+        # Use prefetched data - convert to list to avoid additional queries
+        analysis_orders = list(obj.order.analysis_orders.all())
         # Return all analysis order IDs as strings
         # only if there is exactly one analysis order, else return empty list.
         # This is to ensure no duplicate rows in staffs common sheet
-        if analysis_orders.count() == 1:
-            return [str(analysis_orders.first().id)]
+        if len(analysis_orders) == 1:
+            return [str(analysis_orders[0].id)]
         return []
 
     def get_project(self, obj: Sample) -> str:
@@ -172,8 +173,9 @@ class SampleCSVSerializer(serializers.ModelSerializer):
         return ""
 
     def get_isolation_method(self, obj: Sample) -> str:
-        method = obj.isolation_method.first()
-        return method.name if method else ""
+        # Use prefetched data
+        methods = list(obj.isolation_method.all())
+        return methods[0].name if methods else ""
 
     def get_internal_note(self, obj: Sample) -> str:
         if obj.internal_note:

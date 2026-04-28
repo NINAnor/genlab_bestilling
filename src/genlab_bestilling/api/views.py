@@ -4,7 +4,7 @@ import uuid
 from typing import Any
 
 from django.db import transaction
-from django.db.models import Prefetch, QuerySet
+from django.db.models import OuterRef, Prefetch, QuerySet, Subquery
 from django.http import HttpResponse
 from django.views import View
 from drf_spectacular.utils import extend_schema
@@ -39,6 +39,7 @@ from ..models import (
     AnalysisOrder,
     AnalysisType,
     ExtractionOrder,
+    ExtractionPlate,
     IsolationMethod,
     Location,
     Marker,
@@ -197,7 +198,15 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
                 Prefetch(
                     "order__analysis_orders",
                     queryset=AnalysisOrder.objects.only("id"),
-                )
+                ),
+                "isolation_method",
+            )
+            .annotate(
+                plate_qiagen_id=Subquery(
+                    ExtractionPlate.objects.filter(
+                        pk=OuterRef("position__plate_id")
+                    ).values("qiagen_id")[:1]
+                ),
             )
             .order_by("genlab_id", "type")
         )

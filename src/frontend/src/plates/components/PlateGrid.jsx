@@ -73,8 +73,8 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
         <div
           className="inline-grid gap-0.5"
           style={{
-            gridTemplateColumns: `2rem repeat(${COLS.length}, 5rem)`,
-            gridTemplateRows: `auto repeat(${ROWS.length}, 4rem)`,
+            gridTemplateColumns: `2rem repeat(${COLS.length}, 6rem)`,
+            gridTemplateRows: `auto repeat(${ROWS.length}, 5rem)`,
           }}
         >
         {/* Top-left empty cell */}

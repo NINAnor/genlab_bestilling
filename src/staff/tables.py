@@ -13,6 +13,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     Order,
     Sample,
     SampleMarkerAnalysis,
@@ -53,6 +54,106 @@ class ProjectTable(tables.Table):
         fields = ("number", "name", "verified_at")
         sequence = ("number", "name", "toggle_active", "verified_at")
         order_by = ("-verified_at",)
+
+
+# Map polymorphic content type model names to staff URL names
+ORDER_TYPE_URL_MAP = {
+    "analysisorder": "staff:order-analysis-detail",
+    "extractionorder": "staff:order-extraction-detail",
+    "equipmentorder": "staff:order-equipment-detail",
+}
+
+
+def get_staff_order_url(record: Order) -> str:
+    """Get the staff detail URL for an order based on its polymorphic type."""
+    # Use polymorphic_ctype.model to avoid requiring actual subclass instances
+    model_name = record.polymorphic_ctype.model
+    url_name = ORDER_TYPE_URL_MAP.get(model_name)
+    if url_name:
+        return reverse(url_name, kwargs={"pk": record.pk})
+    return record.get_absolute_url()
+
+
+class ProjectOrderTable(OrderStatusMixinTable, PriorityMixinTable):
+    """Order table for project detail page with staff URL links."""
+
+    id = tables.Column(
+        linkify=get_staff_order_url,
+        orderable=False,
+        empty_values=(),
+        verbose_name="Order ID",
+    )
+
+    def render_id(self, record: Order) -> str:
+        return str(record)
+
+    area = tables.Column(
+        accessor="genrequest__area__name",
+        verbose_name="Area",
+        orderable=True,
+    )
+
+    description = tables.Column(
+        accessor="genrequest__name",
+        verbose_name="Description",
+        orderable=True,
+    )
+
+    species = tables.ManyToManyColumn(
+        verbose_name="Species",
+    )
+
+    responsible_staff = tables.ManyToManyColumn(
+        accessor="responsible_staff",
+        verbose_name="Assigned staff",
+        orderable=False,
+    )
+
+    class Meta:
+        fields = (
+            "priority",
+            "id",
+            "status",
+            "area",
+            "description",
+            "species",
+            "total_samples",
+            "responsible_staff",
+        )
+        empty_text = "No Orders"
+        order_by = ("-priority", "status")
+
+
+class ProjectGenrequestTable(tables.Table):
+    """Genrequest table for project detail page."""
+
+    id = tables.Column(linkify=True, orderable=False, empty_values=())
+    is_archived = tables.Column(verbose_name="Status", orderable=False)
+
+    class Meta:
+        model = Genrequest
+        fields = (
+            "name",
+            "is_archived",
+            "area",
+            "species",
+            "sample_types",
+            "expected_total_samples",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
+        )
+        sequence = (
+            "id",
+            "name",
+            "is_archived",
+        )
+        empty_text = "No genetic projects"
+
+    def render_id(self, record: Genrequest) -> str:
+        return record.display_id()
+
+    def render_is_archived(self, value: bool) -> str:
+        return "Archived" if value else "Active"
 
 
 class OrderTable(OrderStatusMixinTable, PriorityMixinTable):

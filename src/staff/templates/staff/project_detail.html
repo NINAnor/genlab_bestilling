@@ -1,6 +1,7 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
 {% load next_input %}
+{% load render_table from django_tables2 %}
 
 {% block content %}
 
@@ -17,20 +18,44 @@
     </div>
 
     <h3 class="text-4xl mb-5">Project {{ object }}</h3>
-    <div class="flex gap-5 mb-5"></div>
 
     <div class="flex flex-wrap gap-5 my-5">
+        {% if not object.verified_at %}
         {% url 'staff:projects-verify' pk=object.pk as verify_url %}
         <form method="post" action="{{ verify_url }}">
             {% csrf_token %}
             {% next_url_input %}
-        {% if not object.verified_at %}
             <button type="submit" class="btn btn-success">
                 <i class="fa-solid fa-circle-check"></i> Mark as verified
             </button>
+        </form>
         {% endif %}
+
+        {% url 'staff:projects-archive' pk=object.pk as archive_url %}
+        <form method="post" action="{{ archive_url }}">
+            {% csrf_token %}
+            {% if object.active %}
+            <button type="submit" class="btn btn-warning">
+                <i class="fa-solid fa-archive"></i> Archive project
+            </button>
+            {% else %}
+            <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-box-open"></i> Activate project
+            </button>
+            {% endif %}
+        </form>
     </div>
 
     {% object-detail-staff object=object %}
+
+    <div class="mt-8">
+        <h4 class="text-3xl mb-4">Genetic Projects</h4>
+        {% render_table genrequests_table %}
+    </div>
+
+    <div class="mt-8">
+        <h4 class="text-3xl mb-4">Orders</h4>
+        {% render_table orders_table %}
+    </div>
 
 {% endblock %}

@@ -61,6 +61,8 @@ from .tables import (
     ExtractionOrderTable,
     ExtractionPlateTable,
     OrderExtractionSampleTable,
+    ProjectGenrequestTable,
+    ProjectOrderTable,
     ProjectTable,
     SampleStatusTable,
     SampleTable,
@@ -859,6 +861,33 @@ class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
 
 class ProjectDetailView(StaffMixin, DetailView):
     model = Project
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+
+        # Get genetic projects (genrequests) for this project
+        genrequests = (
+            Genrequest.objects.filter(project=self.object)
+            .select_related("area", "project")
+            .prefetch_related("species", "sample_types")
+        )
+        ctx["genrequests_table"] = ProjectGenrequestTable(data=genrequests)
+
+        # Get orders for all genetic projects under this project
+        orders = (
+            Order.objects.filter(genrequest__project=self.object)
+            .select_related(
+                "genrequest",
+                "genrequest__area",
+                "genrequest__project",
+                "polymorphic_ctype",
+            )
+            .prefetch_related("species", "responsible_staff")
+            .order_by("-created_at")
+        )
+        ctx["orders_table"] = ProjectOrderTable(data=orders)
+
+        return ctx
 
 
 class ProjectValidateActionView(SingleObjectMixin, SafeRedirectMixin, ActionView):

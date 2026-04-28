@@ -7,6 +7,7 @@ from django.urls import include, path, reverse_lazy
 from django.views import defaults as default_views
 from django.views import generic
 from django.views.i18n import JavaScriptCatalog
+from health_check.views import HealthCheckView
 
 
 class HomeView(LoginRequiredMixin, generic.RedirectView):
@@ -17,7 +18,16 @@ class HomeView(LoginRequiredMixin, generic.RedirectView):
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path(settings.ADMIN_URL, admin.site.urls),
-    path("ht/", include("health_check.urls")),
+    path(
+        "ht/",
+        HealthCheckView.as_view(
+            checks=[
+                "health_check.Cache",
+                "health_check.Database",
+                "health_check.Storage",
+            ]
+        ),
+    ),
     path("api/", include("config.routers")),
     path("autocomplete/", include("config.autocomplete", namespace="autocomplete")),
     path("accounts/", include("allauth.urls")),

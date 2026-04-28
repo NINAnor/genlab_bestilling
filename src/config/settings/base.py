@@ -105,8 +105,6 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth",
     "django_probes",
     "health_check",
-    "health_check.db",
-    "health_check.contrib.migrations",
     "psqlextra",
     "solo",
     "neapolitan",

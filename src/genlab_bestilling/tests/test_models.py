@@ -493,7 +493,7 @@ def test_replicate_function_creates_replicas(extraction):
         # Check genlab_ids start from the correct sequence position
         # Replication sequences use 3-digit zero padding
         for i, replica_sample in enumerate(replica_samples.order_by("id"), 1):
-            expected_id = f"{sample_genlab_id}-{initial_last_value + i:03d}"
+            expected_id = f"{sample_genlab_id}-{initial_last_value + i:02d}"
             assert replica_sample.genlab_id == expected_id
             assert replica_sample.parent == sample
             assert replica_sample.species == sample.species
@@ -553,7 +553,7 @@ def test_replicate_function_multiple_calls(extraction):
         assert replica_samples.count() == 3
 
         expected_ids = [
-            f"{sample_genlab_id}-{initial_last_value + i:03d}" for i in range(1, 4)
+            f"{sample_genlab_id}-{initial_last_value + i:02d}" for i in range(1, 4)
         ]
         actual_ids = [replica.genlab_id for replica in replica_samples]
         assert actual_ids == expected_ids

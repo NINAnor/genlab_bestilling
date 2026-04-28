@@ -899,8 +899,15 @@ class ProjectDetailView(StaffMixin, DetailView):
                 "genrequest__project",
                 "polymorphic_ctype",
             )
-            .prefetch_related("species", "responsible_staff")
-            .annotate(total_samples=Count("samples"))
+            .prefetch_related("responsible_staff")
+            .annotate(
+                total_samples=Subquery(
+                    Sample.objects.filter(order_id=OuterRef("pk"))
+                    .values("order_id")
+                    .annotate(cnt=Count("id"))
+                    .values("cnt")[:1]
+                )
+            )
             .order_by("-created_at")
         )
         ctx["orders_table"] = ProjectOrderTable(data=orders)

@@ -101,6 +101,19 @@ class ProjectOrderTable(OrderStatusMixinTable, PriorityMixinTable):
 
     species = tables.ManyToManyColumn(
         verbose_name="Species",
+        default="-",
+    )
+
+    def render_species(self, record: Order) -> str:
+        # Only ExtractionOrder has species field
+        if hasattr(record, "species"):
+            return ", ".join(str(s) for s in record.species.all())
+        return "-"
+
+    total_samples = tables.Column(
+        verbose_name="Total Samples",
+        orderable=False,
+        default=0,
     )
 
     responsible_staff = tables.ManyToManyColumn(

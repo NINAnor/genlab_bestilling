@@ -538,7 +538,7 @@ export default function PlateSearch() {
                     disabled={setAnalysisDateMutation.isPending || !analysisDate}
                     className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
                   >
-                    {setAnalysisDateMutation.isPending ? 'Saving…' : 'Save'}
+                    {setAnalysisDateMutation.isPending ? 'Saving…' : 'Proceed'}
                   </button>
                   {selectedPlate.analysis_date && (
                     <button

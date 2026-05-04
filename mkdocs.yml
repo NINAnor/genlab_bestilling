@@ -1,0 +1,16 @@
+site_name: Genlab Bestilling
+docs_dir: docs
+repo_url: https://github.com/ninanor/genlab_bestilling/
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - kroki
+
+nav:
+  - Introduction: index.md
+  - Structure: Structure.md
+  - Technical Notes: Technical.md

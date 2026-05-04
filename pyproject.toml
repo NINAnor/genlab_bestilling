@@ -17,6 +17,10 @@ dev = [
   "mypy",
   "djangorestframework-stubs[compatible-mypy]"
 ]
+docs = [
+  "mkdocs-material",
+  "mkdocs-kroki-plugin"
+]
 prod = ["gunicorn", "sentry-sdk>=1.40.5"]
 
 [project]

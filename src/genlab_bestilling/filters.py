@@ -45,6 +45,16 @@ class SampleFilter(filters.FilterSet):
             "position": ["isnull"],
         }
 
+    def filter_markers_in_list(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if value:
+            return queryset.filter(species__markers__in=value)
+        return queryset
+
 
 class MySampleFilter(filters.FilterSet):
     """Filter for user's samples list (My orders > Samples)."""

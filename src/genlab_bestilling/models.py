@@ -722,6 +722,9 @@ class AnalysisOrder(Order):
             if persist:
                 super().confirm_order()
 
+    def update_status(self) -> None:
+        pass
+
     def populate_from_order(self) -> None:
         """
         Create the list of markers per sample to analyze

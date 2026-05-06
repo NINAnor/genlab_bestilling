@@ -29,6 +29,12 @@ function IndeterminateCheckbox({ indeterminate, checked, onChange, ...rest }) {
  * Generate columns array with showFishId baked in.
  */
 function getColumns(showFishId) {
+  const renderBooleanStatus = (value) => (
+    <span className={`text-sm font-medium ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
+      {value ? '✓' : '—'}
+    </span>
+  );
+
   return [
     {
       id: 'select',
@@ -157,10 +163,32 @@ function getColumns(showFishId) {
       header: 'PCR',
       accessorFn: (row) => !!row.analysis_position,
       cell: ({ getValue }) => (
-        <span className={`text-sm font-medium ${getValue() ? 'text-emerald-600' : 'text-gray-400'}`}>
-          {getValue() ? '✓' : '—'}
-        </span>
+        renderBooleanStatus(getValue())
       ),
+    },
+    {
+      id: 'has_pcr',
+      accessorKey: 'has_pcr',
+      header: 'Has PCR',
+      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
+    },
+    {
+      id: 'is_analysed',
+      accessorKey: 'is_analysed',
+      header: 'Analysed',
+      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
+    },
+    {
+      id: 'is_outputted',
+      accessorKey: 'is_outputted',
+      header: 'Outputted',
+      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
+    },
+    {
+      id: 'is_invalid',
+      accessorKey: 'is_invalid',
+      header: 'Invalid',
+      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
     },
     {
       id: 'analyzing',

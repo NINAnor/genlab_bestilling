@@ -10,6 +10,8 @@ import { create } from 'zustand';
 const useOrderStore = create((set) => ({
   orderId: null,
   orderLabel: null,
+  orderStatus: null,
+  orderStatusLabel: null,
   sampleMarkers: {},
   sampleMarkerIds: [],
   selectedMarkerIds: {},
@@ -22,6 +24,8 @@ const useOrderStore = create((set) => ({
     set({
       orderId: cfg.order_id ?? null,
       orderLabel: cfg.order_label ?? null,
+      orderStatus: cfg.order_status ?? null,
+      orderStatusLabel: cfg.order_status_label ?? null,
     }),
 
   /** Toggle between showing fish_id and genlab_id */

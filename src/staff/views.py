@@ -1177,6 +1177,8 @@ class SampleMarkersView(StaffMixin, TemplateView):
                 order = AnalysisOrder.objects.get(pk=order_id)
                 frontend_args["order_id"] = order.pk
                 frontend_args["order_label"] = str(order)
+                frontend_args["order_status"] = order.status
+                frontend_args["order_status_label"] = order.get_status_display()
             except AnalysisOrder.DoesNotExist:
                 pass
         context["frontend_args"] = frontend_args

@@ -30,6 +30,8 @@ function OrderApp() {
   const init = useOrderStore((s) => s.init);
   const orderId = useOrderStore((s) => s.orderId);
   const orderLabel = useOrderStore((s) => s.orderLabel);
+  const orderStatus = useOrderStore((s) => s.orderStatus);
+  const orderStatusLabel = useOrderStore((s) => s.orderStatusLabel);
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
   const showFishId = useOrderStore((s) => s.showFishId);
   const toggleShowFishId = useOrderStore((s) => s.toggleShowFishId);
@@ -87,12 +89,26 @@ function OrderApp() {
     }
   };
 
+  const statusTagClass = {
+    draft: 'bg-gray-100 text-gray-700 border-gray-200',
+    confirmed: 'bg-blue-100 text-blue-700 border-blue-200',
+    processing: 'bg-amber-100 text-amber-700 border-amber-200',
+    completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  }[orderStatus] || 'bg-gray-100 text-gray-700 border-gray-200';
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-4xl font-bold">
-          {orderLabel ? `Analysis Order ${orderLabel}` : 'Sample Markers'}
-        </h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-4xl font-bold">
+            {orderLabel ? `Analysis Order ${orderLabel}` : 'Sample Markers'}
+          </h2>
+          {orderId && orderStatusLabel && (
+            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wide ${statusTagClass}`}>
+              {orderStatusLabel}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {orderId && (
             <>

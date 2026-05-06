@@ -55,6 +55,16 @@ class SampleFilter(filters.FilterSet):
             return queryset.filter(species__markers__in=value)
         return queryset
 
+    def filter_order_status_not(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if value:
+            return queryset.exclude(order__status=value)
+        return queryset
+
 
 class MySampleFilter(filters.FilterSet):
     """Filter for user's samples list (My orders > Samples)."""

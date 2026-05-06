@@ -161,97 +161,83 @@ function getColumns(showFishId) {
     {
       id: 'pcr',
       header: 'PCR',
-      accessorFn: (row) => !!row.analysis_position,
-      cell: ({ getValue }) => (
-        renderBooleanStatus(getValue())
-      ),
-    },
-    {
-      id: 'has_pcr',
-      accessorKey: 'has_pcr',
-      header: 'Has PCR',
-      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
-    },
-    {
-      id: 'is_analysed',
-      accessorKey: 'is_analysed',
-      header: 'Analysed',
-      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
-    },
-    {
-      id: 'is_outputted',
-      accessorKey: 'is_outputted',
-      header: 'Outputted',
-      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
-    },
-    {
-      id: 'is_invalid',
-      accessorKey: 'is_invalid',
-      header: 'Invalid',
-      cell: ({ getValue }) => renderBooleanStatus(!!getValue()),
+      accessorFn: (row) => !!(row.has_pcr || row.analysis_position),
+      cell: ({ getValue }) => renderBooleanStatus(getValue()),
     },
     {
       id: 'analyzing',
       header: 'Analyzing',
-      accessorFn: (row) => row.is_analyzing,
+      accessorFn: (row) => ({ progress: row.is_analyzing, fallback: row.is_analysed }),
       cell: ({ getValue }) => {
-        const { count, total } = getValue() || { count: 0, total: 0 };
-        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-        const pct = Math.round((count / total) * 100);
-        return (
-          <div className="flex items-center gap-2">
-            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                style={{ width: `${pct}%` }}
-              />
+        const { progress, fallback } = getValue();
+        const { count, total } = progress || { count: 0, total: 0 };
+        if (total > 0) {
+          const pct = Math.round((count / total) * 100);
+          return (
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-600">{count}/{total}</span>
             </div>
-            <span className="text-xs text-gray-600">{count}/{total}</span>
-          </div>
-        );
+          );
+        }
+        return renderBooleanStatus(!!fallback);
       },
     },
     {
       id: 'output',
       header: 'Results',
-      accessorFn: (row) => row.has_output,
+      accessorFn: (row) => ({ progress: row.has_output, fallback: row.is_outputted }),
       cell: ({ getValue }) => {
-        const { count, total } = getValue() || { count: 0, total: 0 };
-        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-        const pct = Math.round((count / total) * 100);
-        return (
-          <div className="flex items-center gap-2">
-            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                style={{ width: `${pct}%` }}
-              />
+        const { progress, fallback } = getValue();
+        const { count, total } = progress || { count: 0, total: 0 };
+        if (total > 0) {
+          const pct = Math.round((count / total) * 100);
+          return (
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-600">{count}/{total}</span>
             </div>
-            <span className="text-xs text-gray-600">{count}/{total}</span>
-          </div>
-        );
+          );
+        }
+        return renderBooleanStatus(!!fallback);
       },
     },
     {
       id: 'valid',
       header: 'Valid',
-      accessorFn: (row) => row.invalid_positions,
+      accessorFn: (row) => ({ progress: row.invalid_positions, fallback: row.is_invalid }),
       cell: ({ getValue }) => {
-        const { count: invalidCount, total } = getValue() || { count: 0, total: 0 };
-        if (total === 0) return <span className="text-sm text-gray-400">—</span>;
-        const validCount = total - invalidCount;
-        const pct = Math.round((validCount / total) * 100);
-        return (
-          <div className="flex items-center gap-2">
-            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
-                style={{ width: `${pct}%` }}
-              />
+        const { progress, fallback } = getValue();
+        const { count: invalidCount, total } = progress || { count: 0, total: 0 };
+        if (total > 0) {
+          const validCount = total - invalidCount;
+          const pct = Math.round((validCount / total) * 100);
+          return (
+            <div className="flex items-center gap-2">
+              <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${pct === 100 ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-600">{validCount}/{total}</span>
             </div>
-            <span className="text-xs text-gray-600">{validCount}/{total}</span>
-          </div>
-        );
+          );
+        }
+        if (fallback) {
+          return <span className="text-sm font-medium text-red-500">✕</span>;
+        }
+        return <span className="text-sm text-gray-400">—</span>;
       },
     },
   ];

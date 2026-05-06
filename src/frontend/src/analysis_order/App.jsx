@@ -12,6 +12,7 @@ import PlateSearch from './components/LoadPlate';
 import SelectionActions from './components/SelectionActions';
 import { useOrderSampleMarkers } from './hooks/useOrderSampleMarkers';
 import { useCompleteOrder } from './hooks/useCompleteOrder';
+import { useSetOrderInProgress } from './hooks/useSetOrderInProgress';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,12 @@ function OrderApp() {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   const { mutate: completeOrder, isPending: isCompleting } = useCompleteOrder({
+    onSuccess: () => {
+      // Redirect to the analysis order detail page
+      window.location.href = `/staff/orders/analysis/${orderId}/`;
+    },
+  });
+  const { mutate: setOrderInProgress, isPending: isSettingInProgress } = useSetOrderInProgress({
     onSuccess: () => {
       // Redirect to the analysis order detail page
       window.location.href = `/staff/orders/analysis/${orderId}/`;
@@ -73,6 +80,13 @@ function OrderApp() {
     }
   };
 
+  const handleSetInProgress = () => {
+    if (!orderId) return;
+    if (window.confirm(`Are you sure you want to mark this order as in progress?`)) {
+      setOrderInProgress(orderId);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
@@ -81,22 +95,40 @@ function OrderApp() {
         </h2>
         <div className="flex items-center gap-2">
           {orderId && (
-            <button
-              type="button"
-              onClick={handleCompleteOrder}
-              disabled={isCompleting}
-              className="btn btn-sm btn-primary"
-            >
-              {isCompleting ? (
-                <>
-                  <i className="fas fa-spinner fa-spin mr-1"></i> Completing...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-check mr-1"></i> Mark as Completed
-                </>
-              )}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleSetInProgress}
+                disabled={isSettingInProgress || isCompleting}
+                className="btn btn-sm btn-secondary"
+              >
+                {isSettingInProgress ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-1"></i> Updating...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-play mr-1"></i> Mark as In Progress
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteOrder}
+                disabled={isCompleting || isSettingInProgress}
+                className="btn btn-sm btn-primary"
+              >
+                {isCompleting ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-1"></i> Completing...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check mr-1"></i> Mark as Completed
+                  </>
+                )}
+              </button>
+            </>
           )}
           <a href="../" className="btn btn-sm btn-tertiary">
             <i className="fas fa-arrow-left mr-1"></i> Back

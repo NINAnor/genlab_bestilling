@@ -722,21 +722,6 @@ class AnalysisOrder(Order):
             if persist:
                 super().confirm_order()
 
-    def update_status(self) -> None:
-        if not SampleMarkerAnalysis.objects.filter(
-            order=self, is_outputted=False
-        ).exists():
-            super().to_completed()
-            return
-
-        if (
-            SampleMarkerAnalysis.objects.filter(order=self)
-            .filter(Q(has_pcr=True) | Q(is_analysed=True))
-            .exists()
-        ):
-            super().to_processing()
-            return
-
     def populate_from_order(self) -> None:
         """
         Create the list of markers per sample to analyze

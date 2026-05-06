@@ -549,6 +549,16 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["post"], url_path="in-progress")
+    def in_progress(self, request: Request, pk: str) -> Response:
+        """Mark the analysis order as in progress."""
+        order = self.get_object()
+        order.to_processing()
+        return Response(
+            {"message": f"Order {order} marked as in progress"},
+            status=status.HTTP_200_OK,
+        )
+
 
 class PlateRowColumnActionsMixin:
     """Mixin providing row/column empty and reserve actions for plate viewsets."""

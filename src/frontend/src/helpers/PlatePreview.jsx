@@ -427,7 +427,7 @@ export default function PlatePreview({
           type="button"
           onClick={handleCopyToClipboard}
           className={classnames(
-            'ml-auto px-3 py-1 text-xs rounded border transition-colors',
+            'ml-auto px-3 py-1 text-xs rounded border transition-colors print:hidden',
             copyStatus === 'success'
               ? 'bg-green-100 border-green-400 text-green-700'
               : copyStatus === 'error'
@@ -445,7 +445,7 @@ export default function PlatePreview({
       </div>
 
       {/* Grid - scrollable container */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto print:overflow-visible">
         <div
           className="inline-grid gap-0.5"
           style={{

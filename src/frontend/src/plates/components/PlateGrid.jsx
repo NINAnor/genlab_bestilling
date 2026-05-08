@@ -69,7 +69,7 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
       </div>
 
       {/* Grid - scrollable container */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto print:overflow-visible">
         <div
           className="inline-grid gap-0.5"
           style={{

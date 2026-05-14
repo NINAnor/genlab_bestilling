@@ -502,7 +502,7 @@ class SampleMarkerViewSet(viewsets.ReadOnlyModelViewSet):
             ),
         )
         return (
-            SampleMarkerAnalysis.objects.all()
+            SampleMarkerAnalysis.objects.exclude(sample__is_invalid=True)
             .select_related(
                 "sample",
                 "sample__species",

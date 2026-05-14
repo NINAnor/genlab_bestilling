@@ -7,3 +7,9 @@ export const client = axios.create({
     'X-CSRFToken': config.csrf,
   },
 });
+
+export const EXTRACTION_STATUS_OPTIONS = [
+  { value: 'marked', label: 'Marked' },
+  { value: 'plucked', label: 'Plucked' },
+  { value: 'isolated', label: 'Isolated' },
+];

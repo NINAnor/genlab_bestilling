@@ -923,10 +923,15 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     marker = CharFilter(field_name="marker__name")
     species = filters.NumberFilter(field_name="sample__species_id")
     sample_type = filters.NumberFilter(field_name="sample__type_id")
-    isolation_method = filters.NumberFilter(field_name="sample__isolation_method")
+    extraction_status = CharFilter(method="filter_extraction_status")
     genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
     plate = CharFilter(method="filter_plate")
     status = CharFilter(method="filter_status")
+
+    def filter_extraction_status(
+        self, queryset: QuerySet, name: str, value: str
+    ) -> QuerySet:
+        return filter_sample_status(self, queryset, name, value, prefix="sample__")
 
     def filter_plate(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         if not value:
@@ -948,7 +953,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
             "marker",
             "species",
             "sample_type",
-            "isolation_method",
+            "extraction_status",
             "genlab_id",
             "plate",
             "status",

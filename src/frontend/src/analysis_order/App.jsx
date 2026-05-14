@@ -17,7 +17,7 @@ const INITIAL_FILTERS = {
   marker: '',
   species: '',
   sample_type: '',
-  isolation_method: '',
+  extraction_status: '',
   genlab_id: '',
   plate: '',
   status: '',

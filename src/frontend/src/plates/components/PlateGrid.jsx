@@ -1,3 +1,5 @@
+import { useState, useCallback } from 'react';
+import classnames from 'classnames';
 import Well from './Well';
 import usePlateStore from '../store';
 import { usePlatePositions } from '../hooks/usePlatePositions';
@@ -15,6 +17,21 @@ export function toPositionIndex(row, col) {
 }
 
 /**
+ * Get the text content for a cell (for copy/paste to Excel).
+ */
+function getCellText(position, plateType) {
+  if (!position) return '';
+  if (position.is_reserved) return position.positive_control_name ?? 'Reserved';
+  if (plateType === 'extraction' && position.sample_raw) {
+    return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
+  }
+  if (plateType === 'analysis' && position.sample_marker) {
+    return position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '';
+  }
+  return '';
+}
+
+/**
  * Dumb grid component — renders the 8×12 plate and delegates clicks upward.
  *
  * Props:
@@ -25,6 +42,33 @@ export function toPositionIndex(row, col) {
 export default function PlateGrid({ plateType, onWellClick, selectedPositionId }) {
   const positions = usePlateStore((s) => s.positions);
   const { isLoading, isError, error } = usePlatePositions();
+  const [copyStatus, setCopyStatus] = useState(null); // 'success' | 'error' | null
+
+  const handleCopyToClipboard = useCallback(async () => {
+    // Build header row: empty cell + column numbers
+    const headerRow = ['', ...COLS].join('\t');
+
+    // Build data rows
+    const dataRows = ROWS.map((row) => {
+      const cells = COLS.map((col) => {
+        const idx = toPositionIndex(row, col);
+        const position = positions[idx] ?? null;
+        return getCellText(position, plateType);
+      });
+      return [row, ...cells].join('\t');
+    });
+
+    const tsvContent = [headerRow, ...dataRows].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(tsvContent);
+      setCopyStatus('success');
+      setTimeout(() => setCopyStatus(null), 2000);
+    } catch {
+      setCopyStatus('error');
+      setTimeout(() => setCopyStatus(null), 2000);
+    }
+  }, [positions, plateType]);
 
   const positionsList = Object.values(positions);
   const counts = positionsList.reduce(
@@ -49,7 +93,7 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
   return (
     <div>
       {/* Legend */}
-      <div className="flex gap-6 mb-4 text-sm">
+      <div className="flex gap-6 mb-4 text-sm flex-wrap items-center">
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-4 rounded-lg bg-gray-100 border-2 border-gray-300" />
           Empty ({counts.empty})
@@ -62,6 +106,25 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
           <span className="inline-block w-4 h-4 rounded-lg bg-amber-300 border-2 border-amber-500" />
           Reserved ({counts.reserved})
         </span>
+        <button
+          type="button"
+          onClick={handleCopyToClipboard}
+          className={classnames(
+            'ml-auto px-3 py-1 text-xs rounded border transition-colors print:hidden',
+            copyStatus === 'success'
+              ? 'bg-green-100 border-green-400 text-green-700'
+              : copyStatus === 'error'
+                ? 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200',
+          )}
+          title="Copy plate layout as tab-separated grid (for Excel)"
+        >
+          {copyStatus === 'success'
+            ? 'Copied!'
+            : copyStatus === 'error'
+              ? 'Failed'
+              : 'Copy for Excel'}
+        </button>
       </div>
 
       {/* Grid - scrollable container */}

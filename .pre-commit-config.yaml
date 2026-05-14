@@ -56,7 +56,7 @@ repos:
     rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: [--exclude-files=src/fixtures/users.json, --exclude-files=src/frontend/pnpm-lock.yaml]
+        args: [--exclude-files=src/fixtures/users.json, --exclude-files=src/frontend/pnpm-lock.yaml, --exclude-files=src/theme/static_src/pnpm-lock.yaml]
 
   - repo: https://github.com/oxc-project/mirrors-oxlint
     rev: v1.64.0

@@ -341,3 +341,6 @@ site/
 
 ### macOS ###
 .DS_Store
+
+
+.pnpm-store/

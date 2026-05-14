@@ -85,7 +85,8 @@ function getTooltip(position, coordinate, status, plateType, showFishId = false)
       base = `${coordinate} — Filled`;
     }
   } else if (status === 'reserved') {
-    base = `${coordinate} — Reserved`;
+    const label = position?.positive_control_name ?? 'Reserved';
+    base = `${coordinate} — ${label}`;
   } else {
     base = `${coordinate} — Empty`;
   }
@@ -98,7 +99,7 @@ function getTooltip(position, coordinate, status, plateType, showFishId = false)
  */
 function getCellText(position, plateType, showFishId = false) {
   if (!position) return '';
-  if (position.is_reserved) return 'Reserved';
+  if (position.is_reserved) return position.positive_control_name ?? 'Reserved';
   if (plateType === 'extraction' && position.sample_raw) {
     return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
   }
@@ -252,7 +253,9 @@ function Well({
         </>
       )}
       {status === 'reserved' && (
-        <span className="text-[10px] text-amber-700 font-medium">Reserved</span>
+        <span className="text-[10px] text-amber-700 font-medium">
+          {position?.positive_control_name ?? 'Reserved'}
+        </span>
       )}
     </div>
   );
@@ -263,6 +266,7 @@ Well.propTypes = {
     position: PropTypes.number,
     is_reserved: PropTypes.bool,
     is_invalid: PropTypes.bool,
+    positive_control_name: PropTypes.string,
     sample_raw: PropTypes.object,
     sample_marker: PropTypes.object,
     notes: PropTypes.string,

@@ -137,6 +137,7 @@ function Well({
   isDragOver,
   showFishId,
   isHighlighted,
+  isFullscreen = false,
 }) {
   const status = getStatus(position, plateType);
   const filledLabel = getFilledLabel(position, plateType, showFishId);
@@ -145,6 +146,11 @@ function Well({
   const isClickable = !!onClick;
   const canDrag = isDraggable && status === 'filled';
   const canDrop = isDropTarget && status === 'empty';
+
+  // Text size classes based on fullscreen mode
+  const coordSize = isFullscreen ? 'text-md' : 'text-[10px]';
+  const labelSize = isFullscreen ? 'text-md' : 'text-[9px]';
+  const smallSize = isFullscreen ? 'text-md' : 'text-[10px]';
 
   const handleDragStart = useCallback(
     (e) => {
@@ -224,23 +230,30 @@ function Well({
           className="rounded-full bg-blue-600 shadow-sm"
         />
       )}
-      <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
+      <span className={classnames(coordSize, 'font-bold leading-tight text-gray-700')}>
+        {coordinate}
+      </span>
       {(status === 'filled' || status === 'invalid') && filledLabel && (
         <>
           {filledLabel.mainLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">
+            <span
+              className={classnames(labelSize, 'leading-tight truncate max-w-full text-gray-900')}
+            >
               {filledLabel.mainLabel}
             </span>
           )}
           {filledLabel.sampleLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">
+            <span
+              className={classnames(labelSize, 'leading-tight truncate max-w-full text-gray-900')}
+            >
               {filledLabel.sampleLabel}
             </span>
           )}
           {filledLabel.markerLabel && (
             <span
               className={classnames(
-                'text-[9px] leading-tight truncate max-w-full font-semibold',
+                labelSize,
+                'leading-tight truncate max-w-full font-semibold',
                 status === 'invalid' ? 'text-red-900' : 'text-emerald-900',
               )}
             >
@@ -248,14 +261,19 @@ function Well({
             </span>
           )}
           {filledLabel.orderLabel && (
-            <span className="text-[10px] leading-tight truncate max-w-full text-gray-600 italic">
+            <span
+              className={classnames(
+                smallSize,
+                'leading-tight truncate max-w-full text-gray-600 italic',
+              )}
+            >
               #{filledLabel.orderLabel}
             </span>
           )}
         </>
       )}
       {status === 'reserved' && (
-        <span className="text-[10px] text-amber-700 font-medium">
+        <span className={classnames(smallSize, 'text-amber-700 font-medium')}>
           {position?.positive_control_name ?? 'Reserved'}
         </span>
       )}
@@ -288,6 +306,7 @@ Well.propTypes = {
   isDragOver: PropTypes.bool,
   showFishId: PropTypes.bool,
   isHighlighted: PropTypes.bool,
+  isFullscreen: PropTypes.bool,
 };
 
 /**
@@ -309,6 +328,7 @@ export default function PlatePreview({
   onPositionMove,
   showFishId = false,
   highlightOrderId = null,
+  isFullscreen = false,
 }) {
   const [draggingIdx, setDraggingIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
@@ -400,7 +420,7 @@ export default function PlatePreview({
   return (
     <div className="max-w-full">
       {/* Legend */}
-      <div className="flex gap-6 mb-4 text-sm flex-wrap items-center">
+      <div className="flex gap-6 mb-4 text-sm flex-wrap items-center plate-legend">
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-4 rounded-lg bg-gray-100 border-2 border-gray-300" />
           Empty ({counts.empty})
@@ -437,7 +457,7 @@ export default function PlatePreview({
       {/* Grid - scrollable container */}
       <div className="overflow-x-auto print:overflow-visible">
         <div
-          className="inline-grid gap-0.5"
+          className="inline-grid gap-0.5 plate-grid"
           style={{
             gridTemplateColumns: `2rem repeat(${COLS.length}, 6rem)`,
             gridTemplateRows: `auto repeat(${ROWS.length}, 5rem)`,
@@ -449,7 +469,7 @@ export default function PlatePreview({
           {COLS.map((col) => (
             <div
               key={col}
-              className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
+              className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1 plate-grid-header"
             >
               {col}
             </div>
@@ -459,7 +479,7 @@ export default function PlatePreview({
           {ROWS.map((row) => (
             <React.Fragment key={`row-${row}`}>
               {/* Row header */}
-              <div className="text-xs font-medium text-gray-500 flex items-center justify-center">
+              <div className="text-xs font-medium text-gray-500 flex items-center justify-center plate-grid-header">
                 {row}
               </div>
               {/* Wells */}
@@ -491,6 +511,7 @@ export default function PlatePreview({
                       highlightOrderId != null &&
                       position?.sample_marker?.order_id === highlightOrderId
                     }
+                    isFullscreen={isFullscreen}
                   />
                 );
               })}
@@ -518,4 +539,5 @@ PlatePreview.propTypes = {
   onPositionMove: PropTypes.func,
   showFishId: PropTypes.bool,
   highlightOrderId: PropTypes.number,
+  isFullscreen: PropTypes.bool,
 };

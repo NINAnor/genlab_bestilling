@@ -39,7 +39,12 @@ function getCellText(position, plateType) {
  *   onWellClick  – (position, coordinate, status) => void
  *   selectedPositionId – id of the currently-selected position (highlight)
  */
-export default function PlateGrid({ plateType, onWellClick, selectedPositionId }) {
+export default function PlateGrid({
+  plateType,
+  onWellClick,
+  selectedPositionId,
+  isFullscreen = false,
+}) {
   const positions = usePlateStore((s) => s.positions);
   const { isLoading, isError, error } = usePlatePositions();
   const [copyStatus, setCopyStatus] = useState(null); // 'success' | 'error' | null
@@ -93,7 +98,12 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
   return (
     <div>
       {/* Legend */}
-      <div className="flex gap-6 mb-4 text-sm flex-wrap items-center">
+      <div
+        className={classnames(
+          'flex gap-6 mb-4 flex-wrap items-center',
+          isFullscreen ? 'text-lg' : 'text-sm',
+        )}
+      >
         <span className="flex items-center gap-1">
           <span className="inline-block w-4 h-4 rounded-lg bg-gray-100 border-2 border-gray-300" />
           Empty ({counts.empty})
@@ -132,8 +142,12 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
         <div
           className="inline-grid gap-0.5"
           style={{
-            gridTemplateColumns: `2rem repeat(${COLS.length}, 6rem)`,
-            gridTemplateRows: `auto repeat(${ROWS.length}, 5rem)`,
+            gridTemplateColumns: isFullscreen
+              ? `4rem repeat(${COLS.length}, 9rem)`
+              : `2rem repeat(${COLS.length}, 6rem)`,
+            gridTemplateRows: isFullscreen
+              ? `auto repeat(${ROWS.length}, 7.5rem)`
+              : `auto repeat(${ROWS.length}, 5rem)`,
           }}
         >
           {/* Top-left empty cell */}
@@ -142,7 +156,10 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
           {COLS.map((col) => (
             <div
               key={col}
-              className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
+              className={classnames(
+                'text-center font-medium text-gray-500 flex items-end justify-center pb-1',
+                isFullscreen ? 'text-base' : 'text-xs',
+              )}
             >
               {col}
             </div>
@@ -154,7 +171,10 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
               {/* Row header */}
               <div
                 key={`row-${row}`}
-                className="text-xs font-medium text-gray-500 flex items-center justify-center"
+                className={classnames(
+                  'font-medium text-gray-500 flex items-center justify-center',
+                  isFullscreen ? 'text-base' : 'text-xs',
+                )}
               >
                 {row}
               </div>
@@ -171,6 +191,7 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
                     plateType={plateType}
                     selected={position?.id === selectedPositionId}
                     onClick={onWellClick}
+                    isFullscreen={isFullscreen}
                   />
                 );
               })}

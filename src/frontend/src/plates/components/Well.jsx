@@ -62,12 +62,26 @@ function getTooltip(position, coordinate, status, plateType) {
   return base;
 }
 
-export default function Well({ position, coordinate, plateType, selected, onClick }) {
+export default function Well({
+  position,
+  coordinate,
+  plateType,
+  selected,
+  onClick,
+  isFullscreen = false,
+}) {
   const status = getStatus(position, plateType);
   const filledLabel = getFilledLabel(position, plateType);
   const tooltip = getTooltip(position, coordinate, status, plateType);
 
   const hasNote = !!position?.notes;
+
+  // Text size classes based on fullscreen mode
+  const coordSize = isFullscreen ? 'text-md' : 'text-[10px]';
+  const labelSize = isFullscreen ? 'text-md' : 'text-[9px]';
+  const smallSize = isFullscreen ? 'text-md' : 'text-[8px]';
+
+  console.log(isFullscreen);
 
   return (
     <button
@@ -86,26 +100,42 @@ export default function Well({ position, coordinate, plateType, selected, onClic
           className="rounded-full bg-blue-600 shadow-sm"
         />
       )}
-      <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
+      <span className={classnames(coordSize, 'font-bold leading-tight text-gray-700')}>
+        {coordinate}
+      </span>
       {status === 'filled' && filledLabel && (
         <>
           {filledLabel.mainLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">
+            <span
+              className={classnames(labelSize, 'leading-tight truncate max-w-full text-gray-900')}
+            >
               {filledLabel.mainLabel}
             </span>
           )}
           {filledLabel.sampleLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full text-gray-900">
+            <span
+              className={classnames(labelSize, 'leading-tight truncate max-w-full text-gray-900')}
+            >
               {filledLabel.sampleLabel}
             </span>
           )}
           {filledLabel.markerLabel && (
-            <span className="text-[9px] leading-tight truncate max-w-full font-semibold text-emerald-900">
+            <span
+              className={classnames(
+                labelSize,
+                'leading-tight truncate max-w-full font-semibold text-emerald-900',
+              )}
+            >
               {filledLabel.markerLabel}
             </span>
           )}
           {filledLabel.orderLabel && (
-            <span className="text-[8px] leading-tight truncate max-w-full text-gray-600 italic">
+            <span
+              className={classnames(
+                smallSize,
+                'leading-tight truncate max-w-full text-gray-600 italic',
+              )}
+            >
               #{filledLabel.orderLabel}
             </span>
           )}
@@ -113,9 +143,11 @@ export default function Well({ position, coordinate, plateType, selected, onClic
       )}
       {status === 'reserved' && (
         <>
-          <span className="text-[9px] leading-tight text-gray-700">Reserved</span>
+          <span className={classnames(labelSize, 'leading-tight text-gray-700')}>Reserved</span>
           {position?.positive_control_name && (
-            <span className="text-[8px] leading-tight truncate max-w-full text-amber-800">
+            <span
+              className={classnames(smallSize, 'leading-tight truncate max-w-full text-amber-800')}
+            >
               {position.positive_control_name}
             </span>
           )}
@@ -137,4 +169,5 @@ Well.propTypes = {
   plateType: PropTypes.oneOf(['extraction', 'analysis']).isRequired,
   selected: PropTypes.bool,
   onClick: PropTypes.func,
+  isFullscreen: PropTypes.bool,
 };

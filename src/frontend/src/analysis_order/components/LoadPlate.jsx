@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import classnames from 'classnames';
 import {
@@ -54,6 +54,16 @@ export default function PlateSearch() {
   const showFishId = useOrderStore((s) => s.showFishId);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Track fullscreen state
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   // Print functionality
   const handlePrint = useReactToPrint({
@@ -62,6 +72,17 @@ export default function PlateSearch() {
       ? `Plate_${selectedPlate.label}${selectedPlate.name ? '_' + selectedPlate.name : ''}`
       : 'Plate',
   });
+
+  // Fullscreen functionality
+  const handleFullscreen = useCallback(() => {
+    if (printRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        printRef.current.requestFullscreen();
+      }
+    }
+  }, []);
 
   // Fetch filter options
   const { data: analysisTypes = [] } = useAnalysisTypes();
@@ -519,6 +540,14 @@ export default function PlateSearch() {
                   </button>
                   <button
                     type="button"
+                    onClick={handleFullscreen}
+                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                    title="Fullscreen plate preview"
+                  >
+                    Fullscreen
+                  </button>
+                  <button
+                    type="button"
                     onClick={handlePrint}
                     className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
                     title="Print plate preview"
@@ -676,7 +705,35 @@ export default function PlateSearch() {
                   ))}
                 </div>
               )}
-              <div ref={printRef} className="print:p-4">
+              <div ref={printRef} className="print:p-4 fullscreen-plate-container">
+                <style>{`
+                  .fullscreen-plate-container:fullscreen {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 2rem;
+                    background: white;
+                  }
+                  .fullscreen-plate-container:fullscreen .fullscreen-title {
+                    display: block !important;
+                    margin-bottom: 1.5rem;
+                  }
+                  .fullscreen-plate-container:fullscreen .plate-grid {
+                    grid-template-columns: 3rem repeat(12, 8.5rem) !important;
+                    grid-template-rows: auto repeat(8, 7.5rem) !important;
+                  }
+                  .fullscreen-plate-container:fullscreen .plate-legend {
+                    font-size: 1.125rem !important;
+                  }
+                  .fullscreen-plate-container:fullscreen .plate-grid-header {
+                    font-size: 1rem !important;
+                  }
+                `}</style>
+                <h2 className="hidden fullscreen-title text-3xl font-bold">
+                  Plate {selectedPlate.label}
+                  {selectedPlate.name ? ` - ${selectedPlate.name}` : ''}
+                </h2>
                 <div className="hidden print:block print:mb-4">
                   <h2 className="text-lg font-bold">
                     {selectedPlate.label}
@@ -706,6 +763,7 @@ export default function PlateSearch() {
                   onPositionMove={handlePositionMove}
                   showFishId={showFishId}
                   highlightOrderId={orderId}
+                  isFullscreen={isFullscreen}
                 />
               </div>
             </div>

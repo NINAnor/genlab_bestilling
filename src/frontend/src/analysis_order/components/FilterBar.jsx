@@ -6,8 +6,8 @@ import {
   useMarkerFilterOptions,
   useSpeciesFilterOptions,
   useSampleTypeFilterOptions,
-  useIsolationMethodFilterOptions,
 } from '../hooks/useFilterOptions';
+import { EXTRACTION_STATUS_OPTIONS } from '../config';
 import useOrderStore from '../store';
 
 /**
@@ -34,8 +34,6 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
   const { data: markers = [], isLoading: markersLoading } = useMarkerFilterOptions();
   const { data: species = [], isLoading: speciesLoading } = useSpeciesFilterOptions();
   const { data: sampleTypes = [], isLoading: typesLoading } = useSampleTypeFilterOptions();
-  const { data: isolationMethods = [], isLoading: methodsLoading } =
-    useIsolationMethodFilterOptions();
 
   const updateFilter = (key, value) => {
     onFiltersChange({ ...filters, [key]: value || '' });
@@ -195,19 +193,18 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
           </select>
         </div>
 
-        {/* Isolation Method filter */}
+        {/* Extraction Status filter */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Isolation Method</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Extraction Status</label>
           <select
-            value={filters.isolation_method || ''}
-            onChange={(e) => updateFilter('isolation_method', e.target.value)}
-            disabled={methodsLoading}
+            value={filters.extraction_status || ''}
+            onChange={(e) => updateFilter('extraction_status', e.target.value)}
             className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
-            <option value="">All methods</option>
-            {isolationMethods.map((m, idx) => (
-              <option key={m.id ?? `method-${idx}`} value={m.id}>
-                {m.name}
+            <option value="">All statuses</option>
+            {EXTRACTION_STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
@@ -246,7 +243,7 @@ FilterBar.propTypes = {
     marker: PropTypes.string,
     species: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     sample_type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    isolation_method: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    extraction_status: PropTypes.string,
     genlab_id: PropTypes.string,
     plate: PropTypes.string,
     status: PropTypes.string,

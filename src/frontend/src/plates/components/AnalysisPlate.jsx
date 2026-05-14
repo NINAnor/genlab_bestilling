@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useCallback, useState, useEffect } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import PlateGrid from './PlateGrid';
 import PositionPanel from './PositionPanel';
@@ -24,11 +24,30 @@ export default function AnalysisPlate() {
     return idx != null ? (s.positions[idx]?.id ?? null) : null;
   });
   const printRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Analysis_Plate_${plateLabel}`,
   });
+
+  const handleFullscreen = useCallback(() => {
+    if (printRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        printRef.current.requestFullscreen();
+      }
+    }
+  }, []);
 
   const handleWellClick = (position, coordinate) => {
     selectPosition(position, coordinate);
@@ -38,23 +57,50 @@ export default function AnalysisPlate() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-4xl font-bold">Analysis Plate {plateLabel}</h2>
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 print:hidden"
-        >
-          Print Plate
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleFullscreen}
+            className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 print:hidden"
+          >
+            Fullscreen
+          </button>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-200 print:hidden"
+          >
+            Print Plate
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div ref={printRef} className="xl:col-span-2 p-4 bg-white rounded print:col-span-3 min-w-0">
-          <div className="hidden print:block print:mb-4">
-            <h2 className="text-lg font-bold">Analysis Plate {plateLabel}</h2>
-          </div>
+        <div
+          ref={printRef}
+          className="xl:col-span-2 p-4 bg-white rounded print:col-span-3 min-w-0 fullscreen-plate"
+        >
+          <style>{`
+            .fullscreen-plate:fullscreen {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              padding: 2rem;
+              background: white;
+            }
+            .fullscreen-plate:fullscreen .fullscreen-title {
+              display: block !important;
+              margin-bottom: 1.5rem;
+            }
+          `}</style>
+          <h2 className="hidden fullscreen-title text-3xl font-bold print:block print:mb-4 print:text-lg">
+            Analysis Plate {plateLabel}
+          </h2>
           <PlateGrid
             plateType="analysis"
             onWellClick={handleWellClick}
             selectedPositionId={selectedPositionId}
+            isFullscreen={isFullscreen}
           />
         </div>
         <div className="xl:col-span-1 sticky top-4 self-start space-y-4 print:hidden">

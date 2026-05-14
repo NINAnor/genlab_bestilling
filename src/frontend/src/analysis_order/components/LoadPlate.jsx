@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import classnames from 'classnames';
 import {
@@ -49,6 +49,8 @@ export default function PlateSearch() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
+  const orderId = useOrderStore((s) => s.orderId);
+  const setSelectedOrder = useOrderStore((s) => s.setSelectedOrder);
   const showFishId = useOrderStore((s) => s.showFishId);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
@@ -107,6 +109,17 @@ export default function PlateSearch() {
   platePositions.forEach((p) => {
     positionsByIdx[p.position] = p;
   });
+
+  // Extract unique orders from plate positions
+  const uniqueOrders = useMemo(() => {
+    const ordersMap = new Map();
+    platePositions.forEach((p) => {
+      if (p.sample_marker?.order_id) {
+        ordersMap.set(p.sample_marker.order_id, p.sample_marker.order_id);
+      }
+    });
+    return Array.from(ordersMap.keys()).sort((a, b) => a - b);
+  }, [platePositions]);
 
   const handleCreatePlate = () => {
     setShowCreateModal(true);
@@ -630,6 +643,39 @@ export default function PlateSearch() {
               )}
               {/* Bulk row/column actions */}
               <PlateActionsPanel plateId={selectedPlate.id} />
+              {/* Order filter buttons */}
+              {uniqueOrders.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <span className="text-sm text-gray-600">Filter by Order:</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedOrder(null, null)}
+                    className={classnames(
+                      'text-xs px-2 py-1 rounded transition-colors',
+                      orderId === null
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                    )}
+                  >
+                    All
+                  </button>
+                  {uniqueOrders.map((filterOrderId) => (
+                    <button
+                      key={filterOrderId}
+                      type="button"
+                      onClick={() => setSelectedOrder(filterOrderId, `#${filterOrderId}`)}
+                      className={classnames(
+                        'text-xs px-2 py-1 rounded transition-colors',
+                        orderId === filterOrderId
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                      )}
+                    >
+                      #{filterOrderId}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div ref={printRef} className="print:p-4">
                 <div className="hidden print:block print:mb-4">
                   <h2 className="text-lg font-bold">
@@ -659,6 +705,7 @@ export default function PlateSearch() {
                   onPositionClick={handlePositionClick}
                   onPositionMove={handlePositionMove}
                   showFishId={showFishId}
+                  highlightOrderId={orderId}
                 />
               </div>
             </div>

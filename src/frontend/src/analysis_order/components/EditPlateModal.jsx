@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import {
-  useAnalysisTypes,
-  useMarkersForAnalysisType,
-} from '../hooks/useFilterOptions';
+import { useAnalysisTypes, useMarkersForAnalysisType } from '../hooks/useFilterOptions';
 import { useUpdatePlate } from '../hooks/useCreatePlate';
 
 /**
@@ -14,10 +11,10 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
   const [selectedMarkers, setSelectedMarkers] = useState([]);
   const [plateName, setPlateName] = useState('');
 
-  const { data: analysisTypes = [], isLoading: typesLoading } =
-    useAnalysisTypes();
-  const { data: markers = [], isLoading: markersLoading } =
-    useMarkersForAnalysisType(analysisTypeId || null);
+  const { data: analysisTypes = [], isLoading: typesLoading } = useAnalysisTypes();
+  const { data: markers = [], isLoading: markersLoading } = useMarkersForAnalysisType(
+    analysisTypeId || null,
+  );
   const updatePlate = useUpdatePlate();
 
   // Initialize form when modal opens or plate changes
@@ -31,11 +28,7 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
 
   // Don't clear markers when analysis type changes if it matches the plate's type
   useEffect(() => {
-    if (
-      analysisTypeId &&
-      plate?.analysis_type &&
-      String(plate.analysis_type) !== analysisTypeId
-    ) {
+    if (analysisTypeId && plate?.analysis_type && String(plate.analysis_type) !== analysisTypeId) {
       // Analysis type changed, clear markers
       setSelectedMarkers([]);
     }
@@ -45,9 +38,7 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
 
   const handleMarkerToggle = (markerName) => {
     setSelectedMarkers((prev) =>
-      prev.includes(markerName)
-        ? prev.filter((m) => m !== markerName)
-        : [...prev, markerName],
+      prev.includes(markerName) ? prev.filter((m) => m !== markerName) : [...prev, markerName],
     );
   };
 
@@ -93,21 +84,14 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
       >
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Edit Plate {plate.label}
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900">Edit Plate {plate.label}</h3>
           <button
             type="button"
             onClick={onClose}
             disabled={isPending}
             className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -126,8 +110,7 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
               htmlFor="edit-plate-name"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Plate Name{' '}
-              <span className="font-normal text-gray-500">(optional)</span>
+              Plate Name <span className="font-normal text-gray-500">(optional)</span>
             </label>
             <input
               type="text"
@@ -170,8 +153,7 @@ export default function EditPlateModal({ isOpen, onClose, plate, onSuccess }) {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700">
-                  Allowed Markers{' '}
-                  <span className="font-normal text-gray-500">(optional)</span>
+                  Allowed Markers <span className="font-normal text-gray-500">(optional)</span>
                 </label>
                 {markers.length > 0 && (
                   <div className="flex gap-2 text-xs">

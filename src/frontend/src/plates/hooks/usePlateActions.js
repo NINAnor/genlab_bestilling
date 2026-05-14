@@ -13,13 +13,9 @@ export function usePlateAction() {
 
   return useMutation({
     mutationFn: async ({ action, payload = {} }) => {
-      const basePath = plateType === 'extraction'
-        ? '/staff/api/extraction-plates'
-        : '/staff/api/analysis-plates';
-      const { data } = await client.post(
-        `${basePath}/${plateId}/${action}/`,
-        payload,
-      );
+      const basePath =
+        plateType === 'extraction' ? '/staff/api/extraction-plates' : '/staff/api/analysis-plates';
+      const { data } = await client.post(`${basePath}/${plateId}/${action}/`, payload);
       return data;
     },
     onSuccess: () => {

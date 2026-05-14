@@ -43,11 +43,7 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
   }
 
   if (isError) {
-    return (
-      <p className="text-red-500">
-        Error loading plate: {error?.message ?? 'Unknown error'}
-      </p>
-    );
+    return <p className="text-red-500">Error loading plate: {error?.message ?? 'Unknown error'}</p>;
   }
 
   return (
@@ -77,46 +73,46 @@ export default function PlateGrid({ plateType, onWellClick, selectedPositionId }
             gridTemplateRows: `auto repeat(${ROWS.length}, 5rem)`,
           }}
         >
-        {/* Top-left empty cell */}
-        <div />
-        {/* Column headers */}
-        {COLS.map((col) => (
-          <div
-            key={col}
-            className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
-          >
-            {col}
-          </div>
-        ))}
-
-        {/* Rows */}
-        {ROWS.map((row) => (
-          <>
-            {/* Row header */}
+          {/* Top-left empty cell */}
+          <div />
+          {/* Column headers */}
+          {COLS.map((col) => (
             <div
-              key={`row-${row}`}
-              className="text-xs font-medium text-gray-500 flex items-center justify-center"
+              key={col}
+              className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
             >
-              {row}
+              {col}
             </div>
-            {/* Wells */}
-            {COLS.map((col) => {
-              const idx = toPositionIndex(row, col);
-              const position = positions[idx] ?? null;
-              const coordinate = `${row}${col}`;
-              return (
-                <Well
-                  key={coordinate}
-                  position={position}
-                  coordinate={coordinate}
-                  plateType={plateType}
-                  selected={position?.id === selectedPositionId}
-                  onClick={onWellClick}
-                />
-              );
-            })}
-          </>
-        ))}
+          ))}
+
+          {/* Rows */}
+          {ROWS.map((row) => (
+            <>
+              {/* Row header */}
+              <div
+                key={`row-${row}`}
+                className="text-xs font-medium text-gray-500 flex items-center justify-center"
+              >
+                {row}
+              </div>
+              {/* Wells */}
+              {COLS.map((col) => {
+                const idx = toPositionIndex(row, col);
+                const position = positions[idx] ?? null;
+                const coordinate = `${row}${col}`;
+                return (
+                  <Well
+                    key={coordinate}
+                    position={position}
+                    coordinate={coordinate}
+                    plateType={plateType}
+                    selected={position?.id === selectedPositionId}
+                    onClick={onWellClick}
+                  />
+                );
+              })}
+            </>
+          ))}
         </div>
       </div>
     </div>

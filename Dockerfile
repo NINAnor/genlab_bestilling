@@ -32,12 +32,12 @@ FROM node:22-slim AS frontend-base
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY src/frontend/package.json src/frontend/pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm add --allow-build=esbuild esbuild && pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 
 FROM frontend-base AS frontend
 COPY src/frontend/src src
-COPY src/frontend/vite.config.js src/frontend/.eslintrc.cjs ./
+COPY src/frontend/vite.config.js ./
 
 FROM frontend AS frontend-prod
 RUN pnpm run build

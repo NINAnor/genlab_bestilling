@@ -34,15 +34,12 @@ const usePlateStore = create((set) => ({
       };
     }),
 
-  clearSelection: () =>
-    set({ selectedPositionIdx: null, selectedCoordinate: null }),
+  clearSelection: () => set({ selectedPositionIdx: null, selectedCoordinate: null }),
 
   /** Bulk-set positions from API response */
   setPositions: (positionList) =>
     set({
-      positions: Object.fromEntries(
-        positionList.map((p) => [p.position, p]),
-      ),
+      positions: Object.fromEntries(positionList.map((p) => [p.position, p])),
     }),
 
   /** Update a single position (after a mutation) */

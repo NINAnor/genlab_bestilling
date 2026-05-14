@@ -10,9 +10,7 @@ import { client } from '../config';
 export function useCompleteOrder({ onSuccess } = {}) {
   return useMutation({
     mutationFn: async (orderId) => {
-      const { data } = await client.post(
-        `/staff/api/analysis-orders/${orderId}/complete/`,
-      );
+      const { data } = await client.post(`/staff/api/analysis-orders/${orderId}/complete/`);
       return data;
     },
     onSuccess: (data) => {

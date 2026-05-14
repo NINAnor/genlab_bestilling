@@ -1,10 +1,10 @@
-import { useForm } from "@tanstack/react-form";
-import { HUIField, Label } from "../../helpers/components";
-import AsyncSelect from "react-select/async";
-import { Button } from "@headlessui/react";
-import { client } from "../config";
-import PastableArrayInput from "../../helpers/PastableArrayInput";
-import { SELECT_STYLES } from "../../helpers/libs";
+import { useForm } from '@tanstack/react-form';
+import { HUIField, Label } from '../../helpers/components';
+import AsyncSelect from 'react-select/async';
+import { Button } from '@headlessui/react';
+import { client } from '../config';
+import PastableArrayInput from '../../helpers/PastableArrayInput';
+import { SELECT_STYLES } from '../../helpers/libs';
 
 const speciesOptions = async (input) => {
   let base = `/api/species/?`;
@@ -33,23 +33,21 @@ function prevent(e) {
 
 export default function Filters({ onSearch, submitBtn }) {
   const { handleSubmit, Field, Subscribe } = useForm({
-    onSubmit: ({ value, formApi }) => {
+    onSubmit: ({ value }) => {
       let o = Object.fromEntries(
         Object.entries(value)
           .filter(
             ([_, v]) =>
-              v != null &&
-              typeof v !== "undefined" &&
-              (Array.isArray(v) ? v.length : true)
+              v != null && typeof v !== 'undefined' && (Array.isArray(v) ? v.length : true),
           )
           .map(([k, v]) => {
             if (Array.isArray(v)) {
               return [k, v];
-            } else if (typeof v === "object") {
+            } else if (typeof v === 'object') {
               return [k, v.id];
             }
             return [k, v];
-          })
+          }),
       );
       console.log(o);
       if (Object.keys(o)) {
@@ -68,7 +66,7 @@ export default function Filters({ onSearch, submitBtn }) {
   });
 
   const emulateEnter = (e) => {
-    if (e.key === "Enter" || e.keyCode === 13) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
       prevent(e);
       handleSubmit();
     }
@@ -101,9 +99,7 @@ export default function Filters({ onSearch, submitBtn }) {
           <Field name="guid__in">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
-                <Label className="block">
-                  Guid - total: {state.value.length}
-                </Label>
+                <Label className="block">Guid - total: {state.value.length}</Label>
                 <PastableArrayInput
                   state={state}
                   handleBlur={handleBlur}
@@ -242,11 +238,7 @@ export default function Filters({ onSearch, submitBtn }) {
               disabled={!canSubmit}
               onClick={handleSubmit}
             >
-              {isSubmitting ? (
-                <i className="fas fa-spin fa-spinner"></i>
-              ) : (
-                `Search`
-              )}
+              {isSubmitting ? <i className="fas fa-spin fa-spinner"></i> : `Search`}
             </Button>
           )}
         </Subscribe>

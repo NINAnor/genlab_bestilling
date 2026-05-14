@@ -1,10 +1,6 @@
 import { useMemo, useRef, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-} from '@tanstack/react-table';
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import classnames from 'classnames';
 import useOrderStore from '../store';
@@ -60,13 +56,11 @@ function getColumns(showFishId) {
       header: 'Sample',
       cell: ({ row }) => {
         const displayId = showFishId
-          ? (row.original.sample_fish_id ?? row.original.sample_genlab_id ?? row.original.sample_name)
+          ? (row.original.sample_fish_id ??
+            row.original.sample_genlab_id ??
+            row.original.sample_name)
           : (row.original.sample_genlab_id ?? row.original.sample_name);
-        return (
-          <span className="text-sm font-mono text-gray-900">
-            {displayId ?? '—'}
-          </span>
-        );
+        return <span className="text-sm font-mono text-gray-900">{displayId ?? '—'}</span>;
       },
       sortField: 'genlab_id',
     },
@@ -84,18 +78,14 @@ function getColumns(showFishId) {
       id: 'marker',
       accessorKey: 'marker_name',
       header: 'Marker',
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-900">{getValue() ?? '—'}</span>
-      ),
+      cell: ({ getValue }) => <span className="text-sm text-gray-900">{getValue() ?? '—'}</span>,
       sortField: 'marker',
     },
     {
       id: 'species',
       accessorKey: 'sample_species_name',
       header: 'Species',
-      cell: ({ getValue }) => (
-        <span className="text-sm text-gray-600">{getValue() ?? '—'}</span>
-      ),
+      cell: ({ getValue }) => <span className="text-sm text-gray-600">{getValue() ?? '—'}</span>,
       sortField: 'species',
     },
     {
@@ -181,7 +171,9 @@ function getColumns(showFishId) {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600">{count}/{total}</span>
+              <span className="text-xs text-gray-600">
+                {count}/{total}
+              </span>
             </div>
           );
         }
@@ -205,7 +197,9 @@ function getColumns(showFishId) {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600">{count}/{total}</span>
+              <span className="text-xs text-gray-600">
+                {count}/{total}
+              </span>
             </div>
           );
         }
@@ -230,7 +224,9 @@ function getColumns(showFishId) {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-gray-600">{validCount}/{total}</span>
+              <span className="text-xs text-gray-600">
+                {validCount}/{total}
+              </span>
             </div>
           );
         }
@@ -247,15 +243,9 @@ function getColumns(showFishId) {
 // eslint-disable-next-line react/prop-types
 function SortIndicator({ direction }) {
   if (!direction) {
-    return (
-      <span className="text-gray-300 ml-1">↕</span>
-    );
+    return <span className="text-gray-300 ml-1">↕</span>;
   }
-  return (
-    <span className="text-blue-600 ml-1">
-      {direction === 'asc' ? '↑' : '↓'}
-    </span>
-  );
+  return <span className="text-blue-600 ml-1">{direction === 'asc' ? '↑' : '↓'}</span>;
 }
 
 export default function SampleMarkerTable({
@@ -357,19 +347,12 @@ export default function SampleMarkerTable({
   const selectedCount = Object.keys(selectedMarkerIds).length;
 
   if (dataLength === 0) {
-    return (
-      <div className="text-center py-12 text-gray-400 italic">
-        No sample markers found
-      </div>
-    );
+    return <div className="text-center py-12 text-gray-400 italic">No sample markers found</div>;
   }
 
   return (
     <div className="overflow-hidden">
-      <div
-        ref={parentRef}
-        className="overflow-auto max-h-[600px]"
-      >
+      <div ref={parentRef} className="overflow-auto max-h-[600px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -403,10 +386,7 @@ export default function SampleMarkerTable({
             {/* Top padding row */}
             {virtualRows.length > 0 && virtualRows[0].start > 0 && (
               <tr>
-                <td
-                  colSpan={columns.length}
-                  style={{ height: virtualRows[0].start }}
-                />
+                <td colSpan={columns.length} style={{ height: virtualRows[0].start }} />
               </tr>
             )}
             {virtualRows.map((virtualRow) => {
@@ -437,8 +417,7 @@ export default function SampleMarkerTable({
                   colSpan={columns.length}
                   style={{
                     height:
-                      virtualizer.getTotalSize() -
-                      (virtualRows[virtualRows.length - 1]?.end ?? 0),
+                      virtualizer.getTotalSize() - (virtualRows[virtualRows.length - 1]?.end ?? 0),
                   }}
                 />
               </tr>
@@ -448,9 +427,7 @@ export default function SampleMarkerTable({
       </div>
       <div className="mt-2 text-xs text-gray-400 text-right flex items-center justify-between">
         <div>
-          {isFetchingNextPage && (
-            <span className="text-blue-500">Loading more...</span>
-          )}
+          {isFetchingNextPage && <span className="text-blue-500">Loading more...</span>}
           {!isFetchingNextPage && hasNextPage && (
             <button
               type="button"
@@ -463,11 +440,10 @@ export default function SampleMarkerTable({
         </div>
         <div>
           {selectedCount > 0 && (
-            <span className="mr-2 text-blue-600 font-medium">
-              {selectedCount} selected
-            </span>
+            <span className="mr-2 text-blue-600 font-medium">{selectedCount} selected</span>
           )}
-          {data.length}{totalCount ? ` / ${totalCount}` : ''} sample marker{data.length !== 1 ? 's' : ''}
+          {data.length}
+          {totalCount ? ` / ${totalCount}` : ''} sample marker{data.length !== 1 ? 's' : ''}
         </div>
       </div>
     </div>

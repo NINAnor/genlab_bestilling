@@ -88,11 +88,11 @@ export default function PlateSearch() {
     analysisType: analysisTypeFilter || undefined,
     marker: markerFilter || undefined,
   };
-  const { data: plates = [], isFetching: isLoading } =
-    useAnalysisPlateSearch(searchTerm, filters);
+  const { data: plates = [], isFetching: isLoading } = useAnalysisPlateSearch(searchTerm, filters);
 
-  const { data: platePositions = [], isLoading: positionsLoading } =
-    usePlatePositions(selectedPlate?.id);
+  const { data: platePositions = [], isLoading: positionsLoading } = usePlatePositions(
+    selectedPlate?.id,
+  );
 
   const setAnalysisDateMutation = useSetAnalysisDate();
   const uploadResultFile = useUploadResultFile();
@@ -294,9 +294,7 @@ export default function PlateSearch() {
         <div className="lg:col-span-1 border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col">
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-gray-700">
-                Analysis Plates
-              </h3>
+              <h3 className="text-sm font-medium text-gray-700">Analysis Plates</h3>
               <button
                 type="button"
                 onClick={handleCreatePlate}
@@ -362,13 +360,9 @@ export default function PlateSearch() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {isLoading && (
-              <div className="p-4 text-sm text-gray-400">Loading plates…</div>
-            )}
+            {isLoading && <div className="p-4 text-sm text-gray-400">Loading plates…</div>}
             {!isLoading && plates.length === 0 && (
-              <div className="p-4 text-sm text-gray-400 italic">
-                No plates found
-              </div>
+              <div className="p-4 text-sm text-gray-400 italic">No plates found</div>
             )}
             {plates.map((plate, idx) => (
               <button
@@ -387,9 +381,7 @@ export default function PlateSearch() {
                     <span className="font-medium text-sm text-gray-900">
                       {plate.label}
                       {plate.name && (
-                        <span className="font-normal text-gray-500 ml-1">
-                          {plate.name}
-                        </span>
+                        <span className="font-normal text-gray-500 ml-1">{plate.name}</span>
                       )}
                     </span>
                     {plate.analysis_type_name && (
@@ -434,10 +426,16 @@ export default function PlateSearch() {
                       <>
                         <div className="flex items-center justify-between text-xs mb-0.5">
                           <span className="text-gray-500">
-                            {plate.filled_positions - plate.invalid_positions} / {plate.filled_positions} valid
+                            {plate.filled_positions - plate.invalid_positions} /{' '}
+                            {plate.filled_positions} valid
                           </span>
                           <span className="text-emerald-600 font-medium">
-                            {Math.round(((plate.filled_positions - plate.invalid_positions) / plate.filled_positions) * 100)}%
+                            {Math.round(
+                              ((plate.filled_positions - plate.invalid_positions) /
+                                plate.filled_positions) *
+                                100,
+                            )}
+                            %
                           </span>
                         </div>
                         <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
@@ -554,9 +552,7 @@ export default function PlateSearch() {
               </div>
               {/* Plate name edit */}
               <div className="flex items-center gap-2 mb-4">
-                <label className="text-sm text-gray-600 whitespace-nowrap">
-                  Plate Name:
-                </label>
+                <label className="text-sm text-gray-600 whitespace-nowrap">Plate Name:</label>
                 <input
                   type="text"
                   value={plateName}
@@ -590,9 +586,7 @@ export default function PlateSearch() {
                     </span>
                   ))
                 ) : selectedPlate.analysis_type_name ? (
-                  <span className="text-xs text-gray-500 italic">
-                    All markers allowed
-                  </span>
+                  <span className="text-xs text-gray-500 italic">All markers allowed</span>
                 ) : null}
               </div>
               {/* Result file upload - only show if plate has been analyzed */}
@@ -654,8 +648,7 @@ export default function PlateSearch() {
                   )}
                   {selectedPlate.analysis_date && (
                     <p className="text-sm text-gray-600">
-                      Analysis Date:{' '}
-                      {new Date(selectedPlate.analysis_date).toLocaleString()}
+                      Analysis Date: {new Date(selectedPlate.analysis_date).toLocaleString()}
                     </p>
                   )}
                 </div>
@@ -674,9 +667,7 @@ export default function PlateSearch() {
       </div>
 
       {/* Position management modal */}
-      {selectedPosition && (
-        <PositionModal position={selectedPosition} onClose={handleCloseModal} />
-      )}
+      {selectedPosition && <PositionModal position={selectedPosition} onClose={handleCloseModal} />}
 
       {/* Create plate modal */}
       <CreatePlateModal

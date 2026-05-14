@@ -6,21 +6,48 @@ import { usePositionAction } from '../hooks/usePositionAction';
 /* ── icons ───────────────────────────────────────────────────── */
 
 const IconSearch = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 text-gray-400"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+    />
   </svg>
 );
 
 const IconPlus = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-3.5 h-3.5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
   </svg>
 );
 
 const IconSpinner = () => (
-  <svg className="w-4 h-4 animate-spin text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+  <svg
+    className="w-4 h-4 animate-spin text-gray-400"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+    />
   </svg>
 );
 
@@ -122,10 +149,11 @@ export default function SearchPanel({ positionId, plateType, coordinate }) {
 
   const isExtraction = plateType === 'extraction';
 
-  const sampleSearch = useSampleSearch(
-    isExtraction ? debouncedQuery : '',
-    { is_isolated: true, is_invalid: false, position__isnull: true },
-  );
+  const sampleSearch = useSampleSearch(isExtraction ? debouncedQuery : '', {
+    is_isolated: true,
+    is_invalid: false,
+    position__isnull: true,
+  });
   const markerSearch = useSampleMarkerSearch(!isExtraction ? debouncedQuery : '');
 
   const search = isExtraction ? sampleSearch : markerSearch;
@@ -150,8 +178,7 @@ export default function SearchPanel({ positionId, plateType, coordinate }) {
           setQuery('');
           setIsOpen(false);
         },
-        onError: (err) =>
-          toast.error(err.response?.data?.error ?? 'Failed to add'),
+        onError: (err) => toast.error(err.response?.data?.error ?? 'Failed to add'),
       },
     );
   };
@@ -196,9 +223,7 @@ export default function SearchPanel({ positionId, plateType, coordinate }) {
 
       {/* Hint / status text */}
       {debouncedQuery.length < 2 && (
-        <p className="text-xs text-gray-400 text-center">
-          Type at least 2 characters to search
-        </p>
+        <p className="text-xs text-gray-400 text-center">Type at least 2 characters to search</p>
       )}
 
       {debouncedQuery.length >= 2 && !search.isFetching && results.length === 0 && (
@@ -212,10 +237,20 @@ export default function SearchPanel({ positionId, plateType, coordinate }) {
         <div className="space-y-1.5 max-h-64 overflow-y-auto pr-0.5">
           {isExtraction
             ? results.map((s) => (
-                <SampleRow key={s.id} sample={s} onAdd={handleAdd} isPending={actionMutation.isPending} />
+                <SampleRow
+                  key={s.id}
+                  sample={s}
+                  onAdd={handleAdd}
+                  isPending={actionMutation.isPending}
+                />
               ))
             : results.map((m) => (
-                <SampleMarkerRow key={m.id} marker={m} onAdd={handleAdd} isPending={actionMutation.isPending} />
+                <SampleMarkerRow
+                  key={m.id}
+                  marker={m}
+                  onAdd={handleAdd}
+                  isPending={actionMutation.isPending}
+                />
               ))}
         </div>
       )}
@@ -223,7 +258,10 @@ export default function SearchPanel({ positionId, plateType, coordinate }) {
       {/* Cancel button */}
       <button
         type="button"
-        onClick={() => { setQuery(''); setIsOpen(false); }}
+        onClick={() => {
+          setQuery('');
+          setIsOpen(false);
+        }}
         className="w-full px-3 py-1.5 rounded-md text-xs font-medium
                    bg-white text-gray-600 ring-1 ring-inset ring-gray-300
                    hover:bg-gray-50 transition-colors"

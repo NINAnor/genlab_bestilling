@@ -9,9 +9,7 @@ function DetailRow({ label, value, mono }) {
   return (
     <div className="flex items-baseline justify-between gap-2">
       <span className="text-xs text-gray-500 shrink-0">{label}</span>
-      <span className={`text-sm text-gray-900 text-right truncate ${
-        mono ? 'font-mono' : ''
-      }`}>
+      <span className={`text-sm text-gray-900 text-right truncate ${mono ? 'font-mono' : ''}`}>
         {value ?? <span className="text-gray-300">&mdash;</span>}
       </span>
     </div>
@@ -23,7 +21,7 @@ export default function ExtractionPlate() {
   const selectPosition = usePlateStore((s) => s.selectPosition);
   const selectedPositionId = usePlateStore((s) => {
     const idx = s.selectedPositionIdx;
-    return idx != null ? s.positions[idx]?.id ?? null : null;
+    return idx != null ? (s.positions[idx]?.id ?? null) : null;
   });
   const printRef = useRef(null);
 

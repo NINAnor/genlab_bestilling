@@ -122,10 +122,9 @@ export function useUpdatePlateName() {
 
   return useMutation({
     mutationFn: async ({ plateId, name }) => {
-      const { data } = await client.post(
-        `/staff/api/analysis-plates/${plateId}/set-name/`,
-        { name },
-      );
+      const { data } = await client.post(`/staff/api/analysis-plates/${plateId}/set-name/`, {
+        name,
+      });
       return data;
     },
     onSuccess: () => {
@@ -149,9 +148,7 @@ export function useClonePlate() {
 
   return useMutation({
     mutationFn: async ({ plateId }) => {
-      const { data } = await client.post(
-        `/staff/api/analysis-plates/${plateId}/clone/`,
-      );
+      const { data } = await client.post(`/staff/api/analysis-plates/${plateId}/clone/`);
       return data;
     },
     onSuccess: (data) => {
@@ -176,10 +173,7 @@ export function useEmptyPositions() {
       const payload = {};
       if (row) payload.row = row;
       if (column !== undefined && column !== null) payload.column = column;
-      const { data } = await client.post(
-        `/staff/api/analysis-plates/${plateId}/empty/`,
-        payload,
-      );
+      const { data } = await client.post(`/staff/api/analysis-plates/${plateId}/empty/`, payload);
       return data;
     },
     onSuccess: (data) => {
@@ -205,10 +199,7 @@ export function useReservePositions() {
       const payload = {};
       if (row) payload.row = row;
       if (column !== undefined && column !== null) payload.column = column;
-      const { data } = await client.post(
-        `/staff/api/analysis-plates/${plateId}/reserve/`,
-        payload,
-      );
+      const { data } = await client.post(`/staff/api/analysis-plates/${plateId}/reserve/`, payload);
       return data;
     },
     onSuccess: (data) => {
@@ -231,9 +222,7 @@ export function useDeletePlate() {
 
   return useMutation({
     mutationFn: async ({ plateId }) => {
-      const { data } = await client.delete(
-        `/staff/api/analysis-plates/${plateId}/delete/`,
-      );
+      const { data } = await client.delete(`/staff/api/analysis-plates/${plateId}/delete/`);
       return data;
     },
     onSuccess: (data) => {
@@ -264,10 +253,7 @@ export function useUpdatePlate() {
       if (name !== undefined) payload.name = name;
       if (analysis_type !== undefined) payload.analysis_type = analysis_type;
       if (markers !== undefined) payload.markers = markers;
-      const { data } = await client.patch(
-        `/staff/api/analysis-plates/${plateId}/`,
-        payload,
-      );
+      const { data } = await client.patch(`/staff/api/analysis-plates/${plateId}/`, payload);
       return data;
     },
     onSuccess: (data) => {

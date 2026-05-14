@@ -1,19 +1,17 @@
-import { HUIField, Label } from "../../helpers/components";
-import { Button } from "@headlessui/react";
-import { useForm } from "@tanstack/react-form";
-import Table from "./SampleTable";
-import { client, config } from "../config";
-import AsyncSelect from "react-select/async";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { useMemo } from "react";
-import { SELECT_STYLES } from "../../helpers/libs";
+import { HUIField, Label } from '../../helpers/components';
+import { Button } from '@headlessui/react';
+import { useForm } from '@tanstack/react-form';
+import Table from './SampleTable';
+import { client, config } from '../config';
+import AsyncSelect from 'react-select/async';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import { useMemo } from 'react';
+import { SELECT_STYLES } from '../../helpers/libs';
 
 const markersOptions = async (input) => {
   return (
-    await client.get(
-      `/api/markers/?analysis_order=${config.order}&name__istartswith=${input}`
-    )
+    await client.get(`/api/markers/?analysis_order=${config.order}&name__istartswith=${input}`)
   ).data;
 };
 
@@ -21,7 +19,7 @@ export default function SearchApplyMarker() {
   const queryClient = useQueryClient();
   const bulkCreate = useMutation({
     mutationFn: (value) => {
-      return client.post("/api/sample-marker-analysis/bulk/", {
+      return client.post('/api/sample-marker-analysis/bulk/', {
         samples: Object.entries(value.selectedSamples)
           .filter(([_k, value]) => value)
           .map(([key, _v]) => key),
@@ -30,11 +28,11 @@ export default function SearchApplyMarker() {
       });
     },
     onSuccess: () => {
-      toast.success("Samples added!");
-      queryClient.invalidateQueries({ queryKey: ["sample-marker-analysis"] });
+      toast.success('Samples added!');
+      queryClient.invalidateQueries({ queryKey: ['sample-marker-analysis'] });
     },
     onError: () => {
-      toast.error("There was an error!");
+      toast.error('There was an error!');
     },
   });
 
@@ -44,7 +42,7 @@ export default function SearchApplyMarker() {
         await bulkCreate.mutateAsync(value);
       } catch (e) {
         console.log(e);
-        toast.error("There was an error!");
+        toast.error('There was an error!');
       }
     },
     defaultValues: {
@@ -67,22 +65,14 @@ export default function SearchApplyMarker() {
           <Button
             onClick={handleSubmit}
             className="btn bg-brand-primary block disabled:opacity-50"
-            disabled={
-              !canSubmit ||
-              !Object.values(samples).some((_) => _) ||
-              !markers.length
-            }
+            disabled={!canSubmit || !Object.values(samples).some((_) => _) || !markers.length}
           >
-            {isSubmitting ? (
-              <i className="fas fa-spin fa-spinner"></i>
-            ) : (
-              `Add selected samples`
-            )}
+            {isSubmitting ? <i className="fas fa-spin fa-spinner"></i> : `Add selected samples`}
           </Button>
         )}
       </Subscribe>
     ),
-    [Subscribe, handleSubmit]
+    [Subscribe, handleSubmit],
   );
 
   return (
@@ -125,8 +115,7 @@ export default function SearchApplyMarker() {
               {({ state, handleChange }) => (
                 <div>
                   <Label className="block">
-                    Selected Samples - total:{" "}
-                    {Object.values(state.value).filter((_) => _).length}
+                    Selected Samples - total: {Object.values(state.value).filter((_) => _).length}
                   </Label>
                   <Table
                     rowSelection={state.value}

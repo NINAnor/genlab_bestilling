@@ -77,7 +77,9 @@ export default function SelectionActions() {
                 min="1"
                 max="10"
                 value={replicates}
-                onChange={(e) => setReplicates(Math.max(1, Math.min(10, parseInt(e.target.value, 10) || 1)))}
+                onChange={(e) =>
+                  setReplicates(Math.max(1, Math.min(10, parseInt(e.target.value, 10) || 1)))
+                }
                 className="w-12 px-1 py-0.5 border border-gray-300 rounded text-center text-sm"
               />
               <span className="text-gray-500">replicates</span>
@@ -97,9 +99,7 @@ export default function SelectionActions() {
             </button>
           </>
         ) : (
-          <span className="text-sm text-gray-500 italic">
-            Select a plate above to add markers
-          </span>
+          <span className="text-sm text-gray-500 italic">Select a plate above to add markers</span>
         )}
       </div>
     </div>

@@ -1,15 +1,15 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import AsyncSelect from "react-select/async";
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import AsyncSelect from 'react-select/async';
 
-const datePortal = document.getElementById("date-portal");
+const datePortal = document.getElementById('date-portal');
 
 const CLASSNAMES = {
-  container: () => "flex w-full",
-  control: (state) => "px-4 w-full cursor-auto",
-  menu: () => "bg-white border border-[#444] cursor-auto",
-  option: () => "px-4 my-2 cursor-auto hover:bg-brand-primary",
-  multiValue: () => "bg-brand-primary px-1 rounded cursor-auto",
+  container: () => 'flex w-full',
+  control: () => 'px-4 w-full cursor-auto',
+  menu: () => 'bg-white border border-[#444] cursor-auto',
+  option: () => 'px-4 my-2 cursor-auto hover:bg-brand-primary',
+  multiValue: () => 'bg-brand-primary px-1 rounded cursor-auto',
 };
 
 export default function SelectCell({
@@ -33,7 +33,7 @@ export default function SelectCell({
 
   // If the initialValue is changed external, sync it up with our state
   useEffect(() => {
-    setValue(initialValue || "");
+    setValue(initialValue || '');
   }, [initialValue]);
 
   const load = async (input) =>

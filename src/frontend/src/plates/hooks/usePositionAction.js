@@ -13,10 +13,7 @@ export function usePositionAction() {
 
   return useMutation({
     mutationFn: async ({ positionId, action, payload = {} }) => {
-      const { data } = await client.post(
-        `/api/plate-positions/${positionId}/${action}/`,
-        payload,
-      );
+      const { data } = await client.post(`/api/plate-positions/${positionId}/${action}/`, payload);
       return data.position;
     },
     onSuccess: (position) => {

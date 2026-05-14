@@ -39,11 +39,7 @@ export default function PositionModal({ position, onClose }) {
 
   const hasId = position.id != null;
   const isInvalid = position.is_invalid;
-  const status = position.is_reserved
-    ? 'reserved'
-    : position.sample_marker
-      ? 'filled'
-      : 'empty';
+  const status = position.is_reserved ? 'reserved' : position.sample_marker ? 'filled' : 'empty';
 
   const handleReserve = () => {
     if (!hasId) return;
@@ -61,11 +57,7 @@ export default function PositionModal({ position, onClose }) {
 
   const handleRemoveSampleMarker = () => {
     if (!hasId) return;
-    if (
-      window.confirm(
-        'Are you sure you want to remove the sample marker from this position?',
-      )
-    ) {
+    if (window.confirm('Are you sure you want to remove the sample marker from this position?')) {
       removeSampleMarker.mutate(position.id, {
         onSuccess: onClose,
       });
@@ -121,16 +113,15 @@ export default function PositionModal({ position, onClose }) {
       >
         {/* Header */}
         <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Position {position.coordinate}
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
+          <h3 className="text-lg font-semibold text-gray-900">Position {position.coordinate}</h3>
+          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -147,7 +138,8 @@ export default function PositionModal({ position, onClose }) {
             )}
             {status === 'reserved' && (
               <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded">
-                Reserved{position.positive_control_name ? ` (${position.positive_control_name})` : ''}
+                Reserved
+                {position.positive_control_name ? ` (${position.positive_control_name})` : ''}
               </span>
             )}
             {status === 'filled' && !isInvalid && (
@@ -268,9 +260,7 @@ export default function PositionModal({ position, onClose }) {
         {/* Actions */}
         <div className="px-4 py-3 border-t border-gray-200 flex flex-wrap gap-2">
           {!hasId && (
-            <span className="text-sm text-gray-500 italic">
-              Position not in database yet
-            </span>
+            <span className="text-sm text-gray-500 italic">Position not in database yet</span>
           )}
 
           {hasId && status === 'empty' && (
@@ -315,11 +305,7 @@ export default function PositionModal({ position, onClose }) {
                     : 'text-amber-700 bg-amber-100 hover:bg-amber-200'
                 }`}
               >
-                {toggleInvalid.isPending
-                  ? 'Updating…'
-                  : isInvalid
-                    ? 'Mark Valid'
-                    : 'Mark Invalid'}
+                {toggleInvalid.isPending ? 'Updating…' : isInvalid ? 'Mark Valid' : 'Mark Invalid'}
               </button>
             </>
           )}

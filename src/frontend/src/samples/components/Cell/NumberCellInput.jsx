@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useState } from 'react';
 
 export default function NumberCellInput({ getValue, row: { original }, column: { id }, table }) {
-  const initialValue = getValue() || "";
+  const initialValue = getValue() || '';
   // We need to keep and update the state of the cell normally
   const [value, setValue] = useState(initialValue);
 
@@ -15,7 +14,7 @@ export default function NumberCellInput({ getValue, row: { original }, column: {
 
   // If the initialValue is changed external, sync it up with our state
   useEffect(() => {
-    setValue(initialValue || "");
+    setValue(initialValue || '');
   }, [initialValue]);
 
   return (

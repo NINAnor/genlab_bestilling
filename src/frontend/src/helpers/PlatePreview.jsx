@@ -32,18 +32,16 @@ function getStatus(position, plateType) {
 
 function getFilledLabel(position, plateType, showFishId = false) {
   if (plateType === 'extraction' && position?.sample_raw) {
-    const mainLabel =
-      position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+    const mainLabel = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
     const orderLabel = position.sample_raw.order_id;
     return { mainLabel, orderLabel };
   }
   if (plateType === 'analysis' && position?.sample_marker) {
     const sampleLabel = showFishId
       ? (position.sample_marker.sample_fish_id ??
-         position.sample_marker.sample_genlab_id ??
-         position.sample_marker.sample_name)
-      : (position.sample_marker.sample_genlab_id ??
-         position.sample_marker.sample_name);
+        position.sample_marker.sample_genlab_id ??
+        position.sample_marker.sample_name)
+      : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name);
     const markerLabel = position.sample_marker.marker_name;
     const orderLabel = position.sample_marker.order_id;
     return { sampleLabel, markerLabel, orderLabel };
@@ -55,37 +53,30 @@ function getTooltip(position, coordinate, status, plateType, showFishId = false)
   let base;
   if (status === 'invalid') {
     if (plateType === 'analysis' && position.sample_marker) {
-      const markerName =
-        position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
+      const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
       const sampleName = showFishId
         ? (position.sample_marker.sample_fish_id ??
-           position.sample_marker.sample_genlab_id ??
-           position.sample_marker.sample_name ??
-           '?')
-        : (position.sample_marker.sample_genlab_id ??
-           position.sample_marker.sample_name ??
-           '?');
+          position.sample_marker.sample_genlab_id ??
+          position.sample_marker.sample_name ??
+          '?')
+        : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?');
       base = `${coordinate} — ${markerName} (${sampleName}) [INVALID]`;
     } else {
       base = `${coordinate} — Invalid`;
     }
   } else if (status === 'filled') {
     if (plateType === 'extraction' && position.sample_raw) {
-      const id =
-        position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+      const id = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
       const order = position.sample_raw.order_id;
       base = order ? `${coordinate} — ${id} [#${order}]` : `${coordinate} — ${id}`;
     } else if (plateType === 'analysis' && position.sample_marker) {
-      const markerName =
-        position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
+      const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
       const sampleName = showFishId
         ? (position.sample_marker.sample_fish_id ??
-           position.sample_marker.sample_genlab_id ??
-           position.sample_marker.sample_name ??
-           '?')
-        : (position.sample_marker.sample_genlab_id ??
-           position.sample_marker.sample_name ??
-           '?');
+          position.sample_marker.sample_genlab_id ??
+          position.sample_marker.sample_name ??
+          '?')
+        : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?');
       const order = position.sample_marker.order_id;
       base = order
         ? `${coordinate} — ${markerName} (${sampleName}) [#${order}]`
@@ -120,11 +111,7 @@ function getCellText(position, plateType, showFishId = false) {
         ''
       );
     }
-    return (
-      position.sample_marker.sample_genlab_id ??
-      position.sample_marker.sample_name ??
-      ''
-    );
+    return position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '';
   }
   return '';
 }
@@ -234,9 +221,7 @@ function Well({
           className="rounded-full bg-blue-600 shadow-sm"
         />
       )}
-      <span className="text-[10px] font-bold leading-tight text-gray-700">
-        {coordinate}
-      </span>
+      <span className="text-[10px] font-bold leading-tight text-gray-700">{coordinate}</span>
       {(status === 'filled' || status === 'invalid') && filledLabel && (
         <>
           {filledLabel.mainLabel && (
@@ -390,8 +375,7 @@ export default function PlatePreview({
   const counts = positions.reduce(
     (acc, p) => {
       if (p.is_reserved) acc.reserved += 1;
-      else if (plateType === 'extraction' ? p.sample_raw : p.sample_marker)
-        acc.filled += 1;
+      else if (plateType === 'extraction' ? p.sample_raw : p.sample_marker) acc.filled += 1;
       else acc.empty += 1;
       return acc;
     },
@@ -401,9 +385,7 @@ export default function PlatePreview({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8 text-gray-400">
-        Loading plate…
-      </div>
+      <div className="flex items-center justify-center py-8 text-gray-400">Loading plate…</div>
     );
   }
 
@@ -453,57 +435,55 @@ export default function PlatePreview({
             gridTemplateRows: `auto repeat(${ROWS.length}, 5rem)`,
           }}
         >
-        {/* Top-left empty cell */}
-        <div />
-        {/* Column headers */}
-        {COLS.map((col) => (
-          <div
-            key={col}
-            className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
-          >
-            {col}
-          </div>
-        ))}
-
-        {/* Rows */}
-        {ROWS.map((row) => (
-          <React.Fragment key={`row-${row}`}>
-            {/* Row header */}
-            <div className="text-xs font-medium text-gray-500 flex items-center justify-center">
-              {row}
+          {/* Top-left empty cell */}
+          <div />
+          {/* Column headers */}
+          {COLS.map((col) => (
+            <div
+              key={col}
+              className="text-center text-xs font-medium text-gray-500 flex items-end justify-center pb-1"
+            >
+              {col}
             </div>
-            {/* Wells */}
-            {COLS.map((col) => {
-              const idx = toPositionIndex(row, col);
-              const position = positionsByIdx[idx] ?? null;
-              const coordinate = `${row}${col}`;
-              return (
-                <Well
-                  key={coordinate}
-                  position={position}
-                  coordinate={coordinate}
-                  plateType={plateType}
-                  positionIndex={idx}
-                  onClick={
-                    onPositionClick
-                      ? () => onPositionClick(position, coordinate, idx)
-                      : undefined
-                  }
-                  isDraggable={!!onPositionMove}
-                  isDropTarget={!!onPositionMove}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  isDragging={draggingIdx === idx}
-                  isDragOver={dragOverIdx === idx}
-                  showFishId={showFishId}
-                />
-              );
-            })}
-          </React.Fragment>
-        ))}
+          ))}
+
+          {/* Rows */}
+          {ROWS.map((row) => (
+            <React.Fragment key={`row-${row}`}>
+              {/* Row header */}
+              <div className="text-xs font-medium text-gray-500 flex items-center justify-center">
+                {row}
+              </div>
+              {/* Wells */}
+              {COLS.map((col) => {
+                const idx = toPositionIndex(row, col);
+                const position = positionsByIdx[idx] ?? null;
+                const coordinate = `${row}${col}`;
+                return (
+                  <Well
+                    key={coordinate}
+                    position={position}
+                    coordinate={coordinate}
+                    plateType={plateType}
+                    positionIndex={idx}
+                    onClick={
+                      onPositionClick ? () => onPositionClick(position, coordinate, idx) : undefined
+                    }
+                    isDraggable={!!onPositionMove}
+                    isDropTarget={!!onPositionMove}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    isDragging={draggingIdx === idx}
+                    isDragOver={dragOverIdx === idx}
+                    showFishId={showFishId}
+                  />
+                );
+              })}
+            </React.Fragment>
+          ))}
         </div>
       </div>
     </div>

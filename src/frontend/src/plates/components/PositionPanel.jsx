@@ -10,32 +10,83 @@ import SearchPanel from './SearchPanel';
 /* ── tiny inline SVG icons ───────────────────────────────────── */
 
 const IconCursor = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-10 h-10 text-gray-300"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243-1.59-1.59"
+    />
   </svg>
 );
 
 const IconClose = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
   </svg>
 );
 
 const IconLock = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 inline-block mr-1.5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+    />
   </svg>
 );
 
 const IconUnlock = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 inline-block mr-1.5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75M3.75 21.75h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H3.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+    />
   </svg>
 );
 
 const IconTrash = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline-block mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-4 h-4 inline-block mr-1.5"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={2}
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
+    />
   </svg>
 );
 
@@ -131,13 +182,17 @@ export default function PositionPanel({ plateType, children }) {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Header with coordinate + status */}
-      <div className={`border-l-4 ${cfg.accent} px-5 py-4 bg-gray-50/60 flex items-center justify-between`}>
+      <div
+        className={`border-l-4 ${cfg.accent} px-5 py-4 bg-gray-50/60 flex items-center justify-between`}
+      >
         <div className="flex items-center gap-3">
           <span className="text-2xl font-bold text-gray-900 tracking-tight">
             {selectedCoordinate}
           </span>
           <div className="flex flex-col gap-1">
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.badge}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.badge}`}
+            >
               <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
               {cfg.label}
             </span>
@@ -161,8 +216,19 @@ export default function PositionPanel({ plateType, children }) {
         {position.filled_at && (
           <div className="px-5 py-3">
             <div className="flex items-center text-xs text-gray-500 gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-3.5 h-3.5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
               </svg>
               Filled {position.filled_at}
             </div>
@@ -173,15 +239,29 @@ export default function PositionPanel({ plateType, children }) {
         <div className="px-5 py-3 space-y-2">
           <div className="flex items-center justify-between">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"
+                />
               </svg>
               Notes
             </h5>
             {!editingNotes && (
               <button
                 type="button"
-                onClick={() => { setNoteDraft(position.notes ?? ''); setEditingNotes(true); }}
+                onClick={() => {
+                  setNoteDraft(position.notes ?? '');
+                  setEditingNotes(true);
+                }}
                 className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
               >
                 {position.notes ? 'Edit' : 'Add note'}
@@ -207,10 +287,18 @@ export default function PositionPanel({ plateType, children }) {
                   type="button"
                   onClick={() => {
                     actionMutation.mutate(
-                      { positionId: position.id, action: 'edit_notes', payload: { notes: noteDraft } },
                       {
-                        onSuccess: () => { toast.success('Note saved'); setEditingNotes(false); },
-                        onError: (err) => toast.error(err.response?.data?.error ?? 'Failed to save note'),
+                        positionId: position.id,
+                        action: 'edit_notes',
+                        payload: { notes: noteDraft },
+                      },
+                      {
+                        onSuccess: () => {
+                          toast.success('Note saved');
+                          setEditingNotes(false);
+                        },
+                        onError: (err) =>
+                          toast.error(err.response?.data?.error ?? 'Failed to save note'),
                       },
                     );
                   }}
@@ -234,7 +322,9 @@ export default function PositionPanel({ plateType, children }) {
             </div>
           ) : position.notes ? (
             <div className="bg-blue-50/60 rounded-lg px-3 py-2">
-              <p className="text-xs text-blue-800 leading-relaxed whitespace-pre-wrap">{position.notes}</p>
+              <p className="text-xs text-blue-800 leading-relaxed whitespace-pre-wrap">
+                {position.notes}
+              </p>
             </div>
           ) : (
             <p className="text-xs text-gray-400 italic">No notes</p>
@@ -325,7 +415,10 @@ export default function PositionPanel({ plateType, children }) {
                         { positionId: position.id, positiveControlId: newValue },
                         {
                           onSuccess: () => toast.success('Positive control updated'),
-                          onError: (err) => toast.error(err.response?.data?.error ?? 'Failed to update positive control'),
+                          onError: (err) =>
+                            toast.error(
+                              err.response?.data?.error ?? 'Failed to update positive control',
+                            ),
                         },
                       );
                     }}

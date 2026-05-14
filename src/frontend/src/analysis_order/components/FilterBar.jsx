@@ -197,9 +197,7 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
 
         {/* Isolation Method filter */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Isolation Method
-          </label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Isolation Method</label>
           <select
             value={filters.isolation_method || ''}
             onChange={(e) => updateFilter('isolation_method', e.target.value)}

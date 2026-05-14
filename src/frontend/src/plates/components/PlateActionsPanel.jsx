@@ -54,7 +54,9 @@ export default function PlateActionsPanel() {
             >
               <option value="">Row (optional)</option>
               {ROWS.map((row) => (
-                <option key={row} value={row}>{row}</option>
+                <option key={row} value={row}>
+                  {row}
+                </option>
               ))}
             </select>
             <select
@@ -66,7 +68,9 @@ export default function PlateActionsPanel() {
             >
               <option value="">Column (optional)</option>
               {COLS.map((col) => (
-                <option key={col} value={col}>{col}</option>
+                <option key={col} value={col}>
+                  {col}
+                </option>
               ))}
             </select>
           </div>

@@ -22,9 +22,7 @@ function usePositionActionMutation(action, { includePlates = true } = {}) {
 
   return useMutation({
     mutationFn: async (positionId) => {
-      const { data } = await client.post(
-        `/api/plate-positions/${positionId}/${action}/`,
-      );
+      const { data } = await client.post(`/api/plate-positions/${positionId}/${action}/`);
       return data;
     },
     onSuccess: () => {
@@ -62,10 +60,9 @@ export function useEditPositionNotes() {
 
   return useMutation({
     mutationFn: async ({ positionId, notes }) => {
-      const { data } = await client.post(
-        `/api/plate-positions/${positionId}/edit_notes/`,
-        { notes },
-      );
+      const { data } = await client.post(`/api/plate-positions/${positionId}/edit_notes/`, {
+        notes,
+      });
       return data;
     },
     onSuccess: () => {
@@ -82,10 +79,9 @@ export function useMovePosition() {
 
   return useMutation({
     mutationFn: async ({ sourcePositionId, targetPositionIndex }) => {
-      const { data } = await client.post(
-        `/api/plate-positions/${sourcePositionId}/move_to/`,
-        { target_position: targetPositionIndex },
-      );
+      const { data } = await client.post(`/api/plate-positions/${sourcePositionId}/move_to/`, {
+        target_position: targetPositionIndex,
+      });
       return data;
     },
     onSuccess: () => {
@@ -122,9 +118,7 @@ export function useTogglePositionInvalid() {
 
   return useMutation({
     mutationFn: async (positionId) => {
-      const { data } = await client.post(
-        `/api/plate-positions/${positionId}/toggle-invalid/`,
-      );
+      const { data } = await client.post(`/api/plate-positions/${positionId}/toggle-invalid/`);
       return data;
     },
     onSuccess: () => {

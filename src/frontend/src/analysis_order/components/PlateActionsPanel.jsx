@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
-import {
-  useEmptyPositions,
-  useReservePositions,
-} from '../hooks/useCreatePlate';
+import { useEmptyPositions, useReservePositions } from '../hooks/useCreatePlate';
 
 const ROWS = 'ABCDEFGH'.split('');
 const COLS = Array.from({ length: 12 }, (_, i) => i + 1);

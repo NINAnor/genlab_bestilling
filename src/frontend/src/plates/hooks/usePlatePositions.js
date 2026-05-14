@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { client, config } from '../config';
+import { client } from '../config';
 import usePlateStore from '../store';
 
 /**
@@ -16,7 +16,7 @@ export function usePlatePositions() {
         params: { plate: plateId },
       });
       // DRF may return paginated or flat list
-      const results = Array.isArray(data) ? data : data.results ?? [];
+      const results = Array.isArray(data) ? data : (data.results ?? []);
       setPositions(results);
       return results;
     },

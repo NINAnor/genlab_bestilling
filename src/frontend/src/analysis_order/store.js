@@ -29,8 +29,7 @@ const useOrderStore = create((set) => ({
     }),
 
   /** Toggle between showing fish_id and genlab_id */
-  toggleShowFishId: () =>
-    set((state) => ({ showFishId: !state.showFishId })),
+  toggleShowFishId: () => set((state) => ({ showFishId: !state.showFishId })),
 
   /** Set the selected order for filtering */
   setSelectedOrder: (orderId, orderLabel) =>
@@ -40,12 +39,10 @@ const useOrderStore = create((set) => ({
     }),
 
   /** Set the currently selected plate (for adding sample markers) */
-  setSelectedPlate: (plate) =>
-    set({ selectedPlate: plate }),
+  setSelectedPlate: (plate) => set({ selectedPlate: plate }),
 
   /** Set sorting field and direction */
-  setSorting: (field, direction) =>
-    set({ sorting: { field, direction } }),
+  setSorting: (field, direction) => set({ sorting: { field, direction } }),
 
   /** Toggle sorting for a field */
   toggleSorting: (field) =>
@@ -81,21 +78,17 @@ const useOrderStore = create((set) => ({
     }),
 
   /** Clear all selections */
-  clearSelection: () =>
-    set({ selectedMarkerIds: {} }),
+  clearSelection: () => set({ selectedMarkerIds: {} }),
 
   /** Bulk-set sample markers from API response (replaces all, preserves order) */
   setSampleMarkers: (markerList) =>
     set({
-      sampleMarkers: Object.fromEntries(
-        markerList.map((m) => [m.id, m]),
-      ),
+      sampleMarkers: Object.fromEntries(markerList.map((m) => [m.id, m])),
       sampleMarkerIds: markerList.map((m) => m.id),
     }),
 
   /** Clear all sample markers */
-  clearSampleMarkers: () =>
-    set({ sampleMarkers: {}, sampleMarkerIds: [] }),
+  clearSampleMarkers: () => set({ sampleMarkers: {}, sampleMarkerIds: [] }),
 }));
 
 export default useOrderStore;

@@ -3,28 +3,28 @@ import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
-} from "@tanstack/react-query";
-import { config, client } from "../config";
+} from '@tanstack/react-query';
+import { config, client } from '../config';
 import {
   useReactTable,
   flexRender,
   getCoreRowModel,
   createColumnHelper,
-} from "@tanstack/react-table";
-import { useEffect, useRef, useCallback, useMemo } from "react";
+} from '@tanstack/react-table';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 
-import { useVirtualizer } from "@tanstack/react-virtual";
-import SimpleCellInput from "./Cell/SimpleCellInput";
-import SelectCell from "./Cell/SelectCell";
-import ActionsCell from "./Cell/ActionsCell";
-import SelectCreateCell from "./Cell/SelectCreateCell";
-import toast from "react-hot-toast";
-import { AxiosError } from "axios";
-import NumberCellInput from "./Cell/NumberCellInput";
+import { useVirtualizer } from '@tanstack/react-virtual';
+import SimpleCellInput from './Cell/SimpleCellInput';
+import SelectCell from './Cell/SelectCell';
+import ActionsCell from './Cell/ActionsCell';
+import SelectCreateCell from './Cell/SelectCreateCell';
+import toast from 'react-hot-toast';
+import { AxiosError } from 'axios';
+import NumberCellInput from './Cell/NumberCellInput';
 // import MultiSelectCell from "./Cell/MultiSelectCell";
 
 function askConfirm(fn) {
-  return () => confirm("Are you really sure?") && fn();
+  return () => confirm('Are you really sure?') && fn();
 }
 
 async function getSamples({ pageParam }) {
@@ -36,19 +36,13 @@ async function getSamples({ pageParam }) {
 const columnHelper = createColumnHelper();
 
 const speciesOptions = async (input) => {
-  return (
-    await client.get(
-      `/api/species/?ext_order=${config.order}&name__icontains=${input}`
-    )
-  ).data;
+  return (await client.get(`/api/species/?ext_order=${config.order}&name__icontains=${input}`))
+    .data;
 };
 
 const sampleTypesOptions = async (input) => {
-  return (
-    await client.get(
-      `/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`
-    )
-  ).data;
+  return (await client.get(`/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`))
+    .data;
 };
 
 // const markersOptions = async (input) => {
@@ -64,19 +58,19 @@ const locationOptions = (species) => async (input) => {
 };
 
 const locationCreate = async (value) => {
-  return client.post("/api/locations/", {
+  return client.post('/api/locations/', {
     name: value,
   });
 };
 
 const COLUMNS = [
   !config.analysis_data.needs_guid
-    ? columnHelper.accessor("guid", {
-        header: "GUID",
+    ? columnHelper.accessor('guid', {
+        header: 'GUID',
         cell: SimpleCellInput,
       })
     : null,
-  columnHelper.accessor("name", {
+  columnHelper.accessor('name', {
     header: (
       <span title="physical identification marked on the sample">
         Sample Name <i className="fas fa-circle-question"></i>
@@ -84,30 +78,24 @@ const COLUMNS = [
     ),
     cell: SimpleCellInput,
   }),
-  columnHelper.accessor("species", {
-    header: "Species",
-    cell: (props) => (
-      <SelectCell
-        {...props}
-        loadOptions={speciesOptions}
-        queryKey={"species"}
-      />
-    ),
+  columnHelper.accessor('species', {
+    header: 'Species',
+    cell: (props) => <SelectCell {...props} loadOptions={speciesOptions} queryKey={'species'} />,
     size: 200,
   }),
-  columnHelper.accessor("year", {
-    header: "Year",
+  columnHelper.accessor('year', {
+    header: 'Year',
     cell: NumberCellInput,
     size: 100,
   }),
-  columnHelper.accessor("pop_id", {
-    header: "Pop ID",
+  columnHelper.accessor('pop_id', {
+    header: 'Pop ID',
     cell: SimpleCellInput,
   }),
-  columnHelper.accessor("location", {
-    header: "Location",
+  columnHelper.accessor('location', {
+    header: 'Location',
     cell: (props) => {
-      const species = props.row.getValue("species");
+      const species = props.row.getValue('species');
       const opts = locationOptions(species);
       return (
         <SelectCreateCell
@@ -121,14 +109,10 @@ const COLUMNS = [
     },
     size: 300,
   }),
-  columnHelper.accessor("type", {
-    header: "Sample Type",
+  columnHelper.accessor('type', {
+    header: 'Sample Type',
     cell: (props) => (
-      <SelectCell
-        {...props}
-        loadOptions={sampleTypesOptions}
-        queryKey={"sampleTypes"}
-      />
+      <SelectCell {...props} loadOptions={sampleTypesOptions} queryKey={'sampleTypes'} />
     ),
     size: 200,
   }),
@@ -136,17 +120,17 @@ const COLUMNS = [
   //   header: "Markers",
   //   cell: (props) => <MultiSelectCell {...props} loadOptions={markersOptions} queryKey={'markers'} idField="name" />,
   // }),
-  columnHelper.accessor("notes", {
-    header: "Notes",
+  columnHelper.accessor('notes', {
+    header: 'Notes',
     cell: SimpleCellInput,
   }),
   columnHelper.display({
-    header: "Actions",
+    header: 'Actions',
     cell: ActionsCell,
     size: 50,
   }),
-  columnHelper.accessor("has_error", {
-    header: "Completed",
+  columnHelper.accessor('has_error', {
+    header: 'Completed',
     size: 50,
     cell: ({ getValue }) => (
       <span className="text-2xl text-center flex items-center w-full justify-center">
@@ -154,10 +138,7 @@ const COLUMNS = [
           <>
             <i className="fas fa-times text-red-400" />
             <span className="text-sm ml-3">
-              <i
-                className="fas fa-info-circle text-blue-500"
-                title={getValue()}
-              />
+              <i className="fas fa-info-circle text-blue-500" title={getValue()} />
             </span>
           </>
         ) : (
@@ -176,7 +157,7 @@ function handleError(e) {
       toast.error(err.detail);
     });
   } else {
-    toast.error("There was an error");
+    toast.error('There was an error');
   }
 }
 
@@ -185,17 +166,14 @@ export default function Table() {
   const queryClient = useQueryClient();
 
   const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
-    queryKey: ["samples"],
+    queryKey: ['samples'],
     queryFn: getSamples,
     getNextPageParam: (lastGroup) => lastGroup.next,
     refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
   });
 
-  const flatData = useMemo(
-    () => data?.pages?.flatMap((page) => page.results) ?? [],
-    [data]
-  );
+  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.results) ?? [], [data]);
 
   const last = useMemo(() => {
     try {
@@ -212,16 +190,12 @@ export default function Table() {
       if (containerRefElement) {
         const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
         //once the user has scrolled within 500px of the bottom of the table, fetch more data if we can
-        if (
-          scrollHeight - scrollTop - clientHeight < 500 &&
-          !isFetching &&
-          last?.next
-        ) {
+        if (scrollHeight - scrollTop - clientHeight < 500 && !isFetching && last?.next) {
           fetchNextPage();
         }
       }
     },
-    [fetchNextPage, isFetching, last]
+    [fetchNextPage, isFetching, last],
   );
 
   useEffect(() => {
@@ -233,8 +207,8 @@ export default function Table() {
       return client.patch(`/api/samples/${id}/`, data);
     },
     onSuccess: () => {
-      toast.success("Updated");
-      queryClient.invalidateQueries({ queryKey: ["samples"] });
+      toast.success('Updated');
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
     onError: handleError,
   });
@@ -244,8 +218,8 @@ export default function Table() {
       return client.delete(`/api/samples/${id}/`);
     },
     onSuccess: () => {
-      toast.success("Deleted");
-      queryClient.invalidateQueries({ queryKey: ["samples"] });
+      toast.success('Deleted');
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
     onError: handleError,
   });
@@ -255,25 +229,23 @@ export default function Table() {
       return client.post(`/api/extraction-order/${config.order}/confirm/`);
     },
     onSuccess: () => {
-      toast.success("Validation success, you can now confirm the order");
-      queryClient.invalidateQueries({ queryKey: ["samples"] });
+      toast.success('Validation success, you can now confirm the order');
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
     onError: handleError,
   });
 
   const mutateDeleteAllRows = useMutation({
     mutationFn: () => {
-      return client.post(
-        `/api/extraction-order/${config.order}/delete-samples/`
-      );
+      return client.post(`/api/extraction-order/${config.order}/delete-samples/`);
     },
     onSuccess: () => {
-      toast.success("Samples deleted!");
-      queryClient.invalidateQueries({ queryKey: ["samples"] });
+      toast.success('Samples deleted!');
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
     onError: (e) => {
       console.error(e);
-      toast.error("There was an error!");
+      toast.error('There was an error!');
     },
   });
 
@@ -308,8 +280,7 @@ export default function Table() {
     getScrollElement: () => tableContainerRef.current,
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
-      typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+      typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
@@ -323,18 +294,15 @@ export default function Table() {
           onScroll={(e) => fetchMoreOnBottomReached(e.target)}
           ref={tableContainerRef}
           style={{
-            overflow: "auto", //our scrollable table container
-            position: "relative", //needed for sticky header
-            height: "600px", //should be a fixed height
+            overflow: 'auto', //our scrollable table container
+            position: 'relative', //needed for sticky header
+            height: '600px', //should be a fixed height
           }}
         >
           <table className="grid w-full">
             <thead className="grid sticky top-0 bg-white border-b z-[10]">
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr
-                  className="bg-gray-2 text-left dark:bg-meta-4 flex w-full"
-                  key={headerGroup.id}
-                >
+                <tr className="bg-gray-2 text-left dark:bg-meta-4 flex w-full" key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
@@ -345,10 +313,7 @@ export default function Table() {
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
                 </tr>
@@ -356,9 +321,9 @@ export default function Table() {
             </thead>
             <tbody
               style={{
-                display: "grid",
+                display: 'grid',
                 height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-                position: "relative", //needed for absolute positioning of rows
+                position: 'relative', //needed for absolute positioning of rows
               }}
             >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -382,10 +347,7 @@ export default function Table() {
                             width: cell.column.getSize(),
                           }}
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       );
                     })}
@@ -404,7 +366,7 @@ export default function Table() {
       {mutateConfirm.error && (
         <div className="mb-2 bg-red-300 p-2 rounded my-5">
           <h4 className="text-xl font-bold capitalize">
-            {mutateConfirm.error.response.data.type.replace("_", " ")}
+            {mutateConfirm.error.response.data.type.replace('_', ' ')}
           </h4>
           <ul className="list-disc px-5">
             {mutateConfirm.error.response.data.errors.map((e) => (
@@ -422,18 +384,15 @@ export default function Table() {
           onClick={askConfirm(mutateDeleteAllRows.mutate)}
           disabled={pendingState}
         >
-          Delete all samples{" "}
-          {mutateDeleteAllRows.isPending && (
-            <i className="fas fa-spinner fa-spin" />
-          )}
+          Delete all samples{' '}
+          {mutateDeleteAllRows.isPending && <i className="fas fa-spinner fa-spin" />}
         </button>
         <button
           className="btn bg-brand-secondary disabled:opacity-70 text-white"
           onClick={mutateConfirm.mutate}
           disabled={pendingState}
         >
-          Validate samples{" "}
-          {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
+          Validate samples {mutateConfirm.isPending && <i className="fas fa-spinner fa-spin" />}
         </button>
         <a href="../" className="btn bg-yellow-200">
           Continue to summary

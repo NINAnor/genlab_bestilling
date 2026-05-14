@@ -1,7 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
-import SearchApplyMarker from "./components/SearchApplyMarker";
-import OrderMarker from "./components/OrderMarker";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import SearchApplyMarker from './components/SearchApplyMarker';
+import OrderMarker from './components/OrderMarker';
 const queryClient = new QueryClient();
 
 function App() {

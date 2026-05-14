@@ -1,14 +1,14 @@
-import { useForm } from "@tanstack/react-form";
-import { Button } from "@headlessui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { client, config } from "../config";
-import AsyncSelect from "react-select/async";
-import AsyncCreatableSelect from "react-select/async-creatable";
-import { useStore } from "@tanstack/react-store";
+import { useForm } from '@tanstack/react-form';
+import { Button } from '@headlessui/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { client, config } from '../config';
+import AsyncSelect from 'react-select/async';
+import AsyncCreatableSelect from 'react-select/async-creatable';
+import { useStore } from '@tanstack/react-store';
 
-import toast from "react-hot-toast";
-import PastableArrayInput from "../../helpers/PastableArrayInput";
-import { SELECT_STYLES } from "../../helpers/libs";
+import toast from 'react-hot-toast';
+import PastableArrayInput from '../../helpers/PastableArrayInput';
+import { SELECT_STYLES } from '../../helpers/libs';
 
 const speciesOptions = async (input) => {
   let base = `/api/species/?ext_order=${config.order}`;
@@ -19,28 +19,20 @@ const speciesOptions = async (input) => {
 };
 
 const sampleTypesOptions = async (input) => {
-  return (
-    await client.get(
-      `/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`
-    )
-  ).data;
+  return (await client.get(`/api/sample-types/?ext_order=${config.order}&name__icontains=${input}`))
+    .data;
 };
 
 const DEFAULT = {
   quantity: 1,
-  species:
-    config.analysis_data.species?.length === 1
-      ? config.analysis_data.species[0]
-      : null,
+  species: config.analysis_data.species?.length === 1 ? config.analysis_data.species[0] : null,
   pop_id: [],
   location: null,
-  year: "",
+  year: '',
   name: [],
   guid: [],
   type:
-    config.analysis_data.sample_types?.length === 1
-      ? config.analysis_data.sample_types[0]
-      : null,
+    config.analysis_data.sample_types?.length === 1 ? config.analysis_data.sample_types[0] : null,
 };
 
 const HUIField = (props) => <div className="flex flex-col" {...props}></div>;
@@ -51,7 +43,7 @@ export default function SampleForm() {
 
   const bulkCreate = useMutation({
     mutationFn: (value) => {
-      return client.post("/api/samples/bulk/", {
+      return client.post('/api/samples/bulk/', {
         ...value,
         species: value.species.id,
         type: value.type?.id,
@@ -61,16 +53,16 @@ export default function SampleForm() {
           value.quantity,
           value.guid.length,
           value.name.length,
-          value.pop_id.length
+          value.pop_id.length,
         ),
       });
     },
     onSuccess: () => {
-      toast.success("Samples created!");
-      queryClient.invalidateQueries({ queryKey: ["samples"] });
+      toast.success('Samples created!');
+      queryClient.invalidateQueries({ queryKey: ['samples'] });
     },
     onError: () => {
-      toast.error("There was an error!");
+      toast.error('There was an error!');
     },
   });
 
@@ -83,8 +75,7 @@ export default function SampleForm() {
           pop_id: value.pop_id.length,
         };
 
-        if (Object.entries(checks).filter((c) => c[1]).length < 2)
-          return undefined;
+        if (Object.entries(checks).filter((c) => c[1]).length < 2) return undefined;
 
         const result = Object.values(checks)
           .filter((c) => c)
@@ -96,9 +87,7 @@ export default function SampleForm() {
             }
           });
 
-        return result === -1
-          ? `Pasted list fields must have the same number of items`
-          : undefined;
+        return result === -1 ? `Pasted list fields must have the same number of items` : undefined;
       },
     },
     onSubmit: async ({ value, formApi }) => {
@@ -106,7 +95,7 @@ export default function SampleForm() {
         await bulkCreate.mutateAsync(value);
         formApi.reset();
       } catch (e) {
-        // console.log(e);
+        console.error(e);
       }
     },
     defaultValues: DEFAULT,
@@ -114,12 +103,12 @@ export default function SampleForm() {
 
   const createLocation = useMutation({
     mutationFn: (value) => {
-      return client.post("/api/locations/", {
+      return client.post('/api/locations/', {
         name: value,
       });
     },
     onSuccess: (data) => {
-      setFieldValue("location", data.data);
+      setFieldValue('location', data.data);
     },
   });
 
@@ -138,7 +127,7 @@ export default function SampleForm() {
       {bulkCreate.error && (
         <div className="mb-2 bg-red-300 p-2 rounded">
           <h4 className="text-xl font-bold capitalize">
-            {bulkCreate.error.response.data.type.replace("_", " ")}
+            {bulkCreate.error.response.data.type.replace('_', ' ')}
           </h4>
           <ul className="list-disc px-5">
             {bulkCreate.error.response.data.errors.map((e) => (
@@ -151,9 +140,7 @@ export default function SampleForm() {
       )}
       {formErrorMap.onChange ? (
         <div className="mb-2 bg-red-300 p-2 rounded">
-          <h4 className="text-xl font-bold capitalize">
-            There was an error on the form
-          </h4>
+          <h4 className="text-xl font-bold capitalize">There was an error on the form</h4>
           {formErrorMap.onChange}
         </div>
       ) : null}
@@ -170,9 +157,7 @@ export default function SampleForm() {
             <Field name="guid">
               {({ state, handleChange, handleBlur }) => (
                 <HUIField>
-                  <Label className="block">
-                    Guid - total: {state.value.length}
-                  </Label>
+                  <Label className="block">Guid - total: {state.value.length}</Label>
                   <PastableArrayInput
                     state={state}
                     handleBlur={handleBlur}
@@ -185,11 +170,8 @@ export default function SampleForm() {
           <Field name="name">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
-                <Label
-                  className="block"
-                  title="physical identification marked on the sample"
-                >
-                  Sample Name - total: {state.value.length}{" "}
+                <Label className="block" title="physical identification marked on the sample">
+                  Sample Name - total: {state.value.length}{' '}
                   <i className="fas fa-circle-question"></i>
                 </Label>
                 <PastableArrayInput
@@ -203,9 +185,7 @@ export default function SampleForm() {
           <Field name="pop_id">
             {({ state, handleChange, handleBlur }) => (
               <HUIField>
-                <Label className="block">
-                  Pop IDs - total: {state.value.length}
-                </Label>
+                <Label className="block">Pop IDs - total: {state.value.length}</Label>
                 <PastableArrayInput
                   state={state}
                   handleBlur={handleBlur}

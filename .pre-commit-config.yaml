@@ -58,7 +58,17 @@ repos:
       - id: detect-secrets
         args: [--exclude-files=src/fixtures/users.json, --exclude-files=src/frontend/pnpm-lock.yaml]
 
+  - repo: https://github.com/oxc-project/mirrors-oxlint
+    rev: v1.64.0
+    hooks:
+      - id: oxlint
+        verbose: true
 
+  - repo: https://github.com/oxc-project/mirrors-oxfmt
+    rev: v0.49.0
+    hooks:
+      - id: oxfmt
+        verbose: true
 
 # sets up .pre-commit-ci.yaml to ensure pre-commit dependencies stay up to date
 ci:

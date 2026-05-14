@@ -10,9 +10,7 @@ import { client } from '../config';
 export function useSetOrderInProgress({ onSuccess } = {}) {
   return useMutation({
     mutationFn: async (orderId) => {
-      const { data } = await client.post(
-        `/staff/api/analysis-orders/${orderId}/in-progress/`,
-      );
+      const { data } = await client.post(`/staff/api/analysis-orders/${orderId}/in-progress/`);
       return data;
     },
     onSuccess: (data) => {

@@ -172,44 +172,50 @@ class SampleAnalysisMarkerQuerySet(models.QuerySet):
         )
 
     def filter_status_not_started(self) -> QuerySet:
-        """Filter sample markers with no positions on analysis plates."""
-        return self.filter(positions__isnull=True)
+        """Filter sample markers with no positions on analysis plates and no PCR."""
+        return self.filter(positions__isnull=True, has_pcr=False)
 
     def filter_status_pcr(self) -> QuerySet:
-        """Filter markers with positions but none on plates with analysis_date."""
+        """Filter markers with PCR or positions, none on plates with analysis_date."""
         return (
-            self.filter(positions__isnull=False)
+            self.filter(Q(has_pcr=True, is_analysed=False) | Q(positions__isnull=False))
             .exclude(positions__plate__analysisplate__analysis_date__isnull=False)
             .distinct()
         )
 
     def filter_status_analyzing(self) -> QuerySet:
-        """Filter sample markers on plates with analysis_date but no result_file."""
+        """Filter sample markers on plates with analysis_date but no result_file,
+        and that are analysed but not yet outputted.
+        """
         return self.filter(
-            positions__plate__analysisplate__analysis_date__isnull=False,
-            positions__plate__analysisplate__result_file="",
+            Q(
+                positions__plate__analysisplate__analysis_date__isnull=False,
+                positions__plate__analysisplate__result_file="",
+            )
+            | Q(is_analysed=True, is_outputted=False)
         ).distinct()
 
     def filter_status_results(self) -> QuerySet:
-        """Filter sample markers on plates with result_file."""
-        return (
-            self.exclude(positions__plate__analysisplate__result_file="")
-            .filter(positions__plate__analysisplate__result_file__isnull=False)
-            .distinct()
-        )
+        """Filter sample markers on plates with result_file or outputted."""
+        return self.filter(
+            Q(positions__plate__analysisplate__result_file__isnull=False)
+            & ~Q(positions__plate__analysisplate__result_file="")
+            | Q(is_outputted=True)
+        ).distinct()
 
     def filter_status_invalid(self) -> QuerySet:
         """Filter sample markers with at least one invalid position."""
         return self.filter(positions__is_invalid=True).distinct()
 
     def filter_by_status(self, status: str | AnalysisStatus) -> QuerySet:
-        """Filter by analysis status based on plate positions.
+        """Filter by analysis status.
 
-        Status is determined by the sample marker's positions on analysis plates:
-        - not_started: No positions on analysis plates
-        - pcr: Has positions, but none on plates with analysis_date
-        - analyzing: Has positions on plates with analysis_date but no result_file
-        - results: Has positions on plates with result_file
+        Status is determined by sample marker fields and plate positions:
+        - not_started: No positions on analysis plates and no PCR
+        - pcr: Has PCR or positions, but none on plates with analysis_date
+        - analyzing: On plate with analysis_date (no result_file), is_analysed,
+            not outputted
+        - results: Has positions on plates with result_file OR is_outputted=True
         - invalid: Has at least one invalid position
         """
         if status == AnalysisStatus.NOT_STARTED:

@@ -77,6 +77,37 @@ class Marker(AdminUrlsMixin, models.Model):
     name = models.CharField(primary_key=True)
     analysis_type = models.ForeignKey(f"{an}.AnalysisType", on_delete=models.DO_NOTHING)
 
+    # PCR / Protocol fields
+    primer_pair_name = models.CharField(max_length=255, null=True, blank=True)
+    probe_name = models.CharField(max_length=255, null=True, blank=True)
+    primer_sequences = models.TextField(null=True, blank=True)
+    sop = models.TextField(
+        null=True, blank=True, verbose_name="SOP (Standard Operating Procedure)"
+    )
+    primer_concentration_um = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        verbose_name="Primer concentration (µM)",
+    )
+    probe_concentration_um = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        verbose_name="Probe concentration (µM)",
+    )
+    master_mix = models.CharField(max_length=255, null=True, blank=True)
+    pcr_program = models.TextField(null=True, blank=True, verbose_name="PCR program")
+    total_volume_ul = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Total volume (µL)",
+    )
+
     class Meta:
         ordering = ["name"]
 

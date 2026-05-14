@@ -136,6 +136,7 @@ function Well({
   isDragging,
   isDragOver,
   showFishId,
+  isHighlighted,
 }) {
   const status = getStatus(position, plateType);
   const filledLabel = getFilledLabel(position, plateType, showFishId);
@@ -203,6 +204,7 @@ function Well({
       className={classnames(
         'relative w-full h-full rounded-lg border-2 flex flex-col items-center justify-center p-0.5',
         STATUS_STYLES[status],
+        isHighlighted && 'ring-2 ring-red-500 ring-offset-1',
         isClickable &&
           'cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-offset-1 transition-shadow',
         canDrag && 'cursor-grab active:cursor-grabbing',
@@ -285,6 +287,7 @@ Well.propTypes = {
   isDragging: PropTypes.bool,
   isDragOver: PropTypes.bool,
   showFishId: PropTypes.bool,
+  isHighlighted: PropTypes.bool,
 };
 
 /**
@@ -305,6 +308,7 @@ export default function PlatePreview({
   onPositionClick,
   onPositionMove,
   showFishId = false,
+  highlightOrderId = null,
 }) {
   const [draggingIdx, setDraggingIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
@@ -483,6 +487,10 @@ export default function PlatePreview({
                     isDragging={draggingIdx === idx}
                     isDragOver={dragOverIdx === idx}
                     showFishId={showFishId}
+                    isHighlighted={
+                      highlightOrderId != null &&
+                      position?.sample_marker?.order_id === highlightOrderId
+                    }
                   />
                 );
               })}
@@ -509,4 +517,5 @@ PlatePreview.propTypes = {
   onPositionClick: PropTypes.func,
   onPositionMove: PropTypes.func,
   showFishId: PropTypes.bool,
+  highlightOrderId: PropTypes.number,
 };

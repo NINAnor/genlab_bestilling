@@ -25,11 +25,7 @@ function initResponsibleStaffForm() {
 
       statusIndicator.showSpinner(form);
 
-      updateAssignedStaff(
-        updateUrl,
-        selectedUserIds,
-        currentAbortController.signal
-      )
+      updateAssignedStaff(updateUrl, selectedUserIds, currentAbortController.signal)
         .then(function (response) {
           if (!response.ok) {
             throw new Error("Could not update responsible staff");

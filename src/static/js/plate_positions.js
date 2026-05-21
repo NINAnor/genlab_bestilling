@@ -38,11 +38,7 @@ function platePositions() {
 
           await this.viewSample();
         } else {
-          console.error(
-            "Failed to load position details:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to load position details:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
           this.showMessage("Failed to load position details", "error");
@@ -91,21 +87,16 @@ function platePositions() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-              ).value,
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
             },
-          }
+          },
         );
 
         if (response.ok) {
           const data = await response.json();
           this.showMessage(data.message, "success");
           // Refresh the position data
-          await this.selectPosition(
-            this.selectedPosition.id,
-            this.selectedCoordinate
-          );
+          await this.selectPosition(this.selectedPosition.id, this.selectedCoordinate);
           // Reload the page to update the grid
           setTimeout(() => window.location.reload(), 10);
         } else {
@@ -132,12 +123,10 @@ function platePositions() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-              ).value,
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
             },
             body: JSON.stringify({ notes: this.notesInput }),
-          }
+          },
         );
 
         if (response.ok) {
@@ -146,11 +135,7 @@ function platePositions() {
           this.showNotesEdit = false;
           this.selectedPosition.notes = this.notesInput;
         } else {
-          console.error(
-            "Failed to save notes:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to save notes:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
           this.showMessage(errorData.error || "Failed to save notes", "error");
@@ -178,19 +163,13 @@ function platePositions() {
       this.sampleDetails = null;
 
       try {
-        const response = await fetch(
-          `/api/samples/${this.selectedPosition.sample_raw.id}/`
-        );
+        const response = await fetch(`/api/samples/${this.selectedPosition.sample_raw.id}/`);
         if (response.ok) {
           const data = await response.json();
           this.sampleDetails = data;
           this.showSampleDetails = true;
         } else {
-          console.error(
-            "Failed to load sample details:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to load sample details:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
           this.showMessage("Failed to load sample details", "error");
@@ -214,18 +193,14 @@ function platePositions() {
 
       try {
         const response = await fetch(
-          `/api/sample-marker-analysis/${this.selectedPosition.sample_marker.id}/`
+          `/api/sample-marker-analysis/${this.selectedPosition.sample_marker.id}/`,
         );
         if (response.ok) {
           const data = await response.json();
           this.sampleDetails = data;
           this.showSampleDetails = true;
         } else {
-          console.error(
-            "Failed to load analysis details:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to load analysis details:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
           this.showMessage("Failed to load analysis details", "error");
@@ -341,12 +316,10 @@ function platePositions() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-              ).value,
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
             },
             body: JSON.stringify({ sample_id: this.selectedSampleId }),
-          }
+          },
         );
 
         if (response.ok) {
@@ -354,18 +327,11 @@ function platePositions() {
           this.showMessage(data.message, "success");
           this.closeSampleSelection();
           // Refresh the position data
-          await this.selectPosition(
-            this.selectedPosition.id,
-            this.selectedCoordinate
-          );
+          await this.selectPosition(this.selectedPosition.id, this.selectedCoordinate);
           // Reload the page to update the grid
           setTimeout(() => window.location.reload(), 10);
         } else {
-          console.error(
-            "Failed to add sample:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to add sample:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
           this.showMessage(errorData.error || "Failed to add sample", "error");
@@ -438,14 +404,12 @@ function platePositions() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-CSRFToken": document.querySelector(
-                "[name=csrfmiddlewaretoken]"
-              ).value,
+              "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
             },
             body: JSON.stringify({
               sample_marker_id: this.selectedSampleMarkerId,
             }),
-          }
+          },
         );
 
         if (response.ok) {
@@ -453,24 +417,14 @@ function platePositions() {
           this.showMessage(data.message, "success");
           this.closeSampleMarkerSelection();
           // Refresh the position data
-          await this.selectPosition(
-            this.selectedPosition.id,
-            this.selectedCoordinate
-          );
+          await this.selectPosition(this.selectedPosition.id, this.selectedCoordinate);
           // Reload the page to update the grid
           setTimeout(() => window.location.reload(), 10);
         } else {
-          console.error(
-            "Failed to add sample marker:",
-            response.status,
-            response.statusText
-          );
+          console.error("Failed to add sample marker:", response.status, response.statusText);
           const errorData = await response.json().catch(() => ({}));
           console.error("Error response:", errorData);
-          this.showMessage(
-            errorData.error || "Failed to add sample marker",
-            "error"
-          );
+          this.showMessage(errorData.error || "Failed to add sample marker", "error");
         }
       } catch (error) {
         console.error("Error adding sample marker:", error);

@@ -37,7 +37,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM frontend-base AS frontend
 COPY src/frontend/src src
-COPY src/frontend/vite.config.js ./
+COPY src/frontend/vite.config.js src/frontend/.oxfmtrc.json src/frontend/.oxlintrc.json ./
 
 FROM frontend AS frontend-prod
 RUN pnpm run build

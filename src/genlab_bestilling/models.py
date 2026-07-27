@@ -1458,6 +1458,7 @@ class AnalysisPlate(Plate):
         f"{an}.AnalysisType", on_delete=models.PROTECT, null=True, blank=True
     )
     markers = models.ManyToManyField(f"{an}.Marker", blank=True)
+    billed_at = models.DateTimeField(null=True, blank=True)
 
     class SampleMarkerNotAllowed(Exception):
         """Raised when a sample marker does not match the plate's marker whitelist."""
@@ -1489,6 +1490,19 @@ class AnalysisPlate(Plate):
 
     def __str__(self) -> str:
         return f"#A{self.analysis_number}"
+
+    def set_billed(self, billed_at: Any = None) -> None:
+        """Set or clear the billing date of the plate.
+
+        Args:
+            billed_at: The billing datetime. Pass None to clear.
+                       Pass True to set to current time.
+        """
+        if billed_at is True:
+            self.billed_at = timezone.now()
+        else:
+            self.billed_at = billed_at
+        self.save(update_fields=["billed_at"])
 
     def populate(self, items: list) -> None:
         for sample_marker in items:

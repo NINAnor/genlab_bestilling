@@ -14,6 +14,7 @@ import {
   useUpdatePlateName,
   useClonePlate,
   useDeletePlate,
+  useSetPlateBilled,
 } from '../hooks/useCreatePlate';
 import { useMovePosition } from '../hooks/usePositionActions';
 import PlatePreview from '../../helpers/PlatePreview';
@@ -42,9 +43,11 @@ export default function PlateSearch() {
   const [minPositions, setMinPositions] = useState('');
   const [analysisTypeFilter, setAnalysisTypeFilter] = useState('');
   const [markerFilter, setMarkerFilter] = useState('');
+  const [billedFilter, setBilledFilter] = useState('');
   const [selectedPlate, setSelectedPlate] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [analysisDate, setAnalysisDate] = useState('');
+  const [billedAt, setBilledAt] = useState('');
   const [plateName, setPlateName] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -102,6 +105,12 @@ export default function PlateSearch() {
     } else {
       setAnalysisDate('');
     }
+    // Sync billing date
+    if (selectedPlate?.billed_at) {
+      setBilledAt(selectedPlate.billed_at.slice(0, 10));
+    } else {
+      setBilledAt('');
+    }
     // Sync plate name
     setPlateName(selectedPlate?.name || '');
   }, [selectedPlate, setStoreSelectedPlate]);
@@ -112,6 +121,7 @@ export default function PlateSearch() {
     minAvailablePositions: minPositions || undefined,
     analysisType: analysisTypeFilter || undefined,
     marker: markerFilter || undefined,
+    isBilled: billedFilter || undefined,
   };
   const { data: plates = [], isFetching: isLoading } = useAnalysisPlateSearch(searchTerm, filters);
 
@@ -125,6 +135,7 @@ export default function PlateSearch() {
   const updatePlateName = useUpdatePlateName();
   const clonePlate = useClonePlate();
   const deletePlate = useDeletePlate();
+  const setPlateBilled = useSetPlateBilled();
   const movePosition = useMovePosition();
 
   // Index positions by their position index for quick lookup
@@ -189,6 +200,39 @@ export default function PlateSearch() {
       {
         onSuccess: () => {
           setSelectedPlate(null);
+        },
+      },
+    );
+  };
+
+  const handleSetBilled = () => {
+    if (!selectedPlate?.id || !billedAt) return;
+    // Use noon as default time for billing date
+    const billedDateTime = new Date(`${billedAt}T12:00:00`);
+    setPlateBilled.mutate(
+      { plateId: selectedPlate.id, billedAt: billedDateTime.toISOString() },
+      {
+        onSuccess: (data) => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            billed_at: data.billed_at,
+          }));
+        },
+      },
+    );
+  };
+
+  const handleClearBilled = () => {
+    if (!selectedPlate?.id) return;
+    setPlateBilled.mutate(
+      { plateId: selectedPlate.id, billedAt: null },
+      {
+        onSuccess: () => {
+          setSelectedPlate((prev) => ({
+            ...prev,
+            billed_at: null,
+          }));
+          setBilledAt('');
         },
       },
     );
@@ -359,21 +403,30 @@ export default function PlateSearch() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="flex-1 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-28 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">All statuses</option>
+                <option value="">All workflow statuses</option>
                 <option value="pending">Pending</option>
                 <option value="analyzing">Analyzing</option>
                 <option value="results">Results</option>
+              </select>
+              <select
+                value={billedFilter}
+                onChange={(e) => setBilledFilter(e.target.value)}
+                className="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All billing statuses</option>
+                <option value="true">Billed</option>
+                <option value="false">Not billed</option>
               </select>
               <input
                 type="number"
                 min="0"
                 value={minPositions}
                 onChange={(e) => setMinPositions(e.target.value)}
-                placeholder="Min pos."
+                placeholder="Pos."
                 title="Minimum available positions"
-                className="w-20 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-16 border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
             <div className="mt-2 flex gap-2">
@@ -435,19 +488,29 @@ export default function PlateSearch() {
                       </span>
                     )}
                   </div>
-                  {plate.has_results ? (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                      Results
-                    </span>
-                  ) : plate.analysis_date ? (
-                    <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                      Analyzing
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-                      Pending
-                    </span>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {plate.has_results ? (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                        Results
+                      </span>
+                    ) : plate.analysis_date ? (
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
+                        Analyzing
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                        Pending
+                      </span>
+                    )}
+                    {plate.billed_at && (
+                      <span
+                        className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded"
+                        title={`Billed on ${new Date(plate.billed_at).toLocaleDateString()}`}
+                      >
+                        <i className="fa-solid fa-dollar-sign" />
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-between">
                   <span>{plate.available_positions} available positions</span>
@@ -532,6 +595,15 @@ export default function PlateSearch() {
                       Pending
                     </span>
                   )}
+                  {selectedPlate.billed_at && (
+                    <span
+                      className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
+                      title={`Billed on ${new Date(selectedPlate.billed_at).toLocaleDateString()}`}
+                    >
+                      <i className="fa-solid fa-dollar-sign mr-1" />
+                      Billed
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowEditModal(true)}
@@ -596,6 +668,33 @@ export default function PlateSearch() {
                       type="button"
                       onClick={handleClearAnalysisDate}
                       disabled={setAnalysisDateMutation.isPending}
+                      className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-600">Billing Date:</label>
+                  <input
+                    type="date"
+                    value={billedAt}
+                    onChange={(e) => setBilledAt(e.target.value)}
+                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSetBilled}
+                    disabled={setPlateBilled.isPending || !billedAt}
+                    className="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {setPlateBilled.isPending ? 'Saving…' : 'Save'}
+                  </button>
+                  {selectedPlate.billed_at && (
+                    <button
+                      type="button"
+                      onClick={handleClearBilled}
+                      disabled={setPlateBilled.isPending}
                       className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
                     >
                       Clear

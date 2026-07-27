@@ -7,7 +7,7 @@ from django import forms
 from django.db.models import CharField, Q, QuerySet
 from django.db.models.functions import Cast
 from django.http import HttpRequest
-from django_filters import CharFilter, ChoiceFilter, NumberFilter
+from django_filters import BooleanFilter, CharFilter, ChoiceFilter, NumberFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -911,9 +911,23 @@ class AnalysisPlateFilter(filters.FilterSet):
         ),
     )
 
+    is_billed = filters.BooleanFilter(
+        field_name="billed_at",
+        lookup_expr="isnull",
+        exclude=True,
+        label="Billed",
+        widget=forms.Select(
+            choices=[
+                ("", "All"),
+                ("true", "Billed"),
+                ("false", "Not billed"),
+            ],
+        ),
+    )
+
     class Meta:
         model = AnalysisPlate
-        fields = ["id", "name", "analysis_date"]
+        fields = ["name", "analysis_date", "is_billed"]
 
 
 class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
@@ -968,6 +982,11 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
     min_available_positions = NumberFilter(method="filter_min_available_positions")
     analysis_type = NumberFilter(field_name="analysis_type_id")
     marker = CharFilter(field_name="markers", lookup_expr="exact")
+    is_billed = BooleanFilter(
+        field_name="billed_at",
+        lookup_expr="isnull",
+        exclude=True,
+    )
 
     def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         """Filter by name or analysis_number (cast to string for partial matching)."""
@@ -985,6 +1004,7 @@ class AnalysisPlateAPIFilter(filters.FilterSet):
             "min_available_positions",
             "analysis_type",
             "marker",
+            "is_billed",
         ]
 
     def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:

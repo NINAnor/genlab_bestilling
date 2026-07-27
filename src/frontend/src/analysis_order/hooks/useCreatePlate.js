@@ -266,3 +266,31 @@ export function useUpdatePlate() {
     },
   });
 }
+
+/**
+ * Mutation hook to set or clear the billing date for a plate.
+ * @param {Object} params
+ * @param {string} params.plateId - The plate UUID
+ * @param {string|null} params.billedAt - ISO datetime string or null to clear
+ */
+export function useSetPlateBilled() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ plateId, billedAt }) => {
+      const { data } = await client.patch(`/staff/api/analysis-plates/${plateId}/`, {
+        billed_at: billedAt,
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      const message = data.billed_at ? 'Billing date updated' : 'Billing date cleared';
+      toast.success(message);
+      queryClient.invalidateQueries({ queryKey: ['analysis-plates-search'] });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.error || 'Failed to update billing date';
+      toast.error(message);
+    },
+  });
+}

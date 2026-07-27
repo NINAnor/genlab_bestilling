@@ -3,7 +3,14 @@
 
 
 {% block content %}
-<h3 class="text-4xl mb-5">Analysis Plate {{ object.name|default:object.id }}</h3>
+<div class="flex items-center gap-3 mb-5">
+    <h3 class="text-4xl">Analysis Plate {{ object.name|default:object.id }}</h3>
+    {% if object.billed_at %}
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+            <i class="fa-solid fa-dollar-sign"></i> Billed
+        </span>
+    {% endif %}
+</div>
 <div class="flex gap-5 mb-5">
 </div>
 

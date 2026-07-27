@@ -1,0 +1,9 @@
+{% if record.billed_at %}
+    <span class="text-green-600" title="Billed on {{ record.billed_at|date:'Y-m-d H:i' }}">
+        <i class="fa-solid fa-dollar-sign"></i>
+    </span>
+{% else %}
+    <span class="text-gray-300">
+        <i class="fa-solid fa-dollar-sign"></i>
+    </span>
+{% endif %}

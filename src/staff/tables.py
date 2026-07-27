@@ -1051,6 +1051,14 @@ class AnalysisPlateTable(tables.Table):
         empty_values=(),
     )
 
+    billed_at = tables.TemplateColumn(
+        template_name="staff/components/plate_billed_icon.html",
+        verbose_name="Billed",
+        orderable=True,
+        empty_values=(),
+        attrs={"td": {"class": "text-center"}},
+    )
+
     actions = tables.TemplateColumn(
         template_name="staff/components/analysis_plate_actions.html",
         verbose_name="Actions",
@@ -1082,6 +1090,7 @@ class AnalysisPlateTable(tables.Table):
             "created_at",
             "sample_count",
             "result_file",
+            "billed_at",
         ]
         empty_text = "No analysis plates found"
         template_name = "django_tables2/tailwind_inner.html"

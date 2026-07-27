@@ -429,10 +429,12 @@ class AnalysisPlateListSerializer(serializers.ModelSerializer):
             "analysis_type_name",
             "markers",
             "marker_names",
+            "billed_at",
         )
         extra_kwargs = {
             "name": {"required": False, "allow_blank": True},
             "analysis_type": {"required": True},
+            "billed_at": {"required": False, "allow_null": True},
         }
 
     def validate_name(self, value: str | None) -> str | None:

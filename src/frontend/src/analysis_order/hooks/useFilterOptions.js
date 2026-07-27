@@ -119,7 +119,7 @@ export function useIsolationMethodFilterOptions() {
 /**
  * Search analysis plates by name with optional filters.
  * @param {string} searchTerm - Search term for plate name
- * @param {object} filters - Optional filters: { status, minAvailablePositions, analysisType, marker }
+ * @param {object} filters - Optional filters: { status, minAvailablePositions, analysisType, marker, isBilled }
  */
 export function useAnalysisPlateSearch(searchTerm, filters = {}) {
   return useQuery({
@@ -141,13 +141,17 @@ export function useAnalysisPlateSearch(searchTerm, filters = {}) {
       if (filters.marker) {
         params.marker = filters.marker;
       }
+      if (filters.isBilled !== undefined && filters.isBilled !== '') {
+        params.is_billed = filters.isBilled;
+      }
       // Only limit results when no filters are active
       const hasFilters =
         searchTerm ||
         filters.status ||
         filters.minAvailablePositions ||
         filters.analysisType ||
-        filters.marker;
+        filters.marker ||
+        filters.isBilled;
       if (!hasFilters) {
         params.limit = 10;
       }

@@ -5,6 +5,7 @@ from unfold.contrib.filters import admin as unfold_filters
 from .models import (
     Project,
     ProjectMembership,
+    ValidProject,
 )
 
 
@@ -49,3 +50,14 @@ class ProjectMembershipAdmin(ModelAdmin):
     list_filter = [M.role.field.name]
     list_display = [M.project.field.name, M.user.field.name, M.role.field.name]
     autocomplete_fields = [M.project.field.name, M.user.field.name]
+
+
+@admin.register(ValidProject)
+class ValidProjectAdmin(ModelAdmin):
+    M = ValidProject
+    list_display = [
+        M.number.field.name,
+        M.name.field.name,
+    ]
+    search_help_text = "Search by project number or name"
+    search_fields = [M.number.field.name, M.name.field.name]

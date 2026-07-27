@@ -2,19 +2,31 @@ from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
 from django.urls import reverse
+from django.utils.timezone import now
 from django_lifecycle import (
     AFTER_CREATE,
-    AFTER_UPDATE,
     LifecycleModel,
     hook,
-)
-from django_lifecycle.conditions import (
-    WhenFieldHasChanged,
-    WhenFieldValueWas,
 )
 from procrastinate.contrib.django import app
 
 from shared.mixins import AdminUrlsMixin
+
+
+class ValidProject(AdminUrlsMixin, models.Model):
+    """A list of valid/known project numbers that can be auto-verified."""
+
+    number = models.CharField(primary_key=True)
+    name = models.CharField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Valid Project"
+        verbose_name_plural = "Valid Projects"
+
+    def __str__(self) -> str:
+        if self.name:
+            return f"{self.number} {self.name}"
+        return self.number
 
 
 class ProjectMembership(AdminUrlsMixin, models.Model):
@@ -74,27 +86,32 @@ class Project(AdminUrlsMixin, LifecycleModel):
         return reverse("nina:project-detail", kwargs={"pk": self.pk})
 
     @hook(AFTER_CREATE, on_commit=True)
-    def notify_require_verification(self) -> None:
+    def notify_project_created(self) -> None:
+        # Project was validated against ValidProject in form, auto-verify it
+        self.verified_at = now()
+        self.save(update_fields=["verified_at"])
+
+        # Send email to admins
+        admin_message = (
+            f"A new project {self.number} {self.name} was registered and verified.\n\n"
+            f"View project: {settings.NOTIFICATIONS['BASE_URL']}"
+            + reverse("staff:projects-detail", kwargs={"pk": self.pk})
+        )
         app.configure_task("nina.tasks.send_email_async").defer(
-            subject=f"{self.number} {self.name} - New project was registered",
-            message="A new project was registered, please verify it: "
-            + settings.NOTIFICATIONS["BASE_URL"]
-            + reverse("staff:projects-detail", kwargs={"pk": self.pk}),
+            subject=f"{self.number} {self.name} - Project registered and verified",
+            message=admin_message,
             from_email=None,
             recipient_list=settings.NOTIFICATIONS["NEW_PROJECT"],
         )
 
-    @hook(
-        AFTER_UPDATE,
-        condition=(
-            WhenFieldHasChanged("verified_at", has_changed=True)
-            & WhenFieldValueWas("verified_at", value=None)
-        ),
-    )
-    def notify_verified(self) -> None:
+        # Send confirmation to project members
+        user_message = (
+            f"Your project {self.number} {self.name} has been registered and "
+            f"verified. You can now start using it to place orders."
+        )
         app.configure_task("nina.tasks.send_email_async").defer(
-            subject=f"{self.number} {self.name} - New project was registered",
-            message=f"The project {self.number} was verified, you can now use it",
+            subject=f"{self.number} {self.name} - Project registered and verified",
+            message=user_message,
             from_email=None,
             recipient_list=list(self.memberships.values_list("email", flat=True)),
         )

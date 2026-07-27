@@ -8,7 +8,7 @@ from formset.renderers.tailwind import FormRenderer
 
 from genlab_bestilling.libs.formset import ContextFormCollection
 
-from .models import Project, ProjectMembership
+from .models import Project, ProjectMembership, ValidProject
 
 
 class ProjectMembershipForm(forms.ModelForm):
@@ -58,17 +58,21 @@ class ProjectCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs) -> None:
         self.user = kwargs.pop("user")
+        self._valid_project: ValidProject | None = None
         super().__init__(*args, **kwargs)
 
     def save(self, commit: bool = True) -> Model:
         with transaction.atomic():
+            # Set name from ValidProject
+            if self._valid_project:
+                self.instance.name = self._valid_project.name
             obj = super().save(commit=True)
             ProjectMembership.objects.create(
                 user=self.user, project=obj, role=ProjectMembership.Role.OWNER
             )
         return obj
 
-    def clean_number(self) -> int:
+    def clean_number(self) -> str:
         number = self.cleaned_data["number"]
         try:
             p = Project.objects.prefetch_related("members").get(pk=number)
@@ -86,11 +90,22 @@ class ProjectCreateForm(forms.ModelForm):
             raise ValidationError(msg)
         except Project.DoesNotExist:
             pass
+
+        # Validate project number against valid projects list
+        try:
+            self._valid_project = ValidProject.objects.get(pk=number)
+        except ValidProject.DoesNotExist:
+            msg = (
+                "This project number is not recognized. "
+                "Please verify the project number is correct."
+            )
+            raise ValidationError(msg) from None
+
         return number
 
     class Meta:
         model = Project
-        fields = ("number", "name")
+        fields = ("number",)
 
 
 class ProjectUpdateForm(forms.ModelForm):

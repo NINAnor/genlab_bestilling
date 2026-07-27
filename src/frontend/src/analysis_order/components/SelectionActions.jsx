@@ -8,7 +8,7 @@ import { useAddToPlate } from '../hooks/useAddToPlate';
  */
 export default function SelectionActions() {
   const selectedMarkerIds = useOrderStore((s) => s.selectedMarkerIds);
-  const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
+  const sampleMarkerIds = useOrderStore((s) => s.sampleMarkerIds);
   const clearSelection = useOrderStore((s) => s.clearSelection);
   const selectedPlate = useOrderStore((s) => s.selectedPlate);
 
@@ -22,15 +22,9 @@ export default function SelectionActions() {
     return null;
   }
 
-  // Get the IDs in table order (by sample genlab_id, then marker name)
-  const orderedIds = Object.values(sampleMarkers)
-    .filter((m) => selectedMarkerIds[String(m.id)])
-    .sort((a, b) => {
-      const aKey = `${a.sample_genlab_id ?? a.sample_name ?? ''}-${a.marker_name ?? ''}`;
-      const bKey = `${b.sample_genlab_id ?? b.sample_name ?? ''}-${b.marker_name ?? ''}`;
-      return aKey.localeCompare(bKey);
-    })
-    .map((m) => m.id);
+  // Get the IDs in the current table order (preserves user's sorting from the API)
+  // sampleMarkerIds is ordered by the API based on the sorting state
+  const orderedIds = sampleMarkerIds.filter((id) => selectedMarkerIds[String(id)]);
 
   const handleAddToPlate = () => {
     if (!selectedPlate) {

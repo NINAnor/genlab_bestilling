@@ -55,6 +55,7 @@ from .forms import (
     OrderStaffForm,
 )
 from .tables import (
+    AnalysisOrderPlatesTable,
     AnalysisOrderTable,
     AnalysisPlateTable,
     EquipmentOrderTable,
@@ -197,53 +198,83 @@ class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
 class AnalysisOrderDetailView(StaffMixin, DetailView):
     model = AnalysisOrder
 
+    def get_queryset(self) -> QuerySet[AnalysisOrder]:
+        return (
+            super()
+            .get_queryset()
+            .select_related(
+                "genrequest",
+                "genrequest__samples_owner",
+                "genrequest__project",
+                "genrequest__area",
+            )
+            .prefetch_related(
+                "markers", "samples", "responsible_staff", "results_contacts"
+            )
+            .annotate(sample_count=Count("samples"))
+        )
+
     # Retrieves extraction orders associated with the samples in the analysis order
-    def get_extraction_orders_for_samples(
+    # with annotated sample counts to avoid N+1 queries
+    def get_extraction_orders_with_sample_counts(
         self, samples: QuerySet[Sample]
     ) -> QuerySet[ExtractionOrder]:
-        return ExtractionOrder.objects.filter(samples__in=samples).distinct()
-
-    # Retrieves the sample counts for each extraction order
-    # This is used to display the number of samples from each extraction order
-    # that are part of the analysis order
-    def get_extraction_order_sample_counts(
-        self,
-        extraction_orders: QuerySet[ExtractionOrder],
-        samples: QuerySet[Sample],
-    ) -> dict[ExtractionOrder, int]:
-        sample_ids = samples.values_list("id", flat=True)
-        return {
-            eo: eo.samples.filter(id__in=sample_ids).count() for eo in extraction_orders
-        }
-
-    # Checks if the extraction order has multiple analysis orders
-    # This is used to determine which type of link to show in the template
-    def extraction_has_multiple_analysis_orders(
-        self, extraction_orders: QuerySet[ExtractionOrder]
-    ) -> bool:
-        if len(extraction_orders) == 1:
-            extraction_order = get_object_or_404(
-                ExtractionOrder, pk=extraction_orders.first()
+        sample_ids = list(samples.values_list("id", flat=True))
+        return (
+            ExtractionOrder.objects.filter(samples__in=sample_ids)
+            .distinct()
+            .annotate(
+                matching_sample_count=Count(
+                    "samples", filter=models.Q(samples__id__in=sample_ids)
+                ),
+                analysis_order_count=Count("analysis_orders", distinct=True),
             )
-            analysis_orders = extraction_order.analysis_orders.all()
-            return analysis_orders.count() > 1
-        return False
+        )
+
+    def get_plates_for_order(self, analysis_order: AnalysisOrder) -> QuerySet:
+        """Get all AnalysisPlates connected to this order via sample markers."""
+        return (
+            AnalysisPlate.objects.filter(positions__sample_marker__order=analysis_order)
+            .distinct()
+            .annotate(
+                sample_count=Count(
+                    "positions",
+                    filter=models.Q(
+                        positions__sample_marker__order=analysis_order,
+                        positions__sample_marker__isnull=False,
+                    ),
+                )
+            )
+            .order_by("-analysis_date", "-created_at")
+        )
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
 
         analysis_order = self.object
         samples = analysis_order.samples.all()
-        extraction_orders = self.get_extraction_orders_for_samples(samples)
-        extraction_order_sample_counts = self.get_extraction_order_sample_counts(
-            extraction_orders, samples
+
+        # Get extraction orders with annotated sample counts (single query)
+        extraction_orders = list(self.get_extraction_orders_with_sample_counts(samples))
+
+        # Build the sample counts dict from annotated values
+        extraction_order_sample_counts = {
+            eo: eo.matching_sample_count for eo in extraction_orders
+        }
+
+        # Check if there's exactly one extraction order with multiple analysis orders
+        extraction_has_multiple = (
+            len(extraction_orders) == 1
+            and extraction_orders[0].analysis_order_count > 1
         )
 
         context["extraction_order_sample_counts"] = extraction_order_sample_counts
         context["extraction_orders"] = extraction_orders
-        context["extraction_has_multiple_analysis_orders"] = (
-            self.extraction_has_multiple_analysis_orders(extraction_orders)
-        )
+        context["extraction_has_multiple_analysis_orders"] = extraction_has_multiple
+
+        # Add plates table
+        plates = self.get_plates_for_order(analysis_order)
+        context["plates_table"] = AnalysisOrderPlatesTable(plates)
 
         return context
 

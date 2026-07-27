@@ -1,6 +1,7 @@
 {% extends "staff/base.html" %}
 {% load i18n %}
 {% load order_tags %}
+{% load render_table from django_tables2 %}
 
 {% block content %}
   {% if user.is_staff %}
@@ -25,7 +26,7 @@
         {% endif %}
 
         {% if extraction_orders|length == 1 and not extraction_has_multiple_analysis_orders %}
-            <a class="btn btn-secondary" href="{% url 'staff:order-extraction-detail' pk=extraction_orders.first.id %}">Go to {{ extraction_orders.first }}</a>
+            <a class="btn btn-secondary" href="{% url 'staff:order-extraction-detail' pk=extraction_orders.0.id %}">Go to {{ extraction_orders.0 }}</a>
         {% endif %}
 
         <a class="btn btn-secondary" href="{% url 'staff:analysis-plates-list' %}?order={{ object.id }}"><i class="fa-solid fa-list-check"></i> Manage Markers</a>
@@ -45,5 +46,10 @@
       {% analysis_order_detail_table order=object %}
       {% analysis_order_samples_detail_table order=object extraction_orders=extraction_order_sample_counts %}
       {% contact_detail_table order=object %}
+    </div>
+
+    <div class="mt-8">
+      <h4 class="text-2xl mb-4">Connected Plates</h4>
+      {% render_table plates_table %}
     </div>
 {% endblock %}

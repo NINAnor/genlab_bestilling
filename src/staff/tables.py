@@ -1085,3 +1085,60 @@ class AnalysisPlateTable(tables.Table):
         ]
         empty_text = "No analysis plates found"
         template_name = "django_tables2/tailwind_inner.html"
+
+
+class AnalysisOrderPlatesTable(tables.Table):
+    """Simplified plate table for analysis order detail view."""
+
+    name = tables.Column(
+        linkify=("staff:analysis-plates-detail", {"pk": tables.A("pk")}),
+        verbose_name="Plate",
+        orderable=True,
+        empty_values=(),
+    )
+
+    analysis_date = tables.DateTimeColumn(
+        verbose_name="Analysis Date",
+        format="Y-m-d H:i",
+        orderable=True,
+        empty_values=(),
+    )
+
+    sample_count = tables.Column(
+        verbose_name="Samples",
+        orderable=False,
+        empty_values=(),
+        attrs={"td": {"class": "text-center"}},
+    )
+
+    result_file = tables.Column(
+        verbose_name="Results",
+        orderable=False,
+        empty_values=(),
+    )
+
+    def render_sample_count(self, value: int) -> int:
+        return value
+
+    def render_name(self, value: str | None, record: AnalysisPlate) -> str:
+        return value or str(record)
+
+    def render_result_file(self, value: str | None) -> str:
+        if value:
+            return format_html(
+                '<a href="{}" class="text-blue-600 hover:underline">'
+                '<i class="fas fa-download"></i></a>',
+                value,
+            )
+        return mark_safe('<span class="text-gray-400">—</span>')
+
+    class Meta:
+        model = AnalysisPlate
+        fields = [
+            "name",
+            "analysis_date",
+            "sample_count",
+            "result_file",
+        ]
+        empty_text = "No plates connected to this order"
+        template_name = "django_tables2/tailwind_inner.html"

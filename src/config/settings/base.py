@@ -506,6 +506,7 @@ CORS_ALLOW_CREDENTIALS = True
 #             Uncategorized
 ###########################################
 TAILWIND_APP_NAME = "theme"
+NPM_BIN_PATH = env("NPM_BIN_PATH", default="npm")
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/tailwind.html"
 

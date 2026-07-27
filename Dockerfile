@@ -55,6 +55,7 @@ RUN DATABASE_URL="" \
   ./src/manage.py compilemessages -l no
 
 FROM base-node AS tailwind
+ENV NPM_BIN_PATH=/usr/bin/pnpm
 COPY --from=source /app .
 RUN DATABASE_URL="" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \

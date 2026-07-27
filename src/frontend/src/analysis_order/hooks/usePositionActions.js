@@ -126,3 +126,22 @@ export function useTogglePositionInvalid() {
     },
   });
 }
+
+/**
+ * Hook for adding a sample marker to a specific position.
+ */
+export function useAddSampleMarkerToPosition() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ positionId, sampleMarkerId }) => {
+      const { data } = await client.post(`/api/plate-positions/${positionId}/add_sample_marker/`, {
+        sample_marker_id: sampleMarkerId,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      invalidatePositionQueries(queryClient);
+    },
+  });
+}

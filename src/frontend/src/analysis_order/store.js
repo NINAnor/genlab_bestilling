@@ -16,6 +16,7 @@ const useOrderStore = create((set) => ({
   sampleMarkerIds: [],
   selectedMarkerIds: {},
   selectedPlate: null,
+  selectedPositionForAdd: null, // { id, coordinate } - for adding single marker to specific position
   sorting: { field: null, direction: 'asc' }, // 'asc' or 'desc'
   showFishId: false, // Toggle between fish_id and genlab_id display
 
@@ -40,6 +41,12 @@ const useOrderStore = create((set) => ({
 
   /** Set the currently selected plate (for adding sample markers) */
   setSelectedPlate: (plate) => set({ selectedPlate: plate }),
+
+  /** Set a position for single sample marker addition (id + coordinate) */
+  setSelectedPositionForAdd: (position) => set({ selectedPositionForAdd: position }),
+
+  /** Clear the position selection */
+  clearSelectedPositionForAdd: () => set({ selectedPositionForAdd: null }),
 
   /** Set sorting field and direction */
   setSorting: (field, direction) => set({ sorting: { field, direction } }),

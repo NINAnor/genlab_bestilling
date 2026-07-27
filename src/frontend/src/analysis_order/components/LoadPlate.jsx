@@ -49,6 +49,8 @@ export default function PlateSearch() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const setStoreSelectedPlate = useOrderStore((s) => s.setSelectedPlate);
+  const setSelectedPositionForAdd = useOrderStore((s) => s.setSelectedPositionForAdd);
+  const clearSelectedPositionForAdd = useOrderStore((s) => s.clearSelectedPositionForAdd);
   const orderId = useOrderStore((s) => s.orderId);
   const setSelectedOrder = useOrderStore((s) => s.setSelectedOrder);
   const showFishId = useOrderStore((s) => s.showFishId);
@@ -197,8 +199,16 @@ export default function PlateSearch() {
     if (!position) {
       // Position doesn't exist in DB yet, but we need the position index and coordinate
       setSelectedPosition({ coordinate, position: positionIndex, id: null });
+      // Clear store position since no DB position exists
+      clearSelectedPositionForAdd();
     } else {
       setSelectedPosition({ ...position, coordinate });
+      // If position is empty (no sample marker), set it in store for table "Add to position" feature
+      if (!position.sample_marker && position.id) {
+        setSelectedPositionForAdd({ id: position.id, coordinate });
+      } else {
+        clearSelectedPositionForAdd();
+      }
     }
   };
 
@@ -214,6 +224,7 @@ export default function PlateSearch() {
 
   const handleCloseModal = () => {
     setSelectedPosition(null);
+    clearSelectedPositionForAdd();
   };
 
   const handleSaveAnalysisDate = () => {

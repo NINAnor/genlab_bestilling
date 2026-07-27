@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
   useReservePosition,
@@ -7,8 +7,10 @@ import {
   useEditPositionNotes,
   useSetPositiveControl,
   useTogglePositionInvalid,
+  useAddSampleMarkerToPosition,
 } from '../hooks/usePositionActions';
 import { usePositiveControls } from '../hooks/useFilterOptions';
+import useOrderStore from '../store';
 
 /**
  * Modal for managing a plate position.
@@ -27,7 +29,21 @@ export default function PositionModal({ position, onClose }) {
   const editNotes = useEditPositionNotes();
   const setPositiveControl = useSetPositiveControl();
   const toggleInvalid = useTogglePositionInvalid();
+  const addSampleMarkerToPosition = useAddSampleMarkerToPosition();
   const { data: positiveControls = [] } = usePositiveControls();
+
+  // Get selected sample markers from store
+  const selectedMarkerIds = useOrderStore((s) => s.selectedMarkerIds);
+  const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
+  const clearSelection = useOrderStore((s) => s.clearSelection);
+
+  // Calculate if exactly 1 marker is selected
+  const singleSelectedMarker = useMemo(() => {
+    const selectedIds = Object.keys(selectedMarkerIds).filter((id) => selectedMarkerIds[id]);
+    if (selectedIds.length !== 1) return null;
+    const markerId = selectedIds[0];
+    return sampleMarkers[markerId] ?? null;
+  }, [selectedMarkerIds, sampleMarkers]);
 
   useEffect(() => {
     setNotes(position?.notes ?? '');
@@ -100,7 +116,8 @@ export default function PositionModal({ position, onClose }) {
     removeSampleMarker.isPending ||
     editNotes.isPending ||
     setPositiveControl.isPending ||
-    toggleInvalid.isPending;
+    toggleInvalid.isPending ||
+    addSampleMarkerToPosition.isPending;
 
   return (
     <div
@@ -264,14 +281,38 @@ export default function PositionModal({ position, onClose }) {
           )}
 
           {hasId && status === 'empty' && (
-            <button
-              type="button"
-              onClick={handleReserve}
-              disabled={isPending}
-              className="px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 rounded hover:bg-amber-200 disabled:opacity-50"
-            >
-              {reserve.isPending ? 'Reserving…' : 'Reserve Position'}
-            </button>
+            <>
+              {singleSelectedMarker && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    addSampleMarkerToPosition.mutate(
+                      { positionId: position.id, sampleMarkerId: singleSelectedMarker.id },
+                      {
+                        onSuccess: () => {
+                          clearSelection();
+                          onClose();
+                        },
+                      },
+                    );
+                  }}
+                  disabled={isPending}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {addSampleMarkerToPosition.isPending
+                    ? 'Adding…'
+                    : `Add ${singleSelectedMarker.sample_genlab_id ?? singleSelectedMarker.sample_name ?? 'Marker'}`}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleReserve}
+                disabled={isPending}
+                className="px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 rounded hover:bg-amber-200 disabled:opacity-50"
+              >
+                {reserve.isPending ? 'Reserving…' : 'Reserve Position'}
+              </button>
+            </>
           )}
 
           {hasId && status === 'reserved' && (
@@ -317,14 +358,17 @@ export default function PositionModal({ position, onClose }) {
           removeSampleMarker.error ||
           editNotes.error ||
           setPositiveControl.error ||
-          toggleInvalid.error) && (
+          toggleInvalid.error ||
+          addSampleMarkerToPosition.error) && (
           <div className="px-4 py-2 bg-red-50 border-t border-red-200 text-sm text-red-700">
             {reserve.error?.message ||
               unreserve.error?.message ||
               removeSampleMarker.error?.message ||
               editNotes.error?.message ||
               setPositiveControl.error?.message ||
-              toggleInvalid.error?.message}
+              toggleInvalid.error?.message ||
+              addSampleMarkerToPosition.error?.response?.data?.error ||
+              addSampleMarkerToPosition.error?.message}
           </div>
         )}
       </div>

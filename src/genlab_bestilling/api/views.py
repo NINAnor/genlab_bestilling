@@ -38,8 +38,10 @@ from ..filters import (
 from ..models import (
     AnalysisOrder,
     AnalysisType,
+    EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     IsolationMethod,
     Location,
     Marker,
@@ -49,8 +51,12 @@ from ..models import (
     Species,
 )
 from .serializers import (
+    AnalysisOrderSerializer,
     EnumSerializer,
+    EquipmentOrderSerializer,
+    ExtractionOrderSerializer,
     ExtractionSerializer,
+    GenrequestSerializer,
     KoncivSerializer,
     LabelCSVSerializer,
     LocationCreateSerializer,
@@ -320,23 +326,28 @@ class AllowOrderDraft(BasePermission):
         return True
 
 
-class ExtractionOrderViewset(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
-):
+class ExtractionOrderViewset(ModelViewSet):
     queryset = ExtractionOrder.objects.all()
-    serializer_class = ExtractionSerializer
+    permission_classes = [IsAuthenticated, AllowOrderDraft]
 
     def get_queryset(self) -> QuerySet:
-        qs = super().get_queryset().filter_allowed(self.request.user)  # type: ignore[attr-defined]
-        if self.request.method not in SAFE_METHODS:
-            qs = qs.filter_in_draft()
-        return qs
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)  # type: ignore[attr-defined]
+            .prefetch_related("species", "sample_types")
+            .select_related("genrequest", "genrequest__project", "genrequest__area")
+        )
+
+    def get_serializer_class(self) -> type[BaseSerializer]:
+        if self.action in ["create", "update", "partial_update"]:
+            return ExtractionOrderSerializer
+        return ExtractionSerializer
 
     @action(
         methods=["POST"],
         url_path="confirm",
         detail=True,
-        permission_classes=[AllowOrderDraft],
     )
     def confirm_order(self, request: Request, pk: int | str) -> Response:
         obj = self.get_object()
@@ -348,7 +359,6 @@ class ExtractionOrderViewset(
         methods=["POST"],
         url_path="delete-samples",
         detail=True,
-        permission_classes=[AllowOrderDraft],
     )
     def bulk_delete(self, request: Request, pk: int | str) -> Response:
         obj = self.get_object()
@@ -465,3 +475,79 @@ class SampleMarkerAnalysisViewset(mixins.ListModelMixin, GenericViewSet):
             ).delete()
 
         return Response(data=OperationStatusSerializer({"success": True}).data)
+
+
+class GenrequestViewset(ModelViewSet):
+    queryset = Genrequest.objects.all()
+    serializer_class = GenrequestSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)  # type: ignore[attr-defined]
+            .prefetch_related("species", "sample_types", "markers")
+            .select_related("project", "area")
+        )
+
+    def perform_create(self, serializer: BaseSerializer) -> None:
+        serializer.save(creator=self.request.user)
+
+
+class AllowOrderEdit(BasePermission):
+    """Allow write access only while the order is in DRAFT status."""
+
+    def has_object_permission(
+        self,
+        request: Request,
+        view: View,
+        obj: ExtractionOrder | AnalysisOrder | EquipmentOrder,
+    ) -> bool:
+        if obj.status != obj.OrderStatus.DRAFT:
+            return request.method in SAFE_METHODS
+        return True
+
+
+class AnalysisOrderViewset(ModelViewSet):
+    queryset = AnalysisOrder.objects.all()
+    serializer_class = AnalysisOrderSerializer
+    permission_classes = [IsAuthenticated, AllowOrderEdit]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)  # type: ignore[attr-defined]
+            .prefetch_related("markers")
+            .select_related(
+                "genrequest", "genrequest__project", "genrequest__area", "from_order"
+            )
+        )
+
+    @action(methods=["POST"], url_path="confirm", detail=True)
+    def confirm_order(self, request: Request, pk: int | str) -> Response:
+        obj = self.get_object()
+        obj.confirm_order()
+        return Response(self.get_serializer(obj).data)
+
+
+class EquipmentOrderViewset(ModelViewSet):
+    queryset = EquipmentOrder.objects.all()
+    serializer_class = EquipmentOrderSerializer
+    permission_classes = [IsAuthenticated, AllowOrderEdit]
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            super()
+            .get_queryset()
+            .filter_allowed(self.request.user)  # type: ignore[attr-defined]
+            .prefetch_related("sample_types")
+            .select_related("genrequest", "genrequest__project", "genrequest__area")
+        )
+
+    @action(methods=["POST"], url_path="confirm", detail=True)
+    def confirm_order(self, request: Request, pk: int | str) -> Response:
+        obj = self.get_object()
+        obj.confirm_order()
+        return Response(self.get_serializer(obj).data)

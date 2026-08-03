@@ -2,6 +2,7 @@ from rest_framework import exceptions, serializers
 
 from ..models import (
     AnalysisOrder,
+    EquipmentOrder,
     ExtractionOrder,
     Genrequest,
     Location,
@@ -260,7 +261,7 @@ class SampleDeleteBulkSerializer(serializers.ModelSerializer):
         fields = ("order",)
 
 
-class GenrequestSerializer(serializers.ModelSerializer):
+class GenrequestRefSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genrequest
         fields = (
@@ -273,7 +274,7 @@ class GenrequestSerializer(serializers.ModelSerializer):
 class ExtractionSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer(many=True, read_only=True)
     sample_types = SampleTypeSerializer(many=True, read_only=True)
-    genrequest = GenrequestSerializer()
+    genrequest = GenrequestRefSerializer()
 
     class Meta:
         model = ExtractionOrder
@@ -282,7 +283,7 @@ class ExtractionSerializer(serializers.ModelSerializer):
 
 class AnalysisSerializer(serializers.ModelSerializer):
     markers = MarkerSerializer(many=True, read_only=True)
-    genrequest = GenrequestSerializer()
+    genrequest = GenrequestRefSerializer()
 
     class Meta:
         model = AnalysisOrder
@@ -314,3 +315,126 @@ class SampleMarkerAnalysisBulkDeleteSerializer(serializers.Serializer):
     ids = serializers.ListField(
         child=serializers.IntegerField(required=True), required=True
     )
+
+
+class GenrequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genrequest
+        fields = (
+            "id",
+            "name",
+            "project",
+            "samples_owner",
+            "creator",
+            "area",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
+            "expected_total_samples",
+            "species",
+            "sample_types",
+            "markers",
+            "created_at",
+            "last_modified_at",
+            "is_archived",
+        )
+        read_only_fields = ("id", "creator", "created_at", "last_modified_at")
+
+
+class ExtractionOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExtractionOrder
+        fields = (
+            "id",
+            "name",
+            "genrequest",
+            "notes",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_urgent",
+            "contact_person",
+            "contact_email",
+            "is_seen",
+            "is_prioritized",
+            "species",
+            "sample_types",
+            "needs_guid",
+            "return_samples",
+            "pre_isolated",
+            "internal_status",
+        )
+        read_only_fields = (
+            "id",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_seen",
+            "is_prioritized",
+            "internal_status",
+        )
+
+
+class AnalysisOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnalysisOrder
+        fields = (
+            "id",
+            "name",
+            "genrequest",
+            "notes",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_urgent",
+            "contact_person",
+            "contact_email",
+            "is_seen",
+            "is_prioritized",
+            "markers",
+            "from_order",
+            "expected_delivery_date",
+            "external_samples",
+        )
+        read_only_fields = (
+            "id",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_seen",
+            "is_prioritized",
+        )
+
+
+class EquipmentOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EquipmentOrder
+        fields = (
+            "id",
+            "name",
+            "genrequest",
+            "notes",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_urgent",
+            "contact_person",
+            "contact_email",
+            "is_seen",
+            "is_prioritized",
+            "sample_types",
+            "needs_guid",
+        )
+        read_only_fields = (
+            "id",
+            "status",
+            "created_at",
+            "last_modified_at",
+            "confirmed_at",
+            "is_seen",
+            "is_prioritized",
+        )

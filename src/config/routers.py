@@ -7,8 +7,11 @@ from drf_spectacular.views import (
 from rest_framework.routers import DefaultRouter
 
 from genlab_bestilling.api.views import (
+    AnalysisOrderViewset,
     AnalysisTypeViewset,
+    EquipmentOrderViewset,
     ExtractionOrderViewset,
+    GenrequestViewset,
     IsolationMethodViewset,
     LocationViewset,
     MarkerViewset,
@@ -37,6 +40,10 @@ router.register(
     basename="sample-marker-analysis",
 )
 router.register("plate-positions", PlatePositionViewSet, basename="plate-positions")
+
+router.register("genrequest", GenrequestViewset, basename="genrequest")
+router.register("analysis-order", AnalysisOrderViewset, basename="analysis-order")
+router.register("equipment-order", EquipmentOrderViewset, basename="equipment-order")
 
 
 urlpatterns = [

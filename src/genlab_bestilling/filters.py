@@ -45,6 +45,16 @@ class SampleFilter(filters.FilterSet):
             "position": ["isnull"],
         }
 
+    def filter_search(
+        self,
+        queryset: QuerySet,
+        name: str,
+        value: Any,
+    ) -> QuerySet:
+        if not value:
+            return queryset
+        return queryset.filter(Q(genlab_id__istartswith=value) | Q(guid__iexact=value))
+
     def filter_markers_in_list(
         self,
         queryset: QuerySet,

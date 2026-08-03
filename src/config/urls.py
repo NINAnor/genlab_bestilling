@@ -8,6 +8,7 @@ from django.views import defaults as default_views
 from django.views import generic
 from django.views.i18n import JavaScriptCatalog
 from health_check.views import HealthCheckView
+from oauth2_provider import urls as oauth2_urls
 
 
 class HomeView(LoginRequiredMixin, generic.RedirectView):
@@ -28,6 +29,7 @@ urlpatterns = [
             ]
         ),
     ),
+    path("o/", include(oauth2_urls)),
     path("api/", include("config.routers")),
     path("autocomplete/", include("config.autocomplete", namespace="autocomplete")),
     path("accounts/", include("allauth.urls")),

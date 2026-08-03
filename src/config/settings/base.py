@@ -124,6 +124,7 @@ THIRD_PARTY_APPS = [
     "view_breadcrumbs",
     "dal",
     "dal_select2",
+    "oauth2_provider",
 ]
 
 LOCAL_APPS = [
@@ -153,6 +154,7 @@ MIGRATION_MODULES = {"sites": "capps.contrib.sites.migrations"}
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
+    "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"

@@ -77,7 +77,6 @@ export default function Well({
   const hasNote = !!position?.notes;
 
   // Text size classes based on fullscreen mode
-  const coordSize = isFullscreen ? 'text-md' : 'text-[10px]';
   const labelSize = isFullscreen ? 'text-md' : 'text-[9px]';
   const smallSize = isFullscreen ? 'text-md' : 'text-[8px]';
 
@@ -100,9 +99,6 @@ export default function Well({
           className="rounded-full bg-blue-600 shadow-sm"
         />
       )}
-      <span className={classnames(coordSize, 'font-bold leading-tight text-gray-700')}>
-        {coordinate}
-      </span>
       {status === 'filled' && filledLabel && (
         <>
           {filledLabel.mainLabel && (

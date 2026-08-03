@@ -148,7 +148,6 @@ function Well({
   const canDrop = isDropTarget && status === 'empty';
 
   // Text size classes based on fullscreen mode
-  const coordSize = isFullscreen ? 'text-md' : 'text-[10px]';
   const labelSize = isFullscreen ? 'text-md' : 'text-[9px]';
   const smallSize = isFullscreen ? 'text-md' : 'text-[10px]';
 
@@ -230,9 +229,6 @@ function Well({
           className="rounded-full bg-blue-600 shadow-sm"
         />
       )}
-      <span className={classnames(coordSize, 'font-bold leading-tight text-gray-700')}>
-        {coordinate}
-      </span>
       {(status === 'filled' || status === 'invalid') && filledLabel && (
         <>
           {filledLabel.mainLabel && (

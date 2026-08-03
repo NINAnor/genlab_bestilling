@@ -1137,7 +1137,7 @@ class AnalysisOrderPlatesTable(tables.Table):
             return format_html(
                 '<a href="{}" class="text-blue-600 hover:underline">'
                 '<i class="fas fa-download"></i></a>',
-                value,
+                value.url,
             )
         return mark_safe('<span class="text-gray-400">—</span>')
 

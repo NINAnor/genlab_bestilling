@@ -154,7 +154,6 @@ MIGRATION_MODULES = {"sites": "capps.contrib.sites.migrations"}
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
-    "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "users.User"
@@ -466,11 +465,12 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
         "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
+        "rest_framework.authentication.SessionAuthentication",
     ),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_standardized_errors.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 

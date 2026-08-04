@@ -52,7 +52,7 @@ dependencies = [
   "django-tables2>=2.7.0",
   "django-autocomplete-light>=3.11.0",
   "dj-rest-auth",
-  "django-rest-framework",
+  "djangorestframework>=3.9.1",
   "drf-spectacular",
   "drf-standardized-errors[openapi]",
   "djangorestframework-simplejwt",

@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
@@ -355,7 +356,7 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
 class OrderExtractionSamplesListView(
     StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
 ):
-    table_pagination = False
+    # table_pagination = False
 
     model = Sample
     table_class = OrderExtractionSampleTable
@@ -451,6 +452,17 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
 
 class SampleDetailView(StaffMixin, DetailView):
     model = Sample
+
+    def get_queryset(self) -> QuerySet[Sample]:
+        return (
+            super()
+            .get_queryset()
+            .select_related("species", "position", "order", "type")
+            .prefetch_related(
+                "markers",
+                "isolation_method",
+            )
+        )
 
     def get_context_data(self, **kwargs) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -551,6 +563,25 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return reverse(
             "staff:order-extraction-samples-lab", kwargs={"pk": self.get_order().pk}
         )
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        max_samples = settings.SAMPLE_LAB_VIEW_MAX_SAMPLES
+        sample_count = self.get_queryset().count()
+        if sample_count > max_samples:
+            messages.error(
+                request,
+                _(
+                    f"This order has {sample_count} samples, which exceeds"
+                    f" the limit of {max_samples}."
+                    " Please split the order into smaller parts."
+                ),
+            )
+            return HttpResponseRedirect(
+                reverse(
+                    "staff:order-extraction-detail", kwargs={"pk": self.get_order().pk}
+                )
+            )
+        return super().get(request, *args, **kwargs)
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         # TODO: use a form instead of manual extraction

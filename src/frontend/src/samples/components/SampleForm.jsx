@@ -102,9 +102,10 @@ export default function SampleForm() {
   });
 
   const createLocation = useMutation({
-    mutationFn: (value) => {
+    mutationFn: ({ name, species }) => {
       return client.post('/api/locations/', {
-        name: value,
+        name,
+        species,
       });
     },
     onSuccess: (data) => {
@@ -277,7 +278,9 @@ export default function SampleForm() {
                       className=""
                       value={state.value}
                       onChange={handleChange}
-                      onCreateOption={createLocation.mutate}
+                      onCreateOption={(value) =>
+                        createLocation.mutate({ name: value, species: species?.id })
+                      }
                       styles={SELECT_STYLES}
                     />
                   </HUIField>

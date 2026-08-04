@@ -57,9 +57,10 @@ const locationOptions = (species) => async (input) => {
   return (await client.get(base)).data;
 };
 
-const locationCreate = async (value) => {
+const locationCreate = (species) => async (value) => {
   return client.post('/api/locations/', {
     name: value,
+    species: species?.id,
   });
 };
 
@@ -103,7 +104,7 @@ const COLUMNS = [
           key={species.id}
           loadOptions={opts}
           queryKey={`locations-${species.id}`}
-          onCreate={locationCreate}
+          onCreate={locationCreate(species)}
         />
       );
     },

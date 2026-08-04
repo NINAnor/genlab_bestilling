@@ -61,9 +61,22 @@ class LocationSerializer(serializers.ModelSerializer):
 
 
 class LocationCreateSerializer(serializers.ModelSerializer):
+    species = serializers.PrimaryKeyRelatedField(
+        queryset=Species.objects.all(),
+        required=False,
+        write_only=True,
+    )
+
     class Meta:
         model = Location
-        fields = ("id", "name")
+        fields = ("id", "name", "species")
+
+    def create(self, validated_data: dict) -> Location:
+        species = validated_data.pop("species", None)
+        location = super().create(validated_data)
+        if species is not None and species.location_type_id is not None:
+            location.types.add(species.location_type)
+        return location
 
 
 class SampleSerializer(serializers.ModelSerializer):

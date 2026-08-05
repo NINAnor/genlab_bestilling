@@ -107,9 +107,13 @@ class GenrequestEditForm(GenrequestForm):
         super().__init__(*args, **kwargs)
         self.fields["area"].disabled = True
 
-        self.fields["markers"].queryset = Marker.objects.filter(
-            species__id__in=self.instance.species.all(),
-        ).select_related("analysis_type")
+        self.fields["markers"].queryset = (
+            Marker.objects.filter(
+                species__id__in=self.instance.species.all(),
+            )
+            .select_related("analysis_type")
+            .distinct()
+        )
 
     class Meta(GenrequestForm.Meta):
         fields = (

@@ -356,7 +356,7 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
 class OrderExtractionSamplesListView(
     StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
 ):
-    # table_pagination = False
+    table_pagination = False
 
     model = Sample
     table_class = OrderExtractionSampleTable

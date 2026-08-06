@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 
 const STATUS_STYLES = {
   empty: 'bg-gray-100 border-gray-300 hover:bg-gray-200',
-  filled: 'bg-emerald-400 border-emerald-600 hover:bg-emerald-500',
-  reserved: 'bg-amber-300 border-amber-500 hover:bg-amber-400',
+  filled: 'bg-emerald-400 border-emerald-600 hover:bg-emerald-500 print:bg-white',
+  reserved: 'bg-amber-300 border-amber-500 hover:bg-amber-400 print:bg-white',
 };
 
 export function getStatus(position, plateType) {

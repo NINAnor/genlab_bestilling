@@ -15,9 +15,9 @@ function toPositionIndex(row, col) {
 
 const STATUS_STYLES = {
   empty: 'bg-gray-100 border-gray-300',
-  filled: 'bg-emerald-400 border-emerald-600',
-  reserved: 'bg-amber-300 border-amber-500',
-  invalid: 'bg-red-400 border-red-600',
+  filled: 'bg-emerald-400 border-emerald-600 print:bg-white',
+  reserved: 'bg-amber-300 border-amber-500 print:bg-white',
+  invalid: 'bg-red-400 border-red-600 print:bg-white',
 };
 
 function getStatus(position, plateType) {

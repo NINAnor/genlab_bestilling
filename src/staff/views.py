@@ -128,7 +128,7 @@ class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
-            .prefetch_related("samples__species")
+            .prefetch_related("samples__species", "responsible_staff", "markers")
             .annotate(total_samples=Count("samples"))
         )
 
@@ -150,7 +150,7 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
                 "genrequest__project",
                 "genrequest__area",
             )
-            .prefetch_related("species", "sample_types")
+            .prefetch_related("species", "sample_types", "responsible_staff")
             .annotate(
                 total_samples=Count("samples"),
                 total_samples_isolated=models.Count(

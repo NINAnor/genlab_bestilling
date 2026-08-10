@@ -1008,9 +1008,6 @@ class ExtractionPlateTable(tables.Table):
         empty_values=(),
     )
 
-    def render_sample_count(self, record: ExtractionPlate) -> int:
-        return record.positions.filter(sample_raw__isnull=False).count()
-
     class Meta:
         model = ExtractionPlate
         fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]

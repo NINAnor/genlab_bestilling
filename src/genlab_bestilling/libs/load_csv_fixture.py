@@ -15,9 +15,9 @@ def species_from_tsv(path: pathlib.Path) -> None:
         with transaction.atomic():
             created = 0
             for line in reader:
-                area, c = Area.objects.get_or_create(name=line["Area"])
+                area, c = Area.all_objects.get_or_create(name=line["Area"])
                 created += int(c)
-                species, c = Species.objects.get_or_create(
+                species, c = Species.all_objects.get_or_create(
                     area=area, name=line["Species"], code=line["Code"]
                 )
                 created += int(c)
@@ -43,7 +43,7 @@ def sample_types_from_tsv(path: pathlib.Path) -> None:
         with transaction.atomic():
             created = 0
             for line in reader:
-                area, c = Area.objects.get_or_create(name=line["Area"])
+                area, c = Area.all_objects.get_or_create(name=line["Area"])
                 created += int(c)
                 sample_type, c = SampleType.objects.get_or_create(
                     name=line["Sample type"]

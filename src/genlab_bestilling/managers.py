@@ -20,6 +20,13 @@ if TYPE_CHECKING:
     from .models import GIDSequence, Sample, Species
 
 
+class VisibleManager(models.Manager):
+    """Manager that excludes records marked as hidden (is_hidden=True)."""
+
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().filter(is_hidden=False)
+
+
 class GenrequestQuerySet(models.QuerySet):
     def filter_allowed(self, user: User) -> QuerySet:
         """
@@ -173,7 +180,9 @@ class SampleAnalysisMarkerQuerySet(models.QuerySet):
 
     def filter_status_not_started(self) -> QuerySet:
         """Filter sample markers with no positions on analysis plates and no PCR."""
-        return self.filter(positions__isnull=True, has_pcr=False)
+        return self.filter(
+            positions__isnull=True, has_pcr=False, is_analysed=False, is_outputted=False
+        )
 
     def filter_status_pcr(self) -> QuerySet:
         """Filter markers with PCR or positions, none on plates with analysis_date."""

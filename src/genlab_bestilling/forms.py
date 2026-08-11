@@ -277,7 +277,7 @@ class ExtractionOrderForm(FormMixin, forms.ModelForm):
             "for this order to help you find it later"
         )
 
-        self.fields["species"].queryset = genrequest.species.all()  # type: ignore[attr-defined]
+        self.fields["species"].queryset = genrequest.species.filter(is_hidden=False)  # type: ignore[attr-defined]
         self.fields["sample_types"].queryset = genrequest.sample_types.all()  # type: ignore[attr-defined]
         self.fields["contact_person"].label = "Contact person for sample information"
         self.fields["contact_email"].label = "Sample contact person email"

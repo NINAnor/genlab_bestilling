@@ -14,7 +14,7 @@ from genlab_bestilling.models import Area, IsolationMethod
 
 class Command(BaseCommand):
     def handle(self: Self, **options) -> None:
-        if not Area.objects.all().exists():
+        if not Area.all_objects.all().exists():
             call_command("loaddata", "bestilling.json")
             call_command("loaddata", "locations.json")
             call_command("loaddata", "groups.json")
@@ -22,7 +22,7 @@ class Command(BaseCommand):
         if User.objects.all().first() is None:
             call_command("loaddata", "users.json")
 
-        if not Area.objects.all().exists():
+        if not Area.all_objects.all().exists():
             call_command("loaddata", "nina.json")
 
             species_from_tsv(settings.SRC_DIR / "fixtures" / "species.tsv")

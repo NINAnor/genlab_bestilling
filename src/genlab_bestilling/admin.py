@@ -44,13 +44,21 @@ class AreaAdmin(ModelAdmin):
     M = Area
     search_help_text = "Search for area name"
     search_fields = [M.name.field.name]
-    list_display = [M.name.field.name, M.location_mandatory.field.name]
+    list_display = [
+        M.name.field.name,
+        M.location_mandatory.field.name,
+        M.is_hidden.field.name,
+    ]
     list_filter = [
         (M.name.field.name, unfold_filters.FieldTextFilter),
         M.location_mandatory.field.name,
+        M.is_hidden.field.name,
     ]
     list_filter_submit = True
     list_filter_sheet = False
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return Area.all_objects.all()
 
 
 @admin.register(PositiveControl)
@@ -172,7 +180,12 @@ class MarkerAdmin(ModelAdmin):
 @admin.register(Species)
 class SpeciesAdmin(ModelAdmin):
     M = Species
-    list_display = [M.name.field.name, M.area.field.name, M.code.field.name]
+    list_display = [
+        M.name.field.name,
+        M.area.field.name,
+        M.code.field.name,
+        M.is_hidden.field.name,
+    ]
 
     search_help_text = "Search for species name"
     search_fields = [M.name.field.name]
@@ -181,6 +194,7 @@ class SpeciesAdmin(ModelAdmin):
         (M.name.field.name, unfold_filters.FieldTextFilter),
         (M.code.field.name, unfold_filters.FieldTextFilter),
         (M.area.field.name, unfold_filters.RelatedDropdownFilter),
+        M.is_hidden.field.name,
     ]
     autocomplete_fields = [
         M.markers.field.name,
@@ -189,6 +203,9 @@ class SpeciesAdmin(ModelAdmin):
     ]
     list_filter_submit = True
     list_filter_sheet = False
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return Species.all_objects.all()
 
 
 @admin.register(SampleType)

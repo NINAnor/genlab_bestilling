@@ -51,9 +51,17 @@ class Organization(AdminUrlsMixin, models.Model):
 class Area(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=255)
     location_mandatory = models.BooleanField(default=False)
+    is_hidden = models.BooleanField(
+        default=False,
+        help_text="Hidden areas are excluded from forms and filters.",
+    )
+
+    all_objects = models.Manager()
+    objects = managers.VisibleManager()
 
     class Meta:
         ordering = ["name"]
+        base_manager_name = "all_objects"
 
     # TODO: unique name
     def __str__(self) -> str:
@@ -127,10 +135,18 @@ class Species(AdminUrlsMixin, models.Model):
         related_name="species",
     )
     code = models.CharField(null=True, blank=True)
+    is_hidden = models.BooleanField(
+        default=False,
+        help_text="Hidden species are excluded from forms and filters.",
+    )
+
+    all_objects = models.Manager()
+    objects = managers.VisibleManager()
 
     class Meta:
         verbose_name_plural = "Species"
         ordering = ["name"]
+        base_manager_name = "all_objects"
         constraints = [
             models.UniqueConstraint(name="unique species code", fields=["code"])
         ]
@@ -614,7 +630,7 @@ class ExtractionOrder(Order):
             for sample in self.samples.all():
                 try:
                     sample.has_error  # noqa: B018
-                except ValidationError:  # noqa: PERF203
+                except ValidationError:
                     invalid += 1
 
             if invalid > 0:

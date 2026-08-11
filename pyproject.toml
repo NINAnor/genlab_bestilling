@@ -36,7 +36,7 @@ dependencies = [
   "psycopg[binary]",
   "backoff",
   "requests",
-  "django>=5.2.0",
+  "django>=6.1.0",
   "django-model-utils",
   "django-allauth",
   "django-crispy-forms",
@@ -44,7 +44,6 @@ dependencies = [
   "django-health-check",
   "django-probes",
   "django-postgres-extra",
-  "django-solo",
   "django-appconf>=1.0.6",
   "django-cors-headers>=4.3.1",
   "django-filter>=24.1",
@@ -52,7 +51,7 @@ dependencies = [
   "django-tables2>=2.7.0",
   "django-autocomplete-light>=3.11.0",
   "dj-rest-auth",
-  "djangorestframework>=3.9.1",
+  "djangorestframework>=3.18.0",
   "drf-spectacular",
   "drf-standardized-errors[openapi]",
   "djangorestframework-simplejwt",
@@ -64,7 +63,6 @@ dependencies = [
   "django-tailwind",
   "django-htmx",
   "django-template-partials",
-  "neapolitan",
   "fontawesomefree",
   "django-allauth-ui",
   "django-widget-tweaks",
@@ -79,13 +77,14 @@ dependencies = [
   "django-sequencefield>=1.0.13",
   "django-msgraphbackend>=1.0.0",
   "django-storages[s3]>=1.14.5",
-  "django-oauth-toolkit>=3.4.0"
+  "django-oauth-toolkit>=3.4.0",
+  "django-tasks-db>=0.12.0"
 ]
 description = ""
 license = {text = "GPL-3.0+"}
 name = "genlab_bestilling"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 version = "0.1.0"
 
 # ==== Coverage ====

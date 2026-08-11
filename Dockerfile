@@ -50,17 +50,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Compile the translations for multilanguage
 FROM base AS translation
 COPY --from=source /app .
-RUN DATABASE_URL="" \
+RUN DATABASE_URL="sqlite://:memory:" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   ./src/manage.py compilemessages -l no
 
 FROM base-node AS tailwind
 ENV NPM_BIN_PATH=/usr/bin/pnpm
 COPY --from=source /app .
-RUN DATABASE_URL="" \
+RUN DATABASE_URL="sqlite://:memory:" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   ./src/manage.py tailwind install
-RUN DATABASE_URL="" \
+RUN DATABASE_URL="sqlite://:memory:" \
   DJANGO_SETTINGS_MODULE="config.settings.test" \
   ./src/manage.py tailwind build
 

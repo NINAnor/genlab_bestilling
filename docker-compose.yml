@@ -3,7 +3,7 @@ volumes:
   statics: {}
 
 x-django-env: &django-env
-  DATABASE_URL: "postgis://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable"
+  DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres?sslmode=disable"
   DJANGO_SETTINGS_MODULE: config.settings.production
   USE_DOCKER: "yes"
   OIDC_PROVIDER_ID: nina
@@ -131,10 +131,12 @@ services:
       DJANGO_TAILWIND: 1
 
   postgres:
-    image: postgres:17
+    image: postgis/postgis:17-3.5
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ../ninagen-import/ninagen-prod.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
+      POSTGRES_DB: temp
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 5432:5432

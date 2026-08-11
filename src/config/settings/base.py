@@ -52,11 +52,9 @@ LOCALE_PATHS = [str(SRC_DIR / "locale")]
 ###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
-DATABASES["default"]["ENGINE"] = "psqlextra.backend"
 
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)
 
 
@@ -105,9 +103,6 @@ THIRD_PARTY_APPS = [
     "dj_rest_auth",
     "django_probes",
     "health_check",
-    "psqlextra",
-    "solo",
-    "neapolitan",
     "django_htmx",
     # "template_partials",
     "tailwind",
@@ -370,7 +365,7 @@ if EMAIL_BACKEND == "msgraphbackend.MSGraphBackend":
 ###########################################
 ADMIN_URL = "admin/"  # Django Admin URL.
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""Niccolò Cantù""", "niccolo.cantu@nina.no")]
+ADMINS = ["niccolo.cantu@nina.no"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 # https://cookiecutter-django.readthedocs.io/en/latest/settings.html#other-environment-settings

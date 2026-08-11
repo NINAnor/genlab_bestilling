@@ -2,8 +2,8 @@ import uuid
 from collections import Counter
 
 from django import template
-from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
+from django.db.models import StringAgg
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 
@@ -142,7 +142,9 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
                 models.When(
                     analysisorder__isnull=False,
                     then=StringAgg(
-                        "analysisorder__markers__name", delimiter=", ", distinct=True
+                        "analysisorder__markers__name",
+                        delimiter=models.Value(", "),
+                        distinct=True,
                     ),
                 ),
                 default=models.Value("-", output_field=models.TextField()),
@@ -192,7 +194,9 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
                 models.When(
                     analysisorder__isnull=False,
                     then=StringAgg(
-                        "analysisorder__markers__name", delimiter=", ", distinct=True
+                        "analysisorder__markers__name",
+                        delimiter=models.Value(", "),
+                        distinct=True,
                     ),
                 ),
                 default=models.Value("-", output_field=models.TextField()),

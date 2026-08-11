@@ -2,6 +2,7 @@ import uuid
 from collections import Counter
 
 from django import template
+from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
@@ -63,6 +64,7 @@ def urgent_orders_table(context: dict, area: Area | None = None) -> dict:
         )
         .exclude(status__in=[Order.OrderStatus.DRAFT, Order.OrderStatus.COMPLETED])
         .select_related("genrequest")
+        .prefetch_related("responsible_staff")
         .annotate(
             priority=models.Case(
                 models.When(is_urgent=True, then=Order.OrderPriority.URGENT),
@@ -111,6 +113,7 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
         )
         .exclude(is_urgent=True)
         .select_related("genrequest")
+        .prefetch_related("responsible_staff")
         .annotate(
             sample_count=models.Case(
                 models.When(
@@ -134,6 +137,15 @@ def new_seen_orders_table(context: dict, area: Area | None = None) -> dict:
                     then="analysisorder__expected_delivery_date",
                 ),
                 default=models.Value(None, output_field=models.DateField()),
+            ),
+            markers_list=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then=StringAgg(
+                        "analysisorder__markers__name", delimiter=", ", distinct=True
+                    ),
+                ),
+                default=models.Value("-", output_field=models.TextField()),
             ),
         )
     )
@@ -175,6 +187,15 @@ def new_unseen_orders_table(context: dict, area: Area | None = None) -> dict:
                     then="analysisorder__expected_delivery_date",
                 ),
                 default=models.Value(None, output_field=models.DateField()),
+            ),
+            markers_list=models.Case(
+                models.When(
+                    analysisorder__isnull=False,
+                    then=StringAgg(
+                        "analysisorder__markers__name", delimiter=", ", distinct=True
+                    ),
+                ),
+                default=models.Value("-", output_field=models.TextField()),
             ),
         )
     )

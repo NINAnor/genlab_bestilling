@@ -829,13 +829,21 @@ class NewUnseenOrderTable(StaffIDMixinTable):
             return str(value)
         return "-"
 
-    markers = tables.ManyToManyColumn(
-        transform=lambda x: x.name,
+    markers_list = tables.Column(
+        verbose_name="Markers",
+        orderable=False,
     )
 
     class Meta:
         model = Order
-        fields = ("id", "description", "delivery_date", "samples", "markers", "seen")
+        fields = (
+            "id",
+            "description",
+            "delivery_date",
+            "samples",
+            "markers_list",
+            "seen",
+        )
         empty_text = "No new unseen orders"
         template_name = "django_tables2/tailwind_inner.html"
 
@@ -873,8 +881,9 @@ class NewSeenOrderTable(StaffIDMixinTable):
             return str(value)
         return "-"
 
-    markers = tables.ManyToManyColumn(
-        transform=lambda x: x.name,
+    markers_list = tables.Column(
+        verbose_name="Markers",
+        orderable=False,
     )
 
     assigned_staff = tables.TemplateColumn(
@@ -891,7 +900,7 @@ class NewSeenOrderTable(StaffIDMixinTable):
             "id",
             "description",
             "delivery_date",
-            "markers",
+            "markers_list",
             "samples",
             "assigned_staff",
         )

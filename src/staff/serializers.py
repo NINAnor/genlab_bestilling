@@ -49,6 +49,7 @@ class SampleSerializer(serializers.ModelSerializer):
     location_code = serializers.CharField(
         source="location.code", read_only=True, default=None
     )
+    fish_id = serializers.SerializerMethodField()
     order_id = serializers.PrimaryKeyRelatedField(source="order", read_only=True)
 
     class Meta:
@@ -56,6 +57,7 @@ class SampleSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "genlab_id",
+            "fish_id",
             "name",
             "species",
             "species_name",
@@ -73,6 +75,9 @@ class SampleSerializer(serializers.ModelSerializer):
 
     def get_location_name(self, obj: Sample) -> str | None:
         return str(obj.location) if obj.location else None
+
+    def get_fish_id(self, obj: Sample) -> str | None:
+        return obj.fish_id
 
 
 class SampleMarkerSerializer(serializers.ModelSerializer):

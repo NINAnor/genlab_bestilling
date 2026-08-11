@@ -19,10 +19,21 @@ export function toPositionIndex(row, col) {
 /**
  * Get the text content for a cell (for copy/paste to Excel).
  */
-function getCellText(position, plateType) {
+function getCellText(position, plateType, extractionLabelMode) {
   if (!position) return '';
   if (position.is_reserved) return position.positive_control_name ?? 'Reserved';
   if (plateType === 'extraction' && position.sample_raw) {
+    if (extractionLabelMode === 'fish_id') {
+      return (
+        position.sample_raw.fish_id ??
+        position.sample_raw.genlab_id ??
+        position.sample_raw.name ??
+        ''
+      );
+    }
+    if (extractionLabelMode === 'sample_name') {
+      return position.sample_raw.name ?? position.sample_raw.genlab_id ?? '';
+    }
     return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
   }
   if (plateType === 'analysis' && position.sample_marker) {
@@ -44,6 +55,7 @@ export default function PlateGrid({
   onWellClick,
   selectedPositionId,
   isFullscreen = false,
+  extractionLabelMode = 'genlab_id',
 }) {
   const positions = usePlateStore((s) => s.positions);
   const { isLoading, isError, error } = usePlatePositions();
@@ -58,7 +70,7 @@ export default function PlateGrid({
       const cells = COLS.map((col) => {
         const idx = toPositionIndex(row, col);
         const position = positions[idx] ?? null;
-        return getCellText(position, plateType);
+        return getCellText(position, plateType, extractionLabelMode);
       });
       return [row, ...cells].join('\t');
     });
@@ -73,7 +85,7 @@ export default function PlateGrid({
       setCopyStatus('error');
       setTimeout(() => setCopyStatus(null), 2000);
     }
-  }, [positions, plateType]);
+  }, [positions, plateType, extractionLabelMode]);
 
   const positionsList = Object.values(positions);
   const counts = positionsList.reduce(
@@ -192,6 +204,7 @@ export default function PlateGrid({
                     selected={position?.id === selectedPositionId}
                     onClick={onWellClick}
                     isFullscreen={isFullscreen}
+                    extractionLabelMode={extractionLabelMode}
                   />
                 );
               })}

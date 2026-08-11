@@ -17,9 +17,17 @@ export function getStatus(position, plateType) {
   return 'empty';
 }
 
-function getFilledLabel(position, plateType) {
+function getFilledLabel(position, plateType, extractionLabelMode = 'genlab_id') {
   if (plateType === 'extraction' && position?.sample_raw) {
-    const mainLabel = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+    const mainLabel =
+      extractionLabelMode === 'fish_id'
+        ? (position.sample_raw.fish_id ??
+          position.sample_raw.genlab_id ??
+          position.sample_raw.name ??
+          'Sample')
+        : extractionLabelMode === 'sample_name'
+          ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
+          : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
     const orderLabel = position.sample_raw.order_id;
     return { mainLabel, orderLabel };
   }
@@ -33,11 +41,19 @@ function getFilledLabel(position, plateType) {
   return null;
 }
 
-function getTooltip(position, coordinate, status, plateType) {
+function getTooltip(position, coordinate, status, plateType, extractionLabelMode = 'genlab_id') {
   let base;
   if (status === 'filled') {
     if (plateType === 'extraction' && position.sample_raw) {
-      const id = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
+      const id =
+        extractionLabelMode === 'fish_id'
+          ? (position.sample_raw.fish_id ??
+            position.sample_raw.genlab_id ??
+            position.sample_raw.name ??
+            'Sample')
+          : extractionLabelMode === 'sample_name'
+            ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
+            : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
       const order = position.sample_raw.order_id;
       base = order ? `${coordinate} — ${id} [#${order}]` : `${coordinate} — ${id}`;
     } else if (plateType === 'analysis' && position.sample_marker) {
@@ -69,10 +85,11 @@ export default function Well({
   selected,
   onClick,
   isFullscreen = false,
+  extractionLabelMode = 'genlab_id',
 }) {
   const status = getStatus(position, plateType);
-  const filledLabel = getFilledLabel(position, plateType);
-  const tooltip = getTooltip(position, coordinate, status, plateType);
+  const filledLabel = getFilledLabel(position, plateType, extractionLabelMode);
+  const tooltip = getTooltip(position, coordinate, status, plateType, extractionLabelMode);
 
   const hasNote = !!position?.notes;
 
@@ -166,4 +183,5 @@ Well.propTypes = {
   selected: PropTypes.bool,
   onClick: PropTypes.func,
   isFullscreen: PropTypes.bool,
+  extractionLabelMode: PropTypes.oneOf(['genlab_id', 'sample_name', 'fish_id']),
 };

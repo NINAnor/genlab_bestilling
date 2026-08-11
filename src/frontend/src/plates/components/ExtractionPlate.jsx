@@ -25,6 +25,7 @@ export default function ExtractionPlate() {
   });
   const printRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [extractionLabelMode, setExtractionLabelMode] = useState('genlab_id');
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -58,6 +59,18 @@ export default function ExtractionPlate() {
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-4xl font-bold">Extraction Plate #{plateLabel}</h2>
         <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700 select-none print:hidden">
+            Show label
+            <select
+              className="rounded border border-gray-300 bg-white px-2 py-1"
+              value={extractionLabelMode}
+              onChange={(e) => setExtractionLabelMode(e.target.value)}
+            >
+              <option value="genlab_id">Genlab ID</option>
+              <option value="sample_name">Sample name</option>
+              <option value="fish_id">Fish ID</option>
+            </select>
+          </label>
           <button
             type="button"
             onClick={handleFullscreen}
@@ -101,6 +114,7 @@ export default function ExtractionPlate() {
             onWellClick={handleWellClick}
             selectedPositionId={selectedPositionId}
             isFullscreen={isFullscreen}
+            extractionLabelMode={extractionLabelMode}
           />
         </div>
         <div className="xl:col-span-1 sticky top-4 self-start space-y-4 print:hidden">

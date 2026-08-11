@@ -572,154 +572,210 @@ export default function PlateSearch() {
           )}
           {selectedPlate && (
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <h4 className="text-lg font-semibold text-gray-900">
-                    {selectedPlate.label}
+              <div className="mb-4 space-y-3">
+                <div className="pb-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4
+                      className="text-lg font-semibold text-gray-900 truncate"
+                      title={selectedPlate.label}
+                    >
+                      {selectedPlate.label}
+                    </h4>
                     {selectedPlate.name && (
-                      <span className="font-normal text-gray-500 ml-2 text-base">
-                        ({selectedPlate.name})
+                      <span className="text-sm text-gray-500 truncate" title={selectedPlate.name}>
+                        {selectedPlate.name}
                       </span>
                     )}
-                  </h4>
-                  {selectedPlate.has_results ? (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                      Results
-                    </span>
-                  ) : selectedPlate.analysis_date ? (
-                    <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
-                      Analyzing
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                      Pending
-                    </span>
-                  )}
-                  {selectedPlate.billed_at && (
-                    <span
-                      className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
-                      title={`Billed on ${new Date(selectedPlate.billed_at).toLocaleDateString()}`}
-                    >
-                      <i className="fa-solid fa-dollar-sign mr-1" />
-                      Billed
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(true)}
-                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
-                    title="Edit plate name, analysis type, and markers"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleClonePlate}
-                    disabled={clonePlate.isPending}
-                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
-                    title="Clone this plate (same positions, no results)"
-                  >
-                    {clonePlate.isPending ? 'Cloning…' : 'Clone'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleFullscreen}
-                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
-                    title="Fullscreen plate preview"
-                  >
-                    Fullscreen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePrint}
-                    className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
-                    title="Print plate preview"
-                  >
-                    Print
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDeletePlate}
-                    disabled={deletePlate.isPending}
-                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 disabled:opacity-50"
-                    title="Delete this plate"
-                  >
-                    {deletePlate.isPending ? 'Deleting…' : 'Delete'}
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Analysis Date:</label>
-                  <input
-                    type="datetime-local"
-                    value={analysisDate}
-                    onChange={(e) => setAnalysisDate(e.target.value)}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSaveAnalysisDate}
-                    disabled={setAnalysisDateMutation.isPending || !analysisDate}
-                    className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {setAnalysisDateMutation.isPending ? 'Saving…' : 'Proceed'}
-                  </button>
-                  {selectedPlate.analysis_date && (
+                    {selectedPlate.has_results ? (
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                        Results
+                      </span>
+                    ) : selectedPlate.analysis_date ? (
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                        Analyzing
+                      </span>
+                    ) : (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                        Pending
+                      </span>
+                    )}
+                    {selectedPlate.billed_at && (
+                      <span
+                        className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded"
+                        title={`Billed on ${new Date(selectedPlate.billed_at).toLocaleDateString()}`}
+                      >
+                        <i className="fa-solid fa-dollar-sign mr-1" />
+                        Billed
+                      </span>
+                    )}
                     <button
                       type="button"
-                      onClick={handleClearAnalysisDate}
-                      disabled={setAnalysisDateMutation.isPending}
-                      className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                      onClick={() => setShowEditModal(true)}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                      title="Edit plate name, analysis type, and markers"
                     >
-                      Clear
+                      Edit
                     </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">Billing Date:</label>
-                  <input
-                    type="date"
-                    value={billedAt}
-                    onChange={(e) => setBilledAt(e.target.value)}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSetBilled}
-                    disabled={setPlateBilled.isPending || !billedAt}
-                    className="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 disabled:opacity-50"
-                  >
-                    {setPlateBilled.isPending ? 'Saving…' : 'Save'}
-                  </button>
-                  {selectedPlate.billed_at && (
                     <button
                       type="button"
-                      onClick={handleClearBilled}
-                      disabled={setPlateBilled.isPending}
-                      className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                      onClick={handleClonePlate}
+                      disabled={clonePlate.isPending}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+                      title="Clone this plate (same positions, no results)"
                     >
-                      Clear
+                      {clonePlate.isPending ? 'Cloning…' : 'Clone'}
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={handleFullscreen}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                      title="Fullscreen plate preview"
+                    >
+                      Fullscreen
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handlePrint}
+                      className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                      title="Print plate preview"
+                    >
+                      Print
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeletePlate}
+                      disabled={deletePlate.isPending}
+                      className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 disabled:opacity-50"
+                      title="Delete this plate"
+                    >
+                      {deletePlate.isPending ? 'Deleting…' : 'Delete'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              {/* Plate name edit */}
-              <div className="flex items-center gap-2 mb-4">
-                <label className="text-sm text-gray-600 whitespace-nowrap">Plate Name:</label>
-                <input
-                  type="text"
-                  value={plateName}
-                  onChange={(e) => setPlateName(e.target.value)}
-                  placeholder="Human readable label…"
-                  className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={handleSavePlateName}
-                  disabled={updatePlateName.isPending}
-                  className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {updatePlateName.isPending ? 'Saving…' : 'Save'}
-                </button>
+
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex items-center gap-2 min-w-[260px] flex-1">
+                      <label className="text-xs text-gray-600 whitespace-nowrap">Plate Name:</label>
+                      <input
+                        type="text"
+                        value={plateName}
+                        onChange={(e) => setPlateName(e.target.value)}
+                        placeholder="Human readable label…"
+                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSavePlateName}
+                        disabled={updatePlateName.isPending}
+                        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {updatePlateName.isPending ? 'Saving…' : 'Save'}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 min-w-[280px]">
+                      <label className="text-xs text-gray-600 whitespace-nowrap">
+                        Analysis Date:
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={analysisDate}
+                        onChange={(e) => setAnalysisDate(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSaveAnalysisDate}
+                        disabled={setAnalysisDateMutation.isPending || !analysisDate}
+                        className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {setAnalysisDateMutation.isPending ? 'Saving…' : 'Proceed'}
+                      </button>
+                      {selectedPlate.analysis_date && (
+                        <button
+                          type="button"
+                          onClick={handleClearAnalysisDate}
+                          disabled={setAnalysisDateMutation.isPending}
+                          className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 min-w-[240px]">
+                      <label className="text-xs text-gray-600 whitespace-nowrap">
+                        Billing Date:
+                      </label>
+                      <input
+                        type="date"
+                        value={billedAt}
+                        onChange={(e) => setBilledAt(e.target.value)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSetBilled}
+                        disabled={setPlateBilled.isPending || !billedAt}
+                        className="text-xs bg-green-600 text-white px-3 py-1.5 rounded hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {setPlateBilled.isPending ? 'Saving…' : 'Save'}
+                      </button>
+                      {selectedPlate.billed_at && (
+                        <button
+                          type="button"
+                          onClick={handleClearBilled}
+                          disabled={setPlateBilled.isPending}
+                          className="text-xs bg-gray-200 text-gray-700 px-3 py-1.5 rounded hover:bg-gray-300 disabled:opacity-50"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+
+                    {(selectedPlate.has_results || selectedPlate.analysis_date) && (
+                      <div className="flex items-center gap-2 min-w-[260px]">
+                        <span className="text-xs text-gray-600 whitespace-nowrap">
+                          Result File:
+                        </span>
+                        {selectedPlate.has_results ? (
+                          <>
+                            <a
+                              href={selectedPlate.result_file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:underline"
+                            >
+                              View File
+                            </a>
+                            <button
+                              type="button"
+                              onClick={handleDeleteResultFile}
+                              disabled={deleteResultFile.isPending}
+                              className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 disabled:opacity-50"
+                            >
+                              {deleteResultFile.isPending ? 'Deleting…' : 'Delete'}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              onChange={handleFileUpload}
+                              disabled={uploadResultFile.isPending}
+                              className="text-sm text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-medium file:bg-blue-100 file:text-blue-700 file:rounded file:cursor-pointer hover:file:bg-blue-200"
+                            />
+                            {uploadResultFile.isPending && (
+                              <span className="text-xs text-gray-500">Uploading…</span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
               {/* Analysis type and markers badges */}
               <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -741,45 +797,6 @@ export default function PlateSearch() {
                   <span className="text-xs text-gray-500 italic">All markers allowed</span>
                 ) : null}
               </div>
-              {/* Result file upload - only show if plate has been analyzed */}
-              {(selectedPlate.has_results || selectedPlate.analysis_date) && (
-                <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Result File:</span>
-                  {selectedPlate.has_results ? (
-                    <>
-                      <a
-                        href={selectedPlate.result_file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        View File
-                      </a>
-                      <button
-                        type="button"
-                        onClick={handleDeleteResultFile}
-                        disabled={deleteResultFile.isPending}
-                        className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200 disabled:opacity-50"
-                      >
-                        {deleteResultFile.isPending ? 'Deleting…' : 'Delete'}
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={handleFileUpload}
-                        disabled={uploadResultFile.isPending}
-                        className="text-sm text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-medium file:bg-blue-100 file:text-blue-700 file:rounded file:cursor-pointer hover:file:bg-blue-200"
-                      />
-                      {uploadResultFile.isPending && (
-                        <span className="text-xs text-gray-500">Uploading…</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
               {/* Bulk row/column actions */}
               <PlateActionsPanel plateId={selectedPlate.id} />
               {/* Order filter buttons */}

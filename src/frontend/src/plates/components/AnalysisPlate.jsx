@@ -55,9 +55,19 @@ export default function AnalysisPlate() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-4xl font-bold">Analysis Plate {plateLabel}</h2>
-        <div className="flex items-center gap-2">
+      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Plate Preview
+          </p>
+          <h2
+            className="truncate text-2xl font-bold leading-tight text-gray-900 lg:text-3xl"
+            title={`Analysis Plate ${plateLabel}`}
+          >
+            Analysis Plate <span className="font-mono">{plateLabel}</span>
+          </h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           <button
             type="button"
             onClick={handleFullscreen}

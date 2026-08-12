@@ -53,6 +53,7 @@ class Area(AdminUrlsMixin, models.Model):
     is_hidden = models.BooleanField(
         default=False,
         help_text="Hidden areas are excluded from forms and filters.",
+        null=True,
     )
 
     all_objects = models.Manager()
@@ -137,6 +138,7 @@ class Species(AdminUrlsMixin, models.Model):
     is_hidden = models.BooleanField(
         default=False,
         help_text="Hidden species are excluded from forms and filters.",
+        null=True,
     )
 
     all_objects = models.Manager()

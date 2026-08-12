@@ -1,10 +1,10 @@
 from django.db import close_old_connections
-from procrastinate.contrib.django import app
+from django.tasks import task
 
 from .models import ExtractionPlate
 
 
-@app.task
+@task
 def isolate_all_samples(
     plate_id: str,
 ) -> None:

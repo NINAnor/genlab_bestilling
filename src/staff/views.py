@@ -16,7 +16,6 @@ from django.views.generic import DetailView, TemplateView, UpdateView
 from django.views.generic.detail import SingleObjectMixin
 from django_filters.views import FilterView
 from django_tables2.views import SingleTableMixin
-from procrastinate.contrib.django import app
 
 from genlab_bestilling.models import (
     AnalysisOrder,
@@ -1259,10 +1258,10 @@ class ExtractionPlateIsolateActionView(SingleObjectMixin, ActionView):
         return super().post(request, *args, **kwargs)
 
     def form_valid(self, form: Form) -> HttpResponse:
+        from genlab_bestilling.tasks import isolate_all_samples  # noqa: PLC0415
+
         try:
-            app.configure_task("genlab_bestilling.tasks.isolate_all_samples").defer(
-                plate_id=str(self.object.pk)
-            )
+            isolate_all_samples.enqueue(plate_id=str(self.object.pk))
             messages.add_message(
                 self.request,
                 messages.SUCCESS,

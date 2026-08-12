@@ -22,7 +22,6 @@ from django_lifecycle.conditions import (
     WhenFieldValueChangesTo,
 )
 from polymorphic.models import PolymorphicModel
-from procrastinate.contrib.django import app
 from rest_framework.exceptions import ValidationError
 from sequencefield.constraints import IntSequenceConstraint
 from sequencefield.fields import IntegerSequenceField
@@ -482,7 +481,9 @@ class Order(AdminUrlsMixin, LifecycleModelMixin, PolymorphicModel):
             "genlab_bestilling/mail/order_complete.html", context=context
         )
 
-        app.configure_task("nina.tasks.send_email_async").defer(
+        from nina.tasks import send_email_async  # noqa: PLC0415
+
+        send_email_async.enqueue(
             subject=f"{o} - completed",
             message="the order is completed",
             from_email=None,

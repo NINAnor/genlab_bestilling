@@ -59,6 +59,19 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=None)
 
 
 ###########################################
+#                 TASKS
+###########################################
+# https://docs.djangoproject.com/en/dev/ref/settings/#tasks
+TASKS = {
+    "default": {
+        "BACKEND": "django_tasks_db.DatabaseBackend",
+        "QUEUES": ["default"],
+        "OPTIONS": {"id_function": "uuid.uuid7"},
+    }
+}
+
+
+###########################################
 #                 URLS
 ###########################################
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
@@ -115,7 +128,7 @@ THIRD_PARTY_APPS = [
     "django_vite",
     "django_filters",
     "drf_standardized_errors",
-    "procrastinate.contrib.django",
+    "django_tasks_db",
     "view_breadcrumbs",
     "dal",
     "dal_select2",

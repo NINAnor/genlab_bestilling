@@ -8,7 +8,6 @@ from django_lifecycle import (
     LifecycleModel,
     hook,
 )
-from procrastinate.contrib.django import app
 
 from shared.mixins import AdminUrlsMixin
 
@@ -87,6 +86,8 @@ class Project(AdminUrlsMixin, LifecycleModel):
 
     @hook(AFTER_CREATE, on_commit=True)
     def notify_project_created(self) -> None:
+        from nina.tasks import send_email_async  # noqa: PLC0415
+
         # Project was validated against ValidProject in form, auto-verify it
         self.verified_at = now()
         self.save(update_fields=["verified_at"])
@@ -97,7 +98,7 @@ class Project(AdminUrlsMixin, LifecycleModel):
             f"View project: {settings.NOTIFICATIONS['BASE_URL']}"
             + reverse("staff:projects-detail", kwargs={"pk": self.pk})
         )
-        app.configure_task("nina.tasks.send_email_async").defer(
+        send_email_async.enqueue(
             subject=f"{self.number} {self.name} - Project registered and verified",
             message=admin_message,
             from_email=None,
@@ -109,7 +110,7 @@ class Project(AdminUrlsMixin, LifecycleModel):
             f"Your project {self.number} {self.name} has been registered and "
             f"verified. You can now start using it to place orders."
         )
-        app.configure_task("nina.tasks.send_email_async").defer(
+        send_email_async.enqueue(
             subject=f"{self.number} {self.name} - Project registered and verified",
             message=user_message,
             from_email=None,

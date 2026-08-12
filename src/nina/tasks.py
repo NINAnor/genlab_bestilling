@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from procrastinate.contrib.django import app
+from django.tasks import task
 
 
-@app.task
+@task
 def send_email_async(
     subject: str,
     message: str,

@@ -56,7 +56,7 @@ dependencies = [
   "drf-standardized-errors[openapi]",
   "djangorestframework-simplejwt",
   "django-cors-headers",
-  "procrastinate[django]",
+  "django-tasks-db",
   "django-polymorphic",
   "django-unfold",
   "crispy-tailwind",

@@ -1,16 +1,15 @@
 minimumReleaseAgeExclude:
   - '@remix-run/server-runtime@2.17.5'
   - turbo-stream@3.0.0
-  - brace-expansion@5.0.6
-  - axios@1.16.0
+  - brace-expansion@5.0.6 || 5.0.7 || 5.0.8 || 5.0.9
+  - axios@1.16.0 || 1.18.0
   - form-data@4.0.6
   - vite@8.0.16
   - undici@6.27.0
   - '@babel/core@7.29.1'
-  - axios@1.18.0
-  - brace-expansion@5.0.7
   - postcss@8.5.18
-  - brace-expansion@5.0.8
+  - '@remix-run/router@1.23.3'
+  - nanoid@3.3.17
 overrides:
   '@remix-run/server-runtime@>=2.10.0 <2.17.5': ^2.17.5
   '@remix-run/server-runtime@>=2.17.3 <2.17.5': ^2.17.5

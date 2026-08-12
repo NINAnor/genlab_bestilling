@@ -534,7 +534,7 @@ PlatePreview.propTypes = {
   isLoading: PropTypes.bool,
   onPositionClick: PropTypes.func,
   onPositionMove: PropTypes.func,
-  showFishId: PropTypes.bool,
+  sampleDisplayMode: PropTypes.oneOf(['genlab_id', 'fish_id', 'sample_name']),
   highlightOrderId: PropTypes.number,
   isFullscreen: PropTypes.bool,
 };

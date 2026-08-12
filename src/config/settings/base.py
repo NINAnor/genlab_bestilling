@@ -412,8 +412,7 @@ LOGGING = {
 # https://django-allauth.readthedocs.io/en/stable/account/advanced.html
 ACCOUNT_ALLOW_REGISTRATION = True
 ACCOUNT_LOGIN_METHODS = {"email"}
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD: str | None = None
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_ADAPTER = "capps.users.adapters.AccountAdapter"

@@ -18,7 +18,7 @@ const useOrderStore = create((set) => ({
   selectedPlate: null,
   selectedPositionForAdd: null, // { id, coordinate } - for adding single marker to specific position
   sorting: { field: null, direction: 'asc' }, // 'asc' or 'desc'
-  showFishId: false, // Toggle between fish_id and genlab_id display
+  sampleDisplayMode: 'genlab_id',
 
   /** Initialise from config injected by Django template */
   init: (cfg) =>
@@ -29,8 +29,8 @@ const useOrderStore = create((set) => ({
       orderStatusLabel: cfg.order_status_label ?? null,
     }),
 
-  /** Toggle between showing fish_id and genlab_id */
-  toggleShowFishId: () => set((state) => ({ showFishId: !state.showFishId })),
+  /** Set which sample identifier to display in analysis order UIs */
+  setSampleDisplayMode: (sampleDisplayMode) => set({ sampleDisplayMode }),
 
   /** Set the selected order for filtering */
   setSelectedOrder: (orderId, orderLabel) =>

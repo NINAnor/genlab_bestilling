@@ -30,18 +30,37 @@ function getStatus(position, plateType) {
   return 'empty';
 }
 
-function getFilledLabel(position, plateType, showFishId = false) {
+function getAnalysisSampleLabel(position, sampleDisplayMode = 'genlab_id') {
+  if (!position?.sample_marker) return null;
+  if (sampleDisplayMode === 'fish_id') {
+    return (
+      position.sample_marker.sample_fish_id ??
+      position.sample_marker.sample_genlab_id ??
+      position.sample_marker.sample_name
+    );
+  }
+  if (sampleDisplayMode === 'sample_name') {
+    return (
+      position.sample_marker.sample_name ??
+      position.sample_marker.sample_genlab_id ??
+      position.sample_marker.sample_fish_id
+    );
+  }
+  return (
+    position.sample_marker.sample_genlab_id ??
+    position.sample_marker.sample_name ??
+    position.sample_marker.sample_fish_id
+  );
+}
+
+function getFilledLabel(position, plateType, sampleDisplayMode = 'genlab_id') {
   if (plateType === 'extraction' && position?.sample_raw) {
     const mainLabel = position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample';
     const orderLabel = position.sample_raw.order_id;
     return { mainLabel, orderLabel };
   }
   if (plateType === 'analysis' && position?.sample_marker) {
-    const sampleLabel = showFishId
-      ? (position.sample_marker.sample_fish_id ??
-        position.sample_marker.sample_genlab_id ??
-        position.sample_marker.sample_name)
-      : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name);
+    const sampleLabel = getAnalysisSampleLabel(position, sampleDisplayMode);
     const markerLabel = position.sample_marker.marker_name;
     const orderLabel = position.sample_marker.order_id;
     return { sampleLabel, markerLabel, orderLabel };
@@ -49,17 +68,12 @@ function getFilledLabel(position, plateType, showFishId = false) {
   return null;
 }
 
-function getTooltip(position, coordinate, status, plateType, showFishId = false) {
+function getTooltip(position, coordinate, status, plateType, sampleDisplayMode = 'genlab_id') {
   let base;
   if (status === 'invalid') {
     if (plateType === 'analysis' && position.sample_marker) {
       const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
-      const sampleName = showFishId
-        ? (position.sample_marker.sample_fish_id ??
-          position.sample_marker.sample_genlab_id ??
-          position.sample_marker.sample_name ??
-          '?')
-        : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?');
+      const sampleName = getAnalysisSampleLabel(position, sampleDisplayMode) ?? '?';
       base = `${coordinate} — ${markerName} (${sampleName}) [INVALID]`;
     } else {
       base = `${coordinate} — Invalid`;
@@ -71,12 +85,7 @@ function getTooltip(position, coordinate, status, plateType, showFishId = false)
       base = order ? `${coordinate} — ${id} [#${order}]` : `${coordinate} — ${id}`;
     } else if (plateType === 'analysis' && position.sample_marker) {
       const markerName = position.sample_marker.marker_name ?? `#${position.sample_marker.id}`;
-      const sampleName = showFishId
-        ? (position.sample_marker.sample_fish_id ??
-          position.sample_marker.sample_genlab_id ??
-          position.sample_marker.sample_name ??
-          '?')
-        : (position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '?');
+      const sampleName = getAnalysisSampleLabel(position, sampleDisplayMode) ?? '?';
       const order = position.sample_marker.order_id;
       base = order
         ? `${coordinate} — ${markerName} (${sampleName}) [#${order}]`
@@ -97,22 +106,14 @@ function getTooltip(position, coordinate, status, plateType, showFishId = false)
 /**
  * Get the text content for a cell (for copy/paste to Excel).
  */
-function getCellText(position, plateType, showFishId = false) {
+function getCellText(position, plateType, sampleDisplayMode = 'genlab_id') {
   if (!position) return '';
   if (position.is_reserved) return position.positive_control_name ?? 'Reserved';
   if (plateType === 'extraction' && position.sample_raw) {
     return position.sample_raw.genlab_id ?? position.sample_raw.name ?? '';
   }
   if (plateType === 'analysis' && position.sample_marker) {
-    if (showFishId) {
-      return (
-        position.sample_marker.sample_fish_id ??
-        position.sample_marker.sample_genlab_id ??
-        position.sample_marker.sample_name ??
-        ''
-      );
-    }
-    return position.sample_marker.sample_genlab_id ?? position.sample_marker.sample_name ?? '';
+    return getAnalysisSampleLabel(position, sampleDisplayMode) ?? '';
   }
   return '';
 }
@@ -135,13 +136,13 @@ function Well({
   onDrop,
   isDragging,
   isDragOver,
-  showFishId,
+  sampleDisplayMode,
   isHighlighted,
   isFullscreen = false,
 }) {
   const status = getStatus(position, plateType);
-  const filledLabel = getFilledLabel(position, plateType, showFishId);
-  const tooltip = getTooltip(position, coordinate, status, plateType, showFishId);
+  const filledLabel = getFilledLabel(position, plateType, sampleDisplayMode);
+  const tooltip = getTooltip(position, coordinate, status, plateType, sampleDisplayMode);
   const hasNote = !!position?.notes;
   const isClickable = !!onClick;
   const canDrag = isDraggable && status === 'filled';
@@ -300,7 +301,7 @@ Well.propTypes = {
   onDrop: PropTypes.func,
   isDragging: PropTypes.bool,
   isDragOver: PropTypes.bool,
-  showFishId: PropTypes.bool,
+  sampleDisplayMode: PropTypes.oneOf(['genlab_id', 'fish_id', 'sample_name']),
   isHighlighted: PropTypes.bool,
   isFullscreen: PropTypes.bool,
 };
@@ -322,7 +323,7 @@ export default function PlatePreview({
   isLoading,
   onPositionClick,
   onPositionMove,
-  showFishId = false,
+  sampleDisplayMode = 'genlab_id',
   highlightOrderId = null,
   isFullscreen = false,
 }) {
@@ -349,7 +350,7 @@ export default function PlatePreview({
       const cells = COLS.map((col) => {
         const idx = toPositionIndex(row, col);
         const position = positionsByIdx[idx] ?? null;
-        return getCellText(position, plateType, showFishId);
+        return getCellText(position, plateType, sampleDisplayMode);
       });
       return [row, ...cells].join('\t');
     });
@@ -364,7 +365,7 @@ export default function PlatePreview({
       setCopyStatus('error');
       setTimeout(() => setCopyStatus(null), 2000);
     }
-  }, [positionsByIdx, plateType, showFishId]);
+  }, [positionsByIdx, plateType, sampleDisplayMode]);
 
   // Drag handlers
   const handleDragStart = useCallback((idx) => {
@@ -502,7 +503,7 @@ export default function PlatePreview({
                     onDrop={handleDrop}
                     isDragging={draggingIdx === idx}
                     isDragOver={dragOverIdx === idx}
-                    showFishId={showFishId}
+                    sampleDisplayMode={sampleDisplayMode}
                     isHighlighted={
                       highlightOrderId != null &&
                       position?.sample_marker?.order_id === highlightOrderId

@@ -30,8 +30,8 @@ function OrderApp() {
   const orderStatus = useOrderStore((s) => s.orderStatus);
   const orderStatusLabel = useOrderStore((s) => s.orderStatusLabel);
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
-  const showFishId = useOrderStore((s) => s.showFishId);
-  const toggleShowFishId = useOrderStore((s) => s.toggleShowFishId);
+  const sampleDisplayMode = useOrderStore((s) => s.sampleDisplayMode);
+  const setSampleDisplayMode = useOrderStore((s) => s.setSampleDisplayMode);
 
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
@@ -153,14 +153,17 @@ function OrderApp() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-gray-800">Sample Markers</h3>
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showFishId}
-                  onChange={toggleShowFishId}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                Show Fish ID
+              <label className="flex items-center gap-2 text-sm text-gray-600">
+                <span>Show</span>
+                <select
+                  value={sampleDisplayMode}
+                  onChange={(e) => setSampleDisplayMode(e.target.value)}
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="genlab_id">Genlab ID</option>
+                  <option value="fish_id">Fish ID</option>
+                  <option value="sample_name">Sample name</option>
+                </select>
               </label>
               {Object.keys(sampleMarkers).length > 0 && (
                 <span className="text-sm text-gray-500">

@@ -22,9 +22,19 @@ function IndeterminateCheckbox({ indeterminate, checked, onChange, ...rest }) {
 }
 
 /**
- * Generate columns array with showFishId baked in.
+ * Generate columns array with the sample display mode baked in.
  */
-function getColumns(showFishId) {
+function getDisplayValue(row, sampleDisplayMode) {
+  if (sampleDisplayMode === 'fish_id') {
+    return row.sample_fish_id ?? row.sample_genlab_id ?? row.sample_name;
+  }
+  if (sampleDisplayMode === 'sample_name') {
+    return row.sample_name ?? row.sample_genlab_id ?? row.sample_fish_id;
+  }
+  return row.sample_genlab_id ?? row.sample_name ?? row.sample_fish_id;
+}
+
+function getColumns(sampleDisplayMode) {
   const renderBooleanStatus = (value) => (
     <span className={`text-sm font-medium ${value ? 'text-emerald-600' : 'text-gray-400'}`}>
       {value ? '✓' : '—'}
@@ -55,11 +65,7 @@ function getColumns(showFishId) {
       accessorKey: 'sample_genlab_id',
       header: 'Sample',
       cell: ({ row }) => {
-        const displayId = showFishId
-          ? (row.original.sample_fish_id ??
-            row.original.sample_genlab_id ??
-            row.original.sample_name)
-          : (row.original.sample_genlab_id ?? row.original.sample_name);
+        const displayId = getDisplayValue(row.original, sampleDisplayMode);
         return <span className="text-sm font-mono text-gray-900">{displayId ?? '—'}</span>;
       },
       sortField: 'genlab_id',
@@ -260,7 +266,7 @@ export default function SampleMarkerTable({
   const toggleMarkerSelection = useOrderStore((s) => s.toggleMarkerSelection);
   const sorting = useOrderStore((s) => s.sorting);
   const toggleSorting = useOrderStore((s) => s.toggleSorting);
-  const showFishId = useOrderStore((s) => s.showFishId);
+  const sampleDisplayMode = useOrderStore((s) => s.sampleDisplayMode);
 
   // Build ordered data array from ids and object
   const data = useMemo(
@@ -268,8 +274,8 @@ export default function SampleMarkerTable({
     [sampleMarkerIds, sampleMarkers],
   );
 
-  // Memoize columns with showFishId to trigger re-render when toggled
-  const columns = useMemo(() => getColumns(showFishId), [showFishId]);
+  // Memoize columns with sampleDisplayMode to trigger re-render when changed
+  const columns = useMemo(() => getColumns(sampleDisplayMode), [sampleDisplayMode]);
 
   // Convert store selection to TanStack Table format (keyed by row id)
   const rowSelection = useMemo(() => {

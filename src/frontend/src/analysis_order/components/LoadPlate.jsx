@@ -56,7 +56,7 @@ export default function PlateSearch() {
   const clearSelectedPositionForAdd = useOrderStore((s) => s.clearSelectedPositionForAdd);
   const orderId = useOrderStore((s) => s.orderId);
   const setSelectedOrder = useOrderStore((s) => s.setSelectedOrder);
-  const showFishId = useOrderStore((s) => s.showFishId);
+  const sampleDisplayMode = useOrderStore((s) => s.sampleDisplayMode);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -888,7 +888,7 @@ export default function PlateSearch() {
                   isLoading={positionsLoading}
                   onPositionClick={handlePositionClick}
                   onPositionMove={handlePositionMove}
-                  showFishId={showFishId}
+                  sampleDisplayMode={sampleDisplayMode}
                   highlightOrderId={orderId}
                   isFullscreen={isFullscreen}
                 />

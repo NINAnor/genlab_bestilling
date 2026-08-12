@@ -12,7 +12,7 @@ import useOrderStore from '../store';
 
 /**
  * Filter bar for sample markers list.
- * Allows filtering by analysis order, marker, species, sample type, isolation method, and genlab_id.
+ * Allows filtering by analysis order, marker, species, sample type, isolation method, and search.
  */
 export default function FilterBar({ filters, onFiltersChange, onReset }) {
   const orderId = useOrderStore((s) => s.orderId);
@@ -210,14 +210,14 @@ export default function FilterBar({ filters, onFiltersChange, onReset }) {
           </select>
         </div>
 
-        {/* Genlab ID search */}
+        {/* Search by Genlab ID, name or GUID */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Genlab ID</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Search</label>
           <input
             type="text"
-            value={filters.genlab_id || ''}
-            onChange={(e) => updateFilter('genlab_id', e.target.value)}
-            placeholder="Search by ID…"
+            value={filters.search || ''}
+            onChange={(e) => updateFilter('search', e.target.value)}
+            placeholder="Search by Genlab ID, name or GUID…"
             className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -244,7 +244,7 @@ FilterBar.propTypes = {
     species: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     sample_type: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     extraction_status: PropTypes.string,
-    genlab_id: PropTypes.string,
+    search: PropTypes.string,
     plate: PropTypes.string,
     status: PropTypes.string,
   }).isRequired,

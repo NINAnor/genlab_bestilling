@@ -50,15 +50,18 @@ class OrderQuerySet(PolymorphicQuerySet):
 
     def filter_by_sample_id(self, value: str) -> QuerySet:
         """
-        Filter orders by sample genlab_id or guid.
+        Filter orders by sample genlab_id, name, or guid.
 
-        Searches for samples where genlab_id or guid contains the given value.
+        Searches for samples where genlab_id, name, or guid contains the
+        given value.
         """
         if not value:
             return self
 
         return self.filter(
-            Q(samples__genlab_id__icontains=value) | Q(samples__guid__icontains=value)
+            Q(samples__genlab_id__icontains=value)
+            | Q(samples__name__icontains=value)
+            | Q(samples__guid__icontains=value)
         ).distinct()
 
 
@@ -94,6 +97,22 @@ class SampleQuerySet(models.QuerySet):
         """
         return self.select_related("order").filter(
             order__status=self.model.OrderStatus.DRAFT
+        )
+
+    def filter_by_search(self, value: str) -> QuerySet:
+        """
+        Filter samples by genlab_id, name, or guid.
+
+        Searches for samples where genlab_id, name, or guid contains the
+        given value.
+        """
+        if not value:
+            return self
+
+        return self.filter(
+            Q(genlab_id__icontains=value)
+            | Q(name__icontains=value)
+            | Q(guid__icontains=value)
         )
 
     def annotate_numeric_name(self) -> QuerySet:
@@ -153,6 +172,23 @@ class SampleQuerySet(models.QuerySet):
         self.bulk_update(updates, ["genlab_id"])
 
 
+class ExtractionPlateQuerySet(PolymorphicQuerySet):
+    def filter_by_search(self, value: str) -> QuerySet:
+        """
+        Filter extraction plates by sample genlab_id or name.
+
+        Searches for plates with a sample position whose genlab_id or name
+        contains the given value.
+        """
+        if not value:
+            return self
+
+        return self.filter(
+            Q(positions__sample_raw__genlab_id__icontains=value)
+            | Q(positions__sample_raw__name__icontains=value)
+        ).distinct()
+
+
 class AnalysisStatus(StrEnum):
     """Status of a sample marker analysis based on plate positions."""
 
@@ -177,6 +213,22 @@ class SampleAnalysisMarkerQuerySet(models.QuerySet):
         return self.select_related("order").filter(
             order__status=self.model.OrderStatus.DRAFT
         )
+
+    def filter_by_search(self, value: str) -> QuerySet:
+        """
+        Filter sample markers by related sample genlab_id, name, or guid.
+
+        Searches for sample markers whose sample genlab_id, name, or guid
+        contains the given value.
+        """
+        if not value:
+            return self
+
+        return self.filter(
+            Q(sample__genlab_id__icontains=value)
+            | Q(sample__name__icontains=value)
+            | Q(sample__guid__icontains=value)
+        ).distinct()
 
     def filter_status_not_started(self) -> QuerySet:
         """Filter sample markers with no positions on analysis plates and no PCR."""

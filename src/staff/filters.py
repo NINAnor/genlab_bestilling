@@ -123,11 +123,16 @@ class AnalysisOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     )
 
     sample_id = filters.CharFilter(
-        label="Genlab ID / GUID",
+        label="Genlab ID / Name / GUID",
         method=filter_order_by_sample_id,
+        help_text=(
+            "Matches any order with a sample whose Genlab ID, name, or GUID "
+            "contains the given text (case-insensitive, partial matches "
+            "allowed)."
+        ),
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Enter Genlab ID or GUID",
+                "placeholder": "Enter Genlab ID, name or GUID",
             }
         ),
     )
@@ -274,11 +279,16 @@ class ExtractionOrderFilter(HideStatusesByDefaultMixin, filters.FilterSet):
     )
 
     sample_id = filters.CharFilter(
-        label="Genlab ID / GUID",
+        label="Genlab ID / Name / GUID",
         method=filter_order_by_sample_id,
+        help_text=(
+            "Matches any order with a sample whose Genlab ID, name, or GUID "
+            "contains the given text (case-insensitive, partial matches "
+            "allowed)."
+        ),
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Enter Genlab ID or GUID",
+                "placeholder": "Enter Genlab ID, name or GUID",
             }
         ),
     )
@@ -436,11 +446,16 @@ def filter_sample_status(
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):
-    sample__genlab_id = CharFilter(
-        label="GenlabID",
+    search = CharFilter(
+        label="Search",
+        method="filter_search",
+        help_text=(
+            "Matches any sample whose Genlab ID, name, or GUID contains "
+            "the given text (case-insensitive, partial matches allowed)."
+        ),
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Type here",
+                "placeholder": "Search by Genlab ID, name or GUID",
             }
         ),
     )
@@ -471,6 +486,9 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         self, queryset: QuerySet, name: str, value: str
     ) -> QuerySet:
         return filter_sample_status(self, queryset, name, value, "sample__")
+
+    def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        return queryset.filter_by_search(value)
 
     def filter_status(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         if value == "pcr":
@@ -506,7 +524,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
     class Meta:
         model = SampleMarkerAnalysis
         fields = (
-            "sample__genlab_id",
+            "search",
             "sample__type",
             "sample__isolation_method",
             "marker",
@@ -520,26 +538,26 @@ class SampleFilter(filters.FilterSet):
     ) -> QuerySet:
         return filter_sample_status(self, queryset, name, value)
 
+    def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        return queryset.filter_by_search(value)
+
+    search = CharFilter(
+        label="Search",
+        method="filter_search",
+        help_text=(
+            "Matches any sample whose Genlab ID, name, or GUID contains "
+            "the given text (case-insensitive, partial matches allowed)."
+        ),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Search by Genlab ID, name or GUID",
+            }
+        ),
+    )
     sample_status = filters.CharFilter(
         label="Sample Status",
         method="filter_sample_status",
         widget=SampleStatusWidget,
-    )
-    name = CharFilter(
-        label="Name",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Enter name",
-            }
-        ),
-    )
-    genlab_id = CharFilter(
-        label="Genlab ID",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Enter Genlab ID",
-            }
-        ),
     )
     year = CharFilter(
         label="Year",
@@ -583,8 +601,7 @@ class SampleFilter(filters.FilterSet):
     class Meta:
         model = Sample
         fields = (
-            "name",
-            "genlab_id",
+            "search",
             "species",
             "type",
             "year",
@@ -821,27 +838,25 @@ class ExtractionPlateFilter(filters.FilterSet):
         ),
     )
 
-    positions__sample_raw__genlab_id = CharFilter(
-        field_name="positions__sample_raw__genlab_id",
-        lookup_expr="istartswith",
-        label="Sample Genlab ID",
+    positions__sample_raw__search = CharFilter(
+        label="Sample Genlab ID / Name",
+        method="filter_sample_search",
+        help_text=(
+            "Matches any plate with a sample whose Genlab ID or name "
+            "contains the given text (case-insensitive, partial matches "
+            "allowed)."
+        ),
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Sample Genlab ID starts with",
+                "placeholder": "Search by Genlab ID or sample name",
             }
         ),
     )
 
-    positions__sample_raw__name = CharFilter(
-        field_name="positions__sample_raw__name",
-        lookup_expr="istartswith",
-        label="Sample Name",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Sample name starts with",
-            }
-        ),
-    )
+    def filter_sample_search(
+        self, queryset: QuerySet, name: str, value: str
+    ) -> QuerySet:
+        return queryset.filter_by_search(value)
 
     def __init__(
         self,
@@ -880,8 +895,7 @@ class ExtractionPlateFilter(filters.FilterSet):
             "qiagen_id",
             "freezer_id",
             "shelf_id",
-            "positions__sample_raw__genlab_id",
-            "positions__sample_raw__name",
+            "positions__sample_raw__search",
             "positions__sample_raw__species",
             "positions__sample_raw__type",
             "positions__sample_raw__order",
@@ -938,7 +952,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
     species = filters.NumberFilter(field_name="sample__species_id")
     sample_type = filters.NumberFilter(field_name="sample__type_id")
     extraction_status = CharFilter(method="filter_extraction_status")
-    genlab_id = CharFilter(field_name="sample__genlab_id", lookup_expr="istartswith")
+    search = CharFilter(method="filter_search")
     plate = CharFilter(method="filter_plate")
     status = CharFilter(method="filter_status")
 
@@ -946,6 +960,9 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
         self, queryset: QuerySet, name: str, value: str
     ) -> QuerySet:
         return filter_sample_status(self, queryset, name, value, prefix="sample__")
+
+    def filter_search(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
+        return queryset.filter_by_search(value)
 
     def filter_plate(self, queryset: QuerySet, name: str, value: str) -> QuerySet:
         if not value:
@@ -968,7 +985,7 @@ class SampleMarkerAnalysisAPIFilter(filters.FilterSet):
             "species",
             "sample_type",
             "extraction_status",
-            "genlab_id",
+            "search",
             "plate",
             "status",
         ]

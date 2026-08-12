@@ -321,11 +321,7 @@ class SampleMarkerOrderFilter(filters.FilterSet):
         name: str,
         value: Any,
     ) -> QuerySet:
-        if not value:
-            return queryset
-        return queryset.filter(
-            Q(sample__genlab_id__istartswith=value) | Q(sample__guid__iexact=value)
-        )
+        return queryset.filter_by_search(value)
 
 
 class OrderFilter(filters.FilterSet):

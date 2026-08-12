@@ -23,7 +23,8 @@ export function useSampleSearch(term, extraParams = {}) {
 
 /**
  * Search sample-marker-analyses via /api/sample-marker-analysis/?search=<term>.
- * The backend filter does an OR across sample__genlab_id (istartswith) and sample__guid (iexact).
+ * The backend filter does an OR across sample__genlab_id, sample__name, and
+ * sample__guid (all icontains).
  */
 export function useSampleMarkerSearch(term) {
   return useQuery({

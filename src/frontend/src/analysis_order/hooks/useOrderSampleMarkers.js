@@ -34,7 +34,7 @@ function extractCursor(url) {
  * Uses cursor-based pagination with infinite loading.
  * Syncs results into Zustand store.
  *
- * @param {Object} filters - Filter parameters (order, marker, species, sample_type, extraction_status, genlab_id)
+ * @param {Object} filters - Filter parameters (order, marker, species, sample_type, extraction_status, search)
  */
 export function useOrderSampleMarkers(filters = {}) {
   const orderId = useOrderStore((s) => s.orderId);

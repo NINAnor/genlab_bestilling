@@ -18,7 +18,7 @@ const INITIAL_FILTERS = {
   species: '',
   sample_type: '',
   extraction_status: '',
-  genlab_id: '',
+  search: '',
   plate: '',
   status: '',
 };

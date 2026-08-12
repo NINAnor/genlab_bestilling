@@ -1388,6 +1388,8 @@ class ExtractionPlate(Plate):
     sample_types = models.ManyToManyField(f"{an}.SampleType", blank=True)
     isolated_at = models.DateTimeField(null=True, blank=True)
 
+    objects = managers.ExtractionPlateQuerySet.as_manager()
+
     class SampleNotAllowed(Exception):
         """Raised when a sample does not match the plate's whitelists."""
 

@@ -3,6 +3,8 @@ from typing import Any
 from django import template
 from django.db.models import Model
 from django.db.models import fields as djfields
+from django.forms import BoundField
+from django.utils.safestring import SafeString, mark_safe
 from taggit.managers import TaggableManager
 
 register = template.Library()
@@ -11,6 +13,17 @@ register = template.Library()
 @register.filter
 def verbose_name(instance: Model) -> str:
     return str(instance._meta.verbose_name)
+
+
+@register.filter
+def dal_forward_conf(field: BoundField) -> SafeString:
+    # crispy-tailwind's select rendering bypasses the widget's own `render()`,
+    # which is where django-autocomplete-light injects its "forward" config
+    # markup, so we have to re-add it manually.
+    render_forward_conf = getattr(field.field.widget, "render_forward_conf", None)
+    if not callable(render_forward_conf):
+        return mark_safe("")
+    return mark_safe(render_forward_conf(field.id_for_label))  # noqa: S308
 
 
 def render(field: Any, instance: Model) -> tuple:

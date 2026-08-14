@@ -2,12 +2,12 @@ import re
 from typing import Any
 
 import django_filters as filters
-from dal import autocomplete
+from dal import autocomplete, forward
 from django import forms
 from django.db.models import CharField, Q, QuerySet
 from django.db.models.functions import Cast
 from django.http import HttpRequest
-from django_filters import BooleanFilter, CharFilter, ChoiceFilter, NumberFilter
+from django_filters import BooleanFilter, CharFilter, NumberFilter
 
 from capps.users.models import User
 from genlab_bestilling.models import (
@@ -620,16 +620,22 @@ class SampleFilter(filters.FilterSet):
 class SampleLabFilter(filters.FilterSet):
     filter_sample_status = filter_sample_status
 
-    genlab_id_min = ChoiceFilter(
+    genlab_id_min = CharFilter(
         label="Genlab ID (From)",
         method="filter_genlab_id_range",
-        empty_label="Select lower bound",
+        widget=autocomplete.ListSelect2(
+            url="autocomplete:genlab-id",
+            attrs={"data-placeholder": "Select lower bound"},
+        ),
     )
 
-    genlab_id_max = ChoiceFilter(
+    genlab_id_max = CharFilter(
         label="Genlab ID (To)",
         method="filter_genlab_id_range",
-        empty_label="Select upper bound",
+        widget=autocomplete.ListSelect2(
+            url="autocomplete:genlab-id",
+            attrs={"data-placeholder": "Select upper bound"},
+        ),
     )
 
     sample_status = filters.CharFilter(
@@ -668,23 +674,18 @@ class SampleLabFilter(filters.FilterSet):
     ) -> None:
         super().__init__(data, queryset, request=request, prefix=prefix)
 
-        # Get all unique genlab IDs from current queryset, ordered
-        genlab_ids = (
-            queryset.values_list("genlab_id", flat=True)
-            .distinct()
-            .order_by("genlab_id")
-            if queryset is not None
-            else []
-        )
+        # Scope the remote genlab ID selectors to the order being viewed
+        order_id = None
+        if request is not None and request.resolver_match is not None:
+            order_id = request.resolver_match.kwargs.get("pk")
+        order_forward = [forward.Const(order_id, "order_id")]
+        self.filters["genlab_id_min"].field.widget.forward.extend(order_forward)
+        self.filters["genlab_id_max"].field.widget.forward.extend(order_forward)
 
-        genlab_choices = [(gid, gid) for gid in genlab_ids]
-
-        self.filters["genlab_id_min"].field.choices = genlab_choices
         self.filters["genlab_id_min"].field.widget.attrs.update(
             {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
         )
 
-        self.filters["genlab_id_max"].field.choices = genlab_choices
         self.filters["genlab_id_max"].field.widget.attrs.update(
             {"class": "w-full border border-gray-300 rounded-lg py-2 px-4"}
         )

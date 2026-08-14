@@ -133,6 +133,22 @@ class AvailableSampleAutocomplete(autocomplete.Select2QuerySetView):
         return f"{item.genlab_id} - {item.name} ({species_name})"
 
 
+class GenlabIdAutocomplete(autocomplete.Select2ListView):
+    def get_list(self) -> list[str]:
+        order_id = self.forwarded.get("order_id")
+        if order_id is None:
+            return []
+
+        qs = Sample.objects.filter(order_id=order_id, genlab_id__isnull=False)
+
+        if self.q:
+            qs = qs.filter(genlab_id__icontains=self.q)
+
+        return list(
+            qs.order_by("genlab_id").values_list("genlab_id", flat=True).distinct()[:30]
+        )
+
+
 class AvailableSampleMarkerAutocomplete(autocomplete.Select2QuerySetView):
     model = SampleMarkerAnalysis
 

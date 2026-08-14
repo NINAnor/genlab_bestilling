@@ -11,6 +11,7 @@ from genlab_bestilling.autocomplete import (
     EquipmentAutocomplete,
     ExtractionOrderAutocomplete,
     ExtractionPlateAutocomplete,
+    GenlabIdAutocomplete,
     GenrequestAutocomplete,
     IsolationMethodAutocomplete,
     LocationAutocomplete,
@@ -71,5 +72,10 @@ urlpatterns = [
         "available-sample-marker/",
         AvailableSampleMarkerAutocomplete.as_view(),
         name="available-sample-marker",
+    ),
+    path(
+        "genlab-id/",
+        GenlabIdAutocomplete.as_view(),
+        name="genlab-id",
     ),
 ]

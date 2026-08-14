@@ -112,14 +112,14 @@ services:
     environment:
       <<: *django-prod-env
       WAIT_FOR_HTTP: http://django:8000/ht/
-    command: ./src/manage.py procrastinate worker
+    command: ./src/manage.py db_worker
 
   queue-dev:
     <<: *django-dev
     environment:
       <<: *django-dev-env
       WAIT_FOR_HTTP: http://django:8000/ht/
-    command: ./src/manage.py procrastinate worker
+    command: ./src/manage.py db_worker --reload
 
   tailwind:
     <<: *django-dev
@@ -134,7 +134,9 @@ services:
     image: postgis/postgis:17-3.5
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ../ninagen-import/ninagen-prod.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
+      POSTGRES_DB: temp
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 5432:5432

@@ -61,7 +61,7 @@ dependencies = [
   "django-unfold",
   "crispy-tailwind",
   "django-tailwind",
-  "django-htmx",
+  "django-htmx>=1.29.0",
   "django-template-partials",
   "fontawesomefree",
   "django-allauth-ui",

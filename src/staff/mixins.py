@@ -64,21 +64,34 @@ class OrderStatusMixinTable(tables.Table):
         self, queryset: QuerySet[Order], is_descending: bool
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
-        sorted_by_status = queryset.annotate(
-            status_order=Case(
-                When(status=Order.OrderStatus.DELIVERED, then=0),
-                When(status=Order.OrderStatus.DRAFT, then=1),
-                When(status=Order.OrderStatus.PROCESSING, then=2),
-                When(status=Order.OrderStatus.COMPLETED, then=3),
-                default=Value(4),
-                output_field=IntegerField(),
-            )
-        ).order_by(f"{prefix}status_order")
+        sorted_by_status = annotate_status_order(queryset).order_by(
+            f"{prefix}status_order"
+        )
 
         return (sorted_by_status, True)
 
     def render_status(self, value: Order.OrderStatus, record: Order) -> str:
         return render_status_helper(record.status)
+
+
+def annotate_status_order(queryset: QuerySet[Order]) -> QuerySet[Order]:
+    """Annotate `queryset` with `status_order` (used to sort by "status").
+
+    Shared between `OrderStatusMixinTable.order_status` (used for the
+    page-number-paginated order tables) and the cursor-paginated order list
+    views, which need this same annotation available *before* calling
+    `.order_by("status_order")` themselves.
+    """
+    return queryset.annotate(
+        status_order=Case(
+            When(status=Order.OrderStatus.DELIVERED, then=0),
+            When(status=Order.OrderStatus.DRAFT, then=1),
+            When(status=Order.OrderStatus.PROCESSING, then=2),
+            When(status=Order.OrderStatus.COMPLETED, then=3),
+            default=Value(4),
+            output_field=IntegerField(),
+        )
+    )
 
 
 class SampleStatusMixinTable(tables.Table):
@@ -145,17 +158,28 @@ class PriorityMixinTable(tables.Table):
         self, queryset: QuerySet[Order], is_descending: bool
     ) -> tuple[QuerySet[Order], bool]:
         prefix = "-" if is_descending else ""
-        queryset = queryset.annotate(
-            priority_order=Case(
-                When(is_urgent=True, then=2),
-                When(is_prioritized=True, then=1),
-                default=0,
-                output_field=IntegerField(),
-            )
-        )
+        queryset = annotate_priority_order(queryset)
         sorted_by_priority = queryset.order_by(f"{prefix}priority_order")
 
         return (sorted_by_priority, True)
+
+
+def annotate_priority_order(queryset: QuerySet[Order]) -> QuerySet[Order]:
+    """Annotate `queryset` with `priority_order` (used to sort by "priority").
+
+    Shared between `PriorityMixinTable.order_priority` (used for the
+    page-number-paginated order tables) and the cursor-paginated order list
+    views, which need this same annotation available *before* calling
+    `.order_by("priority_order")` themselves.
+    """
+    return queryset.annotate(
+        priority_order=Case(
+            When(is_urgent=True, then=2),
+            When(is_prioritized=True, then=1),
+            default=0,
+            output_field=IntegerField(),
+        )
+    )
 
 
 class SafeRedirectMixin(View):

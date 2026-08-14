@@ -51,9 +51,10 @@ class ProjectTable(tables.Table):
 
     class Meta:
         model = Project
+        template_name = "staff/tables/cursor_table.html"
         fields = ("number", "name", "verified_at")
         sequence = ("number", "name", "toggle_active", "verified_at")
-        order_by = ("-verified_at",)
+        order_by = ("number",)
 
 
 # Map polymorphic content type model names to staff URL names
@@ -248,6 +249,7 @@ class AnalysisOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = AnalysisOrder
+        template_name = "staff/tables/cursor_table.html"
         fields = OrderTable.Meta.fields + ("markers", "expected_delivery_date")  # type: ignore[assignment]
         sequence = (
             "priority",
@@ -291,6 +293,7 @@ class ExtractionOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = ExtractionOrder
+        template_name = "staff/tables/cursor_table.html"
         fields = OrderTable.Meta.fields + (
             "total_samples_isolated",
             "confirmed_at",
@@ -335,6 +338,7 @@ class EquipmentOrderTable(OrderTable):
 
     class Meta(OrderTable.Meta):
         model = EquipmentOrder
+        template_name = "staff/tables/cursor_table.html"
         fields = (
             "name",
             "status",
@@ -532,6 +536,7 @@ class SampleStatusTable(tables.Table):
 
     class Meta:
         model = Sample
+        template_name = "staff/tables/cursor_table.html"
         fields = (
             "checked",
             "genlab_id",
@@ -574,11 +579,24 @@ class SampleStatusTable(tables.Table):
 
 
 class OrderExtractionSampleTable(SampleBaseTable):
+    """Sample table used on the (cursor-paginated) staff extraction page.
+
+    Uses a custom template that renders a htmx "load more" trigger instead
+    of the default numbered pagination, since rows are fetched in batches
+    via keyset/cursor pagination (see `staff.pagination`).
+    """
+
     class Meta(SampleBaseTable.Meta):
+        template_name = "staff/tables/cursor_table.html"
         exclude = (
             # "pop_id",
             "guid",
         )
+        # `genlab_id` is nullable, so it is excluded from the default sort
+        # used here (unlike `SampleBaseTable.Meta.order_by`) - keyset/cursor
+        # pagination requires ordering fields to be non-null for correct
+        # "seek" comparisons. `id` guarantees uniqueness/stability.
+        order_by = ("species", "id")
 
 
 class OrderAnalysisSampleTable(tables.Table):
@@ -733,6 +751,7 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
     )
 
     class Meta(SampleBaseTable.Meta):
+        template_name = "staff/tables/cursor_table.html"
         fields = SampleBaseTable.Meta.fields + (
             "order__id",
             "order__status",
@@ -748,6 +767,9 @@ class SampleTable(SampleBaseTable, StatusMixinTableSamples, SampleStatusMixinTab
             "position__plate",
         )  # type: ignore[assignment]
         exclude = ("checked", "is_prioritised")
+        # `genlab_id` is nullable - excluded from the default sort here
+        # (see `OrderExtractionSampleTable`'s equivalent comment).
+        order_by = ("species", "id")
 
 
 class UrgentOrderTable(StaffIDMixinTable, OrderStatusMixinTable):
@@ -1021,7 +1043,7 @@ class ExtractionPlateTable(tables.Table):
         model = ExtractionPlate
         fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]
         empty_text = "No extraction plates found"
-        template_name = "django_tables2/tailwind_inner.html"
+        template_name = "staff/tables/cursor_table.html"
 
 
 class AnalysisPlateTable(tables.Table):

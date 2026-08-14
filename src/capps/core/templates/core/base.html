@@ -1,5 +1,6 @@
 
 {% load static i18n tailwind_tags %}
+{% load django_htmx %}
 {% load view_breadcrumbs %}
 
 <!DOCTYPE html>
@@ -28,6 +29,16 @@
     {% endblock css %}
     {% block head_javascript %}
     {% endblock head_javascript %}
+    {# Make htmx's error handling explicit: never swap error responses into #}
+    {# the DOM (only trigger the htmx:responseError/sendError events), #}
+    {# regardless of the installed htmx version's own default behavior. #}
+    <meta name="htmx-config"
+          content='{"responseHandling": [
+            {"code":"204", "swap": false},
+            {"code":"[23]..", "swap": true},
+            {"code":"[45]..", "swap": false, "error": true},
+            {"code":"...", "swap": false}
+          ]}' />
   </head>
   <body class="flex h-screen overflow-hidden {% if DEPLOYMENT_ENV == 'production' %}bg-slate-50{% else %}bg-red-100{% endif %}">
     {% block body %}
@@ -72,6 +83,7 @@
     {% endblock modal %}
     {% block body_javascript %}
       <script src="{% url 'javascript-catalog' %}"></script>
+      {% htmx_script %}
       <script src="https://unpkg.com/alpinejs@3.14.9/dist/cdn.min.js" defer></script>
 
       {% if form %}

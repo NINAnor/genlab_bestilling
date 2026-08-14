@@ -1,0 +1,11 @@
+{% extends "django_tables2/tailwind_inner.html" %}
+{% load django_tables2 %}
+
+{% block table.tbody %}
+    <tbody id="sample-table-body" {{ table.attrs.tbody.as_html }}>
+        {% include "staff/tables/_cursor_rows.html" %}
+    </tbody>
+{% endblock table.tbody %}
+
+{% block pagination %}
+{% endblock pagination %}

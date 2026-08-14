@@ -1,6 +1,5 @@
 from typing import Any
 
-from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import models
@@ -35,7 +34,12 @@ from genlab_bestilling.models import (
 from nina.models import Project
 from shared.sentry import report_errors
 from shared.views import ActionView, FormsetCreateView, FormsetUpdateView
-from staff.mixins import SafeRedirectMixin
+from staff.mixins import (
+    SafeRedirectMixin,
+    annotate_priority_order,
+    annotate_status_order,
+)
+from staff.pagination import CursorPaginatedTableMixin
 
 from .filters import (
     AnalysisOrderFilter,
@@ -110,51 +114,77 @@ class DashboardView(StaffMixin, TemplateView):
         return context
 
 
-class AnalysisOrderListView(StaffMixin, SingleTableMixin, FilterView):
+class AnalysisOrderListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = AnalysisOrder
     table_class = AnalysisOrderTable
     filterset_class = AnalysisOrderFilter
-    table_pagination = {"per_page": 20}
+
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "priority": ("priority_order",),
+        "status": ("status_order",),
+        "area": ("genrequest__area__name",),
+        "description": ("genrequest__name",),
+        "expected_delivery_date": ("expected_delivery_date",),
+    }
+    default_order_by = ("-priority", "status")
 
     def get_queryset(self) -> QuerySet[AnalysisOrder]:
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "genrequest",
-                "polymorphic_ctype",
-                "genrequest__samples_owner",
-                "genrequest__project",
-                "genrequest__area",
+        return annotate_status_order(
+            annotate_priority_order(
+                super()
+                .get_queryset()
+                .select_related(
+                    "genrequest",
+                    "polymorphic_ctype",
+                    "genrequest__samples_owner",
+                    "genrequest__project",
+                    "genrequest__area",
+                )
+                .prefetch_related("samples__species", "responsible_staff", "markers")
+                .annotate(total_samples=Count("samples"))
             )
-            .prefetch_related("samples__species", "responsible_staff", "markers")
-            .annotate(total_samples=Count("samples"))
         )
 
 
-class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
+class ExtractionOrderListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = ExtractionOrder
     table_class = ExtractionOrderTable
     filterset_class = ExtractionOrderFilter
-    table_pagination = {"per_page": 20}
+
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "priority": ("priority_order",),
+        "status": ("status_order",),
+        "area": ("genrequest__area__name",),
+        "description": ("genrequest__name",),
+        "confirmed_at": ("confirmed_at",),
+    }
+    default_order_by = ("-priority", "status")
 
     def get_queryset(self) -> QuerySet[ExtractionOrder]:
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "genrequest",
-                "genrequest__samples_owner",
-                "polymorphic_ctype",
-                "genrequest__project",
-                "genrequest__area",
-            )
-            .prefetch_related("species", "sample_types", "responsible_staff")
-            .annotate(
-                total_samples=Count("samples"),
-                total_samples_isolated=models.Count(
-                    "samples", filter=models.Q(samples__is_isolated=True)
-                ),
+        return annotate_status_order(
+            annotate_priority_order(
+                super()
+                .get_queryset()
+                .select_related(
+                    "genrequest",
+                    "genrequest__samples_owner",
+                    "polymorphic_ctype",
+                    "genrequest__project",
+                    "genrequest__area",
+                )
+                .prefetch_related("species", "sample_types", "responsible_staff")
+                .annotate(
+                    total_samples=Count("samples"),
+                    total_samples_isolated=models.Count(
+                        "samples", filter=models.Q(samples__is_isolated=True)
+                    ),
+                )
             )
         )
 
@@ -174,11 +204,24 @@ class ExtractionOrderListView(StaffMixin, SingleTableMixin, FilterView):
 #         )
 
 
-class EqupimentOrderListView(StaffMixin, SingleTableMixin, FilterView):
+class EqupimentOrderListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = EquipmentOrder
     table_class = EquipmentOrderTable
     filterset_class = EquipmentOrderFilter
-    table_pagination = {"per_page": 20}
+
+    # Only a subset of the table's columns are mapped here (the ones used by
+    # the default sort, plus `name`) - clicking an unmapped column header
+    # simply has no effect rather than erroring; add more entries here if
+    # sorting by other columns is needed.
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "is_urgent": ("is_urgent",),
+        "last_modified_at": ("last_modified_at",),
+        "created_at": ("created_at",),
+        "name": ("name",),
+    }
+    default_order_by = ("-is_urgent", "last_modified_at", "created_at")
 
     def get_queryset(self) -> QuerySet[EquipmentOrder]:
         return (
@@ -353,9 +396,38 @@ class ExtractionOrderDetailView(StaffMixin, DetailView):
 
 
 class OrderExtractionSamplesListView(
-    StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView
+    CursorPaginatedTableMixin,
+    StaffMixin,
+    SingleTableMixin,
+    SafeRedirectMixin,
+    FilterView,
 ):
-    table_pagination = False
+    """Staff extraction samples page.
+
+    Uses cursor (keyset) pagination instead of django-tables2's built-in
+    page-number pagination - see `staff.pagination.CursorPaginatedTableMixin`.
+    """
+
+    # Field used as the unique "tiebreaker" for keyset/cursor pagination
+    # (see `staff.pagination`). Change this if `id` isn't suitable (e.g. a
+    # different unique, non-nullable field should be used instead).
+    tiebreaker_field = "id"
+
+    # Maps a table column's `sort` alias to the actual queryset field(s)
+    # used to order/seek on. Only columns listed here can be sorted by -
+    # this both mirrors which columns are orderable on the table and keeps
+    # the cursor "seek" filter (see `staff.pagination`) safe/predictable.
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "name": ("name_as_int", "name"),
+        "species": ("species_id",),
+        "type": ("type_id",),
+        "location": ("location_id",),
+        "year": ("year",),
+        "pop_id": ("pop_id",),
+        "notes": ("notes",),
+    }
+    default_order_by = ("species", "id")
 
     model = Sample
     table_class = OrderExtractionSampleTable
@@ -411,12 +483,32 @@ class OrderExtractionSamplesListView(
         )  # Re-render the view with updated data
 
 
-class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
-    table_pagination = {"per_page": 50}
-
+class SamplesListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = Sample
     table_class = SampleTable
     filterset_class = SampleFilter
+
+    # `sample_status` is intentionally not mapped: it has no underlying
+    # queryset field/annotation to order by (see `SampleStatusMixinTable`),
+    # so clicking that column header simply has no effect.
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "name": ("name_as_int", "name"),
+        "guid": ("guid",),
+        "species": ("species_id",),
+        "type": ("type_id",),
+        "location": ("location_id",),
+        "year": ("year",),
+        "pop_id": ("pop_id",),
+        "notes": ("notes",),
+        "order__id": ("order__id",),
+        "order__status": ("order__status",),
+        "order__genrequest__project": ("order__genrequest__project",),
+        "position__plate": ("position__plate",),
+    }
+    default_order_by = ("species", "id")
 
     def get_queryset(self) -> QuerySet[Sample]:
         return (
@@ -445,7 +537,6 @@ class SamplesListView(StaffMixin, SingleTableMixin, FilterView):
             )
             .exclude(order__status=Order.OrderStatus.DRAFT)
             .annotate_numeric_name()
-            .order_by("species__name", "year", "location__name", "name")
         )
 
 
@@ -474,7 +565,13 @@ class SampleDetailView(StaffMixin, DetailView):
         return context
 
 
-class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView):
+class SampleLabView(
+    CursorPaginatedTableMixin,
+    StaffMixin,
+    SingleTableMixin,
+    SafeRedirectMixin,
+    FilterView,
+):
     # TODO: move away the logic, validation logic should be in a form,
     # any other logic should be in a manager/model method (FAT models, THIN views)
     # TODO: write test to assert the behavior
@@ -484,10 +581,23 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     INVALID = "invalid"
     VALID_STATUSES = [MARKED, PLUCKED, ISOLATED, INVALID]
 
-    table_pagination = False
     template_name = "staff/sample_lab.html"
     table_class = SampleStatusTable
     filterset_class = SampleLabFilter
+
+    # `genlab_id` is guaranteed non-null here (see `get_queryset()`'s
+    # `genlab_id__isnull=False` filter), so it's safe to use as the default
+    # sort for cursor/keyset pagination.
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "genlab_id": ("genlab_id",),
+        "marked": ("is_marked",),
+        "plucked": ("is_plucked",),
+        "isolated": ("is_isolated",),
+        "invalid": ("is_invalid",),
+        "type": ("type_id",),
+    }
+    default_order_by = ("genlab_id",)
 
     class Params:
         status = "status"
@@ -499,6 +609,7 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return self._order
 
     def get_queryset(self) -> QuerySet[Sample]:
+        print("get_queryset")
         return (
             Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
             .select_related(
@@ -523,7 +634,17 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         )
 
     def get_isolation_methods(self) -> QuerySet[IsolationMethod, str]:
-        types = self.get_queryset().values_list("type", flat=True).distinct()
+        # Query directly instead of reusing `get_queryset()`, which has an
+        # expensive `select_related`/`prefetch_related`/correlated
+        # `Subquery` annotation that would otherwise run against *every*
+        # sample in the order (not just the current page) on every request,
+        # just to compute this distinct list of sample types.
+        print("here")
+        types = (
+            Sample.objects.filter(order=self.get_order(), genlab_id__isnull=False)
+            .values_list("type", flat=True)
+            .distinct()
+        )
         return (
             IsolationMethod.objects.filter(sample_types__in=types)
             .values_list("name", flat=True)
@@ -536,6 +657,8 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         order = self.get_order()
+
+        # print("order")
 
         # Pre-compute counts to avoid N+1 queries in template
         total_samples = order.samples.count()
@@ -562,25 +685,6 @@ class SampleLabView(StaffMixin, SingleTableMixin, SafeRedirectMixin, FilterView)
         return reverse(
             "staff:order-extraction-samples-lab", kwargs={"pk": self.get_order().pk}
         )
-
-    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        max_samples = settings.SAMPLE_LAB_VIEW_MAX_SAMPLES
-        sample_count = self.get_queryset().count()
-        if sample_count > max_samples:
-            messages.error(
-                request,
-                _(
-                    f"This order has {sample_count} samples, which exceeds"
-                    f" the limit of {max_samples}."
-                    " Please split the order into smaller parts."
-                ),
-            )
-            return HttpResponseRedirect(
-                reverse(
-                    "staff:order-extraction-detail", kwargs={"pk": self.get_order().pk}
-                )
-            )
-        return super().get(request, *args, **kwargs)
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
         # TODO: use a form instead of manual extraction
@@ -931,10 +1035,23 @@ class GenerateGenlabIDsView(SingleObjectMixin, StaffMixin, SafeRedirectMixin):
         return HttpResponseRedirect(self.get_next_url())
 
 
-class ProjectListView(StaffMixin, SingleTableMixin, FilterView):
+class ProjectListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = Project
     table_class = ProjectTable
     filterset_class = ProjectFilter
+
+    # `Project`'s primary key is `number` (a `CharField`), not `id`.
+    tiebreaker_field = "number"
+    # `toggle_active` is intentionally not mapped: it's an actions column
+    # with no underlying orderable field.
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "number": ("number",),
+        "name": ("name",),
+        "verified_at": ("verified_at",),
+    }
+    default_order_by = ("number",)
 
 
 class ProjectDetailView(StaffMixin, DetailView):
@@ -1048,12 +1165,22 @@ class OrderPrioritizedAdminView(StaffMixin, SafeRedirectMixin, ActionView):
 # ExtractionPlate Views
 
 
-class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
+class ExtractionPlateListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
     model = ExtractionPlate
     table_class = ExtractionPlateTable
     filterset_class = ExtractionPlateFilter
     context_object_name = "extraction_plates"
-    paginate_by = 25
+
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "qiagen_id": ("qiagen_id",),
+        "freezer_id": ("freezer_id",),
+        "shelf_id": ("shelf_id",),
+        "created_at": ("created_at",),
+    }
+    default_order_by = ("-created_at",)
 
     def get_queryset(self) -> QuerySet[ExtractionPlate]:
         return (
@@ -1061,7 +1188,6 @@ class ExtractionPlateListView(StaffMixin, SingleTableMixin, FilterView):
             .prefetch_related("positions__sample_raw")
             .annotate(sample_count=Count("positions__sample_raw"))
             .distinct()
-            .order_by("-created_at")
         )
 
 

@@ -1,0 +1,46 @@
+{% load django_tables2 %}
+{% for row in table.paginated_rows %}
+    <tr {{ row.attrs.as_html }}>
+    {% for column, cell in row.items %}
+            <td {{ column.attrs.td.as_html }}>
+            {% if column.localize == None %}
+                {{ cell }}
+            {% else %}
+                {% if column.localize %}
+                    {{ cell|localize }}
+                {% else %}
+                    {{ cell|unlocalize }}
+                {% endif %}
+            {% endif %} </td>
+    {% endfor %}
+    </tr>
+{% empty %}
+    {% if table.empty_text %}
+        <tr><td class="text-center font-bold" colspan="{{ table.columns|length }}">{{ table.empty_text }}</td></tr>
+    {% endif %}
+{% endfor %}
+{% if table.next_cursor %}
+    <tr id="sample-load-more"
+        hx-get="{% querystring cursor=table.next_cursor %}"
+        hx-trigger="intersect once"
+        hx-swap="outerHTML"
+        hx-target="this"
+        hx-on::response-error="this.querySelector('.sample-load-more-loading').hidden = true; this.querySelector('.sample-load-more-error').hidden = false"
+        hx-on::send-error="this.querySelector('.sample-load-more-loading').hidden = true; this.querySelector('.sample-load-more-error').hidden = false">
+        <td class="text-center text-sm py-2" colspan="{{ table.columns|length }}">
+            <span class="sample-load-more-loading text-gray-500">
+                Loading more samples&hellip;
+            </span>
+            <span class="sample-load-more-error text-red-600" hidden>
+                Failed to load more samples.
+                <button type="button"
+                        class="underline font-medium"
+                        hx-get="{% querystring cursor=table.next_cursor %}"
+                        hx-target="closest tr"
+                        hx-swap="outerHTML">
+                    Retry
+                </button>
+            </span>
+        </td>
+    </tr>
+{% endif %}

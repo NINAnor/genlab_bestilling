@@ -22,12 +22,14 @@ from .libs.formset import ContextFormCollection
 from .models import (
     AnalysisOrder,
     AnalysisOrderResultsCommunication,
+    Area,
     EquimentOrderQuantity,
     EquipmentOrder,
     ExtractionOrder,
     Genrequest,
     Marker,
     Order,
+    Species,
 )
 
 
@@ -50,6 +52,9 @@ class GenrequestForm(FormMixin, forms.ModelForm):
             )
 
             self.fields["project"].initial = project
+
+        self.fields["area"].queryset = Area.objects.all()
+        self.fields["species"].queryset = Species.objects.all()
 
         self.fields[
             "markers"

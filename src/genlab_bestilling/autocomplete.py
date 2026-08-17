@@ -24,6 +24,9 @@ from .models import (
 class AreaAutocomplete(autocomplete.Select2QuerySetView):
     model = Area
 
+    def get_queryset(self) -> models.QuerySet:
+        return Area.objects.all()
+
 
 class StatusAutocomplete(autocomplete.Select2QuerySetView):
     class Params:

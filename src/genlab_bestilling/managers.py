@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from django.db import models, transaction
 from django.db.models import BigIntegerField, Case, Q, QuerySet, Value, When
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, Coalesce
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
 from shared.db import assert_is_in_atomic_block
@@ -18,6 +18,12 @@ if TYPE_CHECKING:
     from capps.users.models import User
 
     from .models import GIDSequence, Sample, Species
+
+# Sentinel value used for `name_as_int` when a sample's `name` isn't a plain
+# numeric string (see `SampleQuerySet.annotate_numeric_name`). Must be larger
+# than any valid 18-digit numeric name (max `10**18 - 1`) so non-numeric
+# names always sort after numeric ones, ascending.
+NON_NUMERIC_NAME_SENTINEL = 2**63 - 1
 
 
 class VisibleManager(models.Manager):
@@ -120,15 +126,30 @@ class SampleQuerySet(models.QuerySet):
         Create a new column with the numeric version of the name.
         Only if the name is a valid integer, and up to 18 digits, so it fit in a
         BigIntegerField.
+
+        Non-numeric names are coalesced to a sentinel value larger than any
+        valid 18-digit name instead of left as `NULL`, so `name_as_int` is
+        always non-nullable. This is required for it to be safely usable as
+        a primary sort/seek column for keyset ("cursor") pagination (see
+        `staff.pagination`), which relies on ordering fields being
+        non-nullable: SQL's `>`/`<` comparisons never match `NULL`, so a
+        `NULL`-valued ordering column causes keyset pagination to
+        permanently skip rows once its cursor crosses the null/non-null
+        boundary. The sentinel also has the side effect of always sorting
+        non-numeric names after numeric ones, ascending.
         """
 
         return self.annotate(
-            name_as_int=Case(
-                When(
-                    name__regex=r"^\d{1,18}$",
-                    then=Cast("name", BigIntegerField()),
+            name_as_int=Coalesce(
+                Case(
+                    When(
+                        name__regex=r"^\d{1,18}$",
+                        then=Cast("name", BigIntegerField()),
+                    ),
+                    default=Value(None),
+                    output_field=BigIntegerField(),
                 ),
-                default=Value(None),
+                Value(NON_NUMERIC_NAME_SENTINEL),
                 output_field=BigIntegerField(),
             )
         )

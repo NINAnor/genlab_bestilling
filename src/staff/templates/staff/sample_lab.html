@@ -101,7 +101,7 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const selectAll = document.getElementById('select-all-checkbox');
-    const noteInputs = document.querySelectorAll('.internal_note-input');
+    const sampleTableBody = document.getElementById('sample-table-body');
 
     selectAll?.addEventListener('change', function () {
       const checkboxes = document.querySelectorAll(`input[name="checked-{{ order.pk }}"]`);
@@ -111,34 +111,42 @@
     });
 
     let debounceTimeout;
-    noteInputs.forEach(function (noteInput) {
-      noteInput.addEventListener("input", function (event) {
-        const sampleId = event.target.dataset.sampleId;
-        const value = event.target.value;
-        const formData = new FormData();
-        formData.append("sample_id", sampleId);
-        formData.append("field_name", "internal_note-input");
-        formData.append("field_value", value);
-        formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+    // Delegate the "input" listener to the (always-present) table body
+    // instead of binding it to each `.internal_note-input` textarea
+    // individually. Samples beyond the first page are appended into
+    // `sampleTableBody` later via htmx infinite scroll, so binding to
+    // individual elements at `DOMContentLoaded` would miss every note
+    // field loaded after the initial page render.
+    sampleTableBody?.addEventListener("input", function (event) {
+      if (!event.target.matches(".internal_note-input")) {
+        return;
+      }
 
-        const spinner = document.getElementById(`internal_note-spinner-${sampleId}`);
-        const checkIcon = document.getElementById(`internal_note-check-${sampleId}`);
-        checkIcon.style.visibility = "hidden";
-        spinner.style.visibility = "visible";
+      const sampleId = event.target.dataset.sampleId;
+      const value = event.target.value;
+      const formData = new FormData();
+      formData.append("sample_id", sampleId);
+      formData.append("field_name", "internal_note-input");
+      formData.append("field_value", value);
+      formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
 
-        clearTimeout(debounceTimeout);
-        debounceTimeout = setTimeout(function () {
-          fetch("{% url 'staff:update-internal-note' %}", {
-            method: "POST",
-            body: formData
-          });
-          spinner.style.visibility = "hidden";
-          checkIcon.style.visibility = "visible";
-          setTimeout(function () {
-            checkIcon.style.visibility = "hidden";
-          }, 5000);
-        }, 1500);
-      });
+      const spinner = document.getElementById(`internal_note-spinner-${sampleId}`);
+      const checkIcon = document.getElementById(`internal_note-check-${sampleId}`);
+      checkIcon.style.visibility = "hidden";
+      spinner.style.visibility = "visible";
+
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(function () {
+        fetch("{% url 'staff:update-internal-note' %}", {
+          method: "POST",
+          body: formData
+        });
+        spinner.style.visibility = "hidden";
+        checkIcon.style.visibility = "visible";
+        setTimeout(function () {
+          checkIcon.style.visibility = "hidden";
+        }, 5000);
+      }, 1500);
     });
   });
 </script>

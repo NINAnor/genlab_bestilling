@@ -545,7 +545,11 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
         order = self.get_object()
         order.to_completed()
         return Response(
-            {"message": f"Order {order} marked as completed"},
+            {
+                "message": f"Order {order} marked as completed",
+                "order_status": order.status,
+                "order_status_label": order.get_status_display(),
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -555,7 +559,11 @@ class AnalysisOrdersListViewSet(viewsets.ReadOnlyModelViewSet):
         order = self.get_object()
         order.to_processing()
         return Response(
-            {"message": f"Order {order} marked as in progress"},
+            {
+                "message": f"Order {order} marked as in progress",
+                "order_status": order.status,
+                "order_status_label": order.get_status_display(),
+            },
             status=status.HTTP_200_OK,
         )
 

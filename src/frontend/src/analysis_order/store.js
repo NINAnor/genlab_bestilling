@@ -32,6 +32,13 @@ const useOrderStore = create((set) => ({
   /** Set which sample identifier to display in analysis order UIs */
   setSampleDisplayMode: (sampleDisplayMode) => set({ sampleDisplayMode }),
 
+  /** Update the order's status/label in place (e.g. after a status-changing mutation) */
+  setOrderStatus: (orderStatus, orderStatusLabel) =>
+    set({
+      orderStatus: orderStatus ?? null,
+      orderStatusLabel: orderStatusLabel ?? null,
+    }),
+
   /** Set the selected order for filtering */
   setSelectedOrder: (orderId, orderLabel) =>
     set({

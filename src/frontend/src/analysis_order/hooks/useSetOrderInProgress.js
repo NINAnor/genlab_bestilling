@@ -15,7 +15,7 @@ export function useSetOrderInProgress({ onSuccess } = {}) {
     },
     onSuccess: (data) => {
       toast.success(data.message || 'Order marked as in progress');
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error) => {
       const message = error.response?.data?.error || 'Failed to set order in progress';

@@ -29,6 +29,7 @@ function OrderApp() {
   const orderLabel = useOrderStore((s) => s.orderLabel);
   const orderStatus = useOrderStore((s) => s.orderStatus);
   const orderStatusLabel = useOrderStore((s) => s.orderStatusLabel);
+  const setOrderStatus = useOrderStore((s) => s.setOrderStatus);
   const sampleMarkers = useOrderStore((s) => s.sampleMarkers);
   const sampleDisplayMode = useOrderStore((s) => s.sampleDisplayMode);
   const setSampleDisplayMode = useOrderStore((s) => s.setSampleDisplayMode);
@@ -36,15 +37,15 @@ function OrderApp() {
   const [filters, setFilters] = useState(INITIAL_FILTERS);
 
   const { mutate: completeOrder, isPending: isCompleting } = useCompleteOrder({
-    onSuccess: () => {
-      // Redirect to the analysis order detail page
-      window.location.href = `/staff/orders/analysis/${orderId}/`;
+    onSuccess: (data) => {
+      // Stay on this screen; just reflect the new order status.
+      setOrderStatus(data.order_status, data.order_status_label);
     },
   });
   const { mutate: setOrderInProgress, isPending: isSettingInProgress } = useSetOrderInProgress({
-    onSuccess: () => {
-      // Redirect to the analysis order detail page
-      window.location.href = `/staff/orders/analysis/${orderId}/`;
+    onSuccess: (data) => {
+      // Stay on this screen; just reflect the new order status.
+      setOrderStatus(data.order_status, data.order_status_label);
     },
   });
 

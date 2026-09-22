@@ -15,7 +15,7 @@ export function useCompleteOrder({ onSuccess } = {}) {
     },
     onSuccess: (data) => {
       toast.success(data.message || 'Order marked as completed');
-      onSuccess?.();
+      onSuccess?.(data);
     },
     onError: (error) => {
       const message = error.response?.data?.error || 'Failed to complete order';

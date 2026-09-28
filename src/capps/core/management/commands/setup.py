@@ -21,6 +21,7 @@ class Command(BaseCommand):
 
         if User.objects.all().first() is None:
             call_command("loaddata", "users.json")
+            call_command("loaddata", "oauth.json")
 
         if not Area.all_objects.all().exists():
             call_command("loaddata", "nina.json")

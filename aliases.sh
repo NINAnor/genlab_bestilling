@@ -22,4 +22,7 @@ alias django="uv run ./src/manage.py"
 
 echo "Aliases loaded successfully."
 
+[ ! -f oidc.key ] && openssl genrsa -out oidc.key 4096
+export OIDC_RSA_PRIVATE_KEY=$(cat oidc.key)
+
 [ -f aliases-private.sh ] && source aliases-private.sh || true

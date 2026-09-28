@@ -344,3 +344,5 @@ site/
 
 
 .pnpm-store/
+
+oidc.key

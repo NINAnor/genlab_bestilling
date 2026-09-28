@@ -1,0 +1,21 @@
+[
+    {
+        "model": "oauth2_provider.application",
+        "pk": 2,
+        "fields": {
+            "client_id": "test",
+            "user": null,
+            "redirect_uris": "http://localhost:5173/oidc/callback",
+            "post_logout_redirect_uris": "",
+            "client_type": "confidential",
+            "authorization_grant_type": "authorization-code",
+            "client_secret": "argon2$argon2id$v=19$m=102400,t=2,p=8$MmxQUUV1bzNPeWxyME96U2lZT3pLdA$v0Y3WT4QqskM3JB2oLEFdeBjSKmx3EEAI+Z7tq0/Qr4",
+            "hash_client_secret": true,
+            "name": "oath2-proxy",
+            "skip_authorization": false,
+            "algorithm": "RS256",
+            "allowed_origins": "",
+            "registration_source": "manual"
+        }
+    }
+]

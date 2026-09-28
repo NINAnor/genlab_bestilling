@@ -1,5 +1,6 @@
 """Base settings to build other settings files upon."""
 
+import logging
 from pathlib import Path
 
 import environ
@@ -10,6 +11,8 @@ from ..unfold import UNFOLD  # noqa: F401
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent.parent
 SRC_DIR = BASE_DIR / "src"
 env = environ.FileAwareEnv()
+
+logger = logging.getLogger(__name__)
 
 DJANGO_READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
 if DJANGO_READ_DOT_ENV_FILE:
@@ -490,6 +493,18 @@ REST_AUTH = {
     "JWT_AUTH_COOKIE": "token",
     "JWT_AUTH_REFRESH_COOKIE": "refresh",
 }
+
+if OIDC_RSA_PRIVATE_KEY := env("OIDC_RSA_PRIVATE_KEY", default=""):
+    OAUTH2_PROVIDER = {
+        "OIDC_ENABLED": True,
+        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+        "SCOPES": {
+            "openid": "OpenID Connect scope",
+        },
+    }
+    logger.info("OIDC_ENABLED: True")
+else:
+    logger.info("OIDC_ENABLED: False")
 
 
 ###########################################

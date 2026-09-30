@@ -15,7 +15,9 @@
             "skip_authorization": false,
             "algorithm": "RS256",
             "allowed_origins": "",
-            "registration_source": "manual"
+            "registration_source": "manual",
+            "created": "2024-01-01T00:00:00Z",
+            "updated": "2024-01-01T00:00:00Z"
         }
     }
 ]

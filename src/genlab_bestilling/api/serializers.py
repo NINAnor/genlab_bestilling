@@ -84,6 +84,7 @@ class SampleSerializer(serializers.ModelSerializer):
     species = SpeciesSerializer()
     location = LocationSerializer(allow_null=True, required=False)
     has_error = serializers.SerializerMethodField()
+    genlab_id = serializers.ReadOnlyField()
 
     def get_has_error(self, obj: Sample) -> bool:
         try:
@@ -107,6 +108,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "type",
             "has_error",
             "genlab_id",
+            "external_id",
         )
 
 

@@ -887,6 +887,7 @@ class Sample(AdminUrlsMixin, models.Model):
         default=False,
         help_text="Check this box if the sample is prioritised for processing",
     )
+    external_id = models.CharField(null=True, blank=True)
     objects = managers.SampleQuerySet.as_manager()
 
     class Meta:

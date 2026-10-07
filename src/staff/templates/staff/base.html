@@ -14,6 +14,10 @@
                href="{% url 'staff:projects-list' %}">Projects</a>
         </li>
         <li>
+            <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'genrequests-list' %}text-brand-primary font-bold{% endif %}"
+               href="{% url 'staff:genrequests-list' %}">Genetic Projects</a>
+        </li>
+        <li>
             <a class="hover:text-brand-primary {% if request.resolver_match.url_name == 'order-equipment-list' %}text-brand-primary font-bold{% endif %}"
                href="{% url 'staff:order-equipment-list' %}">Equipment Orders</a>
         </li>

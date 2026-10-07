@@ -1,0 +1,22 @@
+{% extends "staff/base.html" %}
+{% load i18n %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+
+    <div class="flex gap-5 mb-5">
+
+      <a class="btn btn-sm btn-tertiary" href="{% url 'staff:genrequests-list' %}"><i class="fas fa-arrow-left"></i> Back</a>
+
+    </div>
+
+    <h3 class="text-4xl mb-5">Genetic Project {{ object }}</h3>
+
+    {% object-detail-staff object=object fields="name project samples_owner area species sample_types markers responsible_staff expected_total_samples expected_samples_delivery_date expected_analysis_delivery_date is_archived created_at" %}
+
+    <div class="mt-8">
+        <h4 class="text-3xl mb-4">Orders</h4>
+        {% render_table orders_table %}
+    </div>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "staff/base_filter.html" %}
+{% load crispy_forms_tags static %}
+{% load render_table from django_tables2 %}
+
+{% block page-title %}
+Genetic Projects
+{% endblock page-title %}
+
+{% block page-inner %}
+  {% filtering filter=filter request=request %}
+  {% render_table table %}
+{% endblock page-inner %}

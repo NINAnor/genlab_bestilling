@@ -3,6 +3,8 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
 from django.db.models import BigIntegerField, Case, Q, QuerySet, Value, When
 from django.db.models.functions import Cast, Coalesce
@@ -208,6 +210,23 @@ class ExtractionPlateQuerySet(PolymorphicQuerySet):
             Q(positions__sample_raw__genlab_id__icontains=value)
             | Q(positions__sample_raw__name__icontains=value)
         ).distinct()
+
+    def with_sample_species(self) -> QuerySet:
+        """
+        Annotate each plate with the distinct, sorted names of the species
+        of the samples actually placed in it (derived from
+        `positions__sample_raw__species`, independent of the `species`
+        whitelist field on the plate).
+        """
+        return self.annotate(
+            sample_species_names=ArrayAgg(
+                "positions__sample_raw__species__name",
+                distinct=True,
+                filter=Q(positions__sample_raw__species__isnull=False),
+                order_by="positions__sample_raw__species__name",
+                default=Value([], output_field=ArrayField(models.CharField())),
+            )
+        )
 
 
 class AnalysisStatus(StrEnum):

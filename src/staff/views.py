@@ -1248,8 +1248,6 @@ class ExtractionPlateListView(
     order_field_map: dict[str, tuple[str, ...]] = {
         "id": ("id",),
         "qiagen_id": ("qiagen_id",),
-        "freezer_id": ("freezer_id",),
-        "shelf_id": ("shelf_id",),
         "created_at": ("created_at",),
     }
     default_order_by = ("-created_at",)
@@ -1257,7 +1255,7 @@ class ExtractionPlateListView(
     def get_queryset(self) -> QuerySet[ExtractionPlate]:
         return (
             ExtractionPlate.objects.select_related()
-            .prefetch_related("positions__sample_raw")
+            .with_sample_species()
             .annotate(sample_count=Count("positions__sample_raw", distinct=True))
             .distinct()
         )

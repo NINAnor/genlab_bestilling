@@ -1088,17 +1088,17 @@ class ExtractionPlateTable(tables.Table):
         orderable=True,
     )
 
-    freezer_id = tables.Column(
-        verbose_name="Freezer ID",
-        orderable=True,
+    species = tables.Column(
+        verbose_name="Species",
+        orderable=False,
         empty_values=(),
+        accessor="sample_species_names",
     )
 
-    shelf_id = tables.Column(
-        verbose_name="Shelf ID",
-        orderable=True,
-        empty_values=(),
-    )
+    def render_species(self, value: list) -> str:
+        if not value:
+            return "-"
+        return ", ".join(value)
 
     created_at = tables.DateTimeColumn(
         verbose_name="Created",
@@ -1121,7 +1121,7 @@ class ExtractionPlateTable(tables.Table):
 
     class Meta:
         model = ExtractionPlate
-        fields = ["qiagen_id", "freezer_id", "shelf_id", "created_at", "sample_count"]
+        fields = ["qiagen_id", "species", "created_at", "sample_count"]
         empty_text = "No extraction plates found"
         template_name = "staff/tables/cursor_table.html"
 

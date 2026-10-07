@@ -869,28 +869,6 @@ class ExtractionPlateFilter(filters.FilterSet):
         ),
     )
 
-    freezer_id = CharFilter(
-        field_name="freezer_id",
-        lookup_expr="istartswith",
-        label="Freezer ID",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Enter Freezer ID",
-            }
-        ),
-    )
-
-    shelf_id = CharFilter(
-        field_name="shelf_id",
-        lookup_expr="istartswith",
-        label="Shelf ID",
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Enter Shelf ID",
-            }
-        ),
-    )
-
     positions__sample_raw__search = CharFilter(
         label="Sample Genlab ID / Name",
         method="filter_sample_search",
@@ -946,8 +924,6 @@ class ExtractionPlateFilter(filters.FilterSet):
         model = ExtractionPlate
         fields = [
             "qiagen_id",
-            "freezer_id",
-            "shelf_id",
             "positions__sample_raw__search",
             "positions__sample_raw__species",
             "positions__sample_raw__type",

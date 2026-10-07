@@ -47,6 +47,7 @@ from .filters import (
     EquipmentOrderFilter,
     ExtractionOrderFilter,
     ExtractionPlateFilter,
+    GenrequestFilter,
     OrderSampleFilter,
     ProjectFilter,
     SampleFilter,
@@ -65,6 +66,8 @@ from .tables import (
     EquipmentOrderTable,
     ExtractionOrderTable,
     ExtractionPlateTable,
+    GenrequestOrderTable,
+    GenrequestTable,
     OrderExtractionSampleTable,
     ProjectGenrequestTable,
     ProjectOrderTable,
@@ -1089,6 +1092,75 @@ class ProjectDetailView(StaffMixin, DetailView):
             .order_by("-created_at")
         )
         ctx["orders_table"] = ProjectOrderTable(data=orders)
+
+        return ctx
+
+
+class GenrequestListView(
+    CursorPaginatedTableMixin, StaffMixin, SingleTableMixin, FilterView
+):
+    """Staff-only, unrestricted list of all genetic projects (genrequests).
+
+    Unlike the customer-facing `genrequest-list` view, this view does not
+    scope results by ownership/organization membership: any staff user
+    (`StaffMixin`) can see every genetic project.
+    """
+
+    model = Genrequest
+    table_class = GenrequestTable
+    filterset_class = GenrequestFilter
+
+    order_field_map: dict[str, tuple[str, ...]] = {
+        "id": ("id",),
+        "name": ("name",),
+        "project": ("project_id",),
+        "area": ("area_id",),
+        "expected_total_samples": ("expected_total_samples",),
+        "expected_samples_delivery_date": ("expected_samples_delivery_date",),
+        "expected_analysis_delivery_date": ("expected_analysis_delivery_date",),
+        "created_at": ("created_at",),
+    }
+    default_order_by = ("-created_at",)
+
+    def get_queryset(self) -> QuerySet[Genrequest]:
+        return (
+            super()
+            .get_queryset()
+            .select_related("area", "project")
+            .prefetch_related("species", "sample_types")
+        )
+
+
+class GenrequestDetailView(StaffMixin, DetailView):
+    """Staff-only, unrestricted detail page for a genetic project.
+
+    Unlike the customer-facing `genrequest-detail` view, access here is not
+    scoped by `filter_allowed(user)` ownership/organization membership: any
+    staff user (`StaffMixin`) can view any genetic project. This is the fix
+    for the reported bug where staff got page-not-found on genrequests they
+    didn't own.
+    """
+
+    model = Genrequest
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        ctx = super().get_context_data(**kwargs)
+
+        orders = (
+            Order.objects.filter(genrequest=self.object)
+            .select_related("polymorphic_ctype")
+            .prefetch_related("responsible_staff")
+            .annotate(
+                total_samples=Subquery(
+                    Sample.objects.filter(order_id=OuterRef("pk"))
+                    .values("order_id")
+                    .annotate(cnt=Count("id"))
+                    .values("cnt")[:1]
+                )
+            )
+            .order_by("-created_at")
+        )
+        ctx["orders_table"] = GenrequestOrderTable(data=orders)
 
         return ctx
 

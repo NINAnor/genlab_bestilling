@@ -31,6 +31,8 @@ from .views import (
     ExtractionPlatePositionsView,
     ExtractionPlateUpdateView,
     GenerateGenlabIDsView,
+    GenrequestDetailView,
+    GenrequestListView,
     MarkAsSeenView,
     OrderExtractionSamplesListView,
     OrderPrioritizedAdminView,
@@ -80,6 +82,16 @@ urlpatterns = [
         "projects/<str:pk>/archive/",
         ProjectArchiveActionView.as_view(),
         name="projects-archive",
+    ),
+    path(
+        "genrequests/",
+        GenrequestListView.as_view(),
+        name="genrequests-list",
+    ),
+    path(
+        "genrequests/<int:pk>/",
+        GenrequestDetailView.as_view(),
+        name="genrequests-detail",
     ),
     path(
         "orders/analysis/", AnalysisOrderListView.as_view(), name="order-analysis-list"

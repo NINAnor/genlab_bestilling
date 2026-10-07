@@ -17,6 +17,7 @@ from genlab_bestilling.models import (
     EquipmentOrder,
     ExtractionOrder,
     ExtractionPlate,
+    Genrequest,
     IsolationMethod,
     Marker,
     Sample,
@@ -803,6 +804,57 @@ class ProjectFilter(filters.FilterSet):
     class Meta:
         model = Project
         fields = ()
+
+
+class GenrequestFilter(filters.FilterSet):
+    """Staff-side genetic project filter.
+
+    Mirrors `genlab_bestilling.filters.GenrequestFilter`, but with no
+    ownership/organization scoping: staff can see and filter every genetic
+    project.
+    """
+
+    is_archived = filters.BooleanFilter(
+        field_name="is_archived",
+        label="Archived",
+    )
+
+    def __init__(
+        self,
+        data: dict[str, Any] | None = None,
+        queryset: QuerySet | None = None,
+        *,
+        request: HttpRequest | None = None,
+        prefix: str | None = None,
+    ) -> None:
+        # Default to showing only non-archived genetic projects if not specified
+        if data is None:
+            data = {}
+        if "is_archived" not in data:
+            data = {**data, "is_archived": "false"}
+        super().__init__(data, queryset, request=request, prefix=prefix)
+        self.filters["project"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:project"
+        )
+        self.filters["area"].extra["widget"] = autocomplete.ModelSelect2(
+            url="autocomplete:area"
+        )
+        self.filters["species"].extra["widget"] = autocomplete.ModelSelect2Multiple(
+            url="autocomplete:species"
+        )
+        self.filters["sample_types"].extra["widget"] = (
+            autocomplete.ModelSelect2Multiple(url="autocomplete:sample-type")
+        )
+
+    class Meta:
+        model = Genrequest
+        fields = {
+            "project": ["exact"],
+            "name": ["istartswith"],
+            "area": ["exact"],
+            "species": ["exact"],
+            "sample_types": ["exact"],
+        }
 
 
 class ExtractionPlateFilter(filters.FilterSet):

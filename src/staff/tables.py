@@ -75,6 +75,11 @@ def get_staff_order_url(record: Order) -> str:
     return record.get_absolute_url()
 
 
+def get_staff_genrequest_url(record: Genrequest) -> str:
+    """Get the staff detail URL for a genetic project (genrequest)."""
+    return reverse("staff:genrequests-detail", kwargs={"pk": record.pk})
+
+
 class ProjectOrderTable(OrderStatusMixinTable, PriorityMixinTable):
     """Order table for project detail page with staff URL links."""
 
@@ -141,7 +146,9 @@ class ProjectOrderTable(OrderStatusMixinTable, PriorityMixinTable):
 class ProjectGenrequestTable(tables.Table):
     """Genrequest table for project detail page."""
 
-    id = tables.Column(linkify=True, orderable=False, empty_values=())
+    id = tables.Column(
+        linkify=get_staff_genrequest_url, orderable=False, empty_values=()
+    )
     is_archived = tables.Column(verbose_name="Status", orderable=False)
 
     class Meta:
@@ -160,6 +167,46 @@ class ProjectGenrequestTable(tables.Table):
             "id",
             "name",
             "is_archived",
+        )
+        empty_text = "No genetic projects"
+
+    def render_id(self, record: Genrequest) -> str:
+        return record.display_id()
+
+    def render_is_archived(self, value: bool) -> str:
+        return "Archived" if value else "Active"
+
+
+class GenrequestTable(tables.Table):
+    """Genetic project table for the staff genetic projects list page."""
+
+    id = tables.Column(
+        linkify=get_staff_genrequest_url, orderable=False, empty_values=()
+    )
+    project = tables.Column(
+        linkify=("staff:projects-detail", {"pk": tables.A("project__number")}),
+        orderable=True,
+    )
+    is_archived = tables.Column(verbose_name="Status", orderable=False)
+
+    class Meta:
+        model = Genrequest
+        fields = (
+            "name",
+            "is_archived",
+            "project",
+            "area",
+            "species",
+            "sample_types",
+            "expected_total_samples",
+            "expected_samples_delivery_date",
+            "expected_analysis_delivery_date",
+        )
+        sequence = (
+            "id",
+            "name",
+            "is_archived",
+            "project",
         )
         empty_text = "No genetic projects"
 
@@ -210,6 +257,39 @@ class OrderTable(OrderStatusMixinTable, PriorityMixinTable):
             "status",
             "area",
             "description",
+            "species",
+            "total_samples",
+            "responsible_staff",
+        )
+        empty_text = "No Orders"
+        order_by = ("-priority", "status")
+
+
+class GenrequestOrderTable(OrderTable):
+    """Order table for the genetic project (genrequest) detail page.
+
+    Drops the `area`/`description` columns, which are derived from the
+    genrequest itself and therefore redundant when already scoped to one.
+    """
+
+    id = tables.Column(
+        linkify=get_staff_order_url,
+        orderable=False,
+        empty_values=(),
+        verbose_name="Order ID",
+    )
+
+    total_samples = tables.Column(
+        verbose_name="Total Samples",
+        orderable=False,
+        default=0,
+    )
+
+    class Meta:
+        fields = (
+            "priority",
+            "id",
+            "status",
             "species",
             "total_samples",
             "responsible_staff",

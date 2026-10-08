@@ -955,11 +955,10 @@ class Sample(AdminUrlsMixin, models.Model):
         It is the responsibility of the caller to ensure that this is the case.
 
         Format: {pop_id_segment}_{year_segment}_{genlab_id_segment}
-        Example: if pop_id is 'Melfjord', year is 2026 and genlab_id strips
-        down to '01413', returns 'MELFJ_26_01413'
+        Example: if pop_id is 'MELFJ' and genlab_id strips down to '01413'
+        with year '26', returns 'MELFJ_26_01413'
         """
-        species_code = self.species.code if self.species else None
-        return miljodna_id(self.pop_id, self.year, self.genlab_id, species_code)
+        return miljodna_id(self.pop_id, self.genlab_id)
 
     @property
     def status(self) -> str:

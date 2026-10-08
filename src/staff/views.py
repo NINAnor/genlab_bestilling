@@ -1256,7 +1256,7 @@ class ExtractionPlateListView(
         return (
             ExtractionPlate.objects.select_related()
             .with_sample_species()
-            .annotate(sample_count=Count("positions__sample_raw", distinct=True))
+            .with_position_counts()
             .distinct()
         )
 

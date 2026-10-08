@@ -6,7 +6,15 @@ from typing import TYPE_CHECKING
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models, transaction
-from django.db.models import BigIntegerField, Case, Q, QuerySet, Value, When
+from django.db.models import (
+    BigIntegerField,
+    Case,
+    Count,
+    Q,
+    QuerySet,
+    Value,
+    When,
+)
 from django.db.models.functions import Cast, Coalesce
 from polymorphic.managers import PolymorphicManager, PolymorphicQuerySet
 
@@ -226,6 +234,18 @@ class ExtractionPlateQuerySet(PolymorphicQuerySet):
                 order_by="positions__sample_raw__species__name",
                 default=Value([], output_field=ArrayField(models.CharField())),
             )
+        )
+
+    def with_position_counts(self) -> QuerySet:
+        """
+        Annotate each plate with counts of its positions broken down by
+        status: filled with a sample, available (empty, unreserved), and
+        reserved (empty, held).
+        """
+        return self.annotate(
+            sample_count=Count("positions__sample_raw", distinct=True),
+            available_count=Count("positions", filter=Q(positions__is_full=False)),
+            reserved_count=Count("positions", filter=Q(positions__is_reserved=True)),
         )
 
 

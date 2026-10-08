@@ -1138,3 +1138,32 @@ def test_analysis_plate_clone_does_not_copy_result_file(genlab_setup):
 
     # Clean up
     plate.result_file.delete()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_extraction_plate_with_position_counts(extraction):
+    """Test that with_position_counts annotates sample/available/reserved counts."""
+    plate = ExtractionPlate.objects.create()
+
+    samples = list(extraction.samples.all())
+    assert len(samples) >= 1
+
+    # Plates are created with all 96 positions pre-populated (empty/available).
+    positions = plate.positions.order_by("position")
+    assert positions.count() == 96
+
+    # Fill one position with a sample.
+    filled = positions[0]
+    filled.sample_raw = samples[0]
+    filled.save()
+
+    # Reserve one position (empty but held).
+    reserved = positions[1]
+    reserved.is_reserved = True
+    reserved.save()
+
+    annotated = ExtractionPlate.objects.with_position_counts().get(pk=plate.pk)
+
+    assert annotated.sample_count == 1
+    assert annotated.reserved_count == 1
+    assert annotated.available_count == 94

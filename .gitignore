@@ -346,3 +346,4 @@ site/
 .pnpm-store/
 
 oidc.key
+docker-compose.override.yml

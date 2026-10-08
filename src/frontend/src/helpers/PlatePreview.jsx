@@ -39,6 +39,20 @@ function getAnalysisSampleLabel(position, sampleDisplayMode = 'genlab_id') {
       position.sample_marker.sample_name
     );
   }
+  if (sampleDisplayMode === 'bird_id') {
+    return (
+      position.sample_marker.sample_bird_id ??
+      position.sample_marker.sample_genlab_id ??
+      position.sample_marker.sample_name
+    );
+  }
+  if (sampleDisplayMode === 'miljodna_id') {
+    return (
+      position.sample_marker.sample_miljodna_id ??
+      position.sample_marker.sample_genlab_id ??
+      position.sample_marker.sample_name
+    );
+  }
   if (sampleDisplayMode === 'sample_name') {
     return (
       position.sample_marker.sample_name ??
@@ -301,7 +315,13 @@ Well.propTypes = {
   onDrop: PropTypes.func,
   isDragging: PropTypes.bool,
   isDragOver: PropTypes.bool,
-  sampleDisplayMode: PropTypes.oneOf(['genlab_id', 'fish_id', 'sample_name']),
+  sampleDisplayMode: PropTypes.oneOf([
+    'genlab_id',
+    'fish_id',
+    'bird_id',
+    'miljodna_id',
+    'sample_name',
+  ]),
   isHighlighted: PropTypes.bool,
   isFullscreen: PropTypes.bool,
 };
@@ -534,7 +554,13 @@ PlatePreview.propTypes = {
   isLoading: PropTypes.bool,
   onPositionClick: PropTypes.func,
   onPositionMove: PropTypes.func,
-  sampleDisplayMode: PropTypes.oneOf(['genlab_id', 'fish_id', 'sample_name']),
+  sampleDisplayMode: PropTypes.oneOf([
+    'genlab_id',
+    'fish_id',
+    'bird_id',
+    'miljodna_id',
+    'sample_name',
+  ]),
   highlightOrderId: PropTypes.number,
   isFullscreen: PropTypes.bool,
 };

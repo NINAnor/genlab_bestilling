@@ -163,6 +163,8 @@ function OrderApp() {
                 >
                   <option value="genlab_id">Genlab ID</option>
                   <option value="fish_id">Fish ID</option>
+                  <option value="bird_id">Bird ID</option>
+                  <option value="miljodna_id">MiljøDNA ID</option>
                   <option value="sample_name">Sample name</option>
                 </select>
               </label>

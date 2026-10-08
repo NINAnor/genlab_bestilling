@@ -28,6 +28,12 @@ function getDisplayValue(row, sampleDisplayMode) {
   if (sampleDisplayMode === 'fish_id') {
     return row.sample_fish_id ?? row.sample_genlab_id ?? row.sample_name;
   }
+  if (sampleDisplayMode === 'bird_id') {
+    return row.sample_bird_id ?? row.sample_genlab_id ?? row.sample_name;
+  }
+  if (sampleDisplayMode === 'miljodna_id') {
+    return row.sample_miljodna_id ?? row.sample_genlab_id ?? row.sample_name;
+  }
   if (sampleDisplayMode === 'sample_name') {
     return row.sample_name ?? row.sample_genlab_id ?? row.sample_fish_id;
   }

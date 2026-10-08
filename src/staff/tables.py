@@ -1112,6 +1112,18 @@ class ExtractionPlateTable(tables.Table):
         empty_values=(),
     )
 
+    available_count = tables.Column(
+        verbose_name="Available",
+        orderable=False,
+        empty_values=(),
+    )
+
+    reserved_count = tables.Column(
+        verbose_name="Reserved",
+        orderable=False,
+        empty_values=(),
+    )
+
     actions = tables.TemplateColumn(
         template_name="staff/components/extraction_plate_actions.html",
         verbose_name="Actions",
@@ -1121,7 +1133,14 @@ class ExtractionPlateTable(tables.Table):
 
     class Meta:
         model = ExtractionPlate
-        fields = ["qiagen_id", "species", "created_at", "sample_count"]
+        fields = [
+            "qiagen_id",
+            "species",
+            "created_at",
+            "sample_count",
+            "available_count",
+            "reserved_count",
+        ]
         empty_text = "No extraction plates found"
         template_name = "staff/tables/cursor_table.html"
 

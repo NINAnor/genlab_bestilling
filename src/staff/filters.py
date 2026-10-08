@@ -884,6 +884,11 @@ class ExtractionPlateFilter(filters.FilterSet):
         ),
     )
 
+    positions__sample_raw__year = NumberFilter(
+        label="Year",
+        widget=forms.NumberInput(attrs={"placeholder": "Enter year"}),
+    )
+
     def filter_sample_search(
         self, queryset: QuerySet, name: str, value: str
     ) -> QuerySet:
@@ -928,6 +933,7 @@ class ExtractionPlateFilter(filters.FilterSet):
             "positions__sample_raw__species",
             "positions__sample_raw__type",
             "positions__sample_raw__order",
+            "positions__sample_raw__year",
         ]
 
 

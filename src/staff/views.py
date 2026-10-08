@@ -1249,6 +1249,7 @@ class ExtractionPlateListView(
         "id": ("id",),
         "qiagen_id": ("qiagen_id",),
         "created_at": ("created_at",),
+        "year": ("positions__sample_raw__year",),
     }
     default_order_by = ("-created_at",)
 

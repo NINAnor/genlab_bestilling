@@ -31,6 +31,22 @@ function getCellText(position, plateType, extractionLabelMode) {
         ''
       );
     }
+    if (extractionLabelMode === 'bird_id') {
+      return (
+        position.sample_raw.bird_id ??
+        position.sample_raw.genlab_id ??
+        position.sample_raw.name ??
+        ''
+      );
+    }
+    if (extractionLabelMode === 'miljodna_id') {
+      return (
+        position.sample_raw.miljodna_id ??
+        position.sample_raw.genlab_id ??
+        position.sample_raw.name ??
+        ''
+      );
+    }
     if (extractionLabelMode === 'sample_name') {
       return position.sample_raw.name ?? position.sample_raw.genlab_id ?? '';
     }

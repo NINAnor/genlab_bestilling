@@ -25,9 +25,19 @@ function getFilledLabel(position, plateType, extractionLabelMode = 'genlab_id') 
           position.sample_raw.genlab_id ??
           position.sample_raw.name ??
           'Sample')
-        : extractionLabelMode === 'sample_name'
-          ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
-          : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
+        : extractionLabelMode === 'bird_id'
+          ? (position.sample_raw.bird_id ??
+            position.sample_raw.genlab_id ??
+            position.sample_raw.name ??
+            'Sample')
+          : extractionLabelMode === 'miljodna_id'
+            ? (position.sample_raw.miljodna_id ??
+              position.sample_raw.genlab_id ??
+              position.sample_raw.name ??
+              'Sample')
+            : extractionLabelMode === 'sample_name'
+              ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
+              : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
     const orderLabel = position.sample_raw.order_id;
     return { mainLabel, orderLabel };
   }
@@ -51,9 +61,19 @@ function getTooltip(position, coordinate, status, plateType, extractionLabelMode
             position.sample_raw.genlab_id ??
             position.sample_raw.name ??
             'Sample')
-          : extractionLabelMode === 'sample_name'
-            ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
-            : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
+          : extractionLabelMode === 'bird_id'
+            ? (position.sample_raw.bird_id ??
+              position.sample_raw.genlab_id ??
+              position.sample_raw.name ??
+              'Sample')
+            : extractionLabelMode === 'miljodna_id'
+              ? (position.sample_raw.miljodna_id ??
+                position.sample_raw.genlab_id ??
+                position.sample_raw.name ??
+                'Sample')
+              : extractionLabelMode === 'sample_name'
+                ? (position.sample_raw.name ?? position.sample_raw.genlab_id ?? 'Sample')
+                : (position.sample_raw.genlab_id ?? position.sample_raw.name ?? 'Sample');
       const order = position.sample_raw.order_id;
       base = order ? `${coordinate} — ${id} [#${order}]` : `${coordinate} — ${id}`;
     } else if (plateType === 'analysis' && position.sample_marker) {
@@ -183,5 +203,11 @@ Well.propTypes = {
   selected: PropTypes.bool,
   onClick: PropTypes.func,
   isFullscreen: PropTypes.bool,
-  extractionLabelMode: PropTypes.oneOf(['genlab_id', 'sample_name', 'fish_id']),
+  extractionLabelMode: PropTypes.oneOf([
+    'genlab_id',
+    'sample_name',
+    'fish_id',
+    'bird_id',
+    'miljodna_id',
+  ]),
 };

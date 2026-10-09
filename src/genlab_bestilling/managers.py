@@ -325,8 +325,15 @@ class SampleAnalysisMarkerQuerySet(models.QuerySet):
         ).distinct()
 
     def filter_status_invalid(self) -> QuerySet:
-        """Filter sample markers with at least one invalid position."""
-        return self.filter(positions__is_invalid=True).distinct()
+        """Filter sample markers with at least one invalid position,
+        excluding markers whose order is already completed."""
+        from .models import Order  # noqa: PLC0415 (avoids circular import)
+
+        return (
+            self.filter(positions__is_invalid=True)
+            .exclude(order__status=Order.OrderStatus.COMPLETED)
+            .distinct()
+        )
 
     def filter_by_status(self, status: str | AnalysisStatus) -> QuerySet:
         """Filter by analysis status.

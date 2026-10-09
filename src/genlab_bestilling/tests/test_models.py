@@ -1167,3 +1167,53 @@ def test_extraction_plate_with_position_counts(extraction):
     assert annotated.sample_count == 1
     assert annotated.reserved_count == 1
     assert annotated.available_count == 94
+
+
+@pytest.mark.django_db(transaction=True)
+def test_filter_status_invalid_excludes_completed_order(analysis_order_with_markers):
+    """Invalid markers on a COMPLETED order are excluded from filter_status_invalid."""
+    order = analysis_order_with_markers
+    plate = AnalysisPlate.objects.create()
+    sample_marker = order.sample_markers.first()
+
+    position = plate.positions.first()
+    position.sample_marker = sample_marker
+    position.is_invalid = True
+    position.save()
+
+    order.status = order.OrderStatus.COMPLETED
+    order.save()
+
+    assert (
+        not SampleMarkerAnalysis.objects.filter_status_invalid()
+        .filter(pk=sample_marker.pk)
+        .exists()
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize(
+    "status",
+    ["processing", "delivered"],
+)
+def test_filter_status_invalid_includes_open_orders(
+    analysis_order_with_markers, status
+):
+    """Invalid markers on PROCESSING/DELIVERED orders are still included."""
+    order = analysis_order_with_markers
+    plate = AnalysisPlate.objects.create()
+    sample_marker = order.sample_markers.first()
+
+    position = plate.positions.first()
+    position.sample_marker = sample_marker
+    position.is_invalid = True
+    position.save()
+
+    order.status = status
+    order.save()
+
+    assert (
+        SampleMarkerAnalysis.objects.filter_status_invalid()
+        .filter(pk=sample_marker.pk)
+        .exists()
+    )

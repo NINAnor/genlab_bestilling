@@ -1170,6 +1170,49 @@ def test_extraction_plate_with_position_counts(extraction):
 
 
 @pytest.mark.django_db(transaction=True)
+def test_extraction_plate_with_position_counts_survives_related_filter(extraction):
+    """with_position_counts() must not be inflated by join fan-out.
+
+    Filtering on a to-many relation path (plate -> positions -> sample_raw),
+    the way ExtractionPlateFilter's positions__sample_raw__species filter
+    does, adds its own JOIN restricted to the matching rows. When more than
+    one position on the plate matches that filter, the base JOIN powering
+    the Count() annotations gets duplicated once per matching row, pushing
+    available_count/reserved_count above the plate's true 96-position
+    capacity.
+    """
+    plate = ExtractionPlate.objects.create()
+
+    samples = list(extraction.samples.all())
+    assert len(samples) >= 2
+    same_species_samples = [s for s in samples if s.species_id == samples[0].species_id]
+    assert len(same_species_samples) >= 2, "fixture must provide same-species samples"
+
+    positions = plate.positions.order_by("position")
+    assert positions.count() == 96
+
+    # Fill two positions with samples sharing the same species, so the
+    # positions__sample_raw__species filter matches more than one position.
+    for position, sample in zip(positions, same_species_samples[:2], strict=False):
+        position.sample_raw = sample
+        position.save()
+
+    reserved = positions[2]
+    reserved.is_reserved = True
+    reserved.save()
+
+    annotated = (
+        ExtractionPlate.objects.with_position_counts()
+        .filter(positions__sample_raw__species=same_species_samples[0].species_id)
+        .get(pk=plate.pk)
+    )
+
+    assert annotated.sample_count == 2
+    assert annotated.reserved_count == 1
+    assert annotated.available_count == 93
+
+
+@pytest.mark.django_db(transaction=True)
 def test_filter_status_invalid_excludes_completed_order(analysis_order_with_markers):
     """Invalid markers on a COMPLETED order are excluded from filter_status_invalid."""
     order = analysis_order_with_markers

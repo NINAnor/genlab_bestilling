@@ -10,8 +10,11 @@ from django.db.models import (
     BigIntegerField,
     Case,
     Count,
+    IntegerField,
+    OuterRef,
     Q,
     QuerySet,
+    Subquery,
     Value,
     When,
 )
@@ -241,11 +244,46 @@ class ExtractionPlateQuerySet(PolymorphicQuerySet):
         Annotate each plate with counts of its positions broken down by
         status: filled with a sample, available (empty, unreserved), and
         reserved (empty, held).
+
+        available_count/reserved_count are computed via a correlated
+        Subquery (rather than ``Count(..., filter=...)`` on a joined
+        relation) so they aren't affected by join fan-out when callers
+        additionally `.filter()` on `positions__sample_raw__*` paths (as
+        ExtractionPlateFilter does, one separate `.filter()` call per
+        field). Each extra `.filter()` call on a to-many relation adds its
+        own JOIN; combining that with a `Count()` annotation sharing the
+        same relation multiplies the row set under `GROUP BY`, inflating
+        the counts past the plate's true 96-position capacity. A
+        Subquery/OuterRef count is correlated per-plate and entirely
+        decoupled from whatever joins the outer queryset's filters add.
         """
+        from .models import PlatePosition  # noqa: PLC0415 (avoid circular import)
+
+        available_subquery = (
+            PlatePosition.objects.filter(plate_id=OuterRef("pk"), is_full=False)
+            .order_by()
+            .values("plate_id")
+            .annotate(count=Count("id"))
+            .values("count")
+        )
+        reserved_subquery = (
+            PlatePosition.objects.filter(plate_id=OuterRef("pk"), is_reserved=True)
+            .order_by()
+            .values("plate_id")
+            .annotate(count=Count("id"))
+            .values("count")
+        )
+
         return self.annotate(
             sample_count=Count("positions__sample_raw", distinct=True),
-            available_count=Count("positions", filter=Q(positions__is_full=False)),
-            reserved_count=Count("positions", filter=Q(positions__is_reserved=True)),
+            available_count=Coalesce(
+                Subquery(available_subquery, output_field=IntegerField()),
+                Value(0),
+            ),
+            reserved_count=Coalesce(
+                Subquery(reserved_subquery, output_field=IntegerField()),
+                Value(0),
+            ),
         )
 
 

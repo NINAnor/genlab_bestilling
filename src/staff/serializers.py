@@ -50,6 +50,7 @@ class SampleSerializer(serializers.ModelSerializer):
         source="location.code", read_only=True, default=None
     )
     fish_id = serializers.SerializerMethodField()
+    bird_id = serializers.SerializerMethodField()
     miljodna_id = serializers.SerializerMethodField()
     order_id = serializers.PrimaryKeyRelatedField(source="order", read_only=True)
 
@@ -59,6 +60,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "id",
             "genlab_id",
             "fish_id",
+            "bird_id",
             "miljodna_id",
             "name",
             "species",
@@ -80,6 +82,9 @@ class SampleSerializer(serializers.ModelSerializer):
 
     def get_fish_id(self, obj: Sample) -> str | None:
         return obj.fish_id
+
+    def get_bird_id(self, obj: Sample) -> str | None:
+        return obj.bird_id
 
     def get_miljodna_id(self, obj: Sample) -> str | None:
         return obj.miljodna_id

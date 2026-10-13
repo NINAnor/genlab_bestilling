@@ -99,6 +99,12 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
     sample_fish_id = serializers.CharField(
         source="sample.fish_id", read_only=True, default=None
     )
+    sample_bird_id = serializers.CharField(
+        source="sample.bird_id", read_only=True, default=None
+    )
+    sample_miljodna_id = serializers.CharField(
+        source="sample.miljodna_id", read_only=True, default=None
+    )
     sample_name = serializers.CharField(
         source="sample.name", read_only=True, default=None
     )
@@ -117,6 +123,8 @@ class SampleMarkerSerializer(serializers.ModelSerializer):
             "sample",
             "sample_genlab_id",
             "sample_fish_id",
+            "sample_bird_id",
+            "sample_miljodna_id",
             "sample_name",
             "sample_species_name",
             "marker",
@@ -270,6 +278,12 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
     sample_fish_id = serializers.CharField(
         source="sample.fish_id", read_only=True, default=None
     )
+    sample_bird_id = serializers.CharField(
+        source="sample.bird_id", read_only=True, default=None
+    )
+    sample_miljodna_id = serializers.CharField(
+        source="sample.miljodna_id", read_only=True, default=None
+    )
     sample_name = serializers.CharField(
         source="sample.name", read_only=True, default=None
     )
@@ -309,6 +323,8 @@ class OrderSampleMarkerSerializer(serializers.ModelSerializer):
             "sample",
             "sample_genlab_id",
             "sample_fish_id",
+            "sample_bird_id",
+            "sample_miljodna_id",
             "sample_name",
             "sample_species_id",
             "sample_species_name",

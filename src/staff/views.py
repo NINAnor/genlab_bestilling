@@ -1254,11 +1254,37 @@ class ExtractionPlateListView(
     default_order_by = ("-created_at",)
 
     def get_queryset(self) -> QuerySet[ExtractionPlate]:
+        # Deliberately unannotated: this queryset is what `ExtractionPlateFilter`
+        # filters against. Each `positions__sample_raw__*` field is applied by
+        # django-filter as its own separate `.filter()` call, so each adds its
+        # own JOIN on the `positions`/`sample_raw` relation. See
+        # `get_table_data()` for why annotations must not be attached here.
+        return ExtractionPlate.objects.select_related()
+
+    def get_table_data(self) -> QuerySet[ExtractionPlate]:
+        """Annotate only the already-filtered plates, not the filterable queryset.
+
+        `with_sample_species()` and `with_position_counts()` both force a
+        `GROUP BY plate.id` (via `ArrayAgg`/`Count`/`Subquery`). If those
+        annotations shared the `positions`/`sample_raw` relation with the
+        filterset's per-field `.filter()` calls (as they did when attached in
+        `get_queryset()`), combining two or more `positions__sample_raw__*`
+        filters multiplied matching rows before the `GROUP BY` - inflating
+        counts for fan-out-prone annotations and, even once a given
+        annotation is fan-out-safe, still slowing the query down enough to
+        time out at real data volumes (multiple joins stacked on top of each
+        other). Resolving the matching plate PKs first via `self.object_list`
+        (populated by `FilterView` from the plain queryset above) and
+        re-querying from a clean `ExtractionPlate` queryset guarantees the
+        annotation joins never combine with filter joins, regardless of how
+        many filter fields are active at once.
+        """
+        matching_ids = self.object_list.values("pk")
         return (
-            ExtractionPlate.objects.select_related()
+            ExtractionPlate.objects.filter(pk__in=matching_ids)
+            .select_related()
             .with_sample_species()
             .with_position_counts()
-            .distinct()
         )
 
 

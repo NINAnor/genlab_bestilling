@@ -687,11 +687,11 @@ def test_replicate_creates_analysis_markers_for_incomplete_orders(genlab_setup):
             order=completed_analysis,
         ).count()
 
-        # Should have created markers for draft and delivered orders
+        # Should have created markers for draft, delivered, and processing orders
         expected_markers_per_replica = extraction.genrequest.markers.count()
         assert draft_markers_count == 2 * expected_markers_per_replica
         assert delivered_markers_count == 2 * expected_markers_per_replica
-        assert processing_markers_count == 0
+        assert processing_markers_count == 2 * expected_markers_per_replica
         assert completed_markers_count == 0
 
         # Verify the created analysis markers have proper initial values

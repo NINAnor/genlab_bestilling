@@ -1059,6 +1059,7 @@ class Sample(AdminUrlsMixin, models.Model):
                 order__status__in=[
                     Order.OrderStatus.DELIVERED,
                     Order.OrderStatus.DRAFT,
+                    Order.OrderStatus.PROCESSING,
                 ],
             )
         )

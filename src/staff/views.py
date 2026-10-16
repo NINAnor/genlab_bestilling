@@ -1278,6 +1278,12 @@ class ExtractionPlateListView(
         re-querying from a clean `ExtractionPlate` queryset guarantees the
         annotation joins never combine with filter joins, regardless of how
         many filter fields are active at once.
+
+        Kept for `SingleTableMixin`'s own contract (and any other code path
+        that may call it directly); the cursor-paginated flow itself goes
+        through `get_pagination_queryset()`/`get_page_data()` below so these
+        expensive annotations only run for the rows on the current page
+        instead of every matching plate.
         """
         matching_ids = self.object_list.values("pk")
         return (
@@ -1286,6 +1292,30 @@ class ExtractionPlateListView(
             .with_sample_species()
             .with_position_counts()
         )
+
+    def get_pagination_queryset(self) -> QuerySet[ExtractionPlate]:
+        """Lean queryset for ordering/seeking only.
+
+        No joins/`GROUP BY`, so ordering and seeking stays cheap regardless
+        of total plate/position/sample volume. The expensive
+        `with_sample_species()`/`with_position_counts()` annotations are
+        deferred to `get_page_data()`, run only for the current page's rows.
+        """
+        matching_ids = self.object_list.values("pk")
+        return ExtractionPlate.objects.filter(pk__in=matching_ids).only(
+            "id", "created_at", "qiagen_id"
+        )
+
+    def get_page_data(self, rows: list[ExtractionPlate]) -> list[ExtractionPlate]:
+        pks = [row.pk for row in rows]
+        annotated = {
+            obj.pk: obj
+            for obj in ExtractionPlate.objects.filter(pk__in=pks)
+            .select_related()
+            .with_sample_species()
+            .with_position_counts()
+        }
+        return [annotated[pk] for pk in pks if pk in annotated]
 
 
 class ExtractionPlateDetailView(StaffMixin, DetailView):

@@ -244,10 +244,30 @@ class CursorPaginatedTableMixin:
 
         return query_fields, aliases
 
+    def get_pagination_queryset(self) -> QuerySet:
+        """Queryset used for ordering/seeking only.
+
+        Defaults to `get_table_data()` (today's behavior) - override when
+        that queryset is expensive to compute per-row (e.g. heavy
+        annotations requiring a `GROUP BY`) and should only be run for the
+        rows actually displayed on the current page. Pair with
+        `get_page_data()` to re-attach those annotations afterwards.
+        """
+        return self.get_table_data()
+
+    def get_page_data(self, rows: list) -> list:
+        """Post-process a paginated page of rows.
+
+        Identity by default. Override alongside `get_pagination_queryset()`
+        to re-fetch/annotate just the rows in `rows` (e.g. with heavier
+        annotations deferred out of the seek query).
+        """
+        return rows
+
     def get_table(self, **kwargs) -> Any:
         table_class = self.get_table_class()
         query_fields, table_order_by = self._resolve_ordering()
-        queryset = self.get_table_data().order_by(*query_fields)
+        queryset = self.get_pagination_queryset().order_by(*query_fields)
 
         cursor = self.request.GET.get(self.cursor_param)
         page = paginate_queryset(
@@ -256,6 +276,7 @@ class CursorPaginatedTableMixin:
             cursor=cursor,
             tiebreaker=self.tiebreaker_field,
         )
+        page.object_list = self.get_page_data(page.object_list)
 
         table = table_class(data=page.object_list, **kwargs)
         table.request = self.request

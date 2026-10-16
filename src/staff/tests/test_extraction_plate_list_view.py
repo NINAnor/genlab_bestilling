@@ -115,3 +115,51 @@ def test_extraction_plate_list_view_table_data_does_not_duplicate_joins(extracti
         f"query contains duplicated joins from combining filters with "
         f"annotations: {sql}"
     )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_extraction_plate_list_view_pagination_queryset_does_not_duplicate_joins(
+    extraction,
+):
+    """Same guarantee as above, but for the lean seek queryset used by
+    `CursorPaginatedTableMixin.get_table()` (`get_pagination_queryset()`).
+    """
+    _create_plate_matching_both_filters(extraction)
+
+    view = ExtractionPlateListView()
+    view.object_list = ExtractionPlateFilter(
+        data={
+            "positions__sample_raw__species": extraction.samples.first().species_id,
+            "positions__sample_raw__year": extraction.samples.first().year,
+        },
+        queryset=view.get_queryset(),
+    ).qs
+
+    sql = str(view.get_pagination_queryset().query)
+
+    assert not re.search(r'"T\d+"', sql), (
+        f"query contains duplicated joins from combining filters with "
+        f"annotations: {sql}"
+    )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_extraction_plate_list_view_pagination_queryset_has_no_group_by_or_joins(
+    extraction,
+):
+    """The seek/ordering queryset must stay cheap: no `GROUP BY` and no join
+    to `positions`/`sample_raw`/`species`, regardless of total plate size -
+    the expensive annotations belong only in `get_page_data()`, applied to
+    the current page's rows.
+    """
+    _create_plate_matching_both_filters(extraction)
+
+    view = ExtractionPlateListView()
+    view.object_list = view.get_queryset()
+
+    sql = str(view.get_pagination_queryset().query)
+
+    assert "GROUP BY" not in sql
+    assert "genlab_bestilling_plateposition" not in sql
+    assert "genlab_bestilling_sample" not in sql
+    assert "genlab_bestilling_species" not in sql

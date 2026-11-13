@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
 from genlab_bestilling.models import (
@@ -32,6 +33,7 @@ class PositiveControlSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "description")
 
 
+@extend_schema_serializer(component_name="PlatePositionSample")
 class SampleSerializer(serializers.ModelSerializer):
     """Serializer for sample information in plate positions."""
 

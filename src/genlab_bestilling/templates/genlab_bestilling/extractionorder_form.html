@@ -17,5 +17,13 @@
       <a class="btn btn-tertiary" href="{% url 'genrequest-order-list' genrequest_id=view.kwargs.genrequest_id %}"><i class="fas fa-arrow-left"></i> Back</a>
     {% endif %}
   </div>
+  {% if not object.id and BIOSAFETY_PROCEDURE_URL %}
+    <div class="px-4 alert alert-warning mb-4" x-data="{ show: true }" x-show="show">
+      <div class="flex items-start justify-between gap-4">
+        <p>Please review the biosafety procedures before submitting this order. <a class="underline" href="{{ BIOSAFETY_PROCEDURE_URL }}" target="_blank" rel="noopener noreferrer">Open procedure</a></p>
+        <button class="btn btn-sm btn-tertiary" type="button" aria-label="Dismiss biosafety reminder" x-on:click="show = false">Dismiss</button>
+      </div>
+    </div>
+  {% endif %}
   {% formset endpoint=request.path csrf_token=csrf_token form=form %}
 {% endblock %}

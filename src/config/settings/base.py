@@ -532,6 +532,8 @@ CORS_ALLOW_CREDENTIALS = True
 ###########################################
 #             Uncategorized
 ###########################################
+BIOSAFETY_PROCEDURE_URL = env("BIOSAFETY_PROCEDURE_URL", default="")
+
 TAILWIND_APP_NAME = "theme"
 NPM_BIN_PATH = env("NPM_BIN_PATH", default="npm")
 

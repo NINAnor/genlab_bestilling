@@ -8,4 +8,5 @@ def context_settings(request: HttpRequest) -> dict[str, Any]:
     return {
         "PROJECT_NAME": settings.PROJECT_NAME,
         "DEPLOYMENT_ENV": settings.DEPLOYMENT_ENV,
+        "BIOSAFETY_PROCEDURE_URL": settings.BIOSAFETY_PROCEDURE_URL,
     }

@@ -203,6 +203,12 @@ class LocationType(AdminUrlsMixin, models.Model):
 
 class Location(AdminUrlsMixin, models.Model):
     name = models.CharField(max_length=250)
+    external_id = models.CharField(
+        max_length=250,
+        null=True,
+        blank=True,
+        unique=True,
+    )
     types = models.ManyToManyField(
         f"{an}.LocationType",
         blank=True,

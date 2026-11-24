@@ -54,7 +54,7 @@ class LocationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ("id", "name")
+        fields = ("id", "name", "external_id")
 
     def get_name(self, obj: Location) -> str:
         return str(obj)
@@ -69,7 +69,7 @@ class LocationCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Location
-        fields = ("id", "name", "species")
+        fields = ("id", "name", "external_id", "species")
 
     def create(self, validated_data: dict) -> Location:
         species = validated_data.pop("species", None)

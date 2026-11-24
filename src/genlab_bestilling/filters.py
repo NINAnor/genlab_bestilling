@@ -294,7 +294,10 @@ class LocationFilter(filters.FilterSet):
 
     class Meta:
         model = Location
-        fields = {"name": ["icontains"]}
+        fields = {
+            "external_id": ["exact", "startswith"],
+            "name": ["icontains"],
+        }
 
 
 class SampleMarkerOrderFilter(filters.FilterSet):

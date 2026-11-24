@@ -782,11 +782,16 @@ class SampleLabView(
             samples.filter(**{field_name: False}).values_list("id", flat=True)
         )
 
-        Sample.objects.filter(id__in=samples_to_turn_off_ids).update(
-            **{field_name: False}
-        )
+        turn_off_updates: dict[str, Any] = {field_name: False}
+        if status_name == self.ISOLATED:
+            turn_off_updates["isolated_at"] = None
+        Sample.objects.filter(id__in=samples_to_turn_off_ids).update(**turn_off_updates)
 
-        update_dict = {f"is_{status}": True for status in statuses_to_turn_on}
+        update_dict: dict[str, Any] = {
+            f"is_{status}": True for status in statuses_to_turn_on
+        }
+        if status_name == self.ISOLATED:
+            update_dict["isolated_at"] = now()
         Sample.objects.filter(id__in=samples_to_turn_on_ids).update(**update_dict)
 
         messages.success(request, "Samples updated successfully")

@@ -855,6 +855,7 @@ class Sample(AdminUrlsMixin, models.Model):
     is_marked = models.BooleanField(default=False)
     is_plucked = models.BooleanField(default=False)
     is_isolated = models.BooleanField(default=False)
+    isolated_at = models.DateTimeField(null=True, blank=True, editable=False)
     is_invalid = models.BooleanField(default=False)
 
     # "Merknad" in the Excel sheet.
@@ -1070,6 +1071,7 @@ class Sample(AdminUrlsMixin, models.Model):
             s.genlab_id = sequence.next_value()
             s.parent = self
             s.is_isolated = False
+            s.isolated_at = None
             s.is_marked = False
             s.is_plucked = False
             s.internal_note = ""
@@ -1454,10 +1456,11 @@ class ExtractionPlate(Plate):
 
     def deferred_isolate_all_samples(self) -> None:
         with transaction.atomic():
+            isolated_at = timezone.now()
             Sample.objects.filter(position__plate_id=self.pk).select_related(
                 "position"
-            ).update(is_isolated=True)
-            self.isolated_at = timezone.now()
+            ).update(is_isolated=True, isolated_at=isolated_at)
+            self.isolated_at = isolated_at
             self.save()
 
             for ext_order in (

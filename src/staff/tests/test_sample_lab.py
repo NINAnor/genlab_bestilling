@@ -130,3 +130,28 @@ def test_sample_lab_note_autosave_is_delegated_to_the_table_body(
 
     reloaded = Sample.objects.get(id=last_batch_sample_id)
     assert reloaded.internal_note == note_text
+
+
+@pytest.mark.django_db
+def test_isolated_status_sets_and_clears_timestamp(admin_client, extraction):
+    sample = extraction.samples.first()
+    assert sample is not None
+    url = reverse("staff:order-extraction-samples-lab", kwargs={"pk": extraction.pk})
+    payload = {
+        "status": "isolated",
+        f"checked-{extraction.pk}": [sample.pk],
+    }
+
+    response = admin_client.post(url, payload)
+
+    assert response.status_code == 302
+    sample.refresh_from_db()
+    assert sample.is_isolated
+    assert sample.isolated_at is not None
+
+    response = admin_client.post(url, payload)
+
+    assert response.status_code == 302
+    sample.refresh_from_db()
+    assert not sample.is_isolated
+    assert sample.isolated_at is None

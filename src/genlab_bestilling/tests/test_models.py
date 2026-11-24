@@ -473,6 +473,9 @@ def test_replicate_function_creates_replicas(extraction):
         sample = samples[0]  # Use first sample and check initial sequence state
         sample.generate_genlab_id()
         sample_genlab_id = sample.genlab_id
+        sample.is_isolated = True
+        sample.isolated_at = timezone.now()
+        sample.save(update_fields=["is_isolated", "isolated_at"])
         original_sample_count = Sample.objects.count()
 
         # Get the replication sequence to check its initial state
@@ -501,6 +504,7 @@ def test_replicate_function_creates_replicas(extraction):
 
             # Check that replicated samples have reset fields
             assert not replica_sample.is_isolated
+            assert replica_sample.isolated_at is None
             assert not replica_sample.is_marked
             assert not replica_sample.is_plucked
             assert replica_sample.internal_note == ""
@@ -773,6 +777,22 @@ def test_plate_get_grid_column_filling():
             expected_position = col * 8 + row
             assert grid[row][col]["index"] == expected_position
             assert grid[row][col]["coordinate"] == f"{'ABCDEFGH'[row]}{col + 1}"
+
+
+@pytest.mark.django_db
+def test_deferred_isolate_all_samples_sets_sample_isolation_timestamp(extraction):
+    sample = extraction.samples.first()
+    assert sample is not None
+    plate = ExtractionPlate.objects.create()
+    plate.populate([sample])
+
+    plate.deferred_isolate_all_samples()
+
+    sample.refresh_from_db()
+    plate.refresh_from_db()
+    assert sample.is_isolated
+    assert sample.isolated_at is not None
+    assert sample.isolated_at == plate.isolated_at
 
 
 @pytest.mark.django_db

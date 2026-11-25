@@ -64,6 +64,7 @@ from .serializers import (
     MarkerSerializer,
     OperationStatusSerializer,
     SampleBulkSerializer,
+    SampleCreateSerializer,
     SampleCSVSerializer,
     SampleMarkerAnalysisBulkDeleteSerializer,
     SampleMarkerAnalysisBulkSerializer,
@@ -187,6 +188,13 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
     pagination_class = IDCursorPagination
     permission_classes = [AllowSampleDraft, IsAuthenticated]
 
+    @extend_schema(
+        request=SampleCreateSerializer,
+        responses={201: SampleSerializer},
+    )
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        return super().create(request, *args, **kwargs)
+
     def get_queryset(self) -> QuerySet:
         return (
             super()
@@ -222,6 +230,8 @@ class SampleViewset(ModelViewSet, SampleCSVExportMixin):
             return SampleCSVSerializer
         if self.action == "labels-csv":
             return LabelCSVSerializer
+        if self.action == "create":
+            return SampleCreateSerializer
         if self.action in ["update", "partial_update"]:
             return SampleUpdateSerializer
         return super().get_serializer_class()

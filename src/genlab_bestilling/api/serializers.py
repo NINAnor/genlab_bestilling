@@ -112,6 +112,19 @@ class SampleSerializer(serializers.ModelSerializer):
         )
 
 
+class SampleCreateSerializer(SampleSerializer):
+    type = serializers.PrimaryKeyRelatedField(
+        queryset=SampleType.objects.all(), allow_null=True, required=False
+    )
+    species = serializers.PrimaryKeyRelatedField(queryset=Species.objects.all())
+    location = serializers.PrimaryKeyRelatedField(
+        queryset=Location.objects.all(), allow_null=True, required=False
+    )
+
+    def to_representation(self, instance: Sample) -> dict:
+        return SampleSerializer(instance, context=self.context).data
+
+
 class FlagField(serializers.Field):
     def to_representation(self, value: bool) -> str:
         return "x" if value else ""
